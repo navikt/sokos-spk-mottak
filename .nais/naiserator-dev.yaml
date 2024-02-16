@@ -44,6 +44,7 @@ spec:
         - application: azure-token-generator
           namespace: aura
           cluster: dev-gcp
+  webproxy: true
   env:
     - name: USE_AUTHENTICATION
       value: "true"
