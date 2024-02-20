@@ -5,11 +5,11 @@ gcloud auth print-identity-token &> /dev/null
 if [ $? -gt 0 ]; then
     gcloud auth login
 fi
-kubectl config use-context dev-gcp
+kubectl config use-context dev-fss
 kubectl config set-context --current --namespace=okonomi
 
 # Get AZURE system variables
-envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-spk-mottak | cut -f1 -d' ') -c sokos-spk-mottak -- env | egrep "^AZURE")
+envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-spk-mottak | cut -f1 -d' ') -c sokos-spk-mottak -- env | egrep "^AZURE|^SFTP")
 
 # Set AZURE as local environment variables
 rm -f defaults.properties
