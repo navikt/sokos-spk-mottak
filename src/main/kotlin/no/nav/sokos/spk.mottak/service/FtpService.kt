@@ -3,6 +3,7 @@ package no.nav.sokos.spk.mottak.service
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
+import com.jcraft.jsch.Slf4jLogger
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.logger
 
@@ -23,6 +24,7 @@ class FtpService(
     private lateinit var sftpChannel: ChannelSftp
 
     init {
+        JSch.setLogger(Slf4jLogger())
         connect()
     }
 
@@ -32,7 +34,6 @@ class FtpService(
             sftpChannel = session.openChannel("sftp") as ChannelSftp
             sftpChannel.connect()
         } catch (e: JSchException) {
-            println(e.stackTrace)
             logger.error("Feil i FTP oppkobling: ${e.message}")
 
         }
