@@ -48,4 +48,6 @@
 
     <logger name="no.nav.sokos.spk.mottak" level="INFO"/>
 
+    <logger name="com.jcraft.jsch" level="DEBUG" additivity="false"/>
+
 </configuration>
