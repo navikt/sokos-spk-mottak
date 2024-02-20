@@ -58,7 +58,7 @@ spec:
     - name: USE_AUTHENTICATION
       value: "true"
     - name: SFTP_SERVER
-      value: a30drvl022.preprod.local
+      value: b31apvl069.preprod.local
     - name: SFTP_PORT
       value: "22"
     - name: SFTP_PRIVATE_KEY_FILE_PATH
