@@ -49,9 +49,9 @@ spec:
     enabled: true
   filesFrom:
     - secret: spk-sftp-private-key
-      mountPath: /var/run/secrets
+      mountPath: /var/run/secrets/spk-sftp-private-key
     - secret: spk-sftp-host-key
-      mountPath: /var/run/secrets
+      mountPath: /var/run/secrets/spk-sftp-host-key
   envFrom:
     - secret: spk-sftp-creds
   env:
@@ -62,6 +62,6 @@ spec:
     - name: SFTP_PORT
       value: "22"
     - name: SFTP_PRIVATE_KEY_FILE_PATH
-      value: /var/run/secrets/spk-sftp-private-key
+      value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
     - name: SFTP_HOST_KEY_FILE_PATH
-      value: /var/run/secrets/spk-sftp-host-key
+      value: /var/run/secrets/spk-sftp-host-key/spk-sftp-host-key
