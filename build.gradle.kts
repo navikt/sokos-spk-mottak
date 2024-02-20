@@ -19,6 +19,7 @@ repositories {
 }
 
 val ktorVersion = "2.3.8"
+val jschVersion = "0.2.12"
 val logbackVersion = "1.4.14"
 val logstashVersion = "7.4"
 val jacksonVersion = "2.15.3"
@@ -61,6 +62,9 @@ dependencies {
     runtimeOnly("org.codehaus.janino:janino:$janionVersion")
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
+
+    // FTP
+    implementation("com.github.mwiede:jsch:$jschVersion")
 
     // Config
     implementation("com.natpryce:konfig:$natpryceVersion")

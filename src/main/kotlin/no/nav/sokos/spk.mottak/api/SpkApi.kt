@@ -6,14 +6,16 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
-import no.nav.sokos.spk.mottak.service.DummyService
+import no.nav.sokos.spk.mottak.service.FtpService
 
-fun Route.dummyApi(
-    dummyService: DummyService = DummyService()
+fun Route.spkApi(
+    ftpService: FtpService = FtpService()
 ) {
-        route("/api/v1/") {
-            get("hello") {
-                val response = dummyService.sayHello()
+        route("mottak") {
+
+            get("listFiles/{directory}") {
+                val directory = call.parameters["directory"].toString()
+                val response = ftpService.listAllFiles(directory)
                 call.respond(HttpStatusCode.OK, response)
             }
         }

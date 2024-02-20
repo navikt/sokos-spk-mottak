@@ -47,6 +47,15 @@ object PropertiesConfig {
         val azureAdConfig: AzureAdConfig = AzureAdConfig(),
     )
 
+    data class FtpConfig(
+        val server: String = get("SFTP_SERVER"),
+        val username: String = get("SPK_SFTP_USERNAME"),
+        val keyPass: String = get("SPK_SFTP_PASSWORD"),
+        val privKey: String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
+        val hostKey: String = get("SFTP_HOST_KEY_FILE_PATH"),
+        val port: Int = get("SFTP_PORT").toInt()
+    )
+
     class AzureAdConfig(
         val clientId: String = this["AZURE_APP_CLIENT_ID"],
         val wellKnownUrl: String = this["AZURE_APP_WELL_KNOWN_URL"]

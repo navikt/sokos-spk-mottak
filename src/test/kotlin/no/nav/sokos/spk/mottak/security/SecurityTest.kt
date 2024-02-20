@@ -19,16 +19,15 @@ import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.mock.oauth2.withMockOAuth2Server
 import no.nav.sokos.spk.mottak.API_BASE_PATH
-import no.nav.sokos.spk.mottak.api.dummyApi
+import no.nav.sokos.spk.mottak.api.spkApi
 import no.nav.sokos.spk.mottak.config.AUTHENTICATION_NAME
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.authenticate
 import no.nav.sokos.spk.mottak.config.configureSecurity
 import no.nav.sokos.spk.mottak.configureTestApplication
-import no.nav.sokos.spk.mottak.domain.DummyDomain
-import no.nav.sokos.spk.mottak.service.DummyService
+import no.nav.sokos.spk.mottak.service.FtpService
 
-val dummyService: DummyService = mockk()
+val ftpService: FtpService = mockk()
 
 class SecurityTest : FunSpec({
 
@@ -40,11 +39,11 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            dummyApi(dummyService)
+                            spkApi(ftpService)
                         }
                     }
                 }
-                val response = client.get("$API_BASE_PATH/hello")
+                val response = client.get("$API_BASE_PATH/listFiles/test")
                 response.status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -72,14 +71,14 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            dummyApi(dummyService)
+                            spkApi(ftpService)
                         }
                     }
                 }
 
-                every { dummyService.sayHello() } returns DummyDomain("Hello")
+                every { ftpService.listAllFiles(any()) } returns listOf("file1", "file2")
 
-                val response = client.get("$API_BASE_PATH/hello") {
+                val response = client.get("$API_BASE_PATH/listFiles/test") {
                     header("Authorization", "Bearer ${mockOAuth2Server.tokenFromDefaultProvider()}")
                     contentType(ContentType.Application.Json)
                 }

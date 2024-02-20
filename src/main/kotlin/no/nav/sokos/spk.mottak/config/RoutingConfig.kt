@@ -5,7 +5,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import no.nav.sokos.spk.mottak.ApplicationState
-import no.nav.sokos.spk.mottak.api.dummyApi
+import no.nav.sokos.spk.mottak.api.spkApi
 import no.nav.sokos.spk.mottak.api.metricsApi
 import no.nav.sokos.spk.mottak.api.naisApi
 import no.nav.sokos.spk.mottak.api.swaggerApi
@@ -19,7 +19,7 @@ fun Application.routingConfig(
         metricsApi()
         swaggerApi()
         authenticate(useAuthentication, AUTHENTICATION_NAME) {
-            dummyApi()
+            spkApi()
         }
     }
 }

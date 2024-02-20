@@ -45,6 +45,21 @@ spec:
           namespace: aura
           cluster: dev-gcp
   webproxy: true
+  filesFrom:
+    - secret: spk-sftp-private-key
+      mountPath: /var/run/secrets
+    - secret: spk-sftp-host-key
+      mountPath: /var/run/secrets
+  envFrom:
+    - secret: spk-sftp-creds
   env:
     - name: USE_AUTHENTICATION
       value: "true"
+    - name: SFTP_SERVER
+      value: a30drvl022.preprod.local
+    - name: SFTP_PORT
+      value: "22"
+    - name: SFTP_PRIVATE_KEY_FILE_PATH
+      value: /var/run/secrets/spk-sftp-private-key
+    - name: SFTP_HOST_KEY_FILE_PATH
+      value: /var/run/secrets/spk-sftp-host-key

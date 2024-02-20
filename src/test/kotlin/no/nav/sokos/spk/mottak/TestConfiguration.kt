@@ -8,7 +8,7 @@ import no.nav.sokos.spk.mottak.api.naisApi
 import no.nav.sokos.spk.mottak.api.swaggerApi
 import no.nav.sokos.spk.mottak.config.commonConfig
 
-internal const val API_BASE_PATH = "/api/v1"
+internal const val API_BASE_PATH = "/mottak"
 
 fun ApplicationTestBuilder.configureTestApplication() {
     val mapApplicationConfig = MapApplicationConfig()

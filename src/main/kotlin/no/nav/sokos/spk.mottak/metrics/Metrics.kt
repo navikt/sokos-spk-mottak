@@ -4,7 +4,7 @@ import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.Counter
 
-private const val METRICS_NAMESPACE = "sokos_ktor_template"
+private const val METRICS_NAMESPACE = "sokos_spk_mottak"
 
 object Metrics {
 
