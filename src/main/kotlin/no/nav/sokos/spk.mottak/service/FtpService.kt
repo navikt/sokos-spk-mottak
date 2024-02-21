@@ -9,7 +9,7 @@ import no.nav.sokos.spk.mottak.config.logger
 
 class FtpService(
     private val ftpConfig: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig(),
-    jsch: JSch = JSch()
+    val jsch: JSch = JSch()
 ) {
 
     private val secureChannel: JSch = jsch.apply {
@@ -18,8 +18,7 @@ class FtpService(
     }
 
     private val session = secureChannel.getSession(ftpConfig.username, ftpConfig.server, ftpConfig.port).apply {
-        setConfig("PreferredAuthentications", "publickey,password")
-        setPassword(ftpConfig.keyPass)
+        setConfig("PreferredAuthentications", "publickey")
     }
 
     private lateinit var sftpChannel: ChannelSftp
