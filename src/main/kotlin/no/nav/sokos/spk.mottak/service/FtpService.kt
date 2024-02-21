@@ -18,7 +18,7 @@ class FtpService(
     }
 
     private val session = secureChannel.getSession(ftpConfig.username, ftpConfig.server, ftpConfig.port).apply {
-        setConfig("PreferredAuthentications", "publickey")
+        setConfig("PreferredAuthentications", ftpConfig.publicKey)
     }
 
     private lateinit var sftpChannel: ChannelSftp

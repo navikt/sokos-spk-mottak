@@ -52,6 +52,8 @@ spec:
       mountPath: /var/run/secrets/spk-sftp-private-key
     - secret: spk-sftp-host-key
       mountPath: /var/run/secrets/spk-sftp-host-key
+    - secret: spk-sftp-public-key
+      mountPath: /var/run/secrets/spk-sftp-public-key
   envFrom:
     - secret: spk-sftp-creds
   env:
@@ -65,3 +67,5 @@ spec:
       value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
     - name: SFTP_HOST_KEY_FILE_PATH
       value: /var/run/secrets/spk-sftp-host-key/spk-sftp-host-key
+    - name: SFTP_PUBLIC_KEY_FILE_PATH
+      value: /var/run/secrets/spk-sftp-public-key/spk-sftp-public-key
