@@ -9,7 +9,7 @@ import no.nav.sokos.spk.mottak.config.logger
 
 class FtpService(
     private val ftpConfig: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig(),
-    val jsch: JSch = JSch()
+    jsch: JSch = JSch()
 ) {
 
     private val secureChannel: JSch = jsch.apply {

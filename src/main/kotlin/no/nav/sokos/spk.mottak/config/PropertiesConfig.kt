@@ -52,7 +52,6 @@ object PropertiesConfig {
         val username: String = get("SPK_SFTP_USERNAME"),
         val keyPass: String = get("SPK_SFTP_PASSWORD"),
         val privKey: String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
-        val publicKey: String = get("SFTP_PUBLIC_KEY_FILE_PATH"),
         val hostKey: String = get("SFTP_HOST_KEY_FILE_PATH"),
         val port: Int = get("SFTP_PORT").toInt()
     )
