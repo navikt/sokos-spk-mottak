@@ -22,9 +22,22 @@ flowchart TB
 
 ## Sokos-spk-mottak
 
-1. Leser fra fil 
-   1. Validerer fila basert på valideringsregler
-0. Endre status på fila i filinfotabellen
-0. Legge transaksjonene inn i inn-transakjonstabellen
-0. Validerer fila
-   1. Validerer på transkasjonsnivå
+1. Leser fra fil
+   1. Validerer filen
+      1. Hvis filen er korrupt legger vi filen til AVVIST mappe
+      2. Hvis filen er OK, flytter vi til OK mappe
+         1. Legge transaksjonene inn i en tabell
+2. Oppdatere status på filinfo
+   1. Oppdatere i database (status om filen er OK eller AVVIST)
+3. Validere transaksjonene
+   1. Transaksjon OK -> Legger i egen tabell
+      1. Sjekke FNR mot fullmaktregister (Om vi sender en og en FNR eller liste, må sjekkes med PESYS hva som tilbys)
+   2. Transaksjon AVVIST -> Legger i egen tabell
+      1. Henter alle transaksjoner som er avvist og lager en fil for å sende tilbake til SPK
+      2. Sletter alle avvist transaksjoner fra tabellen når filen er opprettet
+4. Sender transaksjonene til OppdragZ via IBM MQ
+   1. (avhengig av at fullmakt er OK slik at vi utbetaler til riktig konto)
+5. Få tilbake status fra OppdragZ om transaksjonene er OK
+
+
+(Lage kartdiagram over alt som skal skje i sokos-spk-mottak)

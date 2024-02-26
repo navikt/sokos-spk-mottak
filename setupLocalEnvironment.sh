@@ -25,14 +25,6 @@ echo "$PRIVATE_KEY" > privKey
 rm -f hostKey
 echo "$HOST_KEY" > hostKey
 
-# For unix
 sed -i '' '/^SFTP_SERVER=/ s/=.*/=155.55.161.44/' defaults.properties
 sed -i '' '/^SFTP_PRIVATE_KEY_FILE_PATH=/ s/=.*/=privKey/' defaults.properties
 sed -i '' '/^SFTP_HOST_KEY_FILE_PATH=/ s/=.*/=hostKey/' defaults.properties
-
-# For windows
-#(Get-Content defaults.properties) | ForEach-Object {
-#    $_ -replace '^SFTP_SERVER=.*', 'SFTP_SERVER=155.55.161.44' `
-#       -replace '^SFTP_PRIVATE_KEY_FILE_PATH=.*', 'SFTP_PRIVATE_KEY_FILE_PATH=privKey' `
-#       -replace '^SFTP_HOST_KEY_FILE_PATH=.*', 'SFTP_HOST_KEY_FILE_PATH=hostKey'
-#} | Set-Content defaults.properties
