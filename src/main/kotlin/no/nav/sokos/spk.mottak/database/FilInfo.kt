@@ -14,9 +14,10 @@ data class FilInfo(
     val datoMottatt: String,
     val datoOpprettet: String,
     val opprettetAv: String,
-    val datoEndret: String? = null,
-    val endretAv: String? = null,
-    val versjon: String? = null,
+    val datoEndret: String,
+    val datoSendt: String? = null,
+    val endretAv: String,
+    val versjon: Int,
     val filType: String,
     val feilTekst: String?
 ) {
@@ -38,6 +39,7 @@ fun filInfoFraStartLinje(startLinje: FirstLine, filnavn: String): FilInfo {
         opprettetAv = "sokos.spk.mottak",
         datoEndret = Instant.now().toString(),
         endretAv = "sokos.spk.mottak",
+        versjon = 2,
         filType = startLinje.filType,
         feilTekst = startLinje.feilTekst
     )

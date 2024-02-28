@@ -39,7 +39,7 @@ object FilInfoRepository {
                 ENDRET_AV,
                 VERSJON,
                 K_FIL_T,
-                FEILTEKST ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                FEILTEKST ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         ).withParameters(
             param(fil.id),
