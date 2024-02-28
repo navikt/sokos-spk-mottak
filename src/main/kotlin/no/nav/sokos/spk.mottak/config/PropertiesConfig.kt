@@ -13,7 +13,10 @@ object PropertiesConfig {
     private val defaultProperties = ConfigurationMap(
         mapOf(
             "NAIS_APP_NAME" to "sokos-spk-mottak",
-            "NAIS_NAMESPACE" to "okonomi"
+            "NAIS_NAMESPACE" to "okonomi",
+            "FILKATALOG_INN" to "inn",
+            "FILKATALOG_UT" to "ut",
+            "FILKATALOG_FEIL" to "feil"
         )
     )
 
@@ -44,7 +47,7 @@ object PropertiesConfig {
         val naisAppName: String = get("NAIS_APP_NAME"),
         val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
         val useAuthentication: Boolean = get("USE_AUTHENTICATION").toBoolean(),
-        val azureAdConfig: AzureAdConfig = AzureAdConfig(),
+        val azureAdConfig: AzureAdConfig = AzureAdConfig()
     )
 
     data class FtpConfig(
@@ -54,6 +57,12 @@ object PropertiesConfig {
         val privKey: String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
         val hostKey: String = get("SFTP_HOST_KEY_FILE_PATH"),
         val port: Int = get("SFTP_PORT").toInt()
+    )
+
+    data class FileConfig(
+        val innKatalog: String = get("FILKATALOG_INN"),
+        val utKatalog: String = get("FILKATALOG_UT"),
+        val feilKatalog: String = get("FILKATALOG_FEIL")
     )
 
     class AzureAdConfig(

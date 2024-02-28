@@ -1,6 +1,8 @@
 package no.nav.sokos.spk.mottak.security
 
+import io.kotest.assertions.any
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.regex.matchAnyStrings
 import io.kotest.matchers.shouldBe
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
@@ -43,7 +45,7 @@ class SecurityTest : FunSpec({
                         }
                     }
                 }
-                val response = client.get("$API_BASE_PATH/listFiles/test")
+                val response = client.get("$API_BASE_PATH/fetchFiles")
                 response.status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -76,9 +78,9 @@ class SecurityTest : FunSpec({
                     }
                 }
 
-                every { ftpService.listAllFiles(any()) } returns listOf("file1", "file2")
+                every { ftpService.listAllFiles(any()) } returns listOf()
 
-                val response = client.get("$API_BASE_PATH/listFiles/test") {
+                val response = client.get("$API_BASE_PATH/fetchFiles") {
                     header("Authorization", "Bearer ${mockOAuth2Server.tokenFromDefaultProvider()}")
                     contentType(ContentType.Application.Json)
                 }

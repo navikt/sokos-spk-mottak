@@ -41,4 +41,7 @@ class FtpService(
 
     fun listAllFiles(directory: String): List<String> = sftpChannel.ls(directory).map { it.filename }
 
+    fun disconnect() {
+        session.disconnect()
+    }
 }
