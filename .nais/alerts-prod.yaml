@@ -65,32 +65,6 @@ spec:
             sokos_ktor_template_type: sokos-spk-mottak
             alert_type: custom
 
-        - alert: sokos-spk-mottak har høy andel HTTP serverfeil (5xx responser)
-          expr: floor(increase(ktor_http_server_requests_seconds_count{status=~"5.*", app="sokos-spk-mottak"}[3m])) > 2
-          for: 2m
-          annotations:
-            action: "`kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }}`"
-            summary: "Følgende request feilet: `Status {{ $labels.status }} - {{ $labels.method }} {{ $labels.route }}`.
-                      Sjekk loggene for å se hvorfor dette feiler."
-          labels:
-            namespace: okonomi
-            severity: danger
-            sokos_ktor_template_type: sokos-spk-mottak
-            alert_type: custom
-
-        - alert: sokos-spk-mottak har høy andel HTTP klientfeil (4xx responser)
-          expr: floor(increase(ktor_http_server_requests_seconds_count{status=~"4.*", status!~"404", app="sokos-spk-mottak"}[3m])) > 2
-          for: 2m
-          annotations:
-            action: "`kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }}`"
-            summary: "Følgende request feilet: `Status {{ $labels.status }} - {{ $labels.method }} {{ $labels.route }}`. 
-                      Sjekk loggene for å se hvorfor dette feiler"
-          labels:
-            namespace: okonomi
-            severity: danger
-            sokos_ktor_template_type: sokos-spk-mottak
-            alert_type: custom
-
 ---
 
 apiVersion: monitoring.coreos.com/v1alpha1

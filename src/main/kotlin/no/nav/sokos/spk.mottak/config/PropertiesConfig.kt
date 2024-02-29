@@ -50,6 +50,15 @@ object PropertiesConfig {
         val azureAdConfig: AzureAdConfig = AzureAdConfig()
     )
 
+    data class Db2DatabaseConfig(
+        val host: String = get("DATABASE_HOST"),
+        val port: String = get("DATABASE_PORT"),
+        val name: String = get("DATABASE_NAME"),
+        val schema: String = get("DATABASE_SCHEMA"),
+        val username: String = get("DATABASE_USERNAME"),
+        val password: String = get("DATABASE_PASSWORD"),
+    )
+
     data class FtpConfig(
         val server: String = get("SFTP_SERVER"),
         val username: String = get("SPK_SFTP_USERNAME"),

@@ -20,17 +20,19 @@ repositories {
 
 val ktorVersion = "2.3.8"
 val jschVersion = "0.2.16"
-val logbackVersion = "1.4.14"
+val logbackVersion = "1.5.0"
 val logstashVersion = "7.4"
 val jacksonVersion = "2.15.3"
-val prometheusVersion = "1.12.2"
+val prometheusVersion = "1.12.3"
 val kotlinLoggingVersion = "3.0.5"
 val janionVersion = "3.1.12"
 val natpryceVersion = "1.6.10.0"
 val kotestVersion = "5.8.0"
-val kotlinxSerializationVersion = "1.6.2"
-val mockOAuth2ServerVersion = "2.1.1"
+val kotlinxSerializationVersion = "1.6.3"
+val mockOAuth2ServerVersion = "2.1.2"
 val mockkVersion = "1.13.9"
+val hikariVersion = "5.1.0"
+val db2JccVersion = "11.5.9.0"
 
 dependencies {
 
@@ -65,6 +67,10 @@ dependencies {
 
     // FTP
     implementation("com.github.mwiede:jsch:$jschVersion")
+
+    // Database
+    implementation("com.zaxxer:HikariCP:$hikariVersion")
+    implementation("com.ibm.db2:jcc:$db2JccVersion")
 
     // Config
     implementation("com.natpryce:konfig:$natpryceVersion")
@@ -121,6 +127,7 @@ tasks {
         archiveFileName.set("app.jar")
         manifest {
             attributes["Main-Class"] = "no.nav.sokos.spk.mottak.ApplicationKt"
+            attributes["Class-Path"] = "/var/run/secrets/db2license/db2jcc_license_cisuz.jar"
         }
     }
 

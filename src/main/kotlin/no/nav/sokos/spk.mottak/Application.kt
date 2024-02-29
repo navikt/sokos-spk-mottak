@@ -10,6 +10,7 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.configureSecurity
 import no.nav.sokos.spk.mottak.config.routingConfig
+import no.nav.sokos.spk.mottak.database.Db2DataSource
 import no.nav.sokos.spk.mottak.metrics.Metrics
 
 fun main() {
@@ -23,10 +24,12 @@ fun main() {
 class HttpServer(
     private val applicationState: ApplicationState,
     private val applicationConfiguration: PropertiesConfig.Configuration,
+    private val db2DataSource: Db2DataSource = Db2DataSource(),
     port: Int = 8080,
 ) {
     init {
         Runtime.getRuntime().addShutdownHook(Thread {
+            db2DataSource.close()
             this.stop()
         })
     }
