@@ -50,15 +50,30 @@ spec:
   vault:
     enabled: true
   filesFrom:
+    - secret: db2license
+      mountPath: /var/run/secrets/db2license
     - secret: spk-sftp-private-key
       mountPath: /var/run/secrets/spk-sftp-private-key
     - secret: spk-sftp-host-key
       mountPath: /var/run/secrets/spk-sftp-host-key
   envFrom:
     - secret: spk-sftp-creds
+    - secret: oppdrag-qx-credentials
   env:
     - name: USE_AUTHENTICATION
       value: "true"
+
+    # Database
+    - name: DATABASE_HOST
+      value: "155.55.1.82"
+    - name: DATABASE_PORT
+      value: "5025"
+    - name: DATABASE_NAME
+      value: "QDB2"
+    - name: DATABASE_SCHEMA
+      value: "MO611QX"
+
+    # SFTP
     - name: SFTP_SERVER
       value: b31apvl069.oera-q.local
     - name: SFTP_PORT
