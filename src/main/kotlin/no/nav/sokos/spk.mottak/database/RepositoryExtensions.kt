@@ -3,9 +3,11 @@ package no.nav.sokos.spk.mottak.database
 import no.nav.sokos.spk.mottak.config.logger
 import java.math.BigDecimal
 import java.sql.Connection
+import java.sql.Date
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
+import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -57,6 +59,20 @@ object RepositoryExtensions {
     fun param(value: String?) = Parameter { sp: PreparedStatement, index: Int -> sp.setString(index, value) }
 
     fun param(value: Int) = Parameter { sp: PreparedStatement, index: Int -> sp.setInt(index, value) }
+
+    fun param(value: BigDecimal) =
+        Parameter { statement: PreparedStatement, index: Int -> statement.setBigDecimal(index, value) }
+
+    fun param(value: LocalDate) =
+        Parameter { statement: PreparedStatement, index: Int -> statement.setDate(index, Date.valueOf(value)) }
+
+    fun param(value: LocalDateTime) =
+        Parameter { statement: PreparedStatement, index: Int ->
+            statement.setTimestamp(
+                index,
+                Timestamp.valueOf(value)
+            )
+        }
 
     fun PreparedStatement.withParameters(vararg parameters: Parameter?) = apply {
         var index = 1; parameters.forEach { it?.addToPreparedStatement(this, index++) }
