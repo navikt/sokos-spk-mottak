@@ -1,8 +1,13 @@
 package no.nav.sokos.spk.mottak.service
 
-import io.ktor.client.utils.EmptyContent.status
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.database.Db2DataSource
+import no.nav.sokos.spk.mottak.database.FilInfo
+import no.nav.sokos.spk.mottak.database.FilInfoRepository.insertFil
+import no.nav.sokos.spk.mottak.database.FilInfoRepository.updateTilstand
+import no.nav.sokos.spk.mottak.database.InnTransaksjonRepository.insertTransaksjon
+import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useAndHandleErrors
 import no.nav.sokos.spk.mottak.database.filInfoFraStartLinje
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.modell.FirstLine
@@ -14,8 +19,9 @@ import java.io.FileReader
 import java.math.BigDecimal
 
 class FileLoaderService(
-    val config: PropertiesConfig.FileConfig = PropertiesConfig.FileConfig(),
-    val ftpService: FtpService
+    private val db2DataSource: Db2DataSource = Db2DataSource(),
+    private val config: PropertiesConfig.FileConfig = PropertiesConfig.FileConfig(),
+    private val ftpService: FtpService
 ) {
     private val log = KotlinLogging.logger {}
     fun parseFiles() {
@@ -24,6 +30,7 @@ class FileLoaderService(
             lateinit var firstLine: FirstLine
             lateinit var lastLine: LastLine
             lateinit var filformatfeil: SpkFilformatFeil
+            lateinit var filInfo: FilInfo
             var totalBelop = BigDecimal(0.0)
             var reader: BufferedReader
             var line: String
@@ -36,14 +43,18 @@ class FileLoaderService(
                     when (antallLinjer) {
                         0 -> {
                             firstLine = parseFirsLine(line)
-                            //insertFilInfo(filInfoFraStartLinje(firstLine, filnavn))
+                            filInfo = filInfoFraStartLinje(firstLine, filnavn)
+                            db2DataSource.connection.useAndHandleErrors {
+                                it.insertFil(filInfo)
+                            }
                         }
-
                         else -> {
                             if (erTransaksjon(line)) {
                                 val transaksjon = parseTransactionLine(line)
                                 totalBelop += transaksjon.belop
-                                //persisterTransaksjon(transaksjon)
+                                db2DataSource.connection.useAndHandleErrors {
+                                    it.insertTransaksjon(transaksjon, filInfo.id)
+                                }
                             } else if (erLastLine(line)) {
                                 lastLine = parseLastLine(line)
                             } else {
@@ -56,15 +67,21 @@ class FileLoaderService(
                 filformatfeil = validator.validerLines()
                 log.info("spkFilformatFeil: $filformatfeil")
                 if (!filformatfeil.equals(SpkFilformatFeil.INGEN_FEIL)) {
-                    //oppdaterFilInfo(file, FilTilstandType.AVV)
+                    db2DataSource.connection.useAndHandleErrors {
+                        it.updateTilstand(FilTilstandType.AVV.name)
+                    }
                     //lagAvviksfil(filformatfeil)
                 } else {
-                    //oppdaterFilInfo(file, FilTilstandType.GOD)
-                    //persisterFil()
+                    db2DataSource.connection.useAndHandleErrors {
+                        it.updateTilstand(FilTilstandType.GOD.name)
+                    }
+                    //commit()
                 }
             } catch (e: ValidationException) {
                 log.error("Valideringsfeil: ${e.message}")
-                //oppdaterFilInfo(file, FilTilstandType.AVV)
+                db2DataSource.connection.useAndHandleErrors {
+                    it.updateTilstand(FilTilstandType.AVV.name)
+                }
                 //lagAvviksfil(mapToFeil(e.kode))
             }
         }

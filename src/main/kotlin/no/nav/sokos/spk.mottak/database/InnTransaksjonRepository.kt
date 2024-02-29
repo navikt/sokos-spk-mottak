@@ -76,7 +76,7 @@ object InnTransaksjonRepository {
 //    DATO_ANVISER_STR,
 //    BELOP_STR,
 //    TRANS_ID_FK,
-//    BEHANDLET,
+//    BEHANDLET, HVIS en transaksjon godkjennes skal den få status '00' og den skal lagres i tabellen TRANSAKSJON med aktuell statuskode OG behandlet = true
 //    PRIORITET_STR,
 //    SALDO_STR,
 //    GRAD_STR
