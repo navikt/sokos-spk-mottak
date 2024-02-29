@@ -127,7 +127,7 @@ tasks {
         archiveFileName.set("app.jar")
         manifest {
             attributes["Main-Class"] = "no.nav.sokos.spk.mottak.ApplicationKt"
-            attributes["Class-Path"] = "/var/run/secrets/db2jcc_license_cisuz.jar"
+            attributes["Class-Path"] = "/var/run/secrets/db2license/db2jcc_license_cisuz.jar"
         }
     }
 
