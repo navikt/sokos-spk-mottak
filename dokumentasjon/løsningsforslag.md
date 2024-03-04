@@ -28,7 +28,7 @@ flowchart TB
 
 1. Leser filer fra sftp sortert på løpenummer
     1. Oppretter informasjon om mottatt fil i tabellen fil-info
-    2. Validerer filen
+    2. Validerer filen [Valideringsregler](Filformatvalidering.md)
       1. Hvis filen har formatsfeil, lages en fil med feilinformasjon som SPK henter
       2. Hvis filen har riktig format, skrives transaksjonene til tabellen inn-transaksjon
       3. Siden fil-validering og skriving til tabell skjer parallelt, må transaksjoner fjernes fra inn-transaksjon-tabellen dersom valideringen feiler
