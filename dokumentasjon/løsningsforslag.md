@@ -8,12 +8,13 @@ flowchart TB
     pesys("Pesys")
     oppdragZ("Oppdrag Z")
     spk -- Sender fil --> sftp
+    sftp -- Sender feilfil --> spk
     sftp -- Leser fil --> mot
     mot -- Fnr --> pesys
     pesys -- Fullmaktsmottakere --> mot
-    mot -- Transaksjoner --> oppdragZ
-    oppdragZ -- bekrefte transaksjoner --> mot
-    mot -- Sender returfil -->spk
+    mot -- Utbetaling- og trekk-transaksjoner --> oppdragZ
+    mot -- hent oppdragssimmulering --> oppdragZ
+    mot -- Sender returfil med transaksjonstatuser -->spk
 ````
 
 * **sokos-spk-mottak &rarr; pesys** 
@@ -25,20 +26,17 @@ flowchart TB
 
 1. Leser fra fil
    1. Validerer filen
-      1. Hvis filen er korrupt legger vi filen til AVVIST mappe
-      2. Hvis filen er OK, flytter vi til OK mappe
-         1. Legge transaksjonene inn i en tabell (inn-transaksjon)
-2. Oppdatere status på filinfo
-   1. Oppdatere i database (status om filen er OK eller AVVIST)
-3. Validere transaksjonene
-   1. Transaksjon OK -> Legger i egen tabell (transaksjon)
-      1. Sjekke FNR mot fullmaktregister (sender enkeltvis FNR eller liste, må sjekkes med hva PESYS tilbyr)
-   2. Transaksjon AVVIST -> Legger i egen tabell (avvist-transaksjon)
-      1. Henter alle transaksjoner (avviste eller godkjente) og lager en fil som sendes tilbake til SPK
-      2. Sletter alle transaksjoner fra tabellen inn-transaksjon når filen er opprettet
-4. Sender transaksjonene (utbetalinger og trekk) til OppdragZ via IBM MQ
-   1. (avhengig av at fullmakt er OK slik at utbetaling skjer til riktig konto)
-5. Få tilbake status på transaksjonene asynkront fra OppdragZ
-
+      1. Hvis filen er korrupt, sendes returfil med feilinformasjon til spk
+      2. Hvis filen er OK, skrives transaksjonene til tabell inn-transaksjon
+      3. Siden fil-validering og skriving til tabell inn-transakson skjer parallelt, må transaksjonene fjernes fra tabellen dersom valideringen feiler
+2. Oppdatere filstatus (ok eller avvist) i tabell om filinformasjon (fil-info)
+3. Henter fullmaktsmottakere for samtlige fnr i transaksjonene
+4. Validere transaksjonene
+   1. Henter status på oppdragssimulering i OppdragZ for nye utbetalingstransaksjoner for å sjekke om de er allerede er prosessert  
+   2. Transaksjon OK -> Skriver godkjent transaksjon til tabell transaksjon og oppdatere status i tabell inn-transaksjon
+   3. Transaksjon AVVIST -> Skriver avvist transaksjon til tabell avv-transaksjon og oppdatere status i tabell inn-transaksjon
+5. Henter alle transaksjoner (avviste eller godkjente) og lager en fil som sendes tilbake til SPK
+6. Sletter alle transaksjoner fra tabell inn-transaksjon når filen er opprettet
+7. Sender transaksjonene (både utbetalinger og trekk) til OppdragZ via IBM MQ
 
 (Lage kartdiagram over alt som skal skje i sokos-spk-mottak)
