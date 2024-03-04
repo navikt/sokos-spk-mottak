@@ -3,24 +3,26 @@
 ````mermaid
 flowchart TB
     spk("SPK")
-    sftp("Disk")
+    sftp("SFTP")
     mot("sokos-spk-mottak")
     pesys("Pesys")
     oppdragZ("Oppdrag Z")
     spk -- Sender fil --> sftp
-    sftp -- Sender feilfil --> spk
+    spk -- Henter fil som ikke ble validert --> sftp
+    spk -- Henter transaksjonsstatus fil --> sftp
     sftp -- Leser fil --> mot
     mot -- Fnr --> pesys
     pesys -- Fullmaktsmottakere --> mot
     mot -- Utbetaling- og trekk-transaksjoner --> oppdragZ
-    mot -- hent oppdragssimmulering --> oppdragZ
-    mot -- Sender returfil med transaksjonstatuser -->spk
+    mot -- Hent oppdragssimulering --> oppdragZ
+    mot -- Sender transaksjonstatus fil --> sftp
+    mot -- Sender tilbake feilfil dersom ikke validert --> sftp
 ````
 
 * **sokos-spk-mottak &rarr; pesys** 
-  * Tidligere har vi sendt til Pesys via ESB. Vi skal nå bort fra ESB og benytte nytt REST-grensesnitt
+  * Tidligere sendt til Pesys via ESB. Skal erstattes med nytt REST-grensesnitt
 * **sokos-spk-mottak &rarr; OppdragZ**
-  * Her skal vi sende transaksjonene til Oppdrag Z på IBM MQ
+  * Sender alle transaksjoner til Oppdrag Z på MQ
 
 ## Sokos-spk-mottak
 
