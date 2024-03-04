@@ -14,7 +14,7 @@ kubectl config set-context --current --namespace=okonomi
 PRIVATE_KEY=$(vault read -field=privateKey kv/preprod/fss/sokos-spk-mottak/okonomi/sftp)
 HOST_KEY=$(vault read -field=localDevHostKey kv/preprod/fss/sokos-spk-mottak/okonomi/sftp)
 # Get AZURE system variables
-envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-spk-mottak | cut -f1 -d' ') -c sokos-spk-mottak -- env | egrep "^AZURE|^SFTP|SPK_SFTP_PASSWORD|SPK_SFTP_USERNAME")
+envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-spk-mottak | cut -f1 -d' ') -c sokos-spk-mottak -- env | egrep "^AZURE|^DATABASE|^SFTP|SPK_SFTP_PASSWORD|SPK_SFTP_USERNAME")
 
 # Set AZURE as local environment variables
 rm -f defaults.properties
