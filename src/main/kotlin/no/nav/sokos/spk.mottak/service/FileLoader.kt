@@ -83,7 +83,7 @@ class FileLoaderService(
 
     private fun mapToFault(exceptionKode: String): ValidationFileStatus {
         return when (exceptionKode) {
-            "04" -> ValidationFileStatus.UGYLDIG_FILLØPENUMMER
+            "04" -> ValidationFileStatus.UGYLDIG_FILLOPENUMMER
             "06" -> ValidationFileStatus.UGYLDIG_RECTYPE
             "09" -> ValidationFileStatus.UGYLDIG_PRODDATO
             else -> ValidationFileStatus.UKJENT
