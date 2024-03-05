@@ -2,42 +2,43 @@
 
 ````mermaid
 flowchart TB
-    sftp("Disk")
+    spk("SPK")
+    sftp("SFTP")
     mot("sokos-spk-mottak")
     pesys("Pesys")
     oppdragZ("Oppdrag Z")
-    SPK -- Sender fil --> sftp
+    spk -- Sender fil --> sftp
+    spk -- Henter fil som ikke ble validert --> sftp
+    spk -- Henter transaksjonsstatus-fil --> sftp
     sftp -- Leser fil --> mot
     mot -- Fnr --> pesys
     pesys -- Fullmaktsmottakere --> mot
-    mot -- Transaksjoner --> oppdragZ
-    oppdragZ -- bekrefte transkasjoner --> mot
-    mot --> avviksfil("Transaksjonavviksfil")
+    mot -- Utbetaling- og trekk-transaksjoner --> oppdragZ
+    mot -- Hent oppdragsimulering --> oppdragZ
+    mot -- Sender transaksjonstatus-fil --> sftp
+    mot -- Sender tilbake feilfil dersom fil ikke validerer --> sftp
 ````
 
 * **sokos-spk-mottak &rarr; pesys** 
-  * Tidligere har vi sendt til Pesys via ESB. Vi skal nå bort fra ESB og benytte REST
+  * Tidligere sendt til Pesys via ESB. Skal erstattes med nytt REST-grensesnitt
 * **sokos-spk-mottak &rarr; OppdragZ**
-  * Her skal vi sende transaksjonene til Oppdrag Z på IBM MQ
+  * Sender alle transaksjoner til Oppdrag Z på MQ
 
 ## Sokos-spk-mottak
 
-1. Leser fra fil
-   1. Validerer filen
-      1. Hvis filen er korrupt legger vi filen til AVVIST mappe
-      2. Hvis filen er OK, flytter vi til OK mappe
-         1. Legge transaksjonene inn i en tabell
-2. Oppdatere status på filinfo
-   1. Oppdatere i database (status om filen er OK eller AVVIST)
-3. Validere transaksjonene
-   1. Transaksjon OK -> Legger i egen tabell
-      1. Sjekke FNR mot fullmaktregister (Om vi sender en og en FNR eller liste, må sjekkes med PESYS hva som tilbys)
-   2. Transaksjon AVVIST -> Legger i egen tabell
-      1. Henter alle transaksjoner som er avvist og lager en fil for å sende tilbake til SPK
-      2. Sletter alle avvist transaksjoner fra tabellen når filen er opprettet
-4. Sender transaksjonene til OppdragZ via IBM MQ
-   1. (avhengig av at fullmakt er OK slik at vi utbetaler til riktig konto)
-5. Få tilbake status fra OppdragZ om transaksjonene er OK
+1. Leser filer fra sftp sortert på løpenummer
+    1. Oppretter informasjon om mottatt fil i tabellen fil-info
+    2. Validerer filen [Valideringsregler](Filformatvalidering.md)
+      1. Hvis filen har formatsfeil, lages en fil med feilinformasjon som SPK henter
+      2. Hvis filen har riktig format, skrives transaksjonene til tabellen inn-transaksjon
+      3. Siden fil-validering og skriving til tabell skjer parallelt, må transaksjoner fjernes fra inn-transaksjon-tabellen dersom valideringen feiler
+2. Oppdatere filstatus (ok eller avvist) i fil-info
+4. Henter fullmaktsmottakere for samtlige fnr i transaksjonene fra en rest-tjeneste i pesys
+5. Validere transaksjonene
+   1. Henter status på oppdragssimulering i OppdragZ for nye utbetalingstransaksjoner for å sjekke om de allerede er prosessert  
+   2. Transaksjon OK -> Skriver godkjent transaksjon til tabell transaksjon og oppdatere status i tabell inn-transaksjon
+   3. Transaksjon AVVIST -> Skriver avvist transaksjon til tabell avv-transaksjon og oppdatere status i tabell inn-transaksjon
+6. Henter alle transaksjoner (både avviste og godkjente) og lager en returfil hvor avviste transaksjoner begrunnes og sender denne tilbake til SPK
+7. Sletter alle transaksjoner fra tabell inn-transaksjon når returfilen er opprettet
+8. Sender transaksjonene (både utbetalinger og trekk) til OppdragZ via MQ (asynkront mottak av transaksjonstatuser fra OppdragZ (som oppdaterer statuser i transaksjon-tabellen) inngår ikke i tjenesten)
 
-
-(Lage kartdiagram over alt som skal skje i sokos-spk-mottak)
