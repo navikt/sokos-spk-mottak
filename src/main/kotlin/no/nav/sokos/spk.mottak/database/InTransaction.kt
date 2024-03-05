@@ -2,7 +2,7 @@ package no.nav.sokos.spk.mottak.database
 
 import java.math.BigDecimal
 
-data class InnTransaksjon(
+data class InTransaction(
     val id: Int,
     val filInfoId: Int,
     val belopType: String,
@@ -33,6 +33,6 @@ data class InnTransaksjon(
     var feiltekst: String,
 ) {
     override fun toString(): String {
-        return "InnTransaksjon(id=$id, filInfoId=$filInfoId, belopType='$belopType', art='$art', gjelderId='$gjelderId', status=$status, utbetalesTil='$utbetalesTil', datoFom='$datoFom', datoTom='$datoTom', refTransId='$refTransId', belop=$belop, tekstKode='$tekstKode', recType='$recType', transId='$transId', datoAnviser='$datoAnviser', avsender='$avsender', saldo=$saldo, prioritet='$prioritet', kid='$kid', trekkansvar='$trekkansvar', grad='$grad', behandlet='$behandlet', datoOpprettet='$datoOpprettet', OpprettetAv='$OpprettetAv', datoEndret='$datoEndret', endretAv='$endretAv', versjon='$versjon', feiltekst='$feiltekst')"
+        return "InTransaction(id=$id, filInfoId=$filInfoId, belopType='$belopType', art='$art', gjelderId='$gjelderId', status=$status, utbetalesTil='$utbetalesTil', datoFom='$datoFom', datoTom='$datoTom', refTransId='$refTransId', belop=$belop, tekstKode='$tekstKode', recType='$recType', transId='$transId', datoAnviser='$datoAnviser', avsender='$avsender', saldo=$saldo, prioritet='$prioritet', kid='$kid', trekkansvar='$trekkansvar', grad='$grad', behandlet='$behandlet', datoOpprettet='$datoOpprettet', OpprettetAv='$OpprettetAv', datoEndret='$datoEndret', endretAv='$endretAv', versjon='$versjon', feiltekst='$feiltekst')"
     }
 }

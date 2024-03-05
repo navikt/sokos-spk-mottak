@@ -11,6 +11,11 @@ class FtpService(
     private val ftpConfig: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig(),
     jsch: JSch = JSch()
 ) {
+    enum class Directories (value: String) {
+        INBOUND ("/inbound"),
+        OUTBOUND ("/outbound"),
+        ANVISNINGSRETUR ("/outbound/anvisningsretur")
+    }
 
     private val secureChannel: JSch = jsch.apply {
         addIdentity(ftpConfig.privKey, ftpConfig.keyPass)

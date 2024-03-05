@@ -4,28 +4,29 @@ import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
 import java.sql.Connection
 
-object FilInfoRepository {
+object FileInfoRepository {
 
-    fun Connection.updateTilstand(
-        tilstand: String
-    ): Unit =
+    fun Connection.updateFileState(
+        fileState: String
+    ) =
         prepareStatement(
             """
-                UPDATE K_FIL_INFO
+                UPDATE T_FIL_INFO
                 SET K_FIL_TILSTAND_T = (?)
             """.trimIndent()
         ).withParameters(
-            param(tilstand)
+            param(fileState)
         ).run {
             executeUpdate()
+            commit()
         }
 
-    fun Connection.insertFil(
-        fil: FilInfo
-    ): Unit =
+    fun Connection.insertFile(
+        file: FileInfo
+    ) =
         prepareStatement(
             """
-                INSERT INTO K_FIL_INFO (
+                INSERT INTO T_FIL_INFO (
                 FIL_INFO_ID,
                 K_FIL_S,
                 K_FIL_TILSTAND_T,
@@ -42,21 +43,22 @@ object FilInfoRepository {
                 FEILTEKST ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         ).withParameters(
-            param(fil.id),
-            param(fil.status),
-            param(fil.tilstand),
-            param(fil.anviser),
-            param(fil.filnavn),
-            param(fil.lopenr),
-            param(fil.datoMottatt),
-            param(fil.datoOpprettet),
-            param(fil.opprettetAv),
-            param(fil.datoEndret),
-            param(fil.endretAv),
-            param(fil.versjon),
-            param(fil.filType),
-            param(fil.feilTekst)
+            param(file.id),
+            param(file.status),
+            param(file.tilstand),
+            param(file.anviser),
+            param(file.filnavn),
+            param(file.lopenr),
+            param(file.datoMottatt),
+            param(file.datoOpprettet),
+            param(file.opprettetAv),
+            param(file.datoEndret),
+            param(file.endretAv),
+            param(file.versjon),
+            param(file.filType),
+            param(file.feilTekst)
         ).run {
             executeUpdate()
+            commit()
         }
 }

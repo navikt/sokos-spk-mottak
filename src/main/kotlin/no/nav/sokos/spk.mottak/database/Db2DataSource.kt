@@ -4,8 +4,8 @@ import com.ibm.db2.jcc.DB2BaseDataSource
 import com.ibm.db2.jcc.DB2SimpleDataSource
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import java.sql.Connection
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import java.sql.Connection
 
 class Db2DataSource(
     private val oppdragDatabaseConfig: PropertiesConfig.Db2DatabaseConfig = PropertiesConfig.Db2DatabaseConfig()
@@ -18,7 +18,7 @@ class Db2DataSource(
 
     private fun hikariConfig() = HikariConfig().apply {
         maximumPoolSize = 10
-        isAutoCommit = true
+        isAutoCommit = false
         poolName = "HikariPool-SOKOS-SPK-MOTTAK"
         connectionTestQuery = "select 1 from sysibm.sysdummy1"
         dataSource = DB2SimpleDataSource().apply {

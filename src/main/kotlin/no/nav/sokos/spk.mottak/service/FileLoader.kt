@@ -1,98 +1,92 @@
 package no.nav.sokos.spk.mottak.service
 
-import mu.KotlinLogging
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.config.logger
 import no.nav.sokos.spk.mottak.database.Db2DataSource
-import no.nav.sokos.spk.mottak.database.FilInfo
-import no.nav.sokos.spk.mottak.database.FilInfoRepository.insertFil
-import no.nav.sokos.spk.mottak.database.FilInfoRepository.updateTilstand
-import no.nav.sokos.spk.mottak.database.InnTransaksjonRepository.insertTransaksjon
+import no.nav.sokos.spk.mottak.database.FileInfo
+import no.nav.sokos.spk.mottak.database.FileInfoRepository.insertFile
+import no.nav.sokos.spk.mottak.database.FileInfoRepository.updateFileState
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useAndHandleErrors
-import no.nav.sokos.spk.mottak.database.filInfoFraStartLinje
+import no.nav.sokos.spk.mottak.database.fileInfoFromStartRecord
 import no.nav.sokos.spk.mottak.exception.ValidationException
-import no.nav.sokos.spk.mottak.modell.FirstLine
-import no.nav.sokos.spk.mottak.modell.LastLine
-import no.nav.sokos.spk.mottak.validator.SpkFilformatFeil
-import no.nav.sokos.spk.mottak.validator.ValidatorSpkFil
+import no.nav.sokos.spk.mottak.modell.EndRecord
+import no.nav.sokos.spk.mottak.modell.StartRecord
+import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
+import no.nav.sokos.spk.mottak.validator.ValidatorSpkFile
 import java.io.BufferedReader
 import java.io.FileReader
 import java.math.BigDecimal
 
 class FileLoaderService(
     private val db2DataSource: Db2DataSource = Db2DataSource(),
-    private val config: PropertiesConfig.FileConfig = PropertiesConfig.FileConfig(),
     private val ftpService: FtpService
 ) {
-    private val log = KotlinLogging.logger {}
     fun parseFiles() {
-        ftpService.listAllFiles(config.innKatalog).forEach {
-            var antallLinjer = 0
-            lateinit var firstLine: FirstLine
-            lateinit var lastLine: LastLine
-            lateinit var filformatfeil: SpkFilformatFeil
-            lateinit var filInfo: FilInfo
+        ftpService.listAllFiles(FtpService.Directories.INBOUND.name).forEach {
+            var totalRecord = 0
+            lateinit var startRecord: StartRecord
+            lateinit var endRecord: EndRecord
+            lateinit var validationFileStatus: ValidationFileStatus
+            lateinit var fileInfo: FileInfo
             var totalBelop = BigDecimal(0.0)
-            var reader: BufferedReader
-            var line: String
+            var record: String
             try {
-                val filnavn = it
-                val file = FileReader(filnavn)
-                reader = BufferedReader(file)
-                while (reader.readLine().also { line = it } != null) {
-                    antallLinjer++
-                    when (antallLinjer) {
+                val fileName = it
+                val file = FileReader(fileName)
+                val reader = BufferedReader(file)
+                while (reader.readLine().also { record = it } != null) {
+                    when (totalRecord++) {
                         0 -> {
-                            firstLine = parseFirsLine(line)
-                            filInfo = filInfoFraStartLinje(firstLine, filnavn)
+                            startRecord = parseStartRecord(record)
+                            fileInfo = fileInfoFromStartRecord(startRecord, fileName)
                             db2DataSource.connection.useAndHandleErrors {
-                                it.insertFil(filInfo)
+                                it.insertFile(fileInfo)
                             }
                         }
                         else -> {
-                            if (erTransaksjon(line)) {
-                                val transaksjon = parseTransactionLine(line)
-                                totalBelop += transaksjon.belop
-                                db2DataSource.connection.useAndHandleErrors {
-                                    it.insertTransaksjon(transaksjon, filInfo.id)
-                                }
-                            } else if (erLastLine(line)) {
-                                lastLine = parseLastLine(line)
+                            if (isTransactionRecord(record)) {
+                                val transaction = parseTransaction(record)
+                                totalBelop += transaction.belop
+//                                db2DataSource.connection.insertTransaction {
+//                                    it.insertTransaction(transaction, fileInfo.id)
+//                                }
+                            } else if (isEndRecord(record)) {
+                                endRecord = parseEndRecord(record)
                             } else {
-                                throw ValidationException(kode = "06", message = "Transaksjonrecord er ikke type '02'")
+                                throw ValidationException(statusCode = "06", message = "Transaksjonrecord er ikke type '02'")
                             }
                         }
                     }
                 }
-                val validator = ValidatorSpkFil(firstLine, lastLine, antallLinjer, totalBelop)
-                filformatfeil = validator.validerLines()
-                log.info("spkFilformatFeil: $filformatfeil")
-                if (!filformatfeil.equals(SpkFilformatFeil.INGEN_FEIL)) {
+                val validator = ValidatorSpkFile(startRecord, endRecord, totalRecord, totalBelop)
+                validationFileStatus = validator.validateStartAndEndRecord()
+                logger.info("ValidationFileStatus: $validationFileStatus")
+                if (validationFileStatus != ValidationFileStatus.OK) {
                     db2DataSource.connection.useAndHandleErrors {
-                        it.updateTilstand(FilTilstandType.AVV.name)
+                        it.updateFileState(FileState.AVV.name)
                     }
-                    //lagAvviksfil(filformatfeil)
+                    //lagAvviksfil(validationStatus)
                 } else {
                     db2DataSource.connection.useAndHandleErrors {
-                        it.updateTilstand(FilTilstandType.GOD.name)
+                        it.updateFileState(FileState.GOD.name)
                     }
                     //commit()
                 }
             } catch (e: ValidationException) {
-                log.error("Valideringsfeil: ${e.message}")
+                logger.error("Valideringsfeil: ${e.message}")
                 db2DataSource.connection.useAndHandleErrors {
-                    it.updateTilstand(FilTilstandType.AVV.name)
+                    it.updateFileState(FileState.AVV.name)
                 }
-                //lagAvviksfil(mapToFeil(e.kode))
+                //lagAvviksfil(mapToFault(e.statusCode))
             }
         }
     }
 
-    private fun mapToFeil(exceptionKode: String): SpkFilformatFeil {
+    private fun mapToFault(exceptionKode: String): ValidationFileStatus {
         return when (exceptionKode) {
-            "04" -> SpkFilformatFeil.FILLOPENUMMER
-            "06" -> SpkFilformatFeil.RECORD_TYPE
-            "09" -> SpkFilformatFeil.PRODUKSJONSDATO
-            else -> SpkFilformatFeil.PARSING
+            "04" -> ValidationFileStatus.UGYLDIG_FILLØPENUMMER
+            "06" -> ValidationFileStatus.UGYLDIG_RECTYPE
+            "09" -> ValidationFileStatus.UGYLDIG_PRODDATO
+            else -> ValidationFileStatus.UKJENT
         }
     }
 }

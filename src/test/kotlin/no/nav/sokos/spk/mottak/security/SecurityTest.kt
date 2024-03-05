@@ -1,8 +1,6 @@
 package no.nav.sokos.spk.mottak.security
 
-import io.kotest.assertions.any
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.regex.matchAnyStrings
 import io.kotest.matchers.shouldBe
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get

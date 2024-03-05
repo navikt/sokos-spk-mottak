@@ -1,6 +1,8 @@
 package no.nav.sokos.spk.mottak.database
 
+
 import no.nav.sokos.spk.mottak.config.logger
+import no.nav.sokos.spk.mottak.database.RepositoryExtensions.Parameter
 import java.math.BigDecimal
 import java.sql.Connection
 import java.sql.Date
@@ -13,13 +15,34 @@ import java.time.LocalDateTime
 
 object RepositoryExtensions {
 
+    var batchsize: Int = 5000
+    var antallTransaksjoner: Int = 0
     inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
         try {
             use {
                 return block(this)
             }
         } catch (ex: SQLException) {
+            rollback()
+            // TODO: log exception
             throw ex
+        }
+    }
+
+    inline fun <PreparedStatement> Connection.insertTransaction(block: (Connection) -> PreparedStatement): PreparedStatement {
+        try {
+            var st: PreparedStatement = block(this)
+            if (antallTransaksjoner++.equals(batchsize)) {
+                antallTransaksjoner = 0
+            }
+        } catch (ex: SQLException) {
+            rollback()
+            // TODO: log exception
+            throw ex
+        } finally {
+            rollback()
+            // TODO: log exception
+            throw Exception()
         }
     }
 

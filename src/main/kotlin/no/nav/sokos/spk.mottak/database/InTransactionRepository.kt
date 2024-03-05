@@ -2,16 +2,17 @@ package no.nav.sokos.spk.mottak.database
 
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
-import no.nav.sokos.spk.mottak.modell.Transaksjon
+import no.nav.sokos.spk.mottak.modell.Transaction
 import java.sql.Connection
+import java.sql.PreparedStatement
 import java.time.Instant
 
-object InnTransaksjonRepository {
+object InTransactionRepository {
 
-    fun Connection.insertTransaksjon(
-        transaksjon: Transaksjon,
-        filInfoId: Int
-    ): Unit =
+    fun Connection.insertTransaction(
+        transaction: Transaction,
+        fileInfoId: Int
+    ): PreparedStatement =
         prepareStatement(
             """
                 INSERT INTO T_INN_TRANSAKSJON (
@@ -42,34 +43,37 @@ object InnTransaksjonRepository {
                 VERSJON) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         ).withParameters(
-            param(transaksjon.transId),
-            param(filInfoId),
+            param(transaction.transId),
+            param(fileInfoId),
             param("00"),
-            param(transaksjon.gjelderId),
-            param(transaksjon.belopsType),
-            param(transaksjon.art),
+            param(transaction.gjelderId),
+            param(transaction.belopsType),
+            param(transaction.art),
             param("SPK"),
-            param(transaksjon.utbetalesTil),
-            param(transaksjon.periodeFOM),
-            param(transaksjon.periodeTOM),
+            param(transaction.utbetalesTil),
+            param(transaction.periodeFOM),
+            param(transaction.periodeTOM),
             param("02"),
-            param(transaksjon.belop.toInt()),
-            param(transaksjon.refTransId),
-            param(transaksjon.tekstKode),
-            param(transaksjon.datoAnviser),
+            param(transaction.belop.toInt()),
+            param(transaction.refTransId),
+            param(transaction.tekstKode),
+            param(transaction.datoAnviser),
             param(Instant.now().toString()),
             param("sokos.spk.mottak"),
             param(Instant.now().toString()),
             param("sokos.spk.mottak"),
-            param(transaksjon.trekkansvar),
-            param(transaksjon.kid),
-            param(transaksjon.prioritet),
-            param(transaksjon.saldo.toInt()),
-            param(transaksjon.grad),
+            param(transaction.trekkansvar),
+            param(transaction.kid),
+            param(transaction.prioritet),
+            param(transaction.saldo.toInt()),
+            param(transaction.grad),
             param(2)
         ).run {
-            executeUpdate()
+            addBatch()
+            this
         }
+}
+
 // Ukjente felter:
 //    DATO_FOM_STR,
 //    DATO_TOM_STR,
@@ -80,4 +84,3 @@ object InnTransaksjonRepository {
 //    PRIORITET_STR,
 //    SALDO_STR,
 //    GRAD_STR
-}

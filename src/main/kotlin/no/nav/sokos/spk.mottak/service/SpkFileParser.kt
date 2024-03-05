@@ -1,42 +1,40 @@
 package no.nav.sokos.spk.mottak.service
 
 import no.nav.sokos.spk.mottak.exception.ValidationException
-import no.nav.sokos.spk.mottak.modell.FirstLine
-import no.nav.sokos.spk.mottak.modell.LastLine
-import no.nav.sokos.spk.mottak.modell.Transaksjon
+import no.nav.sokos.spk.mottak.modell.EndRecord
+import no.nav.sokos.spk.mottak.modell.StartRecord
+import no.nav.sokos.spk.mottak.modell.Transaction
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
-fun parseFirsLine(line: String): FirstLine {
-    val parser = SpkFilParser(line)
-    if (!parser.parseString(2).equals("01") ){
-        throw ValidationException(kode = "06", message = "Startrecord er ikke type '01'")
+fun parseStartRecord(record: String): StartRecord {
+    val parser = SpkFilParser(record)
+    if (parser.parseString(2) != "01") {
+        throw ValidationException(statusCode = "06", message = "Startrecord er ikke type '01'")
     }
 
     try {
-        return FirstLine(
+        return StartRecord(
             avsender = parser.parseString(11),
             mottager = parser.parseString(11),
             filLopenummer = parser.parseInt(6),
             filType = parser.parseString(3),
             produsertDato = parser.parseDate(8),
-            beskrivelse = parser.parseString(35),
-            filStatus = parser.parseString(2),
-            feilTekst = parser.parseString(35),
+            beskrivelse = parser.parseString(35)
         )
     } catch (e: DateTimeParseException) {
-        throw ValidationException(kode = "09", message = "Validering av produksjonsDato Feilet ved parsing")
+        throw ValidationException(statusCode = "09", message = "Validering av produksjonsDato Feilet ved parsing")
     } catch (e: NumberFormatException) {
-        throw ValidationException(kode = "04", message = "Validering av løpenummer Feilet ved parsing")
+        throw ValidationException(statusCode = "04", message = "Validering av løpenummer Feilet ved parsing")
     }
 }
 
-fun parseTransactionLine(line: String): Transaksjon {
-    val parser = SpkFilParser(line)
+fun parseTransaction(record: String): Transaction {
+    val parser = SpkFilParser(record)
     parser.parseString(2)
-    return Transaksjon(
+    return Transaction(
         transId = parser.parseString(12),
         gjelderId = parser.parseString(11),
         utbetalesTil = parser.parseString(11),
@@ -52,26 +50,24 @@ fun parseTransactionLine(line: String): Transaksjon {
         prioritet = parser.parseString(8),
         kid = parser.parseString(26),
         trekkansvar = parser.parseString(4),
-        grad = parser.parseString(4),
-        status = parser.parseString(2),
-        feiltekst = parser.parseString(35),
+        grad = parser.parseString(4)
     )
 }
 
-fun parseLastLine(line: String): LastLine {
-    val parser = SpkFilParser(line)
-    if (!parser.parseString(2).equals("09") ){
-        throw ValidationException(kode = "06", message = "Sluttrecord er ikke type '09'")
+fun parseEndRecord(record: String): EndRecord {
+    val parser = SpkFilParser(record)
+    if (!parser.parseString(2).equals("09")) {
+        throw ValidationException(statusCode = "06", message = "Sluttrecord er ikke type '09'")
     }
-    return LastLine(
-        antallLinjer = parser.parseInt(9),
-        sumAlleLinjer = parser.parseAmountAsBigdecimal(12),
+    return EndRecord(
+        numberOfRecord = parser.parseInt(9),
+        totalBelop = parser.parseAmountAsBigdecimal(12)
     )
 }
 
-fun erTransaksjon(line: String) = "02".equals(SpkFilParser(line).parseString(2))
+fun isTransactionRecord(line: String) = "02".equals(SpkFilParser(line).parseString(2))
 
-fun erLastLine(line: String) = "09".equals(SpkFilParser(line).parseString(2))
+fun isEndRecord(line: String) = "09".equals(SpkFilParser(line).parseString(2))
 
 class SpkFilParser(
     val line: String

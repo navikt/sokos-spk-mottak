@@ -13,10 +13,7 @@ object PropertiesConfig {
     private val defaultProperties = ConfigurationMap(
         mapOf(
             "NAIS_APP_NAME" to "sokos-spk-mottak",
-            "NAIS_NAMESPACE" to "okonomi",
-            "FILKATALOG_INN" to "inn",
-            "FILKATALOG_UT" to "ut",
-            "FILKATALOG_FEIL" to "feil"
+            "NAIS_NAMESPACE" to "okonomi"
         )
     )
 
@@ -25,8 +22,14 @@ object PropertiesConfig {
             "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
             "USE_AUTHENTICATION" to "false",
             "AZURE_APP_CLIENT_ID" to "azure-app-client-id",
-            "AZURE_APP_WELL_KNOWN_URL" to "azure-app-well-known-url"
-            )
+            "AZURE_APP_WELL_KNOWN_URL" to "azure-app-well-known-url",
+            "DATABASE_HOST" to "databaseHost",
+            "DATABASE_PORT" to "databasePort",
+            "DATABASE_NAME" to "databaseName",
+            "DATABASE_SCHEMA" to "databaseSchema",
+            "DATABASE_USERNAME" to "databaseUsername",
+            "DATABASE_PASSWORD" to "databasePassword"
+        )
     )
 
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
@@ -37,8 +40,8 @@ object PropertiesConfig {
         "prod-gcp" -> ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding prodProperties overriding defaultProperties
         else ->
             ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding ConfigurationProperties.fromOptionalFile(
-            File("defaults.properties")
-        ) overriding localDevProperties overriding defaultProperties
+                File("defaults.properties")
+            ) overriding localDevProperties overriding defaultProperties
     }
 
     operator fun get(key: String): String = config[Key(key, stringType)]
@@ -66,12 +69,6 @@ object PropertiesConfig {
         val privKey: String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
         val hostKey: String = get("SFTP_HOST_KEY_FILE_PATH"),
         val port: Int = get("SFTP_PORT").toInt()
-    )
-
-    data class FileConfig(
-        val innKatalog: String = get("FILKATALOG_INN"),
-        val utKatalog: String = get("FILKATALOG_UT"),
-        val feilKatalog: String = get("FILKATALOG_FEIL")
     )
 
     class AzureAdConfig(
