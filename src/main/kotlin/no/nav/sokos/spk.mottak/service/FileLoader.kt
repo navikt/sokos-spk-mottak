@@ -20,7 +20,7 @@ class FileLoaderService(
     private val db2DataSource: Db2DataSource = Db2DataSource(),
     private val ftpService: FtpService
 ) {
-    
+
     fun parseFiles() {
         ftpService.listAllFiles(FtpService.Directories.INBOUND.name).forEach {
             var totalRecord = 0

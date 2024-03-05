@@ -17,7 +17,7 @@ class ValidatorSpkFile(
             require(validateGyldigMottaker()) { ValidationFileStatus.UGYLDIG_MOTTAKER }
             require(validateGyldigFiltype()) { ValidationFileStatus.UGYLDIG_FILTYPE }
             require(validateFillopenummerIkkeBrukt()) { ValidationFileStatus.FILLOPENUMMER_I_BRUK }
-            require(validateGyldigFillopenummer(hentForrigeLopenummer())) { ValidationFileStatus.UGYLDIG_FILLOPENUMMER }
+            require(validateGyldigFillopenummer(getPreviousLopenummer())) { ValidationFileStatus.UGYLDIG_FILLOPENUMMER }
             require(validateGyldigSum()) { ValidationFileStatus.UGYLDIG_SUMBELOP }
             require(validateGyldigAntall()) { ValidationFileStatus.UGYLDIG_ANTRECORDS }
         } catch (e: Exception) {
@@ -29,7 +29,7 @@ class ValidatorSpkFile(
     }
 
     // TODO hente forrige løpenummer i T_LOPENR
-    private fun hentForrigeLopenummer() = 1
+    private fun getPreviousLopenummer() = 1
 
     private fun validateGyldigAvsender(): Boolean {
         return startRecord.avsender == "SPK"
