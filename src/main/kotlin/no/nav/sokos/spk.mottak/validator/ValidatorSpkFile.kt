@@ -32,19 +32,19 @@ class ValidatorSpkFile(
     private fun hentForrigeLopenummer() = 1
 
     private fun validateGyldigAvsender(): Boolean {
-        return startRecord.avsender.equals("SPK")
+        return startRecord.avsender == "SPK"
     }
 
     private fun validateGyldigMottaker(): Boolean {
-        return startRecord.mottager.equals("NAV")
+        return startRecord.mottager == "NAV"
     }
 
     private fun validateGyldigFiltype(): Boolean {
-        return startRecord.filType.equals("ANV")
+        return startRecord.filType == "ANV"
     }
 
     private fun validateGyldigFillopenummer(forrige: Int): Boolean {
-        return startRecord.filLopenummer.equals(forrige + 1)
+        return startRecord.filLopenummer == forrige + 1
     }
 
     private fun validateFillopenummerIkkeBrukt(): Boolean {
