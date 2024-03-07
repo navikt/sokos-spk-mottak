@@ -7,6 +7,7 @@ import no.nav.sokos.spk.mottak.database.FileInfoRepository.findMaxLopenummer
 import no.nav.sokos.spk.mottak.database.FileInfoRepository.insertFile
 import no.nav.sokos.spk.mottak.database.FileInfoRepository.updateFileState
 import no.nav.sokos.spk.mottak.database.InTransactionRepository.insertTransaction
+import no.nav.sokos.spk.mottak.database.LopenummerRepository.updateLopenummer
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.executeBatchConditional
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.executeBatchUnConditional
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useAndHandleErrors
@@ -17,6 +18,7 @@ import no.nav.sokos.spk.mottak.modell.StartRecord
 import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
 import no.nav.sokos.spk.mottak.validator.ValidatorSpkFile
 import java.io.BufferedReader
+import java.io.File
 import java.io.FileReader
 import java.math.BigDecimal
 import java.sql.PreparedStatement
@@ -30,6 +32,7 @@ class FileLoaderService(
         ftpService.listAllFiles(FtpService.Directories.INBOUND.name).forEach {
             var totalRecord = 0
             lateinit var startRecord: StartRecord
+            lateinit var startRecordUnparsed: String
             lateinit var endRecord: EndRecord
             lateinit var validationFileStatus: ValidationFileStatus
             lateinit var fileInfo: FileInfo
@@ -44,17 +47,19 @@ class FileLoaderService(
                 while (reader.readLine().also { record = it } != null) {
                     when (totalRecord++) {
                         0 -> {
+                            startRecordUnparsed = record
                             startRecord = parseStartRecord(record)
                             fileInfo = fileInfoFromStartRecord(startRecord, fileName)
                             db2DataSource.connection.useAndHandleErrors {
                                 fileInfoId = it.insertFile(fileInfo)
+                                it.updateLopenummer(fileInfoId, "SPK", "ANV")
                             }
                         }
 
                         else -> {
                             if (isTransactionRecord(record)) {
                                 val transaction = parseTransaction(record)
-                                totalBelop == totalBelop + BigDecimal(transaction.belopStr)
+                                totalBelop = totalBelop.add(BigDecimal(transaction.belopStr))
                                 batchQuery = db2DataSource.connection.insertTransaction(transaction, fileInfoId).apply {
                                     executeBatchConditional(db2DataSource.connection)
                                 }
@@ -79,7 +84,7 @@ class FileLoaderService(
                     db2DataSource.connection.useAndHandleErrors {
                         it.updateFileState(FileState.AVV.name)
                     }
-                    //lagAvviksfil(validationStatus)
+                    lagAvviksfil(startRecordUnparsed, validationFileStatus)
                 } else {
                     db2DataSource.connection.useAndHandleErrors {
                         it.updateFileState(FileState.GOD.name)
@@ -91,8 +96,27 @@ class FileLoaderService(
                 db2DataSource.connection.useAndHandleErrors {
                     it.updateFileState(FileState.AVV.name)
                 }
-                //lagAvviksfil(mapToFault(e.statusCode))
+                lagAvviksfil(startRecordUnparsed, mapToFault(e.statusCode))
             }
+        }
+    }
+
+    private fun lagAvviksfil(startRecord: String, validationFileStatus: ValidationFileStatus) {
+        val responseRecord = startRecord.replaceRange(76, 78, validationFileStatus.code)
+            .replaceRange(78, 113, validationFileStatus.message)
+        val lopenummer = startRecord.substring(24, 30)
+        val fileName =
+            "${FtpService.Directories.ANVISNINGSRETUR}/SPK_NAV_${lopenummer}_INL"
+        try {
+            val file = File(fileName)
+            if (!file.createNewFile()) {
+                logger.error("Anvisningsreturfil eksisterer allerede")
+                throw RuntimeException("Anvisningsreturfil eksisterer allerede")
+            }
+            file.writeText(responseRecord)
+        } catch (ex: Exception) {
+            logger.error("Feil ved produksjon av anvisningsreturfil: ${ex.message}")
+            throw ex
         }
     }
 

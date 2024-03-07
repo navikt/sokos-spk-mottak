@@ -105,7 +105,7 @@ class SpkFilParser(
         try {
             value.toInt()
         } catch (ex: NumberFormatException) {
-            -1;
+            -1
         }
 
     fun parseAmountAsBigdecimal(len: Int) = this.parseString(len).trimStart('0')

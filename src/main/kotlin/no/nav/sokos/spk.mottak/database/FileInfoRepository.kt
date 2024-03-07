@@ -1,9 +1,7 @@
 package no.nav.sokos.spk.mottak.database
 
-import com.ibm.db2.jcc.am.SqlException
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
-import java.math.BigDecimal
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException

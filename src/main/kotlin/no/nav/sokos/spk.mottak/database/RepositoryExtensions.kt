@@ -39,7 +39,7 @@ object RepositoryExtensions {
             conn.rollback()
             throw ex
         } finally {
-            conn.close();
+            conn.close()
         }
     }
 
@@ -53,7 +53,7 @@ object RepositoryExtensions {
             conn.rollback()
             throw ex
         } finally {
-            conn.close();
+            conn.close()
         }
     }
 
