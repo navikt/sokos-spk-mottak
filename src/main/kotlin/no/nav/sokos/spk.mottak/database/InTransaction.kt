@@ -1,6 +1,6 @@
 package no.nav.sokos.spk.mottak.database
 
-import java.math.BigDecimal
+import java.time.LocalDate
 
 data class InTransaction(
     val id: Int,
@@ -8,31 +8,34 @@ data class InTransaction(
     val belopType: String,
     val art: String,
     val gjelderId: String,
-    val status: String?,
+    val status: String,
     val utbetalesTil: String,
-    val datoFom: String,
-    val datoTom: String,
+    val datoFomStr: String,
+    val datoFom: LocalDate,
+    val datoTomStr: String,
+    val datoTom: LocalDate,
     val refTransId: String,
-    val belop: BigDecimal,
+    val belopStr: String,
+    val belop: Int,
     val tekstKode: String,
     val recType: String,
     val transId: String,
-    val datoAnviser: String,
+    val datoAnviserStr: String,
+    val datoAnviser: LocalDate,
     val avsender: String,
-    val saldo: BigDecimal,
-    val prioritet: String,
+    val saldoStr: String,
+    val saldo: Int,
+    val prioritetStr: String,
+    val prioritet: LocalDate,
     val kid: String,
     val trekkansvar: String,
-    val grad: String,
+    val gradStr: String,
+    val grad: Int,
     val behandlet: String,
     val datoOpprettet: String,
-    val OpprettetAv: String,
+    val opprettetAv: String,
     val datoEndret: String,
     val endretAv: String,
     val versjon: String,
     var feiltekst: String,
-) {
-    override fun toString(): String {
-        return "InTransaction(id=$id, filInfoId=$filInfoId, belopType='$belopType', art='$art', gjelderId='$gjelderId', status=$status, utbetalesTil='$utbetalesTil', datoFom='$datoFom', datoTom='$datoTom', refTransId='$refTransId', belop=$belop, tekstKode='$tekstKode', recType='$recType', transId='$transId', datoAnviser='$datoAnviser', avsender='$avsender', saldo=$saldo, prioritet='$prioritet', kid='$kid', trekkansvar='$trekkansvar', grad='$grad', behandlet='$behandlet', datoOpprettet='$datoOpprettet', OpprettetAv='$OpprettetAv', datoEndret='$datoEndret', endretAv='$endretAv', versjon='$versjon', feiltekst='$feiltekst')"
-    }
-}
+)

@@ -29,16 +29,16 @@ flowchart TB
 1. Leser filer fra sftp sortert på løpenummer
     1. Oppretter informasjon om mottatt fil i tabellen fil-info
     2. Validerer filen [Valideringsregler](Filformatvalidering.md)
-      1. Hvis filen har formatsfeil, lages en fil med feilinformasjon som SPK henter
-      2. Hvis filen har riktig format, skrives transaksjonene til tabellen inn-transaksjon
-      3. Siden fil-validering og skriving til tabell skjer parallelt, må transaksjoner fjernes fra inn-transaksjon-tabellen dersom valideringen feiler
+       1. Hvis filen har formatsfeil, lages en fil med feilinformasjon som SPK henter
+       2. Hvis filen har riktig format, skrives transaksjonene til tabellen inn-transaksjon
+       3. Siden fil-validering og skriving til tabell skjer parallelt, må transaksjoner fjernes fra inn-transaksjon-tabellen dersom valideringen feiler
 2. Oppdatere filstatus (ok eller avvist) i fil-info
-4. Henter fullmaktsmottakere for samtlige fnr i transaksjonene fra en rest-tjeneste i pesys
-5. Validere transaksjonene
+3. Henter fullmaktsmottakere for samtlige fnr i transaksjonene fra en rest-tjeneste i pesys
+4. Validere transaksjonene
    1. Henter status på oppdragssimulering i OppdragZ for nye utbetalingstransaksjoner for å sjekke om de allerede er prosessert  
    2. Transaksjon OK -> Skriver godkjent transaksjon til tabell transaksjon og oppdatere status i tabell inn-transaksjon
    3. Transaksjon AVVIST -> Skriver avvist transaksjon til tabell avv-transaksjon og oppdatere status i tabell inn-transaksjon
-6. Henter alle transaksjoner (både avviste og godkjente) og lager en returfil hvor avviste transaksjoner begrunnes og sender denne tilbake til SPK
-7. Sletter alle transaksjoner fra tabell inn-transaksjon når returfilen er opprettet
-8. Sender transaksjonene (både utbetalinger og trekk) til OppdragZ via MQ (asynkront mottak av transaksjonstatuser fra OppdragZ (som oppdaterer statuser i transaksjon-tabellen) inngår ikke i tjenesten)
+5. Henter alle transaksjoner (både avviste og godkjente) og lager en returfil hvor avviste transaksjoner begrunnes og sender denne tilbake til SPK
+6. Sletter alle transaksjoner fra tabell inn-transaksjon når returfilen er opprettet
+7. Sender transaksjonene (både utbetalinger og trekk) til OppdragZ via MQ (asynkront mottak av transaksjonstatuser fra OppdragZ (som oppdaterer statuser i transaksjon-tabellen) inngår ikke i tjenesten)
 

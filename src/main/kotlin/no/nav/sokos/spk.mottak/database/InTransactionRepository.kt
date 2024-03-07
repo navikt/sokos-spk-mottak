@@ -5,7 +5,7 @@ import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
 import no.nav.sokos.spk.mottak.modell.Transaction
 import java.sql.Connection
 import java.sql.PreparedStatement
-import java.time.Instant
+import java.time.LocalDateTime
 
 object InTransactionRepository {
 
@@ -16,7 +16,6 @@ object InTransactionRepository {
         prepareStatement(
             """
                 INSERT INTO T_INN_TRANSAKSJON (
-                INN_TRANSAKSJON_ID,
                 FIL_INFO_ID,
                 K_TRANSAKSJON_S,
                 FNR_FK,
@@ -24,26 +23,30 @@ object InTransactionRepository {
                 ART,
                 AVSENDER,
                 UTBETALES_TIL,
+                DATO_FOM_STR,
+                DATO_TOM_STR,
+                DATO_ANVISER_STR,
+                BELOP_STR,
+                RECTYPE,
                 DATO_FOM,
                 DATO_TOM,
-                RECTYPE,
-                BELOP,
-                REF_TRANS_ID,
-                TEKSTKODE,
                 DATO_ANVISER,
+                BELOP,
                 DATO_OPPRETTET,
                 OPPRETTET_AV,
                 DATO_ENDRET,
                 ENDRET_AV,
+                VERSJON,
+                PRIORITET_STR,            
                 TREKKANSVAR,
+                SALDO_STR,
                 KID,
                 PRIORITET,
                 SALDO,
                 GRAD,
-                VERSJON) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                GRAD_STR) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), Statement.RETURN_GENERATED_KEYS
             """.trimIndent()
         ).withParameters(
-            param(transaction.transId),
             param(fileInfoId),
             param("00"),
             param(transaction.gjelderId),
@@ -51,36 +54,30 @@ object InTransactionRepository {
             param(transaction.art),
             param("SPK"),
             param(transaction.utbetalesTil),
-            param(transaction.periodeFOM),
-            param(transaction.periodeTOM),
+            param(transaction.periodeFomStr),
+            param(transaction.periodeTomStr),
+            param(transaction.datoAnviserStr),
+            param(transaction.belopStr),
             param("02"),
-            param(transaction.belop.toInt()),
-            param(transaction.refTransId),
-            param(transaction.tekstKode),
-            param(transaction.datoAnviser),
-            param(Instant.now().toString()),
+            param(transaction.periodeFom!!),
+            param(transaction.periodeTom!!),
+            param(transaction.datoAnviser!!),
+            param(transaction.belop!!),
+            param(LocalDateTime.now()),
             param("sokos.spk.mottak"),
-            param(Instant.now().toString()),
+            param(LocalDateTime.now()),
             param("sokos.spk.mottak"),
+            param(1),  // TODO: Versjon?
+            param(transaction.prioritetStr),
             param(transaction.trekkansvar),
+            param(transaction.saldoStr),
             param(transaction.kid),
-            param(transaction.prioritet),
-            param(transaction.saldo.toInt()),
-            param(transaction.grad),
-            param(2)
+            param(transaction.prioritet!!),
+            param(transaction.saldo!!),
+            param(transaction.grad!!),
+            param(transaction.gradStr),
         ).run {
             addBatch()
             this
         }
 }
-
-// Ukjente felter:
-//    DATO_FOM_STR,
-//    DATO_TOM_STR,
-//    DATO_ANVISER_STR,
-//    BELOP_STR,
-//    TRANS_ID_FK,
-//    BEHANDLET, HVIS en transaksjon godkjennes skal den få status '00' og den skal lagres i tabellen TRANSAKSJON med aktuell statuskode OG behandlet = true
-//    PRIORITET_STR,
-//    SALDO_STR,
-//    GRAD_STR

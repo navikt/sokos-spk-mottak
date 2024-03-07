@@ -1,10 +1,29 @@
 package no.nav.sokos.spk.mottak.database
 
+import com.ibm.db2.jcc.am.SqlException
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
+import java.math.BigDecimal
 import java.sql.Connection
+import java.sql.ResultSet
+import java.sql.SQLException
 
 object FileInfoRepository {
+
+    fun Connection.findMaxLopenummer(
+        anviser: String
+    ): Int =
+        prepareStatement(
+            """
+                SELECT MAX(FIL_INFO_ID) 
+                FROM  T_FIL_INFO
+                WHERE K_ANVISER = (?)
+            """.trimIndent()
+        ).withParameters(
+            param(anviser)
+        ).run {
+            executeQuery().findMax()
+        }
 
     fun Connection.updateFileState(
         fileState: String
@@ -17,17 +36,17 @@ object FileInfoRepository {
         ).withParameters(
             param(fileState)
         ).run {
-            executeUpdate()
+            executeQuery()
+            close()
             commit()
         }
 
     fun Connection.insertFile(
         file: FileInfo
-    ) =
+    ): Int =
         prepareStatement(
             """
                 INSERT INTO T_FIL_INFO (
-                FIL_INFO_ID,
                 K_FIL_S,
                 K_FIL_TILSTAND_T,
                 K_ANVISER,
@@ -40,10 +59,9 @@ object FileInfoRepository {
                 ENDRET_AV,
                 VERSJON,
                 K_FIL_T,
-                FEILTEKST ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                FEILTEKST ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), Statement.RETURN_GENERATED_KEYS
             """.trimIndent()
         ).withParameters(
-            param(file.id),
             param(file.status),
             param(file.tilstand),
             param(file.anviser),
@@ -59,6 +77,21 @@ object FileInfoRepository {
             param(file.feilTekst)
         ).run {
             executeUpdate()
+            val id = findId (generatedKeys)
+            close()
             commit()
+            id
         }
+
+    private fun findId(rs: ResultSet): Int {
+        while (rs.next()) {
+            return rs.getBigDecimal(1).intValueExact()
+        }
+        throw SQLException("Can't get primary key")
+    }
+
+    private fun ResultSet.findMax() = run {
+        if (next()) getInt(1)
+        else 0
+    }
 }

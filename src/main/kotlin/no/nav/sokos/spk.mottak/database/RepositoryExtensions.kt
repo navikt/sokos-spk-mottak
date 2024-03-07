@@ -1,6 +1,5 @@
 package no.nav.sokos.spk.mottak.database
 
-
 import no.nav.sokos.spk.mottak.config.logger
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.Parameter
 import java.math.BigDecimal
@@ -15,34 +14,46 @@ import java.time.LocalDateTime
 
 object RepositoryExtensions {
 
-    var batchsize: Int = 5000
-    var antallTransaksjoner: Int = 0
+    private var batchsize: Int = 4000
+    private var antallTransaksjoner: Int = 0
     inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
         try {
             use {
                 return block(this)
             }
-        } catch (ex: SQLException) {
-            rollback()
-            // TODO: log exception
+        } catch (ex: SQLException) { // håndterer ikke rollback
+            logger.error("Feiler sql query: ${ex.message}")
             throw ex
         }
     }
 
-    inline fun <PreparedStatement> Connection.insertTransaction(block: (Connection) -> PreparedStatement): PreparedStatement {
+    fun PreparedStatement.executeBatchConditional(conn: Connection) = apply {
         try {
-            var st: PreparedStatement = block(this)
-            if (antallTransaksjoner++.equals(batchsize)) {
-                antallTransaksjoner = 0
+            if (antallTransaksjoner++ % batchsize == 0) {
+                executeBatch()
+                close()
+                conn.commit()
             }
         } catch (ex: SQLException) {
-            rollback()
-            // TODO: log exception
+            logger.error("Feiler ved batch insert: ${ex.message}")
+            conn.rollback()
             throw ex
         } finally {
-            rollback()
-            // TODO: log exception
-            throw Exception()
+            conn.close();
+        }
+    }
+
+    fun PreparedStatement.executeBatchUnConditional(conn: Connection) = apply {
+        try {
+            executeBatch()
+            close()
+            conn.commit()
+        } catch (ex: SQLException) {
+            logger.error("Feiler ved batch insert: ${ex.message}")
+            conn.rollback()
+            throw ex
+        } finally {
+            conn.close();
         }
     }
 

@@ -5,7 +5,7 @@ import no.nav.sokos.spk.mottak.service.FileState
 import java.time.Instant
 
 data class FileInfo(
-    val id: Int, // generert av db
+    var id: Int = -1,
     val status: String?,
     val tilstand: String,
     val anviser: String,
@@ -24,7 +24,7 @@ data class FileInfo(
 
 fun fileInfoFromStartRecord(startRecord: StartRecord, fileName: String): FileInfo {
     return FileInfo(
-        id = 0, // TODO: generert av db
+        id = -1, // TODO: generert av db
         status = startRecord.filStatus,
         tilstand = FileState.OPR.name,
         anviser = startRecord.avsender,
