@@ -9,10 +9,7 @@ import java.time.LocalDateTime
 
 object InTransactionRepository {
 
-    fun Connection.insertTransaction(
-        transaction: Transaction,
-        fileInfoId: Int
-    ): PreparedStatement =
+    fun Connection.createInsertTransaction(): PreparedStatement =
         prepareStatement(
             """
                 INSERT INTO T_INN_TRANSAKSJON (
@@ -37,7 +34,7 @@ object InTransactionRepository {
                 DATO_ENDRET,
                 ENDRET_AV,
                 VERSJON,
-                PRIORITET_STR,            
+                PRIORITET_STR,
                 TREKKANSVAR,
                 SALDO_STR,
                 KID,
@@ -46,7 +43,14 @@ object InTransactionRepository {
                 GRAD,
                 GRAD_STR) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), Statement.RETURN_GENERATED_KEYS
             """.trimIndent()
-        ).withParameters(
+        )
+
+    fun insertTransaction(
+        ps: PreparedStatement,
+        transaction: Transaction,
+        fileInfoId: Int
+    ): PreparedStatement =
+        ps.withParameters(
             param(fileInfoId),
             param("00"),
             param(transaction.gjelderId),
@@ -80,4 +84,17 @@ object InTransactionRepository {
             addBatch()
             this
         }
+
+    fun Connection.deleteTransactions(
+        fileInfoId: Int
+    ) = prepareStatement(
+        """
+            DELETE FROM T_INN_TRANSAKSJON 
+            WHERE FIL_INFO_ID = (?)           
+        """.trimIndent()
+    ).withParameters(
+        param(fileInfoId)
+    ).run {
+        executeUpdate()
+    }
 }

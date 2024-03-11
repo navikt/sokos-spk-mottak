@@ -9,34 +9,42 @@ import java.sql.SQLException
 object FileInfoRepository {
 
     fun Connection.findMaxLopenummer(
-        anviser: String
+        anviser: String,
+        fileType: String
     ): Int =
         prepareStatement(
             """
                 SELECT MAX(FIL_INFO_ID) 
                 FROM  T_FIL_INFO
                 WHERE K_ANVISER = (?)
+                AND K_FIL_T = (?)
             """.trimIndent()
         ).withParameters(
-            param(anviser)
+            param(anviser),
+            param(fileType)
         ).run {
             executeQuery().findMax()
         }
 
     fun Connection.updateFileState(
-        fileState: String
+        fileState: String,
+        anviser: String,
+        fileType: String
     ) =
         prepareStatement(
             """
                 UPDATE T_FIL_INFO
                 SET K_FIL_TILSTAND_T = (?)
+                WHERE K_ANVISER = (?)
+                AND K_FIL_T = (?)
             """.trimIndent()
         ).withParameters(
-            param(fileState)
+            param(fileState),
+            param(anviser),
+            param(fileType)
         ).run {
             executeQuery()
             close()
-            commit()
         }
 
     fun Connection.insertFile(
@@ -77,7 +85,6 @@ object FileInfoRepository {
             executeUpdate()
             val id = findId (generatedKeys)
             close()
-            commit()
             id
         }
 
@@ -85,7 +92,7 @@ object FileInfoRepository {
         while (rs.next()) {
             return rs.getBigDecimal(1).intValueExact()
         }
-        throw SQLException("Can't get primary key")
+        throw SQLException("Finner ikke primary key i FIL_INFO")
     }
 
     private fun ResultSet.findMax() = run {

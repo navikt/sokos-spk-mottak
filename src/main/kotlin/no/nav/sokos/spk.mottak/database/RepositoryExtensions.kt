@@ -22,7 +22,7 @@ object RepositoryExtensions {
                 return block(this)
             }
         } catch (ex: SQLException) { // håndterer ikke rollback
-            logger.error("Feiler sql query: ${ex.message}")
+            logger.error("Feil ved sql query: ${ex.message}")
             throw ex
         }
     }

@@ -25,6 +25,5 @@ object LopenummerRepository {
         ).run {
             executeQuery()
             close()
-            commit()
         }
 }
