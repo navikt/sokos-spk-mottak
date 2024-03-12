@@ -27,7 +27,7 @@ import java.sql.SQLException
 
 class FileLoaderService(
     private val db2DataSource: Db2DataSource = Db2DataSource(),
-    private val ftpService: FtpService
+    private val ftpService: FtpService = FtpService()
 ) {
 
     fun parseFiles() {

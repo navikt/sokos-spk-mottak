@@ -7,16 +7,14 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import no.nav.sokos.spk.mottak.service.FileLoaderService
-import no.nav.sokos.spk.mottak.service.FtpService
 
 fun Route.spkApi(
-    ftpService: FtpService = FtpService()
+    fileLoaderService: FileLoaderService = FileLoaderService()
 ) {
     route("mottak") {
 
         get("fetchFiles") {
-            val fileLoader = FileLoaderService(ftpService = ftpService)
-            fileLoader.parseFiles()
+            fileLoaderService.parseFiles()
             call.respond(HttpStatusCode.OK)
         }
     }

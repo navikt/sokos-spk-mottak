@@ -25,9 +25,9 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.authenticate
 import no.nav.sokos.spk.mottak.config.configureSecurity
 import no.nav.sokos.spk.mottak.configureTestApplication
-import no.nav.sokos.spk.mottak.service.FtpService
+import no.nav.sokos.spk.mottak.service.FileLoaderService
 
-val ftpService: FtpService = mockk()
+val fileLoaderService: FileLoaderService = mockk()
 
 class SecurityTest : FunSpec({
 
@@ -39,7 +39,7 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            spkApi(ftpService)
+                            spkApi(fileLoaderService)
                         }
                     }
                 }
@@ -71,12 +71,12 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            spkApi(ftpService)
+                            spkApi(fileLoaderService)
                         }
                     }
                 }
 
-                every { ftpService.listAllFiles(any()) } returns listOf()
+                every { fileLoaderService.parseFiles() } returns Unit
 
                 val response = client.get("$API_BASE_PATH/fetchFiles") {
                     header("Authorization", "Bearer ${mockOAuth2Server.tokenFromDefaultProvider()}")
