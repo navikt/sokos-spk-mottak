@@ -1,14 +1,14 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.modell.EndRecord
 import no.nav.sokos.spk.mottak.modell.StartRecord
 import no.nav.sokos.spk.mottak.modell.Transaction
 import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 
 fun parseStartRecord(record: String): StartRecord {
     val parser = SpkFilParser(record)
@@ -43,7 +43,12 @@ fun parseStartRecord(record: String): StartRecord {
 
 fun parseTransaction(record: String): Transaction {
     val parser = SpkFilParser(record)
-    parser.parseString(2)
+    if (parser.parseString(2) != "02") {
+        throw ValidationException(
+            ValidationFileStatus.UGYLDIG_RECTYPE.code,
+            ValidationFileStatus.UGYLDIG_RECTYPE.message
+        )
+    }
     return Transaction(
         transId = parser.parseString(12),
         gjelderId = parser.parseString(11),
@@ -95,7 +100,9 @@ class SpkFilParser(
 ) {
     private var pos = 0
     fun parseString(len: Int): String {
+        println("HVA ER DETTE?? $len")
         if (record.length < pos + len) return record.substring(pos).trim()
+        println(record.substring(pos, pos + len).trim())
         return record.substring(pos, pos + len).trim().also { pos += len }
     }
 

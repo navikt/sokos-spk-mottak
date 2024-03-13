@@ -27,6 +27,20 @@ object RepositoryExtensions {
         }
     }
 
+    inline fun <R> Connection.useConnectionWithRollback(block: (Connection) -> R): R {
+        try {
+            val value = block(this)
+            commit()
+            return value
+        } catch (ex: SQLException) {
+            logger.error("Feiler ved insert: ${ex.message}")
+            rollback()
+            throw ex
+        } finally {
+            close()
+        }
+    }
+
     fun PreparedStatement.executeBatchConditional(conn: Connection) = apply {
         try {
             if (antallTransaksjoner++ % batchsize == 0) {
@@ -91,6 +105,9 @@ object RepositoryExtensions {
     fun param(value: String?) = Parameter { sp: PreparedStatement, index: Int -> sp.setString(index, value) }
 
     fun param(value: Int) = Parameter { sp: PreparedStatement, index: Int -> sp.setInt(index, value) }
+
+    fun param(value: Long) = Parameter { sp: PreparedStatement, index: Int -> sp.setLong(index, value) }
+
 
     fun param(value: BigDecimal) =
         Parameter { statement: PreparedStatement, index: Int -> statement.setBigDecimal(index, value) }

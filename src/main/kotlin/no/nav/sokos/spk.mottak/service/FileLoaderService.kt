@@ -1,5 +1,7 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.math.BigDecimal
+import java.sql.SQLException
 import no.nav.sokos.spk.mottak.config.logger
 import no.nav.sokos.spk.mottak.database.Db2DataSource
 import no.nav.sokos.spk.mottak.database.FileInfo
@@ -13,6 +15,7 @@ import no.nav.sokos.spk.mottak.database.LopenummerRepository.updateLopenummer
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.executeBatchConditional
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.executeBatchUnConditional
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useAndHandleErrors
+import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useConnectionWithRollback
 import no.nav.sokos.spk.mottak.database.fileInfoFromStartRecord
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.modell.EndRecord
@@ -20,8 +23,6 @@ import no.nav.sokos.spk.mottak.modell.StartRecord
 import no.nav.sokos.spk.mottak.service.FileProducer.lagAvviksfil
 import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
 import no.nav.sokos.spk.mottak.validator.ValidatorSpkFile
-import java.math.BigDecimal
-import java.sql.SQLException
 
 class FileLoaderService(
     private val db2DataSource: Db2DataSource = Db2DataSource(),
@@ -29,6 +30,8 @@ class FileLoaderService(
 ) {
 
     fun parseFiles() {
+        val test = ftpService.listFiles(Directories.INBOUND.value)
+        println("HVA FÅR JEG UT? $test")
         ftpService.downloadFiles().forEach { (filename, content) ->
             var totalRecord = 0
             lateinit var startRecord: StartRecord
@@ -39,7 +42,7 @@ class FileLoaderService(
             var maxLopenummer = 0
             var totalBelop = BigDecimal(0.0)
             var fileInfoId = 0
-            var batchQuery = db2DataSource.connection.createInsertTransaction()
+            val batchQuery = db2DataSource.connection.createInsertTransaction()
             try {
                 for (record in content) {
                     when (totalRecord++) {
@@ -47,7 +50,7 @@ class FileLoaderService(
                             startRecordUnparsed = record
                             startRecord = parseStartRecord(record)
                             fileInfo = fileInfoFromStartRecord(startRecord, filename)
-                            db2DataSource.connection.useAndHandleErrors {
+                            db2DataSource.connection.useConnectionWithRollback {
                                 fileInfoId = it.insertFile(fileInfo)
                                 it.updateLopenummer(fileInfoId, "SPK", "ANV")
                                 it.commit()
@@ -55,19 +58,15 @@ class FileLoaderService(
                         }
 
                         else -> {
-                            if (isTransactionRecord(record)) {
+                            if (content.size != totalRecord) {
                                 val transaction = parseTransaction(record)
                                 totalBelop = totalBelop.add(BigDecimal(transaction.belopStr))
+                                println("HVA KOMMER HER?? $transaction.prioritet")
                                 batchQuery.insertTransaction(transaction, fileInfoId)
                                 batchQuery.executeBatchConditional(db2DataSource.connection)
 
-                            } else if (isEndRecord(record)) {
-                                endRecord = parseEndRecord(record)
                             } else {
-                                throw ValidationException(
-                                    ValidationFileStatus.UGYLDIG_RECTYPE.code,
-                                    ValidationFileStatus.UGYLDIG_RECTYPE.message
-                                )
+                                endRecord = parseEndRecord(record)
                             }
                         }
                     }
@@ -115,8 +114,6 @@ class FileLoaderService(
                     it.commit()
                 }
                 lagAvviksfil(startRecordUnparsed, status)
-            } finally {
-                ftpService.disconnect()
             }
         }
     }

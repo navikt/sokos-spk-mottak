@@ -11,7 +11,7 @@ object FileProducer {
             .replaceRange(78, 113, validationFileStatus.message)
         val lopenummer = startRecord.substring(24, 30)
         val fileName =
-            "${FtpService.Directories.ANVISNINGSRETUR}/SPK_NAV_${lopenummer}_INL"
+            "${Directories.ANVISNINGSRETUR}/SPK_NAV_${lopenummer}_INL"
         try {
             val file = File(fileName)
             if (!file.createNewFile()) {

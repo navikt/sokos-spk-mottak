@@ -1,10 +1,11 @@
 package no.nav.sokos.spk.mottak.database
 
-import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
-import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
+import java.sql.Statement
+import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
+import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
 
 object FileInfoRepository {
 
@@ -30,7 +31,7 @@ object FileInfoRepository {
         fileState: String,
         anviser: String,
         fileType: String
-    ): ResultSet =
+    ) =
         prepareStatement(
             """
                 UPDATE T_FIL_INFO
@@ -43,7 +44,7 @@ object FileInfoRepository {
             param(anviser),
             param(fileType)
         ).run {
-            executeQuery()
+            executeUpdate()
         }
 
     fun Connection.insertFile(
@@ -64,8 +65,8 @@ object FileInfoRepository {
                 ENDRET_AV,
                 VERSJON,
                 K_FIL_T,
-                FEILTEKST ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), Statement.RETURN_GENERATED_KEYS
-            """.trimIndent()
+                FEILTEKST ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """.trimIndent(), Statement.RETURN_GENERATED_KEYS
         ).withParameters(
             param(file.status),
             param(file.tilstand),
@@ -87,7 +88,7 @@ object FileInfoRepository {
 
     private fun findId(rs: ResultSet): Int {
         while (rs.next()) {
-            return rs.getBigDecimal(1).intValueExact()
+            return rs.getLong(1).toInt()
         }
         throw SQLException("Finner ikke primary key i FIL_INFO")
     }

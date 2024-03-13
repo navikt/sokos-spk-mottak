@@ -23,6 +23,6 @@ object LopenummerRepository {
             param(anviser),
             param(filtype)
         ).run {
-            executeQuery()
+            executeUpdate()
         }
 }

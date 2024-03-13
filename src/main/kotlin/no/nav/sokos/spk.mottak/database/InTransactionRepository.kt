@@ -1,11 +1,12 @@
 package no.nav.sokos.spk.mottak.database
 
+import java.sql.Connection
+import java.sql.PreparedStatement
+import java.sql.Statement
+import java.time.LocalDateTime
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
 import no.nav.sokos.spk.mottak.modell.Transaction
-import java.sql.Connection
-import java.sql.PreparedStatement
-import java.time.LocalDateTime
 
 object InTransactionRepository {
 
@@ -41,8 +42,8 @@ object InTransactionRepository {
                 PRIORITET,
                 SALDO,
                 GRAD,
-                GRAD_STR) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), Statement.RETURN_GENERATED_KEYS
-            """.trimIndent()
+                GRAD_STR) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """.trimIndent(), Statement.RETURN_GENERATED_KEYS
         )
 
     fun PreparedStatement.insertTransaction(
