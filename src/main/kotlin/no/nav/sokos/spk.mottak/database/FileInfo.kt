@@ -1,9 +1,7 @@
 package no.nav.sokos.spk.mottak.database
 
-import java.sql.Timestamp
 import no.nav.sokos.spk.mottak.modell.StartRecord
 import no.nav.sokos.spk.mottak.service.FileState
-import java.time.Instant
 import java.time.LocalDateTime
 import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
 
