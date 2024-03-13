@@ -24,6 +24,5 @@ object LopenummerRepository {
             param(filtype)
         ).run {
             executeQuery()
-            close()
         }
 }

@@ -20,8 +20,6 @@ import no.nav.sokos.spk.mottak.modell.StartRecord
 import no.nav.sokos.spk.mottak.service.FileProducer.lagAvviksfil
 import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
 import no.nav.sokos.spk.mottak.validator.ValidatorSpkFile
-import java.io.BufferedReader
-import java.io.FileReader
 import java.math.BigDecimal
 import java.sql.SQLException
 
@@ -31,26 +29,24 @@ class FileLoaderService(
 ) {
 
     fun parseFiles() {
-        ftpService.listAllFiles(FtpService.Directories.INBOUND.name).forEach { it ->
+        ftpService.downloadFiles().forEach { (filename, content) ->
             var totalRecord = 0
             lateinit var startRecord: StartRecord
             lateinit var startRecordUnparsed: String
             lateinit var endRecord: EndRecord
             lateinit var validationFileStatus: ValidationFileStatus
             lateinit var fileInfo: FileInfo
-            val reader = BufferedReader(FileReader(it))
             var maxLopenummer = 0
             var totalBelop = BigDecimal(0.0)
-            var record: String
             var fileInfoId = 0
             var batchQuery = db2DataSource.connection.createInsertTransaction()
             try {
-                while (reader.readLine().also { record = it } != null) {
+                for (record in content) {
                     when (totalRecord++) {
                         0 -> {
                             startRecordUnparsed = record
                             startRecord = parseStartRecord(record)
-                            fileInfo = fileInfoFromStartRecord(startRecord, it)
+                            fileInfo = fileInfoFromStartRecord(startRecord, filename)
                             db2DataSource.connection.useAndHandleErrors {
                                 fileInfoId = it.insertFile(fileInfo)
                                 it.updateLopenummer(fileInfoId, "SPK", "ANV")
@@ -62,9 +58,9 @@ class FileLoaderService(
                             if (isTransactionRecord(record)) {
                                 val transaction = parseTransaction(record)
                                 totalBelop = totalBelop.add(BigDecimal(transaction.belopStr))
-                                batchQuery = insertTransaction(batchQuery, transaction, fileInfoId).apply {
-                                    executeBatchConditional(db2DataSource.connection)
-                                }
+                                batchQuery.insertTransaction(transaction, fileInfoId)
+                                batchQuery.executeBatchConditional(db2DataSource.connection)
+
                             } else if (isEndRecord(record)) {
                                 endRecord = parseEndRecord(record)
                             } else {
@@ -96,18 +92,22 @@ class FileLoaderService(
                     batchQuery.executeBatchUnConditional(db2DataSource.connection)
                 }
             } catch (e: Exception) {
-                var status: ValidationFileStatus
-                if (e is ValidationException) {
-                    logger.error("Valideringsfeil: ${e.message}")
-                    status = mapToFault(e.statusCode)
-                }
-                else if (e is SQLException) {
-                    logger.error("Feil ved databaseoperasjon: ${e.message}")
-                    status = ValidationFileStatus.UKJENT
-                }
-                else {
-                    logger.error("Feil ved innlesing av fil: ${e.message}")
-                    status = ValidationFileStatus.UKJENT
+                val status: ValidationFileStatus
+                when (e) {
+                    is ValidationException -> {
+                        logger.error("Valideringsfeil: ${e.message}")
+                        status = mapToFault(e.statusCode)
+                    }
+
+                    is SQLException -> {
+                        logger.error("Feil ved databaseoperasjon: ${e.message}")
+                        status = ValidationFileStatus.UKJENT
+                    }
+
+                    else -> {
+                        logger.error("Feil ved innlesing av fil: ${e.message}")
+                        status = ValidationFileStatus.UKJENT
+                    }
                 }
                 db2DataSource.connection.useAndHandleErrors {
                     it.updateFileState(FileState.AVV.name, "SPK", "ANV")
@@ -116,7 +116,7 @@ class FileLoaderService(
                 }
                 lagAvviksfil(startRecordUnparsed, status)
             } finally {
-                reader.close()
+                ftpService.disconnect()
             }
         }
     }

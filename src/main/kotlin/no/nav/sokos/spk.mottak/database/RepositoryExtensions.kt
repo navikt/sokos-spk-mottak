@@ -31,7 +31,6 @@ object RepositoryExtensions {
         try {
             if (antallTransaksjoner++ % batchsize == 0) {
                 executeBatch()
-                close()
                 conn.commit()
             }
         } catch (ex: SQLException) {
@@ -46,7 +45,6 @@ object RepositoryExtensions {
     fun PreparedStatement.executeBatchUnConditional(conn: Connection) = apply {
         try {
             executeBatch()
-            close()
             conn.commit()
         } catch (ex: SQLException) {
             logger.error("Feiler ved batch insert: ${ex.message}")

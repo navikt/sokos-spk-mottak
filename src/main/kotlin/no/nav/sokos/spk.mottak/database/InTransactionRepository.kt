@@ -45,12 +45,11 @@ object InTransactionRepository {
             """.trimIndent()
         )
 
-    fun insertTransaction(
-        ps: PreparedStatement,
+    fun PreparedStatement.insertTransaction(
         transaction: Transaction,
         fileInfoId: Int
-    ): PreparedStatement =
-        ps.withParameters(
+    ) =
+        this.withParameters(
             param(fileInfoId),
             param("00"),
             param(transaction.gjelderId),
@@ -82,7 +81,6 @@ object InTransactionRepository {
             param(transaction.gradStr),
         ).run {
             addBatch()
-            this
         }
 
     fun Connection.deleteTransactions(

@@ -30,7 +30,7 @@ object FileInfoRepository {
         fileState: String,
         anviser: String,
         fileType: String
-    ) =
+    ): ResultSet =
         prepareStatement(
             """
                 UPDATE T_FIL_INFO
@@ -44,7 +44,6 @@ object FileInfoRepository {
             param(fileType)
         ).run {
             executeQuery()
-            close()
         }
 
     fun Connection.insertFile(
@@ -83,9 +82,7 @@ object FileInfoRepository {
             param(file.feilTekst)
         ).run {
             executeUpdate()
-            val id = findId (generatedKeys)
-            close()
-            id
+            return findId (generatedKeys)
         }
 
     private fun findId(rs: ResultSet): Int {
