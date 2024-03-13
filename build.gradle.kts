@@ -41,7 +41,6 @@ dependencies {
     implementation("io.ktor:ktor-server-call-id-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-server-swagger:$ktorVersion")
 
     // Ktor client
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
@@ -99,28 +98,6 @@ kotlin {
 }
 
 tasks {
-
-    withType<KotlinCompile>().configureEach {
-        dependsOn("openApiGenerate")
-    }
-
-    withType<GenerateTask>().configureEach {
-        generatorName.set("kotlin")
-        generateModelDocumentation.set(false)
-        inputSpec.set("$rootDir/src/main/resources/openapi/pets.json")
-        outputDir.set("${layout.buildDirectory.get()}/generated")
-        globalProperties.set(
-            mapOf(
-                "models" to ""
-            )
-        )
-        configOptions.set(
-            mapOf(
-                "library" to "jvm-ktor",
-                "serializationLibrary" to "kotlinx_serialization",
-            )
-        )
-    }
 
     withType<ShadowJar>().configureEach {
         enabled = true
