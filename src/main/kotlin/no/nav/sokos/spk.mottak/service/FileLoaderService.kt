@@ -33,6 +33,8 @@ class FileLoaderService(
         val test = ftpService.listFiles(Directories.INBOUND.value)
         println("HVA FÅR JEG UT? $test")
         ftpService.downloadFiles().forEach { (filename, content) ->
+            println("Filnavn: '$filename'")
+            println("Innhold: '$content'")
             var totalRecord = 0
             lateinit var startRecord: StartRecord
             lateinit var startRecordUnparsed: String
@@ -40,55 +42,63 @@ class FileLoaderService(
             lateinit var validationFileStatus: ValidationFileStatus
             lateinit var fileInfo: FileInfo
             var maxLopenummer = 0
-            var totalBelop = BigDecimal(0.0)
+            var totalBelop: Long = 0
             var fileInfoId = 0
-            val batchQuery = db2DataSource.connection.createInsertTransaction()
+            var batchQuery = db2DataSource.connection.createInsertTransaction()
             try {
                 for (record in content) {
                     when (totalRecord++) {
                         0 -> {
+                            println("Start-record: '$record'")
                             startRecordUnparsed = record
                             startRecord = parseStartRecord(record)
+                            db2DataSource.connection.useAndHandleErrors {
+                                maxLopenummer = it.findMaxLopenummer("SPK", "ANV")
+                            }
+                            println("Parset start-record: $startRecord")
                             fileInfo = fileInfoFromStartRecord(startRecord, filename)
                             db2DataSource.connection.useConnectionWithRollback {
                                 fileInfoId = it.insertFile(fileInfo)
-                                it.updateLopenummer(fileInfoId, "SPK", "ANV")
+                                it.updateLopenummer(startRecord.filLopenummer, "SPK", "ANV")
                                 it.commit()
                             }
                         }
 
                         else -> {
                             if (content.size != totalRecord) {
+                                println("Transaksjonsrecord: '$record'")
                                 val transaction = parseTransaction(record)
-                                totalBelop = totalBelop.add(BigDecimal(transaction.belopStr))
-                                println("HVA KOMMER HER?? $transaction.prioritet")
+                                totalBelop += transaction.belopStr.toLong()
+                                println("Parset transaksjon: $transaction")
                                 batchQuery.insertTransaction(transaction, fileInfoId)
                                 batchQuery.executeBatchConditional(db2DataSource.connection)
 
                             } else {
+                                println("End-record: '$record'")
                                 endRecord = parseEndRecord(record)
+                                println("Parset end-record: $endRecord")
                             }
                         }
                     }
                 }
-                db2DataSource.connection.useAndHandleErrors {
-                    maxLopenummer = it.findMaxLopenummer("SPK", "ANV")
-                }
-                val validator = ValidatorSpkFile(startRecord, endRecord, totalRecord, totalBelop, maxLopenummer)
+                val validator = ValidatorSpkFile(startRecord, endRecord, totalRecord.minus(2), totalBelop, maxLopenummer)
                 validationFileStatus = validator.validateStartAndEndRecord()
                 logger.info("ValidationFileStatus: $validationFileStatus")
                 if (validationFileStatus != ValidationFileStatus.OK) {
                     db2DataSource.connection.useAndHandleErrors {
-                        it.updateFileState(FileState.AVV.name, "SPK", "ANV")
+                        it.updateFileState(FileState.AVV.name, "SPK", "ANV", startRecord.filLopenummer)
+                        it.commit()
                         it.deleteTransactions(fileInfoId)
                         it.commit()
                     }
-                    lagAvviksfil(startRecordUnparsed, validationFileStatus)
+//                    lagAvviksfil(startRecordUnparsed, validationFileStatus)
                 } else {
                     db2DataSource.connection.useAndHandleErrors {
-                        it.updateFileState(FileState.GOD.name, "SPK", "ANV")
+                        it.updateFileState(FileState.GOD.name, "SPK", "ANV", startRecord.filLopenummer)
+                        it.commit()
                     }
                     batchQuery.executeBatchUnConditional(db2DataSource.connection)
+                    db2DataSource.connection.commit()
                 }
             } catch (e: Exception) {
                 val status: ValidationFileStatus
@@ -109,7 +119,7 @@ class FileLoaderService(
                     }
                 }
                 db2DataSource.connection.useAndHandleErrors {
-                    it.updateFileState(FileState.AVV.name, "SPK", "ANV")
+                    it.updateFileState(FileState.AVV.name, "SPK", "ANV", startRecord.filLopenummer)
                     it.deleteTransactions(fileInfoId)
                     it.commit()
                 }

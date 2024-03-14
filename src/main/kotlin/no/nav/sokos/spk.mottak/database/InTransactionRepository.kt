@@ -25,11 +25,15 @@ object InTransactionRepository {
                 DATO_TOM_STR,
                 DATO_ANVISER_STR,
                 BELOP_STR,
+                REF_TRANS_ID,
+                TEKSTKODE,
                 RECTYPE,
+                TRANS_ID_FK,
                 DATO_FOM,
                 DATO_TOM,
                 DATO_ANVISER,
                 BELOP,
+                BEHANDLET,
                 DATO_OPPRETTET,
                 OPPRETTET_AV,
                 DATO_ENDRET,
@@ -42,7 +46,7 @@ object InTransactionRepository {
                 PRIORITET,
                 SALDO,
                 GRAD,
-                GRAD_STR) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                GRAD_STR) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """.trimIndent(), Statement.RETURN_GENERATED_KEYS
         )
 
@@ -62,11 +66,15 @@ object InTransactionRepository {
             param(transaction.periodeTomStr),
             param(transaction.datoAnviserStr),
             param(transaction.belopStr),
+            param(""),
+            param(""),
             param("02"),
+            param(""),
             param(transaction.periodeFom!!),
             param(transaction.periodeTom!!),
             param(transaction.datoAnviser!!),
             param(transaction.belop!!),
+            param("N"),
             param(LocalDateTime.now()),
             param("sokos.spk.mottak"),
             param(LocalDateTime.now()),

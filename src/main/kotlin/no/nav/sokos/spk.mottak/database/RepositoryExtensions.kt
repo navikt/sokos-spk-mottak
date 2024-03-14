@@ -46,20 +46,20 @@ object RepositoryExtensions {
             if (antallTransaksjoner++ % batchsize == 0) {
                 executeBatch()
                 conn.commit()
+                println("executeBatchConditional:commit:antallTransaksjoner = $antallTransaksjoner")
             }
+            println("executeBatchConditional: ikke commitet = $antallTransaksjoner")
         } catch (ex: SQLException) {
             logger.error("Feiler ved batch insert: ${ex.message}")
             conn.rollback()
             throw ex
-        } finally {
-            conn.close()
         }
     }
 
     fun PreparedStatement.executeBatchUnConditional(conn: Connection) = apply {
         try {
             executeBatch()
-            conn.commit()
+//            conn.commit()
         } catch (ex: SQLException) {
             logger.error("Feiler ved batch insert: ${ex.message}")
             conn.rollback()

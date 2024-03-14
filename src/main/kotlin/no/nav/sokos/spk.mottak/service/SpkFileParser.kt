@@ -9,6 +9,7 @@ import no.nav.sokos.spk.mottak.modell.EndRecord
 import no.nav.sokos.spk.mottak.modell.StartRecord
 import no.nav.sokos.spk.mottak.modell.Transaction
 import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
+import java.time.LocalDateTime
 
 fun parseStartRecord(record: String): StartRecord {
     val parser = SpkFilParser(record)
@@ -57,23 +58,23 @@ fun parseTransaction(record: String): Transaction {
         periodeFomStr = parser.parseString(8),
         periodeTomStr = parser.parseString(8),
         belopsType = parser.parseString(2),
-        belopStr = parser.parseString(9),
+        belopStr = parser.parseString(11),
         art = parser.parseString(4),
         refTransId = parser.parseString(12),
         tekstKode = parser.parseString(4),
-        saldoStr = parser.parseString(9),
+        saldoStr = parser.parseString(11),
         prioritetStr = parser.parseString(8),
         kid = parser.parseString(26),
         trekkansvar = parser.parseString(4),
         gradStr = parser.parseString(4)
     ).apply {
-        this.datoAnviser = parser.parseDate(this.datoAnviserStr)
-        this.periodeFom = parser.parseDate(this.periodeFomStr)
-        this.periodeTom = parser.parseDate(this.periodeTomStr)
-        this.belop = parser.parseInt(this.belopStr)
-        this.saldo = parser.parseInt(this.saldoStr)
-        this.prioritet = parser.parseDate(this.prioritetStr)
-        this.grad = parser.parseInt(this.gradStr)
+        datoAnviser = parser.parseDate(datoAnviserStr)
+        periodeFom = parser.parseDate(periodeFomStr)
+        periodeTom = parser.parseDate(periodeTomStr)
+        belop = parser.parseInt(belopStr)
+        saldo = parser.parseInt(saldoStr)
+        prioritet = parser.parseDate(prioritetStr)
+        grad = parser.parseInt(gradStr)
     }
 }
 
@@ -87,7 +88,7 @@ fun parseEndRecord(record: String): EndRecord {
     }
     return EndRecord(
         numberOfRecord = parser.parseInt(9),
-        totalBelop = parser.parseAmountAsBigdecimal(12)
+        totalBelop = parser.parseLong(14)
     )
 }
 
@@ -107,6 +108,8 @@ class SpkFilParser(
     }
 
     fun parseInt(len: Int) = this.parseString(len).toInt()
+
+    fun parseLong(len: Int) = this.parseString(len).toLong()
 
     fun parseInt(value: String): Int =
         try {
@@ -134,6 +137,6 @@ class SpkFilParser(
         try {
             date.let { LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyyMMdd")) }
         } catch (ex: DateTimeParseException) {
-            null
+            LocalDateTime.now().toLocalDate()
         }
 }

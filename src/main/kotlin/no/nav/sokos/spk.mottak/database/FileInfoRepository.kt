@@ -15,7 +15,7 @@ object FileInfoRepository {
     ): Int =
         prepareStatement(
             """
-                SELECT MAX(FIL_INFO_ID) 
+                SELECT MAX(LOPENR) 
                 FROM  T_FIL_INFO
                 WHERE K_ANVISER = (?)
                 AND K_FIL_T = (?)
@@ -30,7 +30,8 @@ object FileInfoRepository {
     fun Connection.updateFileState(
         fileState: String,
         anviser: String,
-        fileType: String
+        fileType: String,
+        lopenr: Int
     ) =
         prepareStatement(
             """
@@ -38,11 +39,13 @@ object FileInfoRepository {
                 SET K_FIL_TILSTAND_T = (?)
                 WHERE K_ANVISER = (?)
                 AND K_FIL_T = (?)
+                AND LOPENR = (?)
             """.trimIndent()
         ).withParameters(
             param(fileState),
             param(anviser),
-            param(fileType)
+            param(fileType),
+            param(lopenr)
         ).run {
             executeUpdate()
         }
