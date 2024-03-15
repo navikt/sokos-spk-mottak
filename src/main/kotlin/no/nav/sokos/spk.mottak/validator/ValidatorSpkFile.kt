@@ -3,7 +3,6 @@ package no.nav.sokos.spk.mottak.validator
 import no.nav.sokos.spk.mottak.config.logger
 import no.nav.sokos.spk.mottak.modell.EndRecord
 import no.nav.sokos.spk.mottak.modell.StartRecord
-import java.math.BigDecimal
 
 class ValidatorSpkFile(
     private val startRecord: StartRecord,
@@ -42,12 +41,10 @@ class ValidatorSpkFile(
     }
 
     private fun validateGyldigFillopenummer(maxLopenummer: Int): Boolean {
-        println("validateGyldigFillopenummer:maxLopenummer: $maxLopenummer")
         return startRecord.filLopenummer == (maxLopenummer + 1)
     }
 
     private fun validateFillopenummerIkkeBrukt(maxLopenummer: Int): Boolean {
-        println("validateFillopenummerIkkeBrukt:maxLopenummer: $maxLopenummer")
         return maxLopenummer < startRecord.filLopenummer
     }
 

@@ -1,6 +1,5 @@
 package no.nav.sokos.spk.mottak.service
 
-import java.math.BigDecimal
 import java.sql.SQLException
 import no.nav.sokos.spk.mottak.config.logger
 import no.nav.sokos.spk.mottak.database.Db2DataSource
@@ -12,14 +11,13 @@ import no.nav.sokos.spk.mottak.database.InTransactionRepository.createInsertTran
 import no.nav.sokos.spk.mottak.database.InTransactionRepository.deleteTransactions
 import no.nav.sokos.spk.mottak.database.InTransactionRepository.insertTransaction
 import no.nav.sokos.spk.mottak.database.LopenummerRepository.updateLopenummer
-import no.nav.sokos.spk.mottak.database.RepositoryExtensions.executeBatchConditional
-import no.nav.sokos.spk.mottak.database.RepositoryExtensions.executeBatchUnConditional
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useAndHandleErrors
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useConnectionWithRollback
 import no.nav.sokos.spk.mottak.database.fileInfoFromStartRecord
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.modell.EndRecord
 import no.nav.sokos.spk.mottak.modell.StartRecord
+import no.nav.sokos.spk.mottak.modell.Transaction
 import no.nav.sokos.spk.mottak.service.FileProducer.lagAvviksfil
 import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
 import no.nav.sokos.spk.mottak.validator.ValidatorSpkFile
@@ -28,10 +26,9 @@ class FileLoaderService(
     private val db2DataSource: Db2DataSource = Db2DataSource(),
     private val ftpService: FtpService = FtpService()
 ) {
+    private var batchsize: Int = 4000
 
     fun parseFiles() {
-        val test = ftpService.listFiles(Directories.INBOUND.value)
-        println("HVA FÅR JEG UT? $test")
         ftpService.downloadFiles().forEach { (filename, content) ->
             println("Filnavn: '$filename'")
             println("Innhold: '$content'")
@@ -44,7 +41,7 @@ class FileLoaderService(
             var maxLopenummer = 0
             var totalBelop: Long = 0
             var fileInfoId = 0
-            var batchQuery = db2DataSource.connection.createInsertTransaction()
+            val transactions: MutableList<Transaction> = mutableListOf()
             try {
                 for (record in content) {
                     when (totalRecord++) {
@@ -70,9 +67,20 @@ class FileLoaderService(
                                 val transaction = parseTransaction(record)
                                 totalBelop += transaction.belopStr.toLong()
                                 println("Parset transaksjon: $transaction")
-                                batchQuery.insertTransaction(transaction, fileInfoId)
-                                batchQuery.executeBatchConditional(db2DataSource.connection)
-
+                                if (totalRecord % batchsize == 0) {
+                                    db2DataSource.connection.useAndHandleErrors {
+                                        val ps = it.createInsertTransaction()
+                                        transactions.forEach { transaction ->
+                                            insertTransaction(ps, transaction, fileInfoId)
+                                        }
+                                        ps.executeBatch()
+                                        it.commit()
+                                        println("Batch executed $totalRecord records")
+                                        transactions.clear()
+                                    }
+                                } else {
+                                    transactions += transaction
+                                }
                             } else {
                                 println("End-record: '$record'")
                                 endRecord = parseEndRecord(record)
@@ -87,7 +95,6 @@ class FileLoaderService(
                 if (validationFileStatus != ValidationFileStatus.OK) {
                     db2DataSource.connection.useAndHandleErrors {
                         it.updateFileState(FileState.AVV.name, "SPK", "ANV", fileInfoId)
-                        it.commit()
                         it.deleteTransactions(fileInfoId)
                         it.commit()
                     }
@@ -95,10 +102,14 @@ class FileLoaderService(
                 } else {
                     db2DataSource.connection.useAndHandleErrors {
                         it.updateFileState(FileState.GOD.name, "SPK", "ANV", fileInfoId)
+                        val ps = it.createInsertTransaction()
+                        transactions.forEach { transaction ->
+                            insertTransaction(ps, transaction, fileInfoId)
+                        }
+                        ps.executeBatch()
+                        println("Batch executed $totalRecord records")
                         it.commit()
                     }
-                    batchQuery.executeBatchUnConditional(db2DataSource.connection)
-                    db2DataSource.connection.commit()
                 }
             } catch (e: Exception) {
                 val status: ValidationFileStatus

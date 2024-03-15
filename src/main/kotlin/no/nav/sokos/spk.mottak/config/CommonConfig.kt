@@ -26,7 +26,6 @@ import java.util.UUID
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
-import no.nav.sokos.spk.mottak.api.naisApi
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import org.slf4j.event.Level
 

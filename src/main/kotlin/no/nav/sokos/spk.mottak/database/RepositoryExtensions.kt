@@ -14,8 +14,6 @@ import java.time.LocalDateTime
 
 object RepositoryExtensions {
 
-    private var batchsize: Int = 4000
-    private var antallTransaksjoner: Int = 0
     inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
         try {
             use {
@@ -38,34 +36,6 @@ object RepositoryExtensions {
             throw ex
         } finally {
             close()
-        }
-    }
-
-    fun PreparedStatement.executeBatchConditional(conn: Connection) = apply {
-        try {
-            if (antallTransaksjoner++ % batchsize == 0) {
-                executeBatch()
-                conn.commit()
-                println("executeBatchConditional:commit:antallTransaksjoner = $antallTransaksjoner")
-            }
-            println("executeBatchConditional: ikke commitet = $antallTransaksjoner")
-        } catch (ex: SQLException) {
-            logger.error("Feiler ved batch insert: ${ex.message}")
-            conn.rollback()
-            throw ex
-        }
-    }
-
-    fun PreparedStatement.executeBatchUnConditional(conn: Connection) = apply {
-        try {
-            executeBatch()
-//            conn.commit()
-        } catch (ex: SQLException) {
-            logger.error("Feiler ved batch insert: ${ex.message}")
-            conn.rollback()
-            throw ex
-        } finally {
-            conn.close()
         }
     }
 
@@ -107,10 +77,6 @@ object RepositoryExtensions {
     fun param(value: Int) = Parameter { sp: PreparedStatement, index: Int -> sp.setInt(index, value) }
 
     fun param(value: Long) = Parameter { sp: PreparedStatement, index: Int -> sp.setLong(index, value) }
-
-
-    fun param(value: BigDecimal) =
-        Parameter { statement: PreparedStatement, index: Int -> statement.setBigDecimal(index, value) }
 
     fun param(value: LocalDate) =
         Parameter { statement: PreparedStatement, index: Int -> statement.setDate(index, Date.valueOf(value)) }

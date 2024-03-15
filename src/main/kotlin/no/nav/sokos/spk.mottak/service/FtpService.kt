@@ -47,7 +47,7 @@ class FtpService(
     fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> =
         listFiles(directory.value).associateWith { sftpChannel.downloadFile("${directory.value}/$it") }
 
-    fun listFiles(directory: String): List<String> = sftpChannel.ls(directory).map { it.filename }.filter { it.contains(".txt") }
+    private fun listFiles(directory: String): List<String> = sftpChannel.ls(directory).map { it.filename }.filter { it.contains(".txt") }
 
     private fun ChannelSftp.downloadFile(fileName: String): List<String> {
         val outputStream = ByteArrayOutputStream()

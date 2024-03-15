@@ -1,12 +1,12 @@
 package no.nav.sokos.spk.mottak.database
 
+import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
+import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
+import no.nav.sokos.spk.mottak.modell.Transaction
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.Statement
 import java.time.LocalDateTime
-import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
-import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
-import no.nav.sokos.spk.mottak.modell.Transaction
 
 object InTransactionRepository {
 
@@ -50,11 +50,12 @@ object InTransactionRepository {
                 """.trimIndent(), Statement.RETURN_GENERATED_KEYS
         )
 
-    fun PreparedStatement.insertTransaction(
+    fun insertTransaction(
+        ps: PreparedStatement,
         transaction: Transaction,
         fileInfoId: Int
     ) =
-        this.withParameters(
+        ps.withParameters(
             param(fileInfoId),
             param("00"),
             param(transaction.gjelderId),

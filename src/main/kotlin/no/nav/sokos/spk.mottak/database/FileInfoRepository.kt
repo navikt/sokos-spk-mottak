@@ -15,7 +15,7 @@ object FileInfoRepository {
     ): Int =
         prepareStatement(
             """
-                SELECT MAX(LOPENR) 
+                SELECT MAX(CAST(LOPENR AS INT)) 
                 FROM  T_FIL_INFO
                 WHERE K_ANVISER = (?)
                 AND K_FIL_T = (?)

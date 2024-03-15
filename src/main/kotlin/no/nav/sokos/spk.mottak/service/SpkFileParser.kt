@@ -1,15 +1,14 @@
 package no.nav.sokos.spk.mottak.service
 
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.modell.EndRecord
 import no.nav.sokos.spk.mottak.modell.StartRecord
 import no.nav.sokos.spk.mottak.modell.Transaction
 import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 fun parseStartRecord(record: String): StartRecord {
     val parser = SpkFilParser(record)
@@ -92,18 +91,12 @@ fun parseEndRecord(record: String): EndRecord {
     )
 }
 
-fun isTransactionRecord(record: String) = "02" == SpkFilParser(record).parseString(2)
-
-fun isEndRecord(record: String) = "09" == SpkFilParser(record).parseString(2)
-
 class SpkFilParser(
     private val record: String
 ) {
     private var pos = 0
     fun parseString(len: Int): String {
-        println("HVA ER DETTE?? $len")
         if (record.length < pos + len) return record.substring(pos).trim()
-        println(record.substring(pos, pos + len).trim())
         return record.substring(pos, pos + len).trim().also { pos += len }
     }
 
@@ -116,18 +109,6 @@ class SpkFilParser(
             value.toInt()
         } catch (ex: NumberFormatException) {
             -1
-        }
-
-    fun parseAmountAsBigdecimal(len: Int) = this.parseString(len).trimStart('0')
-        .let {
-            BigDecimal(
-                when (it.length) {
-                    0 -> "0.00"
-                    1 -> "0.0$it"
-                    2 -> "0.$it"
-                    else -> "${it.dropLast(2)}.${it.drop(it.length - 2)}"
-                }
-            )
         }
 
     fun parseDate(len: Int): LocalDate = this.parseString(len)
