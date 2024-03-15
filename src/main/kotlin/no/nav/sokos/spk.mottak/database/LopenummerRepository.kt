@@ -3,8 +3,27 @@ package no.nav.sokos.spk.mottak.database
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
 import java.sql.Connection
+import java.sql.ResultSet
 
 object LopenummerRepository {
+
+    fun Connection.findMaxLopenummer(
+        anviser: String,
+        fileType: String
+    ): Int =
+        prepareStatement(
+            """
+                SELECT SISTE_LOPENR 
+                FROM  T_LOPENR
+                WHERE K_ANVISER = (?)
+                AND K_FIL_T = (?)
+            """.trimIndent()
+        ).withParameters(
+            param(anviser),
+            param(fileType)
+        ).run {
+            executeQuery().findMax()
+        }
 
     fun Connection.updateLopenummer(
         lopenummer: Int,
@@ -25,4 +44,10 @@ object LopenummerRepository {
         ).run {
             executeUpdate()
         }
+
+
+    private fun ResultSet.findMax() = run {
+        if (next()) getInt(1)
+        else 0
+    }
 }

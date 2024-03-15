@@ -9,24 +9,6 @@ import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
 
 object FileInfoRepository {
 
-    fun Connection.findMaxLopenummer(
-        anviser: String,
-        fileType: String
-    ): Int =
-        prepareStatement(
-            """
-                SELECT MAX(CAST(LOPENR AS INT)) 
-                FROM  T_FIL_INFO
-                WHERE K_ANVISER = (?)
-                AND K_FIL_T = (?)
-            """.trimIndent()
-        ).withParameters(
-            param(anviser),
-            param(fileType)
-        ).run {
-            executeQuery().findMax()
-        }
-
     fun Connection.updateFileState(
         fileState: String,
         anviser: String,
@@ -94,10 +76,5 @@ object FileInfoRepository {
             return rs.getLong(1).toInt()
         }
         throw SQLException("Finner ikke primary key i FIL_INFO")
-    }
-
-    private fun ResultSet.findMax() = run {
-        if (next()) getInt(1)
-        else 0
     }
 }
