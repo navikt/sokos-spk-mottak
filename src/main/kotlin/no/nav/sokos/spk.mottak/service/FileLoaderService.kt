@@ -86,7 +86,7 @@ class FileLoaderService(
                 logger.info("ValidationFileStatus: $validationFileStatus")
                 if (validationFileStatus != ValidationFileStatus.OK) {
                     db2DataSource.connection.useAndHandleErrors {
-                        it.updateFileState(FileState.AVV.name, "SPK", "ANV", startRecord.filLopenummer)
+                        it.updateFileState(FileState.AVV.name, "SPK", "ANV", fileInfoId)
                         it.commit()
                         it.deleteTransactions(fileInfoId)
                         it.commit()
@@ -94,7 +94,7 @@ class FileLoaderService(
 //                    lagAvviksfil(startRecordUnparsed, validationFileStatus)
                 } else {
                     db2DataSource.connection.useAndHandleErrors {
-                        it.updateFileState(FileState.GOD.name, "SPK", "ANV", startRecord.filLopenummer)
+                        it.updateFileState(FileState.GOD.name, "SPK", "ANV", fileInfoId)
                         it.commit()
                     }
                     batchQuery.executeBatchUnConditional(db2DataSource.connection)
@@ -119,7 +119,7 @@ class FileLoaderService(
                     }
                 }
                 db2DataSource.connection.useAndHandleErrors {
-                    it.updateFileState(FileState.AVV.name, "SPK", "ANV", startRecord.filLopenummer)
+                    it.updateFileState(FileState.AVV.name, "SPK", "ANV", fileInfoId)
                     it.deleteTransactions(fileInfoId)
                     it.commit()
                 }

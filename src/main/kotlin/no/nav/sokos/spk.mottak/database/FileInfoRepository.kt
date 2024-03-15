@@ -31,7 +31,7 @@ object FileInfoRepository {
         fileState: String,
         anviser: String,
         fileType: String,
-        lopenr: Int
+        id: Int
     ) =
         prepareStatement(
             """
@@ -39,13 +39,13 @@ object FileInfoRepository {
                 SET K_FIL_TILSTAND_T = (?)
                 WHERE K_ANVISER = (?)
                 AND K_FIL_T = (?)
-                AND LOPENR = (?)
+                AND FIL_INFO_ID = (?)
             """.trimIndent()
         ).withParameters(
             param(fileState),
             param(anviser),
             param(fileType),
-            param(lopenr)
+            param(id)
         ).run {
             executeUpdate()
         }
