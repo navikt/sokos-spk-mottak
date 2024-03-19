@@ -22,21 +22,3 @@ data class FileInfo(
     val feilTekst: String?
 )
 
-fun fileInfoFromStartRecord(startRecord: StartRecord, fileName: String): FileInfo {
-    return FileInfo(
-        id = -1, // TODO: generert av db
-        status = FileStatusValidation.OK.code,
-        tilstand = FileState.OPR.name,
-        anviser = startRecord.avsender,
-        filnavn = fileName,
-        lopenr = startRecord.filLopenummer,
-        datoMottatt = startRecord.produsertDato.toString(),
-        datoOpprettet = LocalDateTime.now(),
-        opprettetAv = "sokos.spk.mottak",
-        datoEndret = LocalDateTime.now(),
-        endretAv = "sokos.spk.mottak",
-        versjon = 2,
-        filType = startRecord.filType,
-        feilTekst = startRecord.feilTekst
-    )
-}

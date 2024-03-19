@@ -1,5 +1,6 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.sql.SQLException
 import no.nav.sokos.spk.mottak.config.logger
 import no.nav.sokos.spk.mottak.database.Db2DataSource
 import no.nav.sokos.spk.mottak.database.FileInfoRepository.insertFile
@@ -13,96 +14,48 @@ import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useAndHandleErrors
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useConnectionWithRollback
 import no.nav.sokos.spk.mottak.domain.FILETYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FileState
-import no.nav.sokos.spk.mottak.domain.fileInfoFromStartRecord
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
+import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransactionRecord
+import no.nav.sokos.spk.mottak.domain.record.toFileInfo
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.util.FileUtil.createAvviksRecord
 import no.nav.sokos.spk.mottak.util.FileUtil.createFileName
 import no.nav.sokos.spk.mottak.validator.FileStatusValidation
-import no.nav.sokos.spk.mottak.validator.FileValidation
-import java.sql.SQLException
+import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndEndRecord
+
+private const val BATCH_SIZE: Int = 30000
 
 class FileReaderService(
     private val db2DataSource: Db2DataSource = Db2DataSource(),
     private val ftpService: FtpService = FtpService()
 ) {
-    private var batchsize: Int = 4000
+
 
     fun parseFiles() {
         ftpService.downloadFiles().forEach { (filename, content) ->
             println("Filnavn: '$filename'")
             println("Innhold: '$content'")
-            var totalRecord = 0
-            lateinit var startRecord: StartRecord
-            lateinit var startRecordUnparsed: String
-            lateinit var endRecord: EndRecord
-            var maxLopenummer = 0
-            var totalBelop: Long = 0
-            var fileInfoId = 0
-            val transactionRecords: MutableList<TransactionRecord> = mutableListOf()
-            try {
-                for (record in content) {
-                    val fileParser = FileParser(record)
-                    when (totalRecord++) {
-                        0 -> {
-                            println("Start-record: '$record'")
-                            startRecordUnparsed = record
-                            startRecord = fileParser.parseStartRecord()
-                            db2DataSource.connection.useAndHandleErrors {
-                                maxLopenummer = it.findMaxLopenummer(FILETYPE_ANVISER)
-                            }
-                            println("Parset start-record: $startRecord")
-                            val fileInfo = fileInfoFromStartRecord(startRecord, filename)
-                            db2DataSource.connection.useConnectionWithRollback {
-                                fileInfoId = it.insertFile(fileInfo)
-                                // TODO: Legge inn EndretAv/EndretDato
-                                it.updateLopenummer(startRecord.filLopenummer, FILETYPE_ANVISER)
-                                it.commit()
-                            }
-                        }
 
-                        else -> {
-                            if (content.size != totalRecord) {
-                                println("Transaksjonsrecord: '$record'")
-                                val transaction = fileParser.parseTransaction()
-                                totalBelop += transaction.belopStr.toLong()
-                                println("Parset transaksjon: $transaction")
-                                if (totalRecord % batchsize == 0) {
-                                    db2DataSource.connection.useAndHandleErrors {
-                                        val ps = it.createInsertTransaction()
-                                        transactionRecords.forEach { transaction ->
-                                            insertTransaction(ps, transaction, fileInfoId)
-                                        }
-                                        ps.executeBatch()
-                                        it.commit()
-                                        println("Batch executed $totalRecord records")
-                                        transactionRecords.clear()
-                                    }
-                                } else {
-                                    transactionRecords += transaction
-                                }
-                            } else {
-                                println("End-record: '$record'")
-                                endRecord = fileParser.parseEndRecord()
-                                println("Parset end-record: $endRecord")
-                            }
-                        }
-                    }
-                }
-                val validator =
-                    FileValidation(startRecord, endRecord, totalRecord.minus(2), totalBelop, maxLopenummer)
-                val validationFileStatus = validator.validateStartAndEndRecord()
+            val transactionRecords: MutableList<TransactionRecord> = mutableListOf()
+            val recordData = readRecords(filename, content, transactionRecords)
+            val fileInfoId = recordData.startRecord.fileInfoId
+            var exceptionHandled = false
+
+            try {
+                val validationFileStatus = validateStartAndEndRecord(recordData)
                 logger.info("ValidationFileStatus: $validationFileStatus")
                 if (validationFileStatus != FileStatusValidation.OK) {
                     db2DataSource.connection.useConnectionWithRollback {
                         // TODO: Legge inn feiltekst og EndretAv/EndretDato
+
                         it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
                         it.deleteTransactions(fileInfoId)
                         it.commit()
+                        exceptionHandled = true
                     }
-                    createAvviksFil(startRecordUnparsed, validationFileStatus)
+                    createAvviksFil(recordData.startRecord.rawRecord, validationFileStatus)
                 } else {
                     db2DataSource.connection.useAndHandleErrors {
                         // TODO: Legge inn EndretAv/EndretDato
@@ -112,7 +65,7 @@ class FileReaderService(
                             insertTransaction(ps, transaction, fileInfoId)
                         }
                         ps.executeBatch()
-                        println("Batch executed $totalRecord records")
+                        println("Batch executed ${recordData.numberOfRecord} records")
                         it.commit()
                     }
                 }
@@ -134,15 +87,91 @@ class FileReaderService(
                         status = FileStatusValidation.UKJENT
                     }
                 }
-                db2DataSource.connection.useConnectionWithRollback {
-                    // TODO: Legge inn feiltekst og EndretAv/EndretDato
-                    it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
-                    it.deleteTransactions(fileInfoId)
-                    it.commit()
+                if (!exceptionHandled) {
+                    db2DataSource.connection.useConnectionWithRollback {
+                        // TODO: Legge inn feiltekst og EndretAv/EndretDato
+                        it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
+                        it.deleteTransactions(fileInfoId)
+                        it.commit()
+                    }
                 }
-                createAvviksFil(startRecordUnparsed, status)
+                createAvviksFil(recordData.startRecord.rawRecord, status)
             }
         }
+    }
+
+    private fun readRecords(filename: String, content: List<String>, transactionRecords: MutableList<TransactionRecord>): RecordData {
+        var totalRecord = 0
+        var totalBelop = 0L
+        var maxLopenummer = 0
+        lateinit var startRecord: StartRecord
+        lateinit var endRecord: EndRecord
+
+        println("Innhold størrelse: ${content.size}")
+        content.forEach { record ->
+            val fileParser = FileParser(record)
+            if (totalRecord == 0) {
+                startRecord = handleStartRecord(record, filename, fileParser)
+            } else {
+                if (content.size != totalRecord) {
+                    val transaction = fileParser.parseTransaction()
+                    totalBelop += transaction.belopStr.toLong()
+                    handleTransactionRecord(transaction, startRecord, transactionRecords, totalRecord)
+                } else {
+                    println("End-record: '$record'")
+                    endRecord = handleEndRecord(fileParser)
+                }
+            }
+            totalRecord++
+        }
+
+        db2DataSource.connection.useAndHandleErrors {
+            maxLopenummer = it.findMaxLopenummer(FILETYPE_ANVISER)
+        }
+        return RecordData(startRecord, endRecord, totalRecord, totalBelop, maxLopenummer)
+    }
+
+    private fun handleStartRecord(record: String, filename: String, fileParser: FileParser): StartRecord {
+        println("Start-record: '$record'")
+        val startRecord: StartRecord = fileParser.parseStartRecord().apply { rawRecord = record }
+
+        println("Parset start-record: $startRecord")
+        val fileInfo = startRecord.toFileInfo(filename)
+        db2DataSource.connection.useConnectionWithRollback {
+            startRecord.fileInfoId = it.insertFile(fileInfo)
+            // TODO: Legge inn EndretAv/EndretDato
+            it.updateLopenummer(startRecord.filLopenummer, FILETYPE_ANVISER)
+            it.commit()
+        }
+        return startRecord
+    }
+
+    private fun handleTransactionRecord(
+        transaction: TransactionRecord,
+        startRecord: StartRecord,
+        transactionRecords: MutableList<TransactionRecord>,
+        totalRecord: Int
+    ) {
+        if (totalRecord % BATCH_SIZE == 0) {
+            db2DataSource.connection.useAndHandleErrors {
+                val ps = it.createInsertTransaction()
+                transactionRecords.forEach { transaction ->
+                    insertTransaction(ps, transaction, startRecord.fileInfoId)
+                }
+                ps.executeBatch()
+                it.commit()
+                println("Batch executed $totalRecord records")
+                transactionRecords.clear()
+            }
+        } else {
+            transactionRecords += transaction
+        }
+    }
+
+    private fun handleEndRecord(fileParser: FileParser): EndRecord {
+        val endRecord = fileParser.parseEndRecord()
+        println("Parset end-record: $endRecord")
+        return endRecord
     }
 
     private fun createAvviksFil(startRecordUnparsed: String, status: FileStatusValidation) {
