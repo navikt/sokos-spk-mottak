@@ -1,16 +1,16 @@
-package no.nav.sokos.spk.mottak.service
+package no.nav.sokos.spk.mottak.util
 
 import no.nav.sokos.spk.mottak.config.logger
-import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
+import no.nav.sokos.spk.mottak.validator.FileStatusValidation
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
 
-object FileProducer {
+object FileUtil {
 
-    fun lagAvviksfil(ftpService:FtpService = FtpService(), startRecord: String, validationFileStatus: ValidationFileStatus) {
-        val responseRecord = startRecord.replaceRange(76, 78, validationFileStatus.code)
-            .replaceRange(78, 113, validationFileStatus.message)
+    fun createAvviksFile(startRecord: String, fileStatusValidation: FileStatusValidation): File {
+        val responseRecord = startRecord.replaceRange(76, 78, fileStatusValidation.code)
+            .replaceRange(78, 113, fileStatusValidation.message)
         val fileName = "SPK_NAV_${SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())}_ANV"
         try {
             val file = File(fileName)
@@ -19,7 +19,7 @@ object FileProducer {
                 throw RuntimeException("Anvisningsreturfil eksisterer allerede")
             }
             file.writeText(responseRecord)
-            ftpService.moveFile(file.name, Directories.OUTBOUND, Directories.ANVISNINGSRETUR)
+            return file
         } catch (ex: Exception) {
             logger.error("Feil ved produksjon av anvisningsreturfil: ${ex.message}")
             throw ex

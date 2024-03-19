@@ -1,8 +1,8 @@
-package no.nav.sokos.spk.mottak.modell
+package no.nav.sokos.spk.mottak.domain.record
 
 import java.time.LocalDate
 
-data class Transaction(
+data class TransactionRecord(
     val transId: String,
     val gjelderId: String,
     val utbetalesTil: String,

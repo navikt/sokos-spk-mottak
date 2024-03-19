@@ -1,4 +1,4 @@
-package no.nav.sokos.spk.mottak.service
+package no.nav.sokos.spk.mottak.domain
 
 enum class FileState {
     AVV, // Avvist

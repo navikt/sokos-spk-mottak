@@ -2,7 +2,7 @@ package no.nav.sokos.spk.mottak.database
 
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
-import no.nav.sokos.spk.mottak.modell.Transaction
+import no.nav.sokos.spk.mottak.domain.record.TransactionRecord
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.Statement
@@ -52,43 +52,43 @@ object InTransactionRepository {
 
     fun insertTransaction(
         ps: PreparedStatement,
-        transaction: Transaction,
+        transactionRecord: TransactionRecord,
         fileInfoId: Int
     ) =
         ps.withParameters(
             param(fileInfoId),
             param("00"),
-            param(transaction.gjelderId),
-            param(transaction.belopsType),
-            param(transaction.art),
+            param(transactionRecord.gjelderId),
+            param(transactionRecord.belopsType),
+            param(transactionRecord.art),
             param("SPK"),
-            param(transaction.utbetalesTil),
-            param(transaction.periodeFomStr),
-            param(transaction.periodeTomStr),
-            param(transaction.datoAnviserStr),
-            param(transaction.belopStr),
+            param(transactionRecord.utbetalesTil),
+            param(transactionRecord.periodeFomStr),
+            param(transactionRecord.periodeTomStr),
+            param(transactionRecord.datoAnviserStr),
+            param(transactionRecord.belopStr),
             param(""),
             param(""),
             param("02"),
             param(""),
-            param(transaction.periodeFom!!),
-            param(transaction.periodeTom!!),
-            param(transaction.datoAnviser!!),
-            param(transaction.belop!!),
+            param(transactionRecord.periodeFom!!),
+            param(transactionRecord.periodeTom!!),
+            param(transactionRecord.datoAnviser!!),
+            param(transactionRecord.belop!!),
             param("N"),
             param(LocalDateTime.now()),
             param("sokos.spk.mottak"),
             param(LocalDateTime.now()),
             param("sokos.spk.mottak"),
             param(1),  // TODO: Versjon?
-            param(transaction.prioritetStr),
-            param(transaction.trekkansvar),
-            param(transaction.saldoStr),
-            param(transaction.kid),
-            param(transaction.prioritet!!),
-            param(transaction.saldo!!),
-            param(transaction.grad!!),
-            param(transaction.gradStr),
+            param(transactionRecord.prioritetStr),
+            param(transactionRecord.trekkansvar),
+            param(transactionRecord.saldoStr),
+            param(transactionRecord.kid),
+            param(transactionRecord.prioritet!!),
+            param(transactionRecord.saldo!!),
+            param(transactionRecord.grad!!),
+            param(transactionRecord.gradStr),
         ).run {
             addBatch()
         }

@@ -3,7 +3,6 @@ package no.nav.sokos.spk.mottak.service
 import java.sql.SQLException
 import no.nav.sokos.spk.mottak.config.logger
 import no.nav.sokos.spk.mottak.database.Db2DataSource
-import no.nav.sokos.spk.mottak.database.FileInfo
 import no.nav.sokos.spk.mottak.database.FileInfoRepository.insertFile
 import no.nav.sokos.spk.mottak.database.FileInfoRepository.updateFileState
 import no.nav.sokos.spk.mottak.database.InTransactionRepository.createInsertTransaction
@@ -13,16 +12,18 @@ import no.nav.sokos.spk.mottak.database.LopenummerRepository.findMaxLopenummer
 import no.nav.sokos.spk.mottak.database.LopenummerRepository.updateLopenummer
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useAndHandleErrors
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useConnectionWithRollback
-import no.nav.sokos.spk.mottak.database.fileInfoFromStartRecord
+import no.nav.sokos.spk.mottak.domain.FILETYPE_ANVISER
+import no.nav.sokos.spk.mottak.domain.FileState
+import no.nav.sokos.spk.mottak.domain.fileInfoFromStartRecord
 import no.nav.sokos.spk.mottak.exception.ValidationException
-import no.nav.sokos.spk.mottak.modell.EndRecord
-import no.nav.sokos.spk.mottak.modell.StartRecord
-import no.nav.sokos.spk.mottak.modell.Transaction
-import no.nav.sokos.spk.mottak.service.FileProducer.lagAvviksfil
-import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
-import no.nav.sokos.spk.mottak.validator.ValidatorSpkFile
+import no.nav.sokos.spk.mottak.domain.record.EndRecord
+import no.nav.sokos.spk.mottak.domain.record.StartRecord
+import no.nav.sokos.spk.mottak.domain.record.TransactionRecord
+import no.nav.sokos.spk.mottak.util.FileUtil.createAvviksFile
+import no.nav.sokos.spk.mottak.validator.FileStatusValidation
+import no.nav.sokos.spk.mottak.validator.FileValidation
 
-class FileLoaderService(
+class FileReaderService(
     private val db2DataSource: Db2DataSource = Db2DataSource(),
     private val ftpService: FtpService = FtpService()
 ) {
@@ -40,23 +41,24 @@ class FileLoaderService(
             var maxLopenummer = 0
             var totalBelop: Long = 0
             var fileInfoId = 0
-            val transactions: MutableList<Transaction> = mutableListOf()
+            val transactionRecords: MutableList<TransactionRecord> = mutableListOf()
             try {
                 for (record in content) {
+                    val fileParser = FileParser(record)
                     when (totalRecord++) {
                         0 -> {
                             println("Start-record: '$record'")
                             startRecordUnparsed = record
-                            startRecord = parseStartRecord(record)
+                            startRecord = fileParser.parseStartRecord()
                             db2DataSource.connection.useAndHandleErrors {
-                                maxLopenummer = it.findMaxLopenummer("SPK", "ANV")
+                                maxLopenummer = it.findMaxLopenummer(FILETYPE_ANVISER)
                             }
                             println("Parset start-record: $startRecord")
                             val fileInfo = fileInfoFromStartRecord(startRecord, filename)
                             db2DataSource.connection.useConnectionWithRollback {
                                 fileInfoId = it.insertFile(fileInfo)
                                 // TODO: Legge inn EndretAv/EndretDato
-                                it.updateLopenummer(startRecord.filLopenummer, "SPK", "ANV")
+                                it.updateLopenummer(startRecord.filLopenummer, FILETYPE_ANVISER)
                                 it.commit()
                             }
                         }
@@ -64,50 +66,50 @@ class FileLoaderService(
                         else -> {
                             if (content.size != totalRecord) {
                                 println("Transaksjonsrecord: '$record'")
-                                val transaction = parseTransaction(record)
+                                val transaction = fileParser.parseTransaction()
                                 totalBelop += transaction.belopStr.toLong()
                                 println("Parset transaksjon: $transaction")
                                 if (totalRecord % batchsize == 0) {
                                     db2DataSource.connection.useAndHandleErrors {
                                         val ps = it.createInsertTransaction()
-                                        transactions.forEach { transaction ->
+                                        transactionRecords.forEach { transaction ->
                                             insertTransaction(ps, transaction, fileInfoId)
                                         }
                                         ps.executeBatch()
                                         it.commit()
                                         println("Batch executed $totalRecord records")
-                                        transactions.clear()
+                                        transactionRecords.clear()
                                     }
                                 } else {
-                                    transactions += transaction
+                                    transactionRecords += transaction
                                 }
                             } else {
                                 println("End-record: '$record'")
-                                endRecord = parseEndRecord(record)
+                                endRecord = fileParser.parseEndRecord()
                                 println("Parset end-record: $endRecord")
                             }
                         }
                     }
                 }
                 val validator =
-                    ValidatorSpkFile(startRecord, endRecord, totalRecord.minus(2), totalBelop, maxLopenummer)
+                    FileValidation(startRecord, endRecord, totalRecord.minus(2), totalBelop, maxLopenummer)
                 val validationFileStatus = validator.validateStartAndEndRecord()
                 logger.info("ValidationFileStatus: $validationFileStatus")
-                if (validationFileStatus != ValidationFileStatus.OK) {
+                if (validationFileStatus != FileStatusValidation.OK) {
                     db2DataSource.connection.useConnectionWithRollback {
                         // TODO: Legge inn feiltekst og EndretAv/EndretDato
-                        it.updateFileState(FileState.AVV.name, "SPK", "ANV", fileInfoId)
+                        it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
                         it.deleteTransactions(fileInfoId)
                         it.commit()
                         exceptionHandled = true
                     }
-                    lagAvviksfil(ftpService, startRecordUnparsed, validationFileStatus)
+                    moveAvviksFile(startRecordUnparsed, validationFileStatus)
                 } else {
                     db2DataSource.connection.useAndHandleErrors {
                         // TODO: Legge inn EndretAv/EndretDato
-                        it.updateFileState(FileState.GOD.name, "SPK", "ANV", fileInfoId)
+                        it.updateFileState(FileState.GOD.name, FILETYPE_ANVISER, fileInfoId)
                         val ps = it.createInsertTransaction()
-                        transactions.forEach { transaction ->
+                        transactionRecords.forEach { transaction ->
                             insertTransaction(ps, transaction, fileInfoId)
                         }
                         ps.executeBatch()
@@ -116,7 +118,7 @@ class FileLoaderService(
                     }
                 }
             } catch (e: Exception) {
-                val status: ValidationFileStatus
+                val status: FileStatusValidation
                 when (e) {
                     is ValidationException -> {
                         logger.error("Valideringsfeil: ${e.message}")
@@ -125,34 +127,39 @@ class FileLoaderService(
 
                     is SQLException -> {
                         logger.error("Feil ved databaseoperasjon: ${e.message}")
-                        status = ValidationFileStatus.UKJENT
+                        status = FileStatusValidation.UKJENT
                     }
 
                     else -> {
                         logger.error("Feil ved innlesing av fil: ${e.message}")
-                        status = ValidationFileStatus.UKJENT
+                        status = FileStatusValidation.UKJENT
                     }
                 }
                 if (!exceptionHandled) {
                     db2DataSource.connection.useConnectionWithRollback {
                         // TODO: Legge inn feiltekst og EndretAv/EndretDato
-                        it.updateFileState(FileState.AVV.name, "SPK", "ANV", fileInfoId)
+                        it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
                         it.deleteTransactions(fileInfoId)
                         it.commit()
                     }
                 }
-                lagAvviksfil(ftpService, startRecordUnparsed, status)
+                moveAvviksFile(startRecordUnparsed, status)
             }
         }
     }
+
+    private fun moveAvviksFile(startRecordUnparsed: String, status: FileStatusValidation) {
+        val avviksFil = createAvviksFile(startRecordUnparsed, status)
+        ftpService.moveFile(avviksFil.name, Directories.OUTBOUND, Directories.ANVISNINGSRETUR)
+    }
 }
 
-private fun mapToFault(exceptionKode: String): ValidationFileStatus {
+private fun mapToFault(exceptionKode: String): FileStatusValidation {
     return when (exceptionKode) {
-        "04" -> ValidationFileStatus.UGYLDIG_FILLOPENUMMER
-        "06" -> ValidationFileStatus.UGYLDIG_RECTYPE
-        "08" -> ValidationFileStatus.UGYLDIG_SUMBELOP
-        "09" -> ValidationFileStatus.UGYLDIG_PRODDATO
-        else -> ValidationFileStatus.UKJENT
+        "04" -> FileStatusValidation.UGYLDIG_FILLOPENUMMER
+        "06" -> FileStatusValidation.UGYLDIG_RECTYPE
+        "08" -> FileStatusValidation.UGYLDIG_SUMBELOP
+        "09" -> FileStatusValidation.UGYLDIG_PRODDATO
+        else -> FileStatusValidation.UKJENT
     }
 }

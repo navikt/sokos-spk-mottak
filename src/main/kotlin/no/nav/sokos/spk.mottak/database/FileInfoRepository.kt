@@ -6,12 +6,12 @@ import java.sql.SQLException
 import java.sql.Statement
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
 import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
+import no.nav.sokos.spk.mottak.domain.FileInfo
 
 object FileInfoRepository {
 
     fun Connection.updateFileState(
         fileState: String,
-        anviser: String,
         fileType: String,
         id: Int
     ) =
@@ -19,13 +19,12 @@ object FileInfoRepository {
             """
                 UPDATE T_FIL_INFO
                 SET K_FIL_TILSTAND_T = (?)
-                WHERE K_ANVISER = (?)
+                WHERE K_ANVISER = 'SPK'
                 AND K_FIL_T = (?)
                 AND FIL_INFO_ID = (?)
             """.trimIndent()
         ).withParameters(
             param(fileState),
-            param(anviser),
             param(fileType),
             param(id)
         ).run {

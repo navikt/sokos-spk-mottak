@@ -6,15 +6,15 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
-import no.nav.sokos.spk.mottak.service.FileLoaderService
+import no.nav.sokos.spk.mottak.service.FileReaderService
 
 fun Route.spkApi(
-    fileLoaderService: FileLoaderService = FileLoaderService()
+    fileReaderService: FileReaderService = FileReaderService()
 ) {
     route("mottak") {
 
         get("fetchFiles") {
-            fileLoaderService.parseFiles()
+            fileReaderService.parseFiles()
             call.respond(HttpStatusCode.OK)
         }
     }

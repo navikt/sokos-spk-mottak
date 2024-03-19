@@ -8,18 +8,16 @@ import java.sql.ResultSet
 object LopenummerRepository {
 
     fun Connection.findMaxLopenummer(
-        anviser: String,
         fileType: String
     ): Int =
         prepareStatement(
             """
                 SELECT SISTE_LOPENR 
                 FROM  T_LOPENR
-                WHERE K_ANVISER = (?)
+                WHERE K_ANVISER = 'SPK'
                 AND K_FIL_T = (?)
             """.trimIndent()
         ).withParameters(
-            param(anviser),
             param(fileType)
         ).run {
             executeQuery().findMax()
@@ -27,19 +25,17 @@ object LopenummerRepository {
 
     fun Connection.updateLopenummer(
         lopenummer: Int,
-        anviser: String,
         filtype: String
     ) =
         prepareStatement(
             """
                 UPDATE T_LOPENR 
                 SET SISTE_LOPENR = (?)
-                WHERE K_ANVISER = (?)
+                WHERE K_ANVISER = 'SPK'
                 AND K_FIL_T = (?)
             """.trimIndent()
         ).withParameters(
             param(lopenummer),
-            param(anviser),
             param(filtype)
         ).run {
             executeUpdate()

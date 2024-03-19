@@ -1,9 +1,8 @@
-package no.nav.sokos.spk.mottak.database
+package no.nav.sokos.spk.mottak.domain
 
-import no.nav.sokos.spk.mottak.modell.StartRecord
-import no.nav.sokos.spk.mottak.service.FileState
 import java.time.LocalDateTime
-import no.nav.sokos.spk.mottak.validator.ValidationFileStatus
+import no.nav.sokos.spk.mottak.domain.record.StartRecord
+import no.nav.sokos.spk.mottak.validator.FileStatusValidation
 
 data class FileInfo(
     var id: Int = -1,
@@ -26,7 +25,7 @@ data class FileInfo(
 fun fileInfoFromStartRecord(startRecord: StartRecord, fileName: String): FileInfo {
     return FileInfo(
         id = -1, // TODO: generert av db
-        status = ValidationFileStatus.OK.code,
+        status = FileStatusValidation.OK.code,
         tilstand = FileState.OPR.name,
         anviser = startRecord.avsender,
         filnavn = fileName,

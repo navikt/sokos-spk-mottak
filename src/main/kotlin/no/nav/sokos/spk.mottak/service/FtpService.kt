@@ -10,7 +10,7 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.logger
 
 enum class Directories(var value: String) {
-    INBOUND("/inbound"), OUTBOUND("/outbound"), ANVISNINGSRETUR("/outbound/anvisningsretur")
+    INBOUND("/inbound"), OUTBOUND("/outbound"), FERDIG("/inbound/ferdig"), ANVISNINGSRETUR("/outbound/anvisningsretur")
 }
 
 class FtpService(
@@ -75,7 +75,4 @@ class FtpService(
         return String(outputStream.toByteArray()).split("\r?\n|\r".toRegex()).filter { it.isNotEmpty() }
     }
 
-    fun disconnect() {
-        session.disconnect()
-    }
 }

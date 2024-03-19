@@ -1,4 +1,4 @@
-package no.nav.sokos.spk.mottak.modell
+package no.nav.sokos.spk.mottak.domain.record
 
 
 data class EndRecord(

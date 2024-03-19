@@ -1,6 +1,6 @@
 package no.nav.sokos.spk.mottak.validator
 
-enum class ValidationFileStatus (val code: String, val message: String) {
+enum class FileStatusValidation (val code: String, val message: String) {
     OK ("00", "OK"),
     UGYLDIG_ANVISER ("01", "Ugyldig anviser"),
     UGYLDIG_MOTTAKER ("02", "Ugyldig mottaker"),
