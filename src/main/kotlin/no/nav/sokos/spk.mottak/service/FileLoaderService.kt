@@ -101,8 +101,7 @@ class FileLoaderService(
                         it.commit()
                         exceptionHandled = true
                     }
-                    // TODO: ny versjon av lagAvviksfil
-//                    lagAvviksfil(startRecordUnparsed, validationFileStatus)
+                    lagAvviksfil(ftpService, startRecordUnparsed, validationFileStatus)
                 } else {
                     db2DataSource.connection.useAndHandleErrors {
                         // TODO: Legge inn EndretAv/EndretDato
@@ -142,8 +141,7 @@ class FileLoaderService(
                         it.commit()
                     }
                 }
-                // TODO: ny versjon av lagAvviksfil
-                lagAvviksfil(startRecordUnparsed, status)
+                lagAvviksfil(ftpService, startRecordUnparsed, status)
             }
         }
     }

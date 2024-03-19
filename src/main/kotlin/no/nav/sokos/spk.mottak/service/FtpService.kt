@@ -44,6 +44,21 @@ class FtpService(
         }
     }
 
+    fun moveFile(fileName: String, from: Directories, to: Directories) {
+        sftpChannel.moveFile(fileName, from, to)
+    }
+
+    private fun ChannelSftp.moveFile(fileName: String, from: Directories, to: Directories) {
+        val oldpath = "${from.value}/$fileName"
+        val newpath = "${to.value}/$fileName"
+
+        try {
+            rename(oldpath, newpath)
+        } catch (e: SftpException) {
+            logger.error("Feil i flytting av fil fra $oldpath til $newpath: ${e.message}")
+        }
+    }
+
     fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> =
         listFiles(directory.value).associateWith { sftpChannel.downloadFile("${directory.value}/$it") }
 

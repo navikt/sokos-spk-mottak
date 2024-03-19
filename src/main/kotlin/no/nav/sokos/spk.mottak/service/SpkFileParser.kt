@@ -118,6 +118,7 @@ class SpkFilParser(
         try {
             date.let { LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyyMMdd")) }
         } catch (ex: DateTimeParseException) {
+            // TODO: date kan være null, dvs ikke i bruk
             LocalDateTime.now().toLocalDate()
         }
 }
