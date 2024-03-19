@@ -1,6 +1,5 @@
 package no.nav.sokos.spk.mottak.validator
 
-import no.nav.sokos.spk.mottak.config.logger
 import no.nav.sokos.spk.mottak.domain.FILETYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.NAV
 import no.nav.sokos.spk.mottak.domain.SPK
@@ -15,47 +14,43 @@ class FileValidation(
     private val maxLopenummer: Int
 ) {
     fun validateStartAndEndRecord(): FileStatusValidation {
-        try {
-            require(validateGyldigAvsender()) { FileStatusValidation.UGYLDIG_ANVISER }
-            require(validateGyldigMottaker()) { FileStatusValidation.UGYLDIG_MOTTAKER }
-            require(validateGyldigFiltype()) { FileStatusValidation.UGYLDIG_FILTYPE }
-            require(validateFillopenummerIkkeBrukt(maxLopenummer)) { FileStatusValidation.FILLOPENUMMER_I_BRUK }
-            require(validateGyldigFillopenummer(maxLopenummer)) { FileStatusValidation.UGYLDIG_FILLOPENUMMER }
-            require(validateGyldigSum()) { FileStatusValidation.UGYLDIG_SUMBELOP }
-            require(validateGyldigAntall()) { FileStatusValidation.UGYLDIG_ANTRECORDS }
-        } catch (e: Exception) {
-            logger.error("Valideringsfeil: ${e.message}")
-            // TODO: Hvordan håndtere generell parsingfeil
-            return FileStatusValidation.UKJENT
+        return when {
+            !gyldigAvsender() -> FileStatusValidation.UGYLDIG_ANVISER
+            !gyldigMottaker() -> FileStatusValidation.UGYLDIG_MOTTAKER
+            !gyldigFiltype() -> FileStatusValidation.UGYLDIG_FILTYPE
+            !fillopenummerIkkeBrukt(maxLopenummer) -> FileStatusValidation.FILLOPENUMMER_I_BRUK
+            !gyldigFillopenummer(maxLopenummer) -> FileStatusValidation.UGYLDIG_FILLOPENUMMER
+            !gyldigSum() -> FileStatusValidation.UGYLDIG_SUMBELOP
+            !gyldigAntall() -> FileStatusValidation.UGYLDIG_ANTRECORDS
+            else -> FileStatusValidation.OK
         }
-        return FileStatusValidation.OK
     }
 
-    private fun validateGyldigAvsender(): Boolean {
+    private fun gyldigAvsender(): Boolean {
         return startRecord.avsender == SPK
     }
 
-    private fun validateGyldigMottaker(): Boolean {
+    private fun gyldigMottaker(): Boolean {
         return startRecord.mottager == NAV
     }
 
-    private fun validateGyldigFiltype(): Boolean {
+    private fun gyldigFiltype(): Boolean {
         return startRecord.filType == FILETYPE_ANVISER
     }
 
-    private fun validateGyldigFillopenummer(maxLopenummer: Int): Boolean {
+    private fun gyldigFillopenummer(maxLopenummer: Int): Boolean {
         return startRecord.filLopenummer == (maxLopenummer + 1)
     }
 
-    private fun validateFillopenummerIkkeBrukt(maxLopenummer: Int): Boolean {
+    private fun fillopenummerIkkeBrukt(maxLopenummer: Int): Boolean {
         return maxLopenummer < startRecord.filLopenummer
     }
 
-    private fun validateGyldigSum(): Boolean {
+    private fun gyldigSum(): Boolean {
         return endRecord.totalBelop == totalBelop
     }
 
-    private fun validateGyldigAntall(): Boolean {
+    private fun gyldigAntall(): Boolean {
         return endRecord.numberOfRecord == numberOfRecord
     }
 }
