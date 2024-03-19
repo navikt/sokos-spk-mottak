@@ -44,8 +44,24 @@ class FtpService(
         }
     }
 
+    fun createFile(fileName: String, directory: Directories, content: String) =
+        sftpChannel.createFile(fileName, directory, content)
+
+
     fun moveFile(fileName: String, from: Directories, to: Directories) {
         sftpChannel.moveFile(fileName, from, to)
+    }
+
+    fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> =
+        listFiles(directory.value).associateWith { sftpChannel.downloadFile("${directory.value}/$it") }
+
+    private fun ChannelSftp.createFile(fileName: String, directory: Directories, content: String) {
+        val path = "${directory.value}/$fileName"
+        try {
+            put(content.toByteArray().inputStream(), path)
+        } catch (e: SftpException) {
+            logger.error("Feil i opprettelse av fil $path: ${e.message}")
+        }
     }
 
     private fun ChannelSftp.moveFile(fileName: String, from: Directories, to: Directories) {
@@ -58,9 +74,6 @@ class FtpService(
             logger.error("Feil i flytting av fil fra $oldpath til $newpath: ${e.message}")
         }
     }
-
-    fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> =
-        listFiles(directory.value).associateWith { sftpChannel.downloadFile("${directory.value}/$it") }
 
     private fun listFiles(directory: String): List<String> = sftpChannel.ls(directory).map { it.filename }.filter { it.contains(".txt") }
 

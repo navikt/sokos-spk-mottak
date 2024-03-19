@@ -19,7 +19,8 @@ import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransactionRecord
-import no.nav.sokos.spk.mottak.util.FileUtil.createAvviksFile
+import no.nav.sokos.spk.mottak.util.FileUtil.createAvviksRecord
+import no.nav.sokos.spk.mottak.util.FileUtil.createFileName
 import no.nav.sokos.spk.mottak.validator.FileStatusValidation
 import no.nav.sokos.spk.mottak.validator.FileValidation
 
@@ -103,7 +104,7 @@ class FileReaderService(
                         it.commit()
                         exceptionHandled = true
                     }
-                    moveAvviksFile(startRecordUnparsed, validationFileStatus)
+                    createAvviksFil(startRecordUnparsed, validationFileStatus)
                 } else {
                     db2DataSource.connection.useAndHandleErrors {
                         // TODO: Legge inn EndretAv/EndretDato
@@ -143,14 +144,15 @@ class FileReaderService(
                         it.commit()
                     }
                 }
-                moveAvviksFile(startRecordUnparsed, status)
+                createAvviksFil(startRecordUnparsed, status)
             }
         }
     }
 
-    private fun moveAvviksFile(startRecordUnparsed: String, status: FileStatusValidation) {
-        val avviksFil = createAvviksFile(startRecordUnparsed, status)
-        ftpService.moveFile(avviksFil.name, Directories.OUTBOUND, Directories.ANVISNINGSRETUR)
+    private fun createAvviksFil(startRecordUnparsed: String, status: FileStatusValidation) {
+        val fileName = createFileName()
+        val content = createAvviksRecord(startRecordUnparsed, status)
+        ftpService.createFile(fileName, Directories.ANVISNINGSRETUR, content)
     }
 }
 
