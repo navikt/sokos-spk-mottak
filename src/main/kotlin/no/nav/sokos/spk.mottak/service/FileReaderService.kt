@@ -36,7 +36,6 @@ class FileReaderService(
     fun parseFiles() {
         ftpService.downloadFiles().forEach { (filename, content) ->
             println("Filnavn: '$filename'")
-            println("Innhold: '$content'")
 
             val transactionRecords: MutableList<TransactionRecord> = mutableListOf()
             val recordData = readRecords(filename, content, transactionRecords)
