@@ -1,6 +1,5 @@
 package no.nav.sokos.spk.mottak.service
 
-import java.sql.SQLException
 import no.nav.sokos.spk.mottak.config.logger
 import no.nav.sokos.spk.mottak.database.Db2DataSource
 import no.nav.sokos.spk.mottak.database.FileInfoRepository.insertFile
@@ -15,14 +14,15 @@ import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useConnectionWithRo
 import no.nav.sokos.spk.mottak.domain.FILETYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FileState
 import no.nav.sokos.spk.mottak.domain.fileInfoFromStartRecord
-import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransactionRecord
+import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.util.FileUtil.createAvviksRecord
 import no.nav.sokos.spk.mottak.util.FileUtil.createFileName
 import no.nav.sokos.spk.mottak.validator.FileStatusValidation
 import no.nav.sokos.spk.mottak.validator.FileValidation
+import java.sql.SQLException
 
 class FileReaderService(
     private val db2DataSource: Db2DataSource = Db2DataSource(),
@@ -38,7 +38,6 @@ class FileReaderService(
             lateinit var startRecord: StartRecord
             lateinit var startRecordUnparsed: String
             lateinit var endRecord: EndRecord
-            var exceptionHandled = false
             var maxLopenummer = 0
             var totalBelop: Long = 0
             var fileInfoId = 0
@@ -102,7 +101,6 @@ class FileReaderService(
                         it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
                         it.deleteTransactions(fileInfoId)
                         it.commit()
-                        exceptionHandled = true
                     }
                     createAvviksFil(startRecordUnparsed, validationFileStatus)
                 } else {
@@ -136,13 +134,11 @@ class FileReaderService(
                         status = FileStatusValidation.UKJENT
                     }
                 }
-                if (!exceptionHandled) {
-                    db2DataSource.connection.useConnectionWithRollback {
-                        // TODO: Legge inn feiltekst og EndretAv/EndretDato
-                        it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
-                        it.deleteTransactions(fileInfoId)
-                        it.commit()
-                    }
+                db2DataSource.connection.useConnectionWithRollback {
+                    // TODO: Legge inn feiltekst og EndretAv/EndretDato
+                    it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
+                    it.deleteTransactions(fileInfoId)
+                    it.commit()
                 }
                 createAvviksFil(startRecordUnparsed, status)
             }
