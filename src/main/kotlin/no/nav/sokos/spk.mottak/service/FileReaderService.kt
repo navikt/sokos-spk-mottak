@@ -23,7 +23,6 @@ import no.nav.sokos.spk.mottak.util.FileUtil.createAvviksRecord
 import no.nav.sokos.spk.mottak.util.FileUtil.createFileName
 import no.nav.sokos.spk.mottak.validator.FileStatusValidation
 import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndEndRecord
-import java.sql.SQLException
 
 private const val BATCH_SIZE: Int = 10000
 
@@ -38,10 +37,11 @@ class FileReaderService(
             println("Filnavn: '$filename'")
 
             val transactionRecords: MutableList<TransactionRecord> = mutableListOf()
-            val recordData = readRecords(filename, content, transactionRecords)
-            val fileInfoId = recordData.startRecord.fileInfoId
-
+            var fileInfoId = 0
+            lateinit var recordData: RecordData
             try {
+                recordData = readRecords(filename, content, transactionRecords)
+                fileInfoId = recordData.startRecord.fileInfoId
                 val validationFileStatus = validateStartAndEndRecord(recordData)
                 logger.info("ValidationFileStatus: $validationFileStatus")
                 if (validationFileStatus != FileStatusValidation.OK) {
@@ -73,14 +73,8 @@ class FileReaderService(
                         logger.error("Valideringsfeil: ${e.message}")
                         status = mapToFault(e.statusCode)
                     }
-
-                    is SQLException -> {
-                        logger.error("Feil ved databaseoperasjon: ${e.message}")
-                        status = FileStatusValidation.UKJENT
-                    }
-
                     else -> {
-                        logger.error("Feil ved innlesing av fil: ${e.message}")
+                        logger.error("Ukjent feil ved innlesing av fil: ${e.message}")
                         status = FileStatusValidation.UKJENT
                     }
                 }
@@ -181,7 +175,6 @@ private fun mapToFault(exceptionKode: String): FileStatusValidation {
     return when (exceptionKode) {
         "04" -> FileStatusValidation.UGYLDIG_FILLOPENUMMER
         "06" -> FileStatusValidation.UGYLDIG_RECTYPE
-        "08" -> FileStatusValidation.UGYLDIG_SUMBELOP
         "09" -> FileStatusValidation.UGYLDIG_PRODDATO
         else -> FileStatusValidation.UKJENT
     }
