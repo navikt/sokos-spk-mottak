@@ -1,8 +1,6 @@
 package no.nav.sokos.spk.mottak.util
 
-import no.nav.sokos.spk.mottak.config.logger
 import no.nav.sokos.spk.mottak.validator.FileStatusValidation
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 

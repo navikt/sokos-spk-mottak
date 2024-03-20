@@ -1,8 +1,6 @@
 package no.nav.sokos.spk.mottak.domain
 
 import java.time.LocalDateTime
-import no.nav.sokos.spk.mottak.domain.record.StartRecord
-import no.nav.sokos.spk.mottak.validator.FileStatusValidation
 
 data class FileInfo(
     var id: Int = -1,

@@ -1,6 +1,5 @@
 package no.nav.sokos.spk.mottak.service
 
-import java.sql.SQLException
 import no.nav.sokos.spk.mottak.config.logger
 import no.nav.sokos.spk.mottak.database.Db2DataSource
 import no.nav.sokos.spk.mottak.database.FileInfoRepository.insertFile
@@ -24,8 +23,9 @@ import no.nav.sokos.spk.mottak.util.FileUtil.createAvviksRecord
 import no.nav.sokos.spk.mottak.util.FileUtil.createFileName
 import no.nav.sokos.spk.mottak.validator.FileStatusValidation
 import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndEndRecord
+import java.sql.SQLException
 
-private const val BATCH_SIZE: Int = 30000
+private const val BATCH_SIZE: Int = 10000
 
 class FileReaderService(
     private val db2DataSource: Db2DataSource = Db2DataSource(),
@@ -40,7 +40,6 @@ class FileReaderService(
             val transactionRecords: MutableList<TransactionRecord> = mutableListOf()
             val recordData = readRecords(filename, content, transactionRecords)
             val fileInfoId = recordData.startRecord.fileInfoId
-            var exceptionHandled = false
 
             try {
                 val validationFileStatus = validateStartAndEndRecord(recordData)
@@ -52,7 +51,6 @@ class FileReaderService(
                         it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
                         it.deleteTransactions(fileInfoId)
                         it.commit()
-                        exceptionHandled = true
                     }
                     createAvviksFil(recordData.startRecord.rawRecord, validationFileStatus)
                 } else {
@@ -86,30 +84,34 @@ class FileReaderService(
                         status = FileStatusValidation.UKJENT
                     }
                 }
-                if (!exceptionHandled) {
-                    db2DataSource.connection.useConnectionWithRollback {
-                        // TODO: Legge inn feiltekst og EndretAv/EndretDato
-                        it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
-                        it.deleteTransactions(fileInfoId)
-                        it.commit()
-                    }
+                db2DataSource.connection.useConnectionWithRollback {
+                    // TODO: Legge inn feiltekst og EndretAv/EndretDato
+                    it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
+                    it.deleteTransactions(fileInfoId)
+                    it.commit()
                 }
                 createAvviksFil(recordData.startRecord.rawRecord, status)
             }
         }
     }
 
-    private fun readRecords(filename: String, content: List<String>, transactionRecords: MutableList<TransactionRecord>): RecordData {
+    private fun readRecords(
+        filename: String,
+        content: List<String>,
+        transactionRecords: MutableList<TransactionRecord>
+    ): RecordData {
         var totalRecord = 0
         var totalBelop = 0L
         var maxLopenummer = 0
         lateinit var startRecord: StartRecord
         lateinit var endRecord: EndRecord
-
+        db2DataSource.connection.useAndHandleErrors {
+            maxLopenummer = it.findMaxLopenummer(FILETYPE_ANVISER)
+        }
         println("Innhold størrelse: ${content.size}")
         content.forEach { record ->
             val fileParser = FileParser(record)
-            if (totalRecord == 0) {
+            if (totalRecord++ == 0) {
                 startRecord = handleStartRecord(record, filename, fileParser)
             } else {
                 if (content.size != totalRecord) {
@@ -121,11 +123,6 @@ class FileReaderService(
                     endRecord = handleEndRecord(fileParser)
                 }
             }
-            totalRecord++
-        }
-
-        db2DataSource.connection.useAndHandleErrors {
-            maxLopenummer = it.findMaxLopenummer(FILETYPE_ANVISER)
         }
         return RecordData(startRecord, endRecord, totalRecord, totalBelop, maxLopenummer)
     }
