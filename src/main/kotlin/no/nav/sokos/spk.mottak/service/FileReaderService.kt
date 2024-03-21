@@ -38,6 +38,7 @@ class FileReaderService(
 
             val transactionRecords: MutableList<TransactionRecord> = mutableListOf()
             var fileInfoId = 0
+            var avviksfilprodusert = false
             lateinit var recordData: RecordData
             try {
                 recordData = readRecords(filename, content, transactionRecords)
@@ -56,6 +57,7 @@ class FileReaderService(
                         it.commit()
                     }
                     createAvviksFil(recordData.startRecord.rawRecord, validationFileStatus)
+                    avviksfilprodusert = true
                 } else {
                     db2DataSource.connection.useConnectionWithRollback {
                         // TODO: Legge inn EndretAv/EndretDato
@@ -77,22 +79,25 @@ class FileReaderService(
                         logger.error("Valideringsfeil: ${e.message}")
                         status = mapToFault(e.statusCode)
                     }
+
                     else -> {
                         logger.error("Ukjent feil ved innlesing av fil: ${e.message}")
                         status = FileStatusValidation.UKJENT
                     }
                 }
-                db2DataSource.connection.useConnectionWithRollback {
-                    // TODO: Legge inn feiltekst og EndretAv/EndretDato
-                    it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
-                    // TODO: Legge inn EndretAv/EndretDato
-                    it.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER)
+                if (!avviksfilprodusert) {
+                    db2DataSource.connection.useConnectionWithRollback {
+                        // TODO: Legge inn feiltekst og EndretAv/EndretDato
+                        it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
+                        // TODO: Legge inn EndretAv/EndretDato
+                        it.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER)
+                    }
+                    db2DataSource.connection.useAndHandleErrors {
+                        it.deleteTransactions(fileInfoId)
+                        it.commit()
+                    }
+                    createAvviksFil(recordData.startRecord.rawRecord, status)
                 }
-                db2DataSource.connection.useAndHandleErrors {
-                    it.deleteTransactions(fileInfoId)
-                    it.commit()
-                }
-                createAvviksFil(recordData.startRecord.rawRecord, status)
             }
         }
     }
