@@ -47,23 +47,27 @@ class FileReaderService(
                 if (validationFileStatus != FileStatusValidation.OK) {
                     db2DataSource.connection.useConnectionWithRollback {
                         // TODO: Legge inn feiltekst og EndretAv/EndretDato
-
                         it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
+                        // TODO: Legge inn EndretAv/EndretDato
+                        it.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER)
+                    }
+                    db2DataSource.connection.useAndHandleErrors {
                         it.deleteTransactions(fileInfoId)
                         it.commit()
                     }
                     createAvviksFil(recordData.startRecord.rawRecord, validationFileStatus)
                 } else {
-                    db2DataSource.connection.useAndHandleErrors {
+                    db2DataSource.connection.useConnectionWithRollback {
                         // TODO: Legge inn EndretAv/EndretDato
                         it.updateFileState(FileState.GOD.name, FILETYPE_ANVISER, fileInfoId)
+                        // TODO: Legge inn EndretAv/EndretDato
+                        it.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER)
                         val ps = it.createInsertTransaction()
                         transactionRecords.forEach { transaction ->
                             insertTransaction(ps, transaction, fileInfoId)
                         }
                         ps.executeBatch()
                         println("Batch executed ${recordData.numberOfRecord} records")
-                        it.commit()
                     }
                 }
             } catch (e: Exception) {
@@ -81,6 +85,10 @@ class FileReaderService(
                 db2DataSource.connection.useConnectionWithRollback {
                     // TODO: Legge inn feiltekst og EndretAv/EndretDato
                     it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
+                    // TODO: Legge inn EndretAv/EndretDato
+                    it.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER)
+                }
+                db2DataSource.connection.useAndHandleErrors {
                     it.deleteTransactions(fileInfoId)
                     it.commit()
                 }
@@ -129,9 +137,6 @@ class FileReaderService(
         val fileInfo = startRecord.toFileInfo(filename)
         db2DataSource.connection.useConnectionWithRollback {
             startRecord.fileInfoId = it.insertFile(fileInfo)
-            // TODO: Legge inn EndretAv/EndretDato
-            it.updateLopenummer(startRecord.filLopenummer, FILETYPE_ANVISER)
-            it.commit()
         }
         return startRecord
     }
@@ -143,13 +148,12 @@ class FileReaderService(
         totalRecord: Int
     ) {
         if (totalRecord % BATCH_SIZE == 0) {
-            db2DataSource.connection.useAndHandleErrors {
+            db2DataSource.connection.useConnectionWithRollback {
                 val ps = it.createInsertTransaction()
                 transactionRecords.forEach { transaction ->
                     insertTransaction(ps, transaction, startRecord.fileInfoId)
                 }
                 ps.executeBatch()
-                it.commit()
                 println("Batch executed $totalRecord records")
                 transactionRecords.clear()
             }
@@ -169,13 +173,13 @@ class FileReaderService(
         val content = createAvviksRecord(startRecordUnparsed, status)
         ftpService.createFile(fileName, Directories.ANVISNINGSRETUR, content)
     }
-}
 
-private fun mapToFault(exceptionKode: String): FileStatusValidation {
-    return when (exceptionKode) {
-        "04" -> FileStatusValidation.UGYLDIG_FILLOPENUMMER
-        "06" -> FileStatusValidation.UGYLDIG_RECTYPE
-        "09" -> FileStatusValidation.UGYLDIG_PRODDATO
-        else -> FileStatusValidation.UKJENT
+    private fun mapToFault(exceptionKode: String): FileStatusValidation {
+        return when (exceptionKode) {
+            "04" -> FileStatusValidation.UGYLDIG_FILLOPENUMMER
+            "06" -> FileStatusValidation.UGYLDIG_RECTYPE
+            "09" -> FileStatusValidation.UGYLDIG_PRODDATO
+            else -> FileStatusValidation.UKJENT
+        }
     }
 }
