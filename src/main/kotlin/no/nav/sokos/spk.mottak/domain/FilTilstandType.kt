@@ -1,6 +1,6 @@
 package no.nav.sokos.spk.mottak.domain
 
-enum class FileState {
+enum class FilTilstandType {
     AVV, // Avvist
     GOD, //Godkjent
     INN, // Innlest

@@ -2,7 +2,7 @@ package no.nav.sokos.spk.mottak.domain
 
 import java.time.LocalDateTime
 
-data class FileInfo(
+data class FilInfo(
     var id: Int = -1,
     val status: String,
     val tilstand: String,

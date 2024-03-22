@@ -30,6 +30,7 @@ val mockOAuth2ServerVersion = "2.1.2"
 val mockkVersion = "1.13.10"
 val hikariVersion = "5.1.0"
 val db2JccVersion = "11.5.9.0"
+val kotliqueryVersion = "1.9.0"
 
 dependencies {
 
@@ -67,6 +68,7 @@ dependencies {
     // Database
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("com.ibm.db2:jcc:$db2JccVersion")
+    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
     // Config
     implementation("com.natpryce:konfig:$natpryceVersion")

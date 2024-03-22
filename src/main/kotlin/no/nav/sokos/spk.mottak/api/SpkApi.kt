@@ -14,7 +14,7 @@ fun Route.spkApi(
     route("mottak") {
 
         get("fetchFiles") {
-            fileReaderService.parseFiles()
+            fileReaderService.readAndParseFile()
             call.respond(HttpStatusCode.OK)
         }
     }

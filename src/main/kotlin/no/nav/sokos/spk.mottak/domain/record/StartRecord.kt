@@ -1,10 +1,10 @@
 package no.nav.sokos.spk.mottak.domain.record
 
+import no.nav.sokos.spk.mottak.domain.FilInfo
+import no.nav.sokos.spk.mottak.domain.FilTilstandType
+import no.nav.sokos.spk.mottak.validator.FileStatusValidation
 import java.time.LocalDate
 import java.time.LocalDateTime
-import no.nav.sokos.spk.mottak.domain.FileInfo
-import no.nav.sokos.spk.mottak.domain.FileState
-import no.nav.sokos.spk.mottak.validator.FileStatusValidation
 
 data class StartRecord(
     val avsender: String,
@@ -19,11 +19,11 @@ data class StartRecord(
     var feilTekst: String? = null
 )
 
-fun StartRecord.toFileInfo(fileName: String): FileInfo {
-    return FileInfo(
+fun StartRecord.toFileInfo(fileName: String): FilInfo {
+    return FilInfo(
         id = -1, // TODO: generert av db
         status = FileStatusValidation.OK.code,
-        tilstand = FileState.OPR.name,
+        tilstand = FilTilstandType.OPR.name,
         anviser = this.avsender,
         filnavn = fileName,
         lopenr = this.filLopenummer,

@@ -76,7 +76,7 @@ class SecurityTest : FunSpec({
                     }
                 }
 
-                every { fileReaderService.parseFiles() } returns Unit
+                every { fileReaderService.readAndParseFile() } returns Unit
 
                 val response = client.get("$API_BASE_PATH/fetchFiles") {
                     header("Authorization", "Bearer ${mockOAuth2Server.tokenFromDefaultProvider()}")

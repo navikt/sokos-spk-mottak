@@ -1,49 +1,46 @@
 package no.nav.sokos.spk.mottak.database
 
-import no.nav.sokos.spk.mottak.database.RepositoryExtensions.param
-import no.nav.sokos.spk.mottak.database.RepositoryExtensions.withParameters
-import java.sql.Connection
-import java.sql.ResultSet
+import kotliquery.Session
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
+import no.nav.sokos.spk.mottak.database.config.HikariConfig
+import javax.sql.DataSource
 
-object LopenummerRepository {
-
-    fun Connection.findMaxLopenummer(
-        fileType: String
-    ): Int =
-        prepareStatement(
-            """
-                SELECT SISTE_LOPENR 
-                FROM  T_LOPENR
-                WHERE K_ANVISER = 'SPK'
-                AND K_FIL_T = (?)
-            """.trimIndent()
-        ).withParameters(
-            param(fileType)
-        ).run {
-            executeQuery().findMax()
+class LopenummerRepository(
+    private val dataSource: DataSource = HikariConfig.hikariDataSource()
+) {
+    fun findMaxLopenummer(filType: String): Int? {
+        return using(sessionOf(dataSource)) { session ->
+            session.single(
+                queryOf(
+                    """
+                        SELECT MAX(SISTE_LOPENR)
+                        FROM  T_LOPENR
+                        WHERE K_ANVISER = 'SPK'
+                        AND K_FIL_T = (:filType)
+                    """.trimIndent(),
+                    mapOf("filType" to filType)
+                )
+            ) { row -> row.int(1) }
         }
+    }
 
-    fun Connection.updateLopenummer(
-        lopenummer: Int,
-        filtype: String
-    ) =
-        prepareStatement(
-            """
-                UPDATE T_LOPENR 
-                SET SISTE_LOPENR = (?)
-                WHERE K_ANVISER = 'SPK'
-                AND K_FIL_T = (?)
-            """.trimIndent()
-        ).withParameters(
-            param(lopenummer),
-            param(filtype)
-        ).run {
-            executeUpdate()
-        }
+    fun updateLopenummer(lopenummer: Int, filType: String, session: Session) {
+        session.run(
+            queryOf(
+                """
+                        UPDATE T_LOPENR 
+                        SET SISTE_LOPENR = (:lopenummer)
+                        WHERE K_ANVISER = 'SPK'
+                        AND K_FIL_T = (:filType)
+                    """.trimIndent(),
+                mapOf(
+                    "lopenummer" to lopenummer,
+                    "filType" to filType
+                )
+            ).asUpdate
+        )
 
-
-    private fun ResultSet.findMax() = run {
-        if (next()) getInt(1)
-        else 0
     }
 }

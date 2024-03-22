@@ -22,17 +22,13 @@ import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.binder.system.UptimeMetrics
 import io.prometheus.client.exporter.common.TextFormat
-import java.util.UUID
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import org.slf4j.event.Level
+import java.util.UUID
 
 const val SECURE_LOGGER = "secureLogger"
-
-val logger = KotlinLogging.logger {}
-val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
 
 fun Application.commonConfig() {
     install(CallId) {

@@ -5,9 +5,11 @@ import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.SftpException
 import com.jcraft.jsch.Slf4jLogger
-import java.io.ByteArrayOutputStream
+import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.config.logger
+import java.io.ByteArrayOutputStream
+
+private val logger = KotlinLogging.logger {}
 
 enum class Directories(var value: String) {
     INBOUND("/inbound"), OUTBOUND("/outbound"), FERDIG("/inbound/ferdig"), ANVISNINGSRETUR("/outbound/anvisningsretur")

@@ -1,22 +1,17 @@
 package no.nav.sokos.spk.mottak.service
 
-import no.nav.sokos.spk.mottak.config.logger
-import no.nav.sokos.spk.mottak.database.Db2DataSource
-import no.nav.sokos.spk.mottak.database.FileInfoRepository.insertFile
-import no.nav.sokos.spk.mottak.database.FileInfoRepository.updateFileState
-import no.nav.sokos.spk.mottak.database.InTransactionRepository.createInsertTransaction
-import no.nav.sokos.spk.mottak.database.InTransactionRepository.deleteTransactions
-import no.nav.sokos.spk.mottak.database.InTransactionRepository.insertTransaction
-import no.nav.sokos.spk.mottak.database.LopenummerRepository.findMaxLopenummer
-import no.nav.sokos.spk.mottak.database.LopenummerRepository.updateLopenummer
-import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useAndHandleErrors
-import no.nav.sokos.spk.mottak.database.RepositoryExtensions.useConnectionWithRollback
+import kotliquery.TransactionalSession
+import mu.KotlinLogging
+import no.nav.sokos.spk.mottak.database.FileInfoRepository
+import no.nav.sokos.spk.mottak.database.InnTransaksjonRepository
+import no.nav.sokos.spk.mottak.database.LopenummerRepository
+import no.nav.sokos.spk.mottak.database.config.TransactionalManager
 import no.nav.sokos.spk.mottak.domain.FILETYPE_ANVISER
-import no.nav.sokos.spk.mottak.domain.FileState
+import no.nav.sokos.spk.mottak.domain.FilTilstandType
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
+import no.nav.sokos.spk.mottak.domain.record.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
-import no.nav.sokos.spk.mottak.domain.record.TransactionRecord
 import no.nav.sokos.spk.mottak.domain.record.toFileInfo
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.util.FileUtil.createAvviksRecord
@@ -24,149 +19,117 @@ import no.nav.sokos.spk.mottak.util.FileUtil.createFileName
 import no.nav.sokos.spk.mottak.validator.FileStatusValidation
 import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndEndRecord
 
-private const val BATCH_SIZE: Int = 10000
+private const val BATCH_SIZE: Int = 20000
+private val logger = KotlinLogging.logger {}
 
 class FileReaderService(
-    private val db2DataSource: Db2DataSource = Db2DataSource(),
+    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(),
+    private val lopenummerRepository: LopenummerRepository = LopenummerRepository(),
+    private val fileInfoRepository: FileInfoRepository = FileInfoRepository(),
     private val ftpService: FtpService = FtpService()
 ) {
+    fun readAndParseFile() {
 
+        val downloadFiles = ftpService.downloadFiles()
+        downloadFiles.isNotEmpty().apply {
+            logger.info { "Start innlesning av antall filer: ${downloadFiles.size}" }
+        }
 
-    fun parseFiles() {
-        ftpService.downloadFiles().forEach { (filename, content) ->
-            println("Filnavn: '$filename'")
-
-            val transactionRecords: MutableList<TransactionRecord> = mutableListOf()
-            var fileInfoId = 0
+        downloadFiles.forEach { (filename, content) ->
             lateinit var recordData: RecordData
-            try {
-                recordData = readRecords(filename, content, transactionRecords)
-                fileInfoId = recordData.startRecord.fileInfoId
-                val validationFileStatus = validateStartAndEndRecord(recordData)
-                logger.info("ValidationFileStatus: $validationFileStatus")
-                if (validationFileStatus != FileStatusValidation.OK) {
-                    db2DataSource.connection.useConnectionWithRollback {
-                        // TODO: Legge inn feiltekst og EndretAv/EndretDato
+            runCatching {
+                TransactionalManager.transaction { session ->
+                    val maxLopenummer = lopenummerRepository.findMaxLopenummer(FILETYPE_ANVISER)
 
-                        it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
-                        it.deleteTransactions(fileInfoId)
-                        it.commit()
+                    logger.info("Leser inn fil: '$filename'")
+                    recordData = readRecords(content).apply {
+                        this.maxLopenummer = maxLopenummer
+                        this.filename = filename
                     }
-                    createAvviksFil(recordData.startRecord.rawRecord, validationFileStatus)
-                } else {
-                    db2DataSource.connection.useAndHandleErrors {
-                        // TODO: Legge inn EndretAv/EndretDato
-                        it.updateFileState(FileState.GOD.name, FILETYPE_ANVISER, fileInfoId)
-                        val ps = it.createInsertTransaction()
-                        transactionRecords.forEach { transaction ->
-                            insertTransaction(ps, transaction, fileInfoId)
+
+                    // Validate recordData
+                    val fileStatusValidation = validateStartAndEndRecord(recordData)
+                    logger.debug("ValidationFileStatus: $fileStatusValidation")
+
+                    when (fileStatusValidation) {
+                        FileStatusValidation.OK -> saveRecordDataAndMoveFile(recordData, session)
+                        else -> updateFileStatusAndUploadAvviksFil(recordData, fileStatusValidation, session)
+                    }
+                }
+            }.onFailure { exception ->
+                when {
+                    exception is ValidationException ->
+                        TransactionalManager.transaction { session ->
+                            updateFileStatusAndUploadAvviksFil(recordData, mapToFault(exception.statusCode), session)
                         }
-                        ps.executeBatch()
-                        println("Batch executed ${recordData.numberOfRecord} records")
-                        it.commit()
-                    }
+
+                    else -> throw RuntimeException("Unknown exception", exception)
                 }
-            } catch (e: Exception) {
-                val status: FileStatusValidation
-                when (e) {
-                    is ValidationException -> {
-                        logger.error("Valideringsfeil: ${e.message}")
-                        status = mapToFault(e.statusCode)
-                    }
-                    else -> {
-                        logger.error("Ukjent feil ved innlesing av fil: ${e.message}")
-                        status = FileStatusValidation.UKJENT
-                    }
-                }
-                db2DataSource.connection.useConnectionWithRollback {
-                    // TODO: Legge inn feiltekst og EndretAv/EndretDato
-                    it.updateFileState(FileState.AVV.name, FILETYPE_ANVISER, fileInfoId)
-                    it.deleteTransactions(fileInfoId)
-                    it.commit()
-                }
-                createAvviksFil(recordData.startRecord.rawRecord, status)
             }
         }
     }
 
-    private fun readRecords(
-        filename: String,
-        content: List<String>,
-        transactionRecords: MutableList<TransactionRecord>
-    ): RecordData {
+    private fun saveRecordDataAndMoveFile(recordData: RecordData, session: TransactionalSession) {
+        lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
+
+        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!)
+        val filInfoId = fileInfoRepository.insertFilInfo(filInfo, session)!!
+
+        var antallInnTransaksjon: Int = 0;
+        recordData.innTransaksjonList.chunked(BATCH_SIZE).forEach { innTransaksjonList ->
+            antallInnTransaksjon += innTransaksjonList.size
+            innTransaksjonRepository.insertTransactionBatch(innTransaksjonList, filInfoId, session)
+            logger.debug("Antall innTransaksjon som er lagret i DB: $antallInnTransaksjon")
+        }
+        recordData.innTransaksjonList.clear()
+        fileInfoRepository.updateFilInfoTilstandType(recordData.startRecord.fileInfoId, FilTilstandType.GOD.name, FILETYPE_ANVISER, session)
+        ftpService.moveFile(recordData.filename!!, Directories.INBOUND, Directories.FERDIG)
+    }
+
+    private fun updateFileStatusAndUploadAvviksFil(recordData: RecordData, status: FileStatusValidation, session: TransactionalSession) {
+        // Trenger å oppdatere lopenummer dersom det er en valideringsfeil.
+        lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
+        fileInfoRepository.updateFilInfoTilstandType(recordData.startRecord.fileInfoId, FilTilstandType.AVV.name, FILETYPE_ANVISER, session)
+        createAvviksFil(recordData.startRecord.rawRecord, status)
+        ftpService.moveFile(recordData.filename!!, Directories.INBOUND, Directories.FERDIG)
+    }
+
+    private fun readRecords(content: List<String>): RecordData {
         var totalRecord = 0
         var totalBelop = 0L
-        var maxLopenummer = 0
         lateinit var startRecord: StartRecord
         lateinit var endRecord: EndRecord
-        db2DataSource.connection.useAndHandleErrors {
-            maxLopenummer = it.findMaxLopenummer(FILETYPE_ANVISER)
-        }
-        println("Innhold størrelse: ${content.size}")
+        val innTransaksjons: MutableList<InnTransaksjon> = mutableListOf()
+
+        logger.debug("Innhold størrelse: ${content.size}")
         content.forEach { record ->
-            val fileParser = FileParser(record)
             if (totalRecord++ == 0) {
-                startRecord = handleStartRecord(record, filename, fileParser)
+                startRecord = FileParser.parseStartRecord(record).apply { rawRecord = record }
+                logger.debug("Start-record: $record")
             } else {
                 if (content.size != totalRecord) {
-                    val transaction = fileParser.parseTransaction()
+                    val transaction = FileParser.parseTransaction(record)
                     totalBelop += transaction.belopStr.toLong()
-                    handleTransactionRecord(transaction, startRecord, transactionRecords, totalRecord)
+                    innTransaksjons.add(transaction)
                 } else {
-                    println("End-record: '$record'")
-                    endRecord = handleEndRecord(fileParser)
+                    logger.debug("Totalbelop: $totalBelop")
+                    logger.debug("End-record: '$record'")
+                    endRecord = FileParser.parseEndRecord(record)
                 }
             }
         }
-        return RecordData(startRecord, endRecord, totalRecord, totalBelop, maxLopenummer)
-    }
-
-    private fun handleStartRecord(record: String, filename: String, fileParser: FileParser): StartRecord {
-        println("Start-record: '$record'")
-        val startRecord: StartRecord = fileParser.parseStartRecord().apply { rawRecord = record }
-
-        println("Parset start-record: $startRecord")
-        val fileInfo = startRecord.toFileInfo(filename)
-        db2DataSource.connection.useConnectionWithRollback {
-            startRecord.fileInfoId = it.insertFile(fileInfo)
-            // TODO: Legge inn EndretAv/EndretDato
-            it.updateLopenummer(startRecord.filLopenummer, FILETYPE_ANVISER)
-            it.commit()
-        }
-        return startRecord
-    }
-
-    private fun handleTransactionRecord(
-        transaction: TransactionRecord,
-        startRecord: StartRecord,
-        transactionRecords: MutableList<TransactionRecord>,
-        totalRecord: Int
-    ) {
-        if (totalRecord % BATCH_SIZE == 0) {
-            db2DataSource.connection.useAndHandleErrors {
-                val ps = it.createInsertTransaction()
-                transactionRecords.forEach { transaction ->
-                    insertTransaction(ps, transaction, startRecord.fileInfoId)
-                }
-                ps.executeBatch()
-                it.commit()
-                println("Batch executed $totalRecord records")
-                transactionRecords.clear()
-            }
-        } else {
-            transactionRecords += transaction
-        }
-    }
-
-    private fun handleEndRecord(fileParser: FileParser): EndRecord {
-        val endRecord = fileParser.parseEndRecord()
-        println("Parset end-record: $endRecord")
-        return endRecord
+        return RecordData(
+            startRecord = startRecord,
+            endRecord = endRecord,
+            innTransaksjonList = innTransaksjons,
+            totalBelop = totalBelop
+        )
     }
 
     private fun createAvviksFil(startRecordUnparsed: String, status: FileStatusValidation) {
         val fileName = createFileName()
         val content = createAvviksRecord(startRecordUnparsed, status)
+
         ftpService.createFile(fileName, Directories.ANVISNINGSRETUR, content)
     }
 }
