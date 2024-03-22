@@ -22,8 +22,14 @@ object PropertiesConfig {
             "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
             "USE_AUTHENTICATION" to "false",
             "AZURE_APP_CLIENT_ID" to "azure-app-client-id",
-            "AZURE_APP_WELL_KNOWN_URL" to "azure-app-well-known-url"
-            )
+            "AZURE_APP_WELL_KNOWN_URL" to "azure-app-well-known-url",
+            "DATABASE_HOST" to "databaseHost",
+            "DATABASE_PORT" to "databasePort",
+            "DATABASE_NAME" to "databaseName",
+            "DATABASE_SCHEMA" to "databaseSchema",
+            "DATABASE_USERNAME" to "databaseUsername",
+            "DATABASE_PASSWORD" to "databasePassword"
+        )
     )
 
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
@@ -34,8 +40,8 @@ object PropertiesConfig {
         "prod-gcp" -> ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding prodProperties overriding defaultProperties
         else ->
             ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding ConfigurationProperties.fromOptionalFile(
-            File("defaults.properties")
-        ) overriding localDevProperties overriding defaultProperties
+                File("defaults.properties")
+            ) overriding localDevProperties overriding defaultProperties
     }
 
     operator fun get(key: String): String = config[Key(key, stringType)]
@@ -44,7 +50,7 @@ object PropertiesConfig {
         val naisAppName: String = get("NAIS_APP_NAME"),
         val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
         val useAuthentication: Boolean = get("USE_AUTHENTICATION").toBoolean(),
-        val azureAdConfig: AzureAdConfig = AzureAdConfig(),
+        val azureAdConfig: AzureAdConfig = AzureAdConfig()
     )
 
     data class Db2DatabaseConfig(

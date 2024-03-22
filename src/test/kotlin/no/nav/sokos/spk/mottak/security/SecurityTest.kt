@@ -25,9 +25,9 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.authenticate
 import no.nav.sokos.spk.mottak.config.configureSecurity
 import no.nav.sokos.spk.mottak.configureTestApplication
-import no.nav.sokos.spk.mottak.service.FtpService
+import no.nav.sokos.spk.mottak.service.FileReaderService
 
-val ftpService: FtpService = mockk()
+val fileReaderService: FileReaderService = mockk()
 
 class SecurityTest : FunSpec({
 
@@ -39,11 +39,11 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            spkApi(ftpService)
+                            spkApi(fileReaderService)
                         }
                     }
                 }
-                val response = client.get("$API_BASE_PATH/listFiles/test")
+                val response = client.get("$API_BASE_PATH/fetchFiles")
                 response.status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -71,14 +71,14 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            spkApi(ftpService)
+                            spkApi(fileReaderService)
                         }
                     }
                 }
 
-                every { ftpService.listAllFiles(any()) } returns listOf("file1", "file2")
+                every { fileReaderService.readAndParseFile() } returns Unit
 
-                val response = client.get("$API_BASE_PATH/listFiles/test") {
+                val response = client.get("$API_BASE_PATH/fetchFiles") {
                     header("Authorization", "Bearer ${mockOAuth2Server.tokenFromDefaultProvider()}")
                     contentType(ContentType.Application.Json)
                 }

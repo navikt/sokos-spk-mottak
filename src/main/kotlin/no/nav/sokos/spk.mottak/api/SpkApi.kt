@@ -6,17 +6,16 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
-import no.nav.sokos.spk.mottak.service.FtpService
+import no.nav.sokos.spk.mottak.service.FileReaderService
 
 fun Route.spkApi(
-    ftpService: FtpService = FtpService()
+    fileReaderService: FileReaderService = FileReaderService()
 ) {
-        route("mottak") {
+    route("mottak") {
 
-            get("listFiles/{directory}") {
-                val directory = call.parameters["directory"].toString()
-                val response = ftpService.listAllFiles(directory)
-                call.respond(HttpStatusCode.OK, response)
-            }
+        get("fetchFiles") {
+            fileReaderService.readAndParseFile()
+            call.respond(HttpStatusCode.OK)
         }
+    }
 }
