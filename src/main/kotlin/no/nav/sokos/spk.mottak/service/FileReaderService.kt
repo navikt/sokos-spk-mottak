@@ -33,7 +33,7 @@ class FileReaderService(
 
         val downloadFiles = ftpService.downloadFiles()
         downloadFiles.isNotEmpty().apply {
-            logger.info { "Start innlesning av antall filer: ${downloadFiles.size}" }
+            logger.info { "Starter innlesning av antall filer: ${downloadFiles.size}" }
         }
 
         downloadFiles.forEach { (filename, content) ->

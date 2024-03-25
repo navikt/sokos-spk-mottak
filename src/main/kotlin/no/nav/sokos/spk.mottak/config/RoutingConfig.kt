@@ -6,7 +6,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import no.nav.sokos.spk.mottak.ApplicationState
 import no.nav.sokos.spk.mottak.api.naisApi
-import no.nav.sokos.spk.mottak.api.spkApi
+import no.nav.sokos.spk.mottak.api.mottakApi
 
 fun Application.routingConfig(
     applicationState: ApplicationState,
@@ -15,7 +15,7 @@ fun Application.routingConfig(
     routing {
         naisApi({ applicationState.initialized }, { applicationState.running })
         authenticate(useAuthentication, AUTHENTICATION_NAME) {
-            spkApi()
+            mottakApi()
         }
     }
 }
