@@ -17,7 +17,7 @@ enum class Directories(var value: String) {
 }
 
 class FtpService(
-    private val ftpConfig: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig(), jsch: JSch = JSch()
+    private val ftpConfig: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig()
 ) {
 
     fun createFile(fileName: String, directory: Directories, content: String) {
