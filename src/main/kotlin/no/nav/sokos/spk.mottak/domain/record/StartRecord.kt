@@ -2,6 +2,7 @@ package no.nav.sokos.spk.mottak.domain.record
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilTilstandType
 import no.nav.sokos.spk.mottak.validator.FileStatus
@@ -29,9 +30,9 @@ fun StartRecord.toFileInfo(fileName: String): FilInfo {
         lopenr = this.filLopenummer,
         datoMottatt = this.produsertDato.toString(),
         datoOpprettet = LocalDateTime.now(),
-        opprettetAv = "sokos.spk.mottak",
+        opprettetAv = PropertiesConfig.Configuration().naisAppName,
         datoEndret = LocalDateTime.now(),
-        endretAv = "sokos.spk.mottak",
+        endretAv = PropertiesConfig.Configuration().naisAppName,
         versjon = 2,
         filType = this.filType,
         feilTekst = this.feilTekst

@@ -6,6 +6,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.config.PropertiesConfig
 
 class LopenummerRepository(
     private val dataSource: DataSource = DatabaseConfig.hikariDataSource()
@@ -31,7 +32,7 @@ class LopenummerRepository(
             queryOf(
                 """
                         UPDATE T_LOPENR 
-                        SET SISTE_LOPENR = (:lopenummer)
+                        SET SISTE_LOPENR = (:lopenummer), ENDRET_AV = ${PropertiesConfig.Configuration().naisAppName}, DATO_ENDRET = CURRENT_TIMESTAMP 
                         WHERE K_ANVISER = 'SPK'
                         AND K_FIL_T = (:filType)
                     """.trimIndent(),
