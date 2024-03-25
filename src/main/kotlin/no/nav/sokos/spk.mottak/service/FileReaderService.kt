@@ -48,7 +48,6 @@ class FileReaderService(
                         this.filename = filename
                     }
 
-                    // Validate recordData
                     val fileStatusValidation = validateStartAndEndRecord(recordData)
                     logger.debug { "ValidationFileStatus: $fileStatusValidation" }
 
@@ -90,6 +89,7 @@ class FileReaderService(
             FILETYPE_ANVISER,
             session
         )
+        logger.info { "Antall transaksjoner $antallInnTransaksjon lagt inn fra fil: ${recordData.filename} med løpenummer: ${recordData.startRecord.filLopenummer}" }
         ftpService.moveFile(recordData.filename!!, Directories.INBOUND, Directories.FERDIG)
     }
 
@@ -98,7 +98,6 @@ class FileReaderService(
         status: FileStatus,
         session: TransactionalSession
     ) {
-        // Trenger å oppdatere lopenummer dersom det er en valideringsfeil.
         lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
         fileInfoRepository.updateFilInfoTilstandType(
             recordData.startRecord.fileInfoId,
@@ -107,6 +106,7 @@ class FileReaderService(
             session
         )
         createAvviksFil(recordData.startRecord.rawRecord, status)
+        logger.info { "Avviksfil er opprettet for fil: ${recordData.filename} med status: $status" }
         ftpService.moveFile(recordData.filename!!, Directories.INBOUND, Directories.FERDIG)
     }
 
@@ -117,7 +117,6 @@ class FileReaderService(
         lateinit var endRecord: EndRecord
         val innTransaksjons: MutableList<InnTransaksjon> = mutableListOf()
 
-        logger.debug { "Innhold størrelse: ${content.size}" }
         content.forEach { record ->
             if (totalRecord++ == 0) {
                 startRecord = FileParser.parseStartRecord(record).apply { rawRecord = record }
@@ -128,7 +127,6 @@ class FileReaderService(
                     totalBelop += transaction.belopStr.toLong()
                     innTransaksjons.add(transaction)
                 } else {
-                    logger.debug { "Totalbelop: $totalBelop" }
                     logger.debug { "End-record: '$record'" }
                     endRecord = FileParser.parseEndRecord(record)
                 }

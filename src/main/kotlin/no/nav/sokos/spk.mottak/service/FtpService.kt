@@ -63,7 +63,7 @@ class FtpService(
                     .sorted()
                     .associateWith {
                         fileName = "${directory.value}/$it"
-                        logger.info { "Henter fil: $fileName" }
+                        logger.debug { "Henter fil: $fileName" }
                         val outputStream = ByteArrayOutputStream()
 
                         get(fileName, outputStream)
@@ -85,12 +85,12 @@ class FtpService(
             addIdentity(ftpConfig.privKey, ftpConfig.keyPass)
             setKnownHosts(ftpConfig.hostKey)
         }.run {
-            logger.debug { "Connection with private key on host ${ftpConfig.server}:${ftpConfig.port}" }
+            logger.debug { "Oppretter connection med privat nøkkel på host: ${ftpConfig.server}:${ftpConfig.port}" }
             getSession(ftpConfig.username, ftpConfig.server, ftpConfig.port)
         }.also {
             it.setConfig("PreferredAuthentications", "publickey")
             it.connect()
-            logger.debug { "Session opened on remote host ${ftpConfig.server}:${ftpConfig.port}" }
+            logger.debug { "Åpner session på host: ${ftpConfig.server}:${ftpConfig.port}" }
         }
     }
 
@@ -99,7 +99,7 @@ class FtpService(
         val channelSftp = openConnection().openChannel("sftp") as ChannelSftp
         return channelSftp.apply {
             connect()
-            logger.debug { "SftpChannel connected on ${ftpConfig.server}:${ftpConfig.port}" }
+            logger.debug { "Koblet SftpChannel på: ${ftpConfig.server}:${ftpConfig.port}" }
         }
     }
 }
