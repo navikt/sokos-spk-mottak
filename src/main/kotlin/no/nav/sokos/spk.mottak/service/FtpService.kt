@@ -81,7 +81,9 @@ class FtpService(
 
     private fun openConnection(): Session {
         return JSch().apply {
-            setLogger(Slf4jLogger())
+            if (logger.isDebugEnabled) {
+                setLogger(Slf4jLogger())
+            }
             addIdentity(ftpConfig.privKey, ftpConfig.keyPass)
             setKnownHosts(ftpConfig.hostKey)
         }.run {

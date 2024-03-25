@@ -32,7 +32,7 @@ class LopenummerRepository(
             queryOf(
                 """
                         UPDATE T_LOPENR 
-                        SET SISTE_LOPENR = (:lopenummer), ENDRET_AV = ${PropertiesConfig.Configuration().naisAppName}, DATO_ENDRET = CURRENT_TIMESTAMP 
+                        SET SISTE_LOPENR = (:lopenummer), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP 
                         WHERE K_ANVISER = 'SPK'
                         AND K_FIL_T = (:filType)
                     """.trimIndent(),

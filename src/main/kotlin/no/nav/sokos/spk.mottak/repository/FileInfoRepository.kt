@@ -20,7 +20,7 @@ class FileInfoRepository(
             queryOf(
                 """
                     UPDATE T_FIL_INFO
-                    SET K_FIL_TILSTAND_T = (:filTilstandType), ENDRET_AV = ${PropertiesConfig.Configuration().naisAppName}, DATO_ENDRET = CURRENT_TIMESTAMP
+                    SET K_FIL_TILSTAND_T = (:filTilstandType), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP
                     WHERE K_ANVISER = 'SPK'
                     AND K_FIL_T = (:filType)
                     AND FIL_INFO_ID = (:filInfoId)

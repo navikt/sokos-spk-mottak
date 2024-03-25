@@ -106,7 +106,7 @@ class FileReaderService(
             session
         )
         createAvviksFil(recordData.startRecord.rawRecord, status)
-        logger.info { "Avviksfil er opprettet for fil: ${recordData.filename} med status: $status" }
+        logger.info { "Avviksfil er opprettet for fil: ${recordData.filename} med status: $status med løpenummer: ${recordData.startRecord.filLopenummer}" }
         ftpService.moveFile(recordData.filename!!, Directories.INBOUND, Directories.FERDIG)
     }
 
