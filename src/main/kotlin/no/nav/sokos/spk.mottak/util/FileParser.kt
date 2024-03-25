@@ -1,19 +1,19 @@
-package no.nav.sokos.spk.mottak.service
+package no.nav.sokos.spk.mottak.util
 
+import java.time.format.DateTimeParseException
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
 import no.nav.sokos.spk.mottak.domain.record.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate
-import no.nav.sokos.spk.mottak.validator.FileStatusValidation
-import java.time.format.DateTimeParseException
+import no.nav.sokos.spk.mottak.validator.FileStatus
 
 object FileParser {
     fun parseStartRecord(record: String): StartRecord {
         if (record.getString(0, 2) != "01") {
             throw ValidationException(
-                FileStatusValidation.UGYLDIG_RECTYPE.code,
-                FileStatusValidation.UGYLDIG_RECTYPE.message
+                FileStatus.UGYLDIG_RECTYPE.code,
+                FileStatus.UGYLDIG_RECTYPE.message
             )
         }
 
@@ -28,13 +28,13 @@ object FileParser {
             )
         } catch (e: DateTimeParseException) {
             throw ValidationException(
-                FileStatusValidation.UGYLDIG_PRODDATO.code,
-                FileStatusValidation.UGYLDIG_PRODDATO.message
+                FileStatus.UGYLDIG_PRODDATO.code,
+                FileStatus.UGYLDIG_PRODDATO.message
             )
         } catch (e: NumberFormatException) {
             throw ValidationException(
-                FileStatusValidation.UGYLDIG_FILLOPENUMMER.code,
-                FileStatusValidation.UGYLDIG_FILLOPENUMMER.message
+                FileStatus.UGYLDIG_FILLOPENUMMER.code,
+                FileStatus.UGYLDIG_FILLOPENUMMER.message
             )
         }
     }
@@ -43,8 +43,8 @@ object FileParser {
     fun parseEndRecord(record: String): EndRecord {
         if (record.getString(0, 2) != "09") {
             throw ValidationException(
-                FileStatusValidation.UGYLDIG_RECTYPE.code,
-                FileStatusValidation.UGYLDIG_RECTYPE.message
+                FileStatus.UGYLDIG_RECTYPE.code,
+                FileStatus.UGYLDIG_RECTYPE.message
             )
         }
         return EndRecord(
@@ -56,8 +56,8 @@ object FileParser {
     fun parseTransaction(record: String): InnTransaksjon {
         if (record.getString(0, 2) != "02") {
             throw ValidationException(
-                FileStatusValidation.UGYLDIG_RECTYPE.code,
-                FileStatusValidation.UGYLDIG_RECTYPE.message
+                FileStatus.UGYLDIG_RECTYPE.code,
+                FileStatus.UGYLDIG_RECTYPE.message
             )
         }
         return InnTransaksjon(

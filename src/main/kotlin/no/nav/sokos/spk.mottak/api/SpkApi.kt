@@ -6,16 +6,25 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.service.FileReaderService
 
-fun Route.spkApi(
+private val logger = KotlinLogging.logger {}
+
+fun Route.mottakApi(
     fileReaderService: FileReaderService = FileReaderService()
 ) {
-    route("mottak") {
+    route("api/v1") {
 
-        get("fetchFiles") {
-            fileReaderService.readAndParseFile()
-            call.respond(HttpStatusCode.OK)
+        get("/manuellprosessering") {
+
+            logger.info { "Trigger manuell prosessering av filer" }
+            launch(Dispatchers.IO) {
+                fileReaderService.readAndParseFile()
+            }
+            call.respond(HttpStatusCode.OK, "Manuell prosessering av filer er startet, sjekk logger for status")
         }
     }
 }

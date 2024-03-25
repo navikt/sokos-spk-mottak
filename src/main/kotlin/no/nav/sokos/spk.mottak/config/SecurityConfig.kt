@@ -8,13 +8,13 @@ import io.ktor.server.application.Application
 import io.ktor.server.auth.authentication
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
+import java.net.URI
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.util.httpClient
-import java.net.URI
-import java.util.concurrent.TimeUnit
 
 private val logger = KotlinLogging.logger {}
 const val AUTHENTICATION_NAME = "azureAd"
@@ -23,7 +23,7 @@ fun Application.configureSecurity(
     azureAdConfig: PropertiesConfig.AzureAdConfig,
     useAuthentication: Boolean = true
 ) {
-    logger.info("Use authentication: $useAuthentication")
+    logger.info { "Use authentication: $useAuthentication" }
     if (useAuthentication) {
         val openIdMetadata: OpenIdMetadata = wellKnowConfig(azureAdConfig.wellKnownUrl)
         val jwkProvider = cachedJwkProvider(openIdMetadata.jwksUri)
@@ -38,11 +38,11 @@ fun Application.configureSecurity(
                 validate { credential ->
                     try {
                         requireNotNull(credential.payload.audience) {
-                            logger.info("Auth: Missing audience in token")
+                            logger.info { "Auth: Missing audience in token" }
                             "Auth: Missing audience in token"
                         }
                         require(credential.payload.audience.contains(azureAdConfig.clientId)) {
-                            logger.info("Auth: Valid audience not found in claims")
+                            logger.info { "Auth: Valid audience not found in claims" }
                             "Auth: Valid audience not found in claims"
                         }
                         JWTPrincipal(credential.payload)

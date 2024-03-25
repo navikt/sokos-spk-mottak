@@ -4,13 +4,13 @@ import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.engine.stop
 import io.ktor.server.netty.Netty
+import java.util.concurrent.TimeUnit
+import kotlin.properties.Delegates
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.configureSecurity
 import no.nav.sokos.spk.mottak.config.routingConfig
 import no.nav.sokos.spk.mottak.metrics.Metrics
-import java.util.concurrent.TimeUnit
-import kotlin.properties.Delegates
 
 fun main() {
     val applicationState = ApplicationState()

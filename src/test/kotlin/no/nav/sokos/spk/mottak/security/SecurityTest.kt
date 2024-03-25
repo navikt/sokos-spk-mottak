@@ -19,7 +19,7 @@ import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.mock.oauth2.withMockOAuth2Server
 import no.nav.sokos.spk.mottak.API_BASE_PATH
-import no.nav.sokos.spk.mottak.api.spkApi
+import no.nav.sokos.spk.mottak.api.mottakApi
 import no.nav.sokos.spk.mottak.config.AUTHENTICATION_NAME
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.authenticate
@@ -39,11 +39,11 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            spkApi(fileReaderService)
+                            mottakApi(fileReaderService)
                         }
                     }
                 }
-                val response = client.get("$API_BASE_PATH/fetchFiles")
+                val response = client.get("$API_BASE_PATH/manuellprosessering")
                 response.status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -71,14 +71,14 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            spkApi(fileReaderService)
+                            mottakApi(fileReaderService)
                         }
                     }
                 }
 
                 every { fileReaderService.readAndParseFile() } returns Unit
 
-                val response = client.get("$API_BASE_PATH/fetchFiles") {
+                val response = client.get("$API_BASE_PATH/manuellprosessering") {
                     header("Authorization", "Bearer ${mockOAuth2Server.tokenFromDefaultProvider()}")
                     contentType(ContentType.Application.Json)
                 }
