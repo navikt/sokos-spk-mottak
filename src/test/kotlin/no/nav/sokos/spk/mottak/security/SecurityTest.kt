@@ -43,7 +43,7 @@ class SecurityTest : FunSpec({
                         }
                     }
                 }
-                val response = client.get("$API_BASE_PATH/fetchFiles")
+                val response = client.get("$API_BASE_PATH/manuellprosessering")
                 response.status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -78,7 +78,7 @@ class SecurityTest : FunSpec({
 
                 every { fileReaderService.readAndParseFile() } returns Unit
 
-                val response = client.get("$API_BASE_PATH/fetchFiles") {
+                val response = client.get("$API_BASE_PATH/manuellprosessering") {
                     header("Authorization", "Bearer ${mockOAuth2Server.tokenFromDefaultProvider()}")
                     contentType(ContentType.Application.Json)
                 }
