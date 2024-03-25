@@ -1,12 +1,14 @@
-package no.nav.sokos.spk.mottak.database.config
+package no.nav.sokos.spk.mottak.config
 
 import com.ibm.db2.jcc.DB2BaseDataSource
 import com.ibm.db2.jcc.DB2SimpleDataSource
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import kotliquery.TransactionalSession
+import kotliquery.sessionOf
+import kotliquery.using
 
-object HikariConfig {
+object DatabaseConfig {
     fun hikariDataSource() = HikariDataSource(createHikariConfig())
 
     private fun createHikariConfig(): HikariConfig {
@@ -26,6 +28,15 @@ object HikariConfig {
                 commandTimeout = 10000
                 user = db2DatabaseConfig.username
                 setPassword(db2DatabaseConfig.password)
+            }
+        }
+    }
+
+    fun <A> transaction(operation: (TransactionalSession) -> A): A {
+        val dataSource = DatabaseConfig.hikariDataSource()
+        return using(sessionOf(dataSource, returnGeneratedKey = true)) { session ->
+            session.transaction {
+                operation(it)
             }
         }
     }

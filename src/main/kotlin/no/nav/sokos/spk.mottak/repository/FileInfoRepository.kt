@@ -1,13 +1,13 @@
-package no.nav.sokos.spk.mottak.database
+package no.nav.sokos.spk.mottak.repository
 
+import javax.sql.DataSource
 import kotliquery.Session
 import kotliquery.queryOf
-import no.nav.sokos.spk.mottak.database.config.HikariConfig
+import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.domain.FilInfo
-import javax.sql.DataSource
 
 class FileInfoRepository(
-    private val dataSource: DataSource = HikariConfig.hikariDataSource()
+    private val dataSource: DataSource = DatabaseConfig.hikariDataSource()
 ) {
     fun updateFilInfoTilstandType(
         filInfoId: Int,

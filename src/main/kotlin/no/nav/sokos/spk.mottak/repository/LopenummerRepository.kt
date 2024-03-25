@@ -1,14 +1,14 @@
-package no.nav.sokos.spk.mottak.database
+package no.nav.sokos.spk.mottak.repository
 
+import javax.sql.DataSource
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.sokos.spk.mottak.database.config.HikariConfig
-import javax.sql.DataSource
+import no.nav.sokos.spk.mottak.config.DatabaseConfig
 
 class LopenummerRepository(
-    private val dataSource: DataSource = HikariConfig.hikariDataSource()
+    private val dataSource: DataSource = DatabaseConfig.hikariDataSource()
 ) {
     fun findMaxLopenummer(filType: String): Int? {
         return using(sessionOf(dataSource)) { session ->
