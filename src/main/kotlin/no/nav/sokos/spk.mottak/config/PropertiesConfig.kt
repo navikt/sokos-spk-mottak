@@ -62,12 +62,11 @@ object PropertiesConfig {
         val password: String = get("DATABASE_PASSWORD"),
     )
 
-    data class FtpConfig(
-        val server: String = get("SFTP_SERVER"),
+    data class SftpConfig(
+        val host: String = get("SFTP_SERVER"),
         val username: String = get("SPK_SFTP_USERNAME"),
         val keyPass: String = get("SPK_SFTP_PASSWORD"),
         val privKey: String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
-        val hostKey: String = get("SFTP_HOST_KEY_FILE_PATH"),
         val port: Int = get("SFTP_PORT").toInt()
     )
 

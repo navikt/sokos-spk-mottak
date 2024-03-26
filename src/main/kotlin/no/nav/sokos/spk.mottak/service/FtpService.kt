@@ -1,14 +1,12 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.jcraft.jsch.ChannelSftp
-import com.jcraft.jsch.JSch
-import com.jcraft.jsch.JSch.setLogger
 import com.jcraft.jsch.Session
 import com.jcraft.jsch.SftpException
-import com.jcraft.jsch.Slf4jLogger
 import java.io.ByteArrayOutputStream
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.config.SftpConfig
 
 private val logger = KotlinLogging.logger {}
 
@@ -17,11 +15,11 @@ enum class Directories(var value: String) {
 }
 
 class FtpService(
-    private val ftpConfig: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig()
+    private val sftpSession: Session = SftpConfig(PropertiesConfig.SftpConfig()).createSftpConnection(),
 ) {
 
     fun createFile(fileName: String, directory: Directories, content: String) {
-        sftpChannel().apply {
+        getSftpChannel().apply {
             logger.debug { "Lager fil: $fileName i mappen: ${directory.value}" }
             val path = "${directory.value}/$fileName"
             try {
@@ -37,7 +35,7 @@ class FtpService(
 
 
     fun moveFile(fileName: String, from: Directories, to: Directories) {
-        sftpChannel().apply {
+        getSftpChannel().apply {
             logger.debug { "Flytter fil: $fileName fra ${from.value} til ${to.value}" }
             val oldpath = "${from.value}/$fileName"
             val newpath = "${to.value}/$fileName"
@@ -55,7 +53,7 @@ class FtpService(
 
     fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> {
         var fileName = ""
-        sftpChannel().apply {
+        getSftpChannel().apply {
             try {
                 return this.ls("${directory.value}/*")
                     .filter { !it.filename.contains("ferdig") }
@@ -79,29 +77,10 @@ class FtpService(
         }
     }
 
-    private fun openConnection(): Session {
-        return JSch().apply {
-            if (logger.isDebugEnabled) {
-                setLogger(Slf4jLogger())
-            }
-            addIdentity(ftpConfig.privKey, ftpConfig.keyPass)
-            setKnownHosts(ftpConfig.hostKey)
-        }.run {
-            logger.debug { "Oppretter connection med privat nøkkel på host: ${ftpConfig.server}:${ftpConfig.port}" }
-            getSession(ftpConfig.username, ftpConfig.server, ftpConfig.port)
-        }.also {
-            it.setConfig("PreferredAuthentications", "publickey")
-            it.connect()
-            logger.debug { "Åpner session på host: ${ftpConfig.server}:${ftpConfig.port}" }
-        }
-    }
-
-
-    private fun sftpChannel(): ChannelSftp {
-        val channelSftp = openConnection().openChannel("sftp") as ChannelSftp
+    private fun getSftpChannel(): ChannelSftp {
+        val channelSftp = sftpSession.openChannel("sftp") as ChannelSftp
         return channelSftp.apply {
             connect()
-            logger.debug { "Koblet SftpChannel på: ${ftpConfig.server}:${ftpConfig.port}" }
         }
     }
 }

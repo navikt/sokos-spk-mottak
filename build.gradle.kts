@@ -31,6 +31,7 @@ val mockkVersion = "1.13.10"
 val hikariVersion = "5.1.0"
 val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
+val testcontainersVersion = "1.19.7"
 
 dependencies {
 
@@ -62,7 +63,7 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
 
-    // FTP
+    // SFTP
     implementation("com.github.mwiede:jsch:$jschVersion")
 
     // Database
@@ -79,6 +80,7 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
+    testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
 
 }
 
