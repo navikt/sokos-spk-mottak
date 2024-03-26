@@ -28,7 +28,12 @@ object PropertiesConfig {
             "DATABASE_NAME" to "databaseName",
             "DATABASE_SCHEMA" to "databaseSchema",
             "DATABASE_USERNAME" to "databaseUsername",
-            "DATABASE_PASSWORD" to "databasePassword"
+            "DATABASE_PASSWORD" to "databasePassword",
+            "SFTP_SERVER" to "sftpServer",
+            "SPK_SFTP_USERNAME" to "sftpUsername",
+            "SFTP_PRIVATE_KEY_FILE_PATH" to "sftpPrivateKeyFilePath",
+            "SPK_SFTP_PASSWORD" to "sftpPassword",
+            "SFTP_PORT" to "sftpPort"
         )
     )
 
