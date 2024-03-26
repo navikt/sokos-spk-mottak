@@ -14,7 +14,7 @@ class SftpConfig(
     fun createSftpConnection(): Session {
         return JSch().apply {
             JSch.setLogger(Slf4jLogger())
-            addIdentity(sftpConfig.privateKey)
+            addIdentity(sftpConfig.privateKey, sftpConfig.privateKeyPassword)
         }.run {
             logger.debug { "Oppretter connection med privat nøkkel på host: ${sftpConfig.host}:${sftpConfig.port}" }
             getSession(sftpConfig.username, sftpConfig.host, sftpConfig.port)
