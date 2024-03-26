@@ -3,8 +3,8 @@ package no.nav.sokos.spk.mottak.repository
 import java.time.LocalDateTime
 import javax.sql.DataSource
 import kotliquery.Session
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.domain.record.InnTransaksjon
 import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate

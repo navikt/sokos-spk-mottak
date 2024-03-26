@@ -6,8 +6,8 @@ import com.jcraft.jsch.Slf4jLogger
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.MountableFile
 
-const val INBOUND = "inbound"
-const val OUTBOUND = "outbound"
+const val INBOUND = "sftp/inbound"
+const val OUTBOUND = "sftp/outbound"
 
 class SftpTestConfig(
     private val sftpTestConfig: PropertiesConfig.SftpConfig = PropertiesConfig.SftpConfig(

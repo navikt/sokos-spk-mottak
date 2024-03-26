@@ -5,9 +5,6 @@ import java.util.Date
 import kotliquery.TransactionalSession
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.repository.FileInfoRepository
-import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
-import no.nav.sokos.spk.mottak.repository.LopenummerRepository
 import no.nav.sokos.spk.mottak.domain.FILETYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FilTilstandType
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
@@ -16,6 +13,9 @@ import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.toFileInfo
 import no.nav.sokos.spk.mottak.exception.ValidationException
+import no.nav.sokos.spk.mottak.repository.FileInfoRepository
+import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
+import no.nav.sokos.spk.mottak.repository.LopenummerRepository
 import no.nav.sokos.spk.mottak.util.FileParser
 import no.nav.sokos.spk.mottak.validator.FileStatus
 import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndEndRecord

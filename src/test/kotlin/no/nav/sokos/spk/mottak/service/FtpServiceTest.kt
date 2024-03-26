@@ -5,54 +5,56 @@ import io.kotest.matchers.shouldBe
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpTestConfig
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.utility.MountableFile
 
 internal class FtpServiceTest : FunSpec({
 
-    val genericContainer = GenericContainer("atmoz/sftp:alpine")
-        .withCopyFileToContainer(
-            MountableFile.forClasspathResource("inbound/"),
-            "/home/foo/inbound"
-        )
-        .withCopyFileToContainer(
-            MountableFile.forClasspathResource("outbound/"),
-            "/home/foo/outbound"
-        )
-        .withPrivilegedMode(true)
+    val genericContainer = GenericContainer("atmoz/sftp:alpine-3.7")
         .withExposedPorts(22)
-        .withCommand("foo:pass:::inbound")
+        .withCommand("foo:pass:::inbound,inbound/ferdig,outbound")
 
-    beforeEach {
+    fun ftpConfig() = PropertiesConfig.SftpConfig(
+        host = genericContainer.host,
+        username = "foo",
+        privateKeyPassword = "pass",
+        port = genericContainer.getMappedPort(22)
+    )
+
+
+    beforeTest {
         genericContainer.start()
     }
 
-    afterEach {
+    afterTest {
         genericContainer.stop()
     }
 
-    test("downloadFiles should return a map of filenames and content") {
-        fun ftpConfig() = PropertiesConfig.SftpConfig(
-            host = genericContainer.host,
-            username = "foo",
-            privateKeyPassword = "pass",
-            port = genericContainer.getMappedPort(22)
-        )
+    test("tester å lage fil i inbound og hente den ut igjen") {
 
         val sftpSession = SftpTestConfig(ftpConfig()).createSftpConnection()
 
-
         val ftpService = FtpService(sftpSession)
 
+        ftpService.createFile("test.txt", Directories.INBOUND, "content")
         val files = ftpService.downloadFiles()
         files.size shouldBe 1
 
+    }
 
+    test("tester å flytte fil fra inbound til outbound") {
+
+        val sftpSession = SftpTestConfig(ftpConfig()).createSftpConnection()
+
+        val ftpService = FtpService(sftpSession)
 
         ftpService.createFile("test.txt", Directories.INBOUND, "content")
-        /*
-        ftpService.createFile("test2.txt", Directories.INBOUND, "content2")
-        val size = ftpService.downloadFiles()
-        size.size shouldBe 2*/
+        val files = ftpService.downloadFiles()
+        files.size shouldBe 1
+
+        ftpService.moveFile("test.txt", Directories.INBOUND, Directories.FERDIG)
+        val filesAfterMoveInbound = ftpService.downloadFiles(Directories.INBOUND)
+        filesAfterMoveInbound.size shouldBe 0
+        val filesAfterMoveOutbound = ftpService.downloadFiles(Directories.FERDIG)
+        filesAfterMoveOutbound.size shouldBe 1
 
     }
 
