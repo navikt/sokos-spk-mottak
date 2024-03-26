@@ -12,7 +12,7 @@ internal class FtpServiceTest : FunSpec({
         .withExposedPorts(22)
         .withCommand("foo:pass:::inbound,inbound/ferdig,outbound")
 
-    fun ftpConfig() = PropertiesConfig.SftpConfig(
+    fun sftpTestConfig() = PropertiesConfig.SftpConfig(
         host = genericContainer.host,
         username = "foo",
         privateKeyPassword = "pass",
@@ -30,8 +30,7 @@ internal class FtpServiceTest : FunSpec({
 
     test("tester å lage fil i inbound og hente den ut igjen") {
 
-        val sftpSession = SftpTestConfig(ftpConfig()).createSftpConnection()
-
+        val sftpSession = SftpTestConfig(sftpTestConfig()).createSftpConnection()
         val ftpService = FtpService(sftpSession)
 
         ftpService.createFile("test.txt", Directories.INBOUND, "content")
@@ -42,7 +41,7 @@ internal class FtpServiceTest : FunSpec({
 
     test("tester å flytte fil fra inbound til outbound") {
 
-        val sftpSession = SftpTestConfig(ftpConfig()).createSftpConnection()
+        val sftpSession = SftpTestConfig(sftpTestConfig()).createSftpConnection()
 
         val ftpService = FtpService(sftpSession)
 
