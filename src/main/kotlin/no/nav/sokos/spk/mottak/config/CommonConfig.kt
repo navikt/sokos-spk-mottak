@@ -28,8 +28,6 @@ import kotlinx.serialization.json.Json
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import org.slf4j.event.Level
 
-const val SECURE_LOGGER = "secureLogger"
-
 fun Application.commonConfig() {
     install(CallId) {
         header(HttpHeaders.XCorrelationId)
