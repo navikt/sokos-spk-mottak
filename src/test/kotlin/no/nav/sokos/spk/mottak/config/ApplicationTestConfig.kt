@@ -1,10 +1,10 @@
-package no.nav.sokos.spk.mottak
+package no.nav.sokos.spk.mottak.config
 
 import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
+import no.nav.sokos.spk.mottak.ApplicationState
 import no.nav.sokos.spk.mottak.api.naisApi
-import no.nav.sokos.spk.mottak.config.commonConfig
 
 internal const val API_BASE_PATH = "/api/v1"
 

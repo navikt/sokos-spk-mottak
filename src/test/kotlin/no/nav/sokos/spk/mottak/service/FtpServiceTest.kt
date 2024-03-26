@@ -11,9 +11,14 @@ internal class FtpServiceTest : FunSpec({
 
     val genericContainer = GenericContainer("atmoz/sftp:alpine")
         .withCopyFileToContainer(
-            MountableFile.forClasspathResource("files/"),
-            "/home/foo/inbound/files"
+            MountableFile.forClasspathResource("inbound/"),
+            "/home/foo/inbound"
         )
+        .withCopyFileToContainer(
+            MountableFile.forClasspathResource("outbound/"),
+            "/home/foo/outbound"
+        )
+        .withPrivilegedMode(true)
         .withExposedPorts(22)
         .withCommand("foo:pass:::inbound")
 
@@ -29,21 +34,26 @@ internal class FtpServiceTest : FunSpec({
         fun ftpConfig() = PropertiesConfig.SftpConfig(
             host = genericContainer.host,
             username = "foo",
-            keyPass = "pass",
-            privKey = "privKey",
-            port = 22
+            privateKeyPassword = "pass",
+            port = genericContainer.getMappedPort(22)
         )
 
         val sftpSession = SftpTestConfig(ftpConfig()).createSftpConnection()
 
-        try {
-            val ftpService = FtpService(sftpSession) // TODO: Add ftpConfig as parameter
-            val files = ftpService.downloadFiles()
-            files.size shouldBe 1
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+
+        val ftpService = FtpService(sftpSession)
+
+        val files = ftpService.downloadFiles()
+        files.size shouldBe 1
+
+
+
+        ftpService.createFile("test.txt", Directories.INBOUND, "content")
+        /*
+        ftpService.createFile("test2.txt", Directories.INBOUND, "content2")
+        val size = ftpService.downloadFiles()
+        size.size shouldBe 2*/
+
     }
 
 })
-
