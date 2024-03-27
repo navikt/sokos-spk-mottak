@@ -1,5 +1,8 @@
 package no.nav.sokos.spk.mottak.service
 
+import com.github.dockerjava.api.model.ExposedPort
+import com.github.dockerjava.api.model.PortBinding
+import com.github.dockerjava.api.model.Ports
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import java.io.ByteArrayOutputStream
@@ -30,18 +33,9 @@ internal class FtpServiceTest : FunSpec({
     lateinit var ftpService: FtpService
 
 
-    fun sftpConfig() = PropertiesConfig.SftpConfig(
-        host = genericContainer.host,
-        username = "foo",
-        privateKey = privateKeyFile.absolutePath,
-        privateKeyPassword = "pass",
-        port = genericContainer.getMappedPort(22)
-    )
-
-
     beforeSpec {
         genericContainer.start()
-        val sftpSession = SftpConfig(sftpConfig()).createSftpConnection()
+        val sftpSession = SftpConfig(sftpConfig(privateKeyFile)).createSftpConnection()
         ftpService = FtpService(sftpSession)
     }
 
@@ -77,6 +71,14 @@ internal class FtpServiceTest : FunSpec({
 
 })
 
+private fun sftpConfig(privateKeyFile: File) = PropertiesConfig.SftpConfig(
+    host = "localhost",
+    username = "foo",
+    privateKey = privateKeyFile.absolutePath,
+    privateKeyPassword = "pass",
+    port = 5678
+)
+
 private fun setupSftpTestContainer(publicKey: AsymmetricKeyParameter): GenericContainer<*> {
     val publicKeyAsBytes = convertToByteArray(publicKey)
     return GenericContainer("atmoz/sftp:alpine")
@@ -85,6 +87,7 @@ private fun setupSftpTestContainer(publicKey: AsymmetricKeyParameter): GenericCo
             "/home/foo/.ssh/keys/id_rsa.pub"
         )
         .withExposedPorts(22)
+        .withCreateContainerCmdModifier { cmd -> cmd.hostConfig!!.withPortBindings(PortBinding(Ports.Binding.bindPort(5678), ExposedPort(22))) }
         .withCommand("foo::::inbound,inbound/ferdig,outbound")
 }
 
