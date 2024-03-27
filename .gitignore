@@ -40,6 +40,6 @@ out/
 
 ### Custom ###
 defaults.properties
-hostKey
-privKey
+privateKey
+src/test/resources/privateKey
 db2jcc_license_cisuz.jar

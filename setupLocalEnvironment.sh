@@ -20,11 +20,8 @@ envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-spk-mottak | cut -f1
 rm -f defaults.properties
 echo "$envValue" > defaults.properties
 echo "AZURE stores as defaults.properties"
-rm -f privKey
-echo "$PRIVATE_KEY" > privKey
-rm -f hostKey
-echo "$HOST_KEY" > hostKey
+rm -f privateKey
+echo "$PRIVATE_KEY" > privateKey
 
 sed -i '' '/^SFTP_SERVER=/ s/=.*/=155.55.161.44/' defaults.properties
-sed -i '' '/^SFTP_PRIVATE_KEY_FILE_PATH=/ s/=.*/=privKey/' defaults.properties
-sed -i '' '/^SFTP_HOST_KEY_FILE_PATH=/ s/=.*/=hostKey/' defaults.properties
+sed -i '' '/^SFTP_PRIVATE_KEY_FILE_PATH=/ s/=.*/=privateKey/' defaults.properties

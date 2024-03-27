@@ -80,5 +80,3 @@ spec:
       value: "22"
     - name: SFTP_PRIVATE_KEY_FILE_PATH
       value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
-    - name: SFTP_HOST_KEY_FILE_PATH
-      value: /var/run/secrets/spk-sftp-host-key/spk-sftp-host-key

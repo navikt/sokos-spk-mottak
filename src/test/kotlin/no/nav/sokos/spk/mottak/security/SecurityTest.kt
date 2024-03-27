@@ -18,13 +18,13 @@ import kotlinx.serialization.json.Json
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.mock.oauth2.withMockOAuth2Server
-import no.nav.sokos.spk.mottak.API_BASE_PATH
 import no.nav.sokos.spk.mottak.api.mottakApi
+import no.nav.sokos.spk.mottak.config.API_BASE_PATH
 import no.nav.sokos.spk.mottak.config.AUTHENTICATION_NAME
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.authenticate
 import no.nav.sokos.spk.mottak.config.configureSecurity
-import no.nav.sokos.spk.mottak.configureTestApplication
+import no.nav.sokos.spk.mottak.config.configureTestApplication
 import no.nav.sokos.spk.mottak.service.FileReaderService
 
 val fileReaderService: FileReaderService = mockk()
