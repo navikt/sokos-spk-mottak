@@ -26,8 +26,9 @@ internal class FtpServiceTest : FunSpec({
 
     val keyPair = generateKeyPair()
     val privateKeyFile = createPrivateKeyFile(keyPair.private)
-
     val genericContainer = setupSftpTestContainer(keyPair.public)
+    lateinit var ftpService: FtpService
+
 
     fun sftpConfig() = PropertiesConfig.SftpConfig(
         host = genericContainer.host,
@@ -38,18 +39,17 @@ internal class FtpServiceTest : FunSpec({
     )
 
 
-    beforeTest {
+    beforeSpec {
         genericContainer.start()
+        val sftpSession = SftpConfig(sftpConfig()).createSftpConnection()
+        ftpService = FtpService(sftpSession)
     }
 
-    afterTest {
+    afterSpec {
         genericContainer.stop()
     }
 
     test("test oppretting av fil i inbound og hente den ut") {
-
-        val sftpSession = SftpConfig(sftpConfig()).createSftpConnection()
-        val ftpService = FtpService(sftpSession)
 
         ftpService.createFile("test.txt", Directories.INBOUND, "content")
 
@@ -59,10 +59,6 @@ internal class FtpServiceTest : FunSpec({
     }
 
     test("test flytting av fil fra inbound til outbound") {
-
-        val sftpSession = SftpConfig(sftpConfig()).createSftpConnection()
-
-        val ftpService = FtpService(sftpSession)
 
         ftpService.createFile("test.txt", Directories.INBOUND, "content")
 
