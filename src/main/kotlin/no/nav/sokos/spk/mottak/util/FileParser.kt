@@ -26,7 +26,7 @@ object FileParser {
                 produsertDato = record.getString(33, 41).toLocalDate()!!,
                 beskrivelse = record.getString(41, 75)
             )
-        } catch (e: DateTimeParseException) {
+        } catch (e: NullPointerException) {
             throw ValidationException(
                 FileStatus.UGYLDIG_PRODDATO.code,
                 FileStatus.UGYLDIG_PRODDATO.message
