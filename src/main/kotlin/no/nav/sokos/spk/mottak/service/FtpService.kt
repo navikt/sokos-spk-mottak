@@ -47,6 +47,8 @@ class FtpService(
                     "Feil i flytting av fil fra $oldpath til $newpath: ${e.message}"
                 }
                 throw e
+            } finally {
+                exit()
             }
         }
     }

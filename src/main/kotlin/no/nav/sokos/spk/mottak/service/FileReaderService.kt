@@ -32,8 +32,10 @@ class FileReaderService(
     fun readAndParseFile() {
 
         val downloadFiles = ftpService.downloadFiles()
-        downloadFiles.isNotEmpty().apply {
-            logger.info { "Starter innlesning av antall filer: ${downloadFiles.size}" }
+
+        when {
+            downloadFiles.isEmpty() -> logger.info { "Ingen filer å lese" }
+            else -> logger.info { "Starter innlesning av antall filer: ${downloadFiles.size}" }
         }
 
         downloadFiles.forEach { (filename, content) ->
