@@ -54,8 +54,6 @@ spec:
       mountPath: /var/run/secrets/db2license
     - secret: spk-sftp-private-key
       mountPath: /var/run/secrets/spk-sftp-private-key
-    - secret: spk-sftp-host-key
-      mountPath: /var/run/secrets/spk-sftp-host-key
   envFrom:
     - secret: spk-sftp-creds
     - secret: oppdrag-qx-credentials
