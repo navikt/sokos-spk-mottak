@@ -1,6 +1,5 @@
 package no.nav.sokos.spk.mottak.util
 
-import java.time.format.DateTimeParseException
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
 import no.nav.sokos.spk.mottak.domain.record.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.record.StartRecord

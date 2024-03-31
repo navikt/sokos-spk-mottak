@@ -6,6 +6,12 @@ import com.github.dockerjava.api.model.Ports
 import io.kotest.core.listeners.AfterSpecListener
 import io.kotest.core.listeners.BeforeSpecListener
 import io.kotest.core.spec.Spec
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.OutputStreamWriter
+import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
+import java.util.Base64
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.images.builder.Transferable
@@ -17,12 +23,6 @@ import org.testcontainers.shaded.org.bouncycastle.crypto.util.OpenSSHPrivateKeyU
 import org.testcontainers.shaded.org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemObject
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.OutputStreamWriter
-import java.nio.charset.StandardCharsets
-import java.security.SecureRandom
-import java.util.Base64
 
 object SftpListener : BeforeSpecListener, AfterSpecListener {
     private val keyPair = generateKeyPair()

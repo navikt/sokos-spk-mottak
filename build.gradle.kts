@@ -81,7 +81,6 @@ dependencies {
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
-    //implementation("org.bouncycastle:bcprov-jdk18on:1.77")
 
 }
 
