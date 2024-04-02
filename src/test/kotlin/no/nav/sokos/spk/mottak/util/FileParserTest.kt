@@ -24,6 +24,7 @@ class FileParserTest : BehaviorSpec({
                 startRecord.filType shouldBe "ANV"
                 startRecord.produsertDato.toString() shouldBe "2024-01-31"
                 startRecord.beskrivelse shouldBe "ANVISNINGSFIL"
+                startRecord.rawRecord shouldBe "01SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00"
             }
         }
 

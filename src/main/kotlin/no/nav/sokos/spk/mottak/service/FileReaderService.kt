@@ -75,22 +75,16 @@ class FileReaderService(
     private fun saveRecordDataAndMoveFile(recordData: RecordData, session: TransactionalSession) {
         lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
 
-        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!)
+        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FilTilstandType.GOD)
         val filInfoId = fileInfoRepository.insertFilInfo(filInfo, session)!!
 
-        var antallInnTransaksjon: Int = 0;
+        var antallInnTransaksjon = 0
         recordData.innTransaksjonList.chunked(BATCH_SIZE).forEach { innTransaksjonList ->
             antallInnTransaksjon += innTransaksjonList.size
             innTransaksjonRepository.insertTransactionBatch(innTransaksjonList, filInfoId, session)
             logger.debug { "Antall innTransaksjon som er lagret i DB: $antallInnTransaksjon" }
         }
         recordData.innTransaksjonList.clear()
-        fileInfoRepository.updateFilInfoTilstandType(
-            recordData.startRecord.fileInfoId,
-            FilTilstandType.GOD.name,
-            FILETYPE_ANVISER,
-            session
-        )
         logger.info { "Antall transaksjoner $antallInnTransaksjon lagt inn fra fil: ${recordData.filename} med løpenummer: ${recordData.startRecord.filLopenummer}" }
         ftpService.moveFile(recordData.filename!!, Directories.INBOUND, Directories.FERDIG)
     }
@@ -101,12 +95,9 @@ class FileReaderService(
         session: TransactionalSession
     ) {
         lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
-        fileInfoRepository.updateFilInfoTilstandType(
-            recordData.startRecord.fileInfoId,
-            FilTilstandType.AVV.name,
-            FILETYPE_ANVISER,
-            session
-        )
+        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FilTilstandType.AVV, status.message)
+        fileInfoRepository.insertFilInfo(filInfo, session)!!
+
         createAvviksFil(recordData.startRecord.rawRecord, status)
         logger.info { "Avviksfil er opprettet for fil: ${recordData.filename} med status: $status med løpenummer: ${recordData.startRecord.filLopenummer}" }
         ftpService.moveFile(recordData.filename!!, Directories.INBOUND, Directories.FERDIG)
@@ -121,7 +112,7 @@ class FileReaderService(
 
         content.forEach { record ->
             if (totalRecord++ == 0) {
-                startRecord = FileParser.parseStartRecord(record).apply { rawRecord = record }
+                startRecord = FileParser.parseStartRecord(record)
                 logger.debug { "Start-record: $record" }
             } else {
                 if (content.size != totalRecord) {

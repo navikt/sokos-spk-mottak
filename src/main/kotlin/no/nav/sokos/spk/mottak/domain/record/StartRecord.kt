@@ -14,17 +14,14 @@ data class StartRecord(
     val filType: String,
     val produsertDato: LocalDate,
     val beskrivelse: String,
-    var rawRecord: String = "",
-    var fileInfoId: Int = 0,
-    var filStatus: String? = null,
-    var feilTekst: String? = null
+    val rawRecord: String
 )
 
-fun StartRecord.toFileInfo(fileName: String): FilInfo {
+fun StartRecord.toFileInfo(fileName: String, filTilstandType: FilTilstandType, feilTekst: String? = null): FilInfo {
     return FilInfo(
         id = -1, // TODO: generert av db
         status = FileStatus.OK.code,
-        tilstand = FilTilstandType.OPR.name,
+        tilstand = filTilstandType.name,
         anviser = this.avsender,
         filnavn = fileName,
         lopenr = this.filLopenummer,
@@ -35,6 +32,6 @@ fun StartRecord.toFileInfo(fileName: String): FilInfo {
         endretAv = PropertiesConfig.Configuration().naisAppName,
         versjon = 2,
         filType = this.filType,
-        feilTekst = this.feilTekst
+        feilTekst = feilTekst
     )
 }

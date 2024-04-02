@@ -23,7 +23,8 @@ object FileParser {
                 filLopenummer = record.getString(24, 30).toInt(),
                 filType = record.getString(30, 33),
                 produsertDato = record.getString(33, 41).toLocalDate()!!,
-                beskrivelse = record.getString(41, 75)
+                beskrivelse = record.getString(41, 75),
+                rawRecord = record
             )
         } catch (e: NullPointerException) {
             throw ValidationException(
