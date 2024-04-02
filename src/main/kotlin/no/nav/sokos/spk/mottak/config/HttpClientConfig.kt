@@ -1,4 +1,4 @@
-package no.nav.sokos.spk.mottak.util
+package no.nav.sokos.spk.mottak.config
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
