@@ -5,15 +5,16 @@ import io.kotest.matchers.shouldBe
 import no.nav.sokos.spk.mottak.TestData
 
 class FileValidationTest : ExpectSpec({
-    context("Skal fileStatus") {
 
-        expect("returnere med FileStatus.OK") {
+    context("validering av SPK innlesningsfil") {
+
+        expect("FileStatus.OK når filen er ok") {
             val recordData = TestData.recordDataMock()
             val fileStatus = FileValidation.validateStartAndEndRecord(recordData)
             fileStatus shouldBe FileStatus.OK
         }
 
-        expect("returnere med FileStatus.UGYLDIG_ANVISER") {
+        expect("FileStatus.UGYLDIG_ANVISER når avsender er ugyldig") {
             val recordData = TestData.recordDataMock().copy(
                 startRecord = TestData.startRecordMock().copy(avsender = "TEST")
             )
@@ -21,7 +22,7 @@ class FileValidationTest : ExpectSpec({
             fileStatus shouldBe FileStatus.UGYLDIG_ANVISER
         }
 
-        expect("returnere med FileStatus.UGYLDIG_MOTTAKER") {
+        expect("FileStatus.UGYLDIG_MOTTAKER når mottager er ugyldig") {
             val recordData = TestData.recordDataMock().copy(
                 startRecord = TestData.startRecordMock().copy(mottager = "TEST")
             )
@@ -29,7 +30,7 @@ class FileValidationTest : ExpectSpec({
             fileStatus shouldBe FileStatus.UGYLDIG_MOTTAKER
         }
 
-        expect("returnere med FileStatus.UGYLDIG_FILTYPE") {
+        expect("FileStatus.UGYLDIG_FILTYPE når filtype er ugyldig") {
             val recordData = TestData.recordDataMock().copy(
                 startRecord = TestData.startRecordMock().copy(filType = "TEST")
             )
@@ -37,7 +38,7 @@ class FileValidationTest : ExpectSpec({
             fileStatus shouldBe FileStatus.UGYLDIG_FILTYPE
         }
 
-        expect("returnere med FileStatus.FILLOPENUMMER_I_BRUK") {
+        expect("FileStatus.FILLOPENUMMER_I_BRUK når fillopenummer er i bruk") {
             val recordData = TestData.recordDataMock().copy(
                 maxLopenummer = 123
             )
@@ -45,7 +46,7 @@ class FileValidationTest : ExpectSpec({
             fileStatus shouldBe FileStatus.FILLOPENUMMER_I_BRUK
         }
 
-        expect("returnere med FileStatus.UGYLDIG_FILLOPENUMMER") {
+        expect("FileStatus.UGYLDIG_FILLOPENUMMER når fillopenummer er ugyldig") {
             val recordData = TestData.recordDataMock().copy(
                 maxLopenummer = 121
             )
@@ -53,7 +54,7 @@ class FileValidationTest : ExpectSpec({
             fileStatus shouldBe FileStatus.UGYLDIG_FILLOPENUMMER
         }
 
-        expect("returnere med FileStatus.UGYLDIG_SUMBELOP") {
+        expect("FileStatus.UGYLDIG_SUMBELOP når sumbeløp er ugyldig") {
             val recordData = TestData.recordDataMock().copy(
                 totalBelop = 0
             )
@@ -61,7 +62,7 @@ class FileValidationTest : ExpectSpec({
             fileStatus shouldBe FileStatus.UGYLDIG_SUMBELOP
         }
 
-        expect("returnere med FileStatus.UGYLDIG_ANTRECORDS") {
+        expect("FileStatus.UGYLDIG_ANTRECORDS når antall records er ugyldig") {
             val recordData = TestData.recordDataMock().copy(
                 endRecord = TestData.endRecordMock().copy(numberOfRecord = 9)
             )

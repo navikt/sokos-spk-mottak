@@ -31,7 +31,7 @@ val fileReaderService: FileReaderService = mockk()
 
 class SecurityTest : FunSpec({
 
-    test("test http GET endepunkt uten token bør returnere 401") {
+    test("http GET endepunkt uten token bør returnere 401 - Unauthorized") {
         withMockOAuth2Server {
             testApplication {
                 configureTestApplication()
@@ -49,7 +49,7 @@ class SecurityTest : FunSpec({
         }
     }
 
-    test("test http GET endepunkt med token bør returnere 200") {
+    test("http GET endepunkt med token bør returnere 200 - OK") {
         withMockOAuth2Server {
             val mockOAuth2Server = this
             testApplication {
