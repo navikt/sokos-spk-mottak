@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm") version "1.9.23"
     kotlin("plugin.serialization") version "1.9.23"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    jacoco
 }
 
 group = "no.nav.sokos"
@@ -107,10 +108,18 @@ tasks {
             attributes["Main-Class"] = "no.nav.sokos.spk.mottak.ApplicationKt"
             attributes["Class-Path"] = "/var/run/secrets/db2license/db2jcc_license_cisuz.jar"
         }
+        finalizedBy(jacocoTestReport)
     }
 
     ("jar") {
         enabled = false
+    }
+
+    withType<JacocoReport>().configureEach {
+        dependsOn(test)
+        reports {
+            html.required.set(true)
+        }
     }
 
 
