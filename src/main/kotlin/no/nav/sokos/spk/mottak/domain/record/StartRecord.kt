@@ -19,18 +19,17 @@ data class StartRecord(
 
 fun StartRecord.toFileInfo(fileName: String, filTilstandType: FilTilstandType, feilTekst: String? = null): FilInfo {
     return FilInfo(
-        id = -1, // TODO: generert av db
         status = FileStatus.OK.code,
         tilstand = filTilstandType.name,
         anviser = this.avsender,
         filnavn = fileName,
         lopenr = this.filLopenummer,
-        datoMottatt = this.produsertDato.toString(),
+        datoMottatt = this.produsertDato,
         datoOpprettet = LocalDateTime.now(),
         opprettetAv = PropertiesConfig.Configuration().naisAppName,
         datoEndret = LocalDateTime.now(),
         endretAv = PropertiesConfig.Configuration().naisAppName,
-        versjon = 2,
+        versjon = 1, // TODO: Trenger vi denne?
         filType = this.filType,
         feilTekst = feilTekst
     )
