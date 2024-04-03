@@ -5,7 +5,6 @@ import java.time.LocalDateTime
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilTilstandType
-import no.nav.sokos.spk.mottak.validator.FileStatus
 
 data class StartRecord(
     val avsender: String,
@@ -17,9 +16,9 @@ data class StartRecord(
     val rawRecord: String
 )
 
-fun StartRecord.toFileInfo(fileName: String, filTilstandType: FilTilstandType, feilTekst: String? = null): FilInfo {
+fun StartRecord.toFileInfo(fileName: String, filTilstandType: FilTilstandType, status: String, feilTekst: String? = null): FilInfo {
     return FilInfo(
-        status = FileStatus.OK.code,
+        status = status,
         tilstand = filTilstandType.name,
         anviser = this.avsender,
         filnavn = fileName,
