@@ -8,6 +8,7 @@ on:
       - '**.md'
       - 'LICENCE'
       - 'CODEOWNERS'
+      - 'setupLocalEnvironment.sh'
       - '.gitignore'
       - '.github/workflows/build-pr.yaml'
       - '.github/workflows/manual-deploy-dev.yaml'
