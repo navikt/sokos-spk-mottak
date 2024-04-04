@@ -1,3 +1,7 @@
 package no.nav.sokos.spk.mottak.exception
 
-class ValidationException(val statusCode: String, override val message: String): Exception(message)
+import no.nav.sokos.spk.mottak.validator.FileStatus
+
+class ValidationException(val statusCode: String, override val message: String) : Exception(message) {
+    constructor(fileStatus: FileStatus) : this(fileStatus.code, fileStatus.message)
+}

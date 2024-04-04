@@ -50,19 +50,14 @@ class FileReaderService(
                         this.filename = filename
                     }
 
-                    val fileStatusValidation = validateStartAndEndRecord(recordData)
-                    logger.debug { "ValidationFileStatus: $fileStatusValidation" }
-
-                    when (fileStatusValidation) {
-                        FileStatus.OK -> saveRecordDataAndMoveFile(recordData, session)
-                        else -> updateFileStatusAndUploadAvviksFil(recordData, fileStatusValidation, session)
-                    }
+                    validateStartAndEndRecord(recordData)
+                    saveRecordDataAndMoveFile(recordData, session)
                 }
             }.onFailure { exception ->
                 when {
                     exception is ValidationException ->
                         DatabaseConfig.transaction { session ->
-                            updateFileStatusAndUploadAvviksFil(recordData, mapToFault(exception.statusCode), session)
+                            updateFileStatusAndUploadAvviksFil(recordData, exception, session)
                         }
 
                     else -> throw RuntimeException("Unknown exception", exception)
@@ -75,7 +70,7 @@ class FileReaderService(
     private fun saveRecordDataAndMoveFile(recordData: RecordData, session: TransactionalSession) {
         lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
 
-        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FilTilstandType.GOD)
+        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FilTilstandType.GOD, FileStatus.OK.code)
         val filInfoId = fileInfoRepository.insertFilInfo(filInfo, session)!!
 
         var antallInnTransaksjon = 0
@@ -91,15 +86,16 @@ class FileReaderService(
 
     private fun updateFileStatusAndUploadAvviksFil(
         recordData: RecordData,
-        status: FileStatus,
+        exception: ValidationException,
         session: TransactionalSession
     ) {
         lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
-        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FilTilstandType.AVV, status.message)
+
+        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FilTilstandType.AVV, exception.statusCode, exception.message)
         fileInfoRepository.insertFilInfo(filInfo, session)!!
 
-        createAvviksFil(recordData.startRecord.rawRecord, status)
-        logger.info { "Avviksfil er opprettet for fil: ${recordData.filename} med status: $status med løpenummer: ${recordData.startRecord.filLopenummer}" }
+        createAvviksFil(recordData.startRecord.rawRecord, exception)
+        logger.info { "Avviksfil er opprettet for fil: ${recordData.filename} med status: ${exception.statusCode} med løpenummer: ${recordData.startRecord.filLopenummer}" }
         ftpService.moveFile(recordData.filename!!, Directories.INBOUND, Directories.FERDIG)
     }
 
@@ -133,30 +129,20 @@ class FileReaderService(
         )
     }
 
-    private fun createAvviksFil(startRecordUnparsed: String, status: FileStatus) {
+    private fun createAvviksFil(startRecordUnparsed: String, exception: ValidationException) {
         val fileName = createFileName()
-        val content = createAvviksRecord(startRecordUnparsed, status)
+        val content = createAvviksRecord(startRecordUnparsed, exception)
 
         ftpService.createFile(fileName, Directories.ANVISNINGSRETUR, content)
     }
 
-    private fun createAvviksRecord(startRecord: String, fileStatus: FileStatus): String {
-        return startRecord.replaceRange(76, 78, fileStatus.code)
-            .replaceRange(78, 113, fileStatus.message)
+    private fun createAvviksRecord(startRecord: String, exception: ValidationException): String {
+        return startRecord.replaceRange(76, 78, exception.statusCode)
+            .replaceRange(78, 113, exception.message)
 
     }
 
     private fun createFileName(): String {
         return "SPK_NAV_${SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())}_ANV"
     }
-
-    private fun mapToFault(exceptionKode: String): FileStatus {
-        return when (exceptionKode) {
-            "04" -> FileStatus.UGYLDIG_FILLOPENUMMER
-            "06" -> FileStatus.UGYLDIG_RECTYPE
-            "09" -> FileStatus.UGYLDIG_PRODDATO
-            else -> FileStatus.UKJENT
-        }
-    }
-
 }

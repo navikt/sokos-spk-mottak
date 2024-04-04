@@ -11,7 +11,6 @@ import no.nav.sokos.spk.mottak.validator.FileStatus
 class FileParserTest : BehaviorSpec({
 
     given("SPK innlesingsfil") {
-
         val innlesingsfil = "SPK_NAV_20242503_070026814_INL.txt".readFromResource()
         val innlesingRecord = innlesingsfil.lines()
         innlesingRecord.size shouldNotBe 0
@@ -61,7 +60,6 @@ class FileParserTest : BehaviorSpec({
     }
 
     given("SPK innlesingsfil med ugyldig innhold i StartRecord") {
-
         `when`("StartRecord innholder ugyldig record type") {
             val innlesingRecord = "02SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00"
             then("skal det returneres UGYLDIG_RECTYPE") {
@@ -97,7 +95,6 @@ class FileParserTest : BehaviorSpec({
     }
 
     given("Ugyldig innhold i InnTransaksjon i SPK innlesingsfil") {
-
         val innlesingRecord =
             "09116684810   66064900162           2024013120240201202402290100000346900UFT                 00000000410"
         then("skal det returneres UGYLDIG_RECTYPE") {
