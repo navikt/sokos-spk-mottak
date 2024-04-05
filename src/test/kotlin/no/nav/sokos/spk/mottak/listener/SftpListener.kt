@@ -55,7 +55,7 @@ object SftpListener : BeforeSpecListener, AfterSpecListener {
             )
             .withExposedPorts(22)
             .withCreateContainerCmdModifier { cmd -> cmd.hostConfig!!.withPortBindings(PortBinding(Ports.Binding.bindPort(5678), ExposedPort(22))) }
-            .withCommand("foo::::inbound,inbound/ferdig,outbound")
+            .withCommand("foo::::inbound,inbound/ferdig,outbound,outbound/anvisningsretur")
     }
 
     private fun createPrivateKeyFile(privateKey: AsymmetricKeyParameter): File {

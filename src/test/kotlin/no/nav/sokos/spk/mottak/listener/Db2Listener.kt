@@ -23,6 +23,6 @@ object Db2Listener : BeforeSpecListener, AfterSpecListener {
     }
 
     override suspend fun afterSpec(spec: Spec) {
-        dataSource.connection.close()
+        dataSource.close()
     }
 }

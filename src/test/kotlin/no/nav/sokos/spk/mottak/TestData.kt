@@ -2,11 +2,12 @@ package no.nav.sokos.spk.mottak
 
 import java.time.LocalDate
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
-import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
+import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 
 const val SPK_FILE_OK = "SPK_NAV_20242503_070026814_INL.txt"
+const val SPK_FILE_FEIL = "SPK_NAV_20242503_080026814_INL.txt"
 
 object TestData {
 
@@ -14,7 +15,7 @@ object TestData {
         return RecordData(
             startRecord = startRecordMock(),
             endRecord = endRecordMock(),
-            innTransaksjonList = MutableList(8) { innTransaksjonMock() },
+            transaksjonRecordList = MutableList(8) { transaksjonRecordnMock() },
             totalBelop = 2775200L,
             maxLopenummer = 122
         )
@@ -39,24 +40,24 @@ object TestData {
         )
     }
 
-    fun innTransaksjonMock(): InnTransaksjon {
-        return InnTransaksjon(
+    fun transaksjonRecordnMock(): TransaksjonRecord {
+        return TransaksjonRecord(
             transId = "116684810",
             fnr = "66064900162",
             utbetalesTil = "",
-            datoAnviserStr = "20240131",
-            datoFomStr = "20240201",
-            datoTomStr = "20240229",
+            datoAnviser = "20240131",
+            datoFom = "20240201",
+            datoTom = "20240229",
             belopstype = "01",
-            belopStr = "00000346900",
+            belop = "00000346900",
             art = "UFT",
             refTransId = "",
             tekstKode = "",
-            saldoStr = "00000000410",
-            prioritetStr = "",
+            saldo = "00000000410",
+            prioritet = "",
             kid = "",
             trekkansvar = "",
-            gradStr = ""
+            grad = ""
         )
     }
 }

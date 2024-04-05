@@ -25,8 +25,8 @@ object FileValidation {
             recordData.endRecord.totalBelop != recordData.totalBelop ->
                 throw ValidationException(FileStatus.UGYLDIG_SUMBELOP.code, String.format(FileStatus.UGYLDIG_SUMBELOP.message, "${recordData.totalBelop}"))
 
-            recordData.endRecord.numberOfRecord != recordData.innTransaksjonList.size ->
-                throw ValidationException(FileStatus.UGYLDIG_ANTRECORDS.code, String.format(FileStatus.UGYLDIG_ANTRECORDS.message, "${recordData.innTransaksjonList.size}"))
+            recordData.endRecord.numberOfRecord != recordData.transaksjonRecordList.size ->
+                throw ValidationException(FileStatus.UGYLDIG_ANTRECORDS.code, String.format(FileStatus.UGYLDIG_ANTRECORDS.message, "${recordData.transaksjonRecordList.size}"))
 
             else -> logger.debug { "ValidationFileStatus: ${FileStatus.OK}" }
         }

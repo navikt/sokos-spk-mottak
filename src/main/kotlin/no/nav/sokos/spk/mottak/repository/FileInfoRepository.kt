@@ -1,15 +1,28 @@
 package no.nav.sokos.spk.mottak.repository
 
 import com.zaxxer.hikari.HikariDataSource
+import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
+import kotliquery.sessionOf
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FilInfo
 
 class FileInfoRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig().dataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
 ) {
+    fun getFileInfo(lopenummer: Int): FilInfo? {
+        return sessionOf(dataSource).single(
+            queryOf(
+                """
+                    SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopenummer
+                """.trimIndent(),
+                mapOf("lopenummer" to lopenummer)
+            ), toFileInfo
+        )
+    }
+
     fun updateFilInfoTilstandType(
         filInfoId: Int,
         filTilstandType: String,
@@ -51,13 +64,13 @@ class FileInfoRepository(
                         ENDRET_AV,
                         VERSJON,
                         K_FIL_T,
-                        FEILTEKST ) VALUES (:status, :tilstand, :anviser, :filnavn, :lopenr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feilTekst)
+                        FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopenr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feiltekst)
                     """.trimIndent(),
                 mapOf(
-                    "status" to filInfo.status,
-                    "tilstand" to filInfo.tilstand,
+                    "filStatus" to filInfo.filStatus,
+                    "filTilstandType" to filInfo.filTilstandType,
                     "anviser" to filInfo.anviser,
-                    "filnavn" to filInfo.filnavn,
+                    "filNavn" to filInfo.filNavn,
                     "lopenr" to filInfo.lopenr,
                     "datoMottatt" to filInfo.datoMottatt,
                     "datoOpprettet" to filInfo.datoOpprettet,
@@ -66,9 +79,29 @@ class FileInfoRepository(
                     "endretAv" to filInfo.endretAv,
                     "versjon" to filInfo.versjon,
                     "filType" to filInfo.filType,
-                    "feilTekst" to filInfo.feilTekst
+                    "feiltekst" to filInfo.feiltekst
                 )
             ).asUpdateAndReturnGeneratedKey
+        )
+    }
+
+    private val toFileInfo: (Row) -> FilInfo = { row ->
+        FilInfo(
+            row.int("FIL_INFO_ID"),
+            row.string("K_FIL_S"),
+            row.string("K_ANVISER"),
+            row.string("K_FIL_T"),
+            row.string("K_FIL_TILSTAND_T"),
+            row.string("FIL_NAVN"),
+            row.int("LOPENR"),
+            row.stringOrNull("FEILTEKST"),
+            row.localDate("DATO_MOTTATT"),
+            row.localDateOrNull("DATO_SENDT"),
+            row.localDateTime("DATO_OPPRETTET"),
+            row.string("OPPRETTET_AV"),
+            row.localDateTime("DATO_ENDRET"),
+            row.string("ENDRET_AV"),
+            row.int("VERSJON")
         )
     }
 }

@@ -8,11 +8,12 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.FILETYPE_ANVISER
-import no.nav.sokos.spk.mottak.domain.FilTilstandType
-import no.nav.sokos.spk.mottak.domain.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_AVV
+import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
 import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
+import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.domain.record.toFileInfo
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.repository.FileInfoRepository
@@ -26,7 +27,7 @@ private const val BATCH_SIZE: Int = 20000
 private val logger = KotlinLogging.logger {}
 
 class FileReaderService(
-    private val dataSource: HikariDataSource = DatabaseConfig().dataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.dataSource(),
     private val ftpService: FtpService = FtpService()
 ) {
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource)
@@ -72,16 +73,16 @@ class FileReaderService(
     private fun saveRecordDataAndMoveFile(recordData: RecordData, session: TransactionalSession) {
         lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
 
-        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FilTilstandType.GOD, FileStatus.OK.code)
+        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FILTILSTANDTYPE_GOD, FileStatus.OK.code)
         val filInfoId = fileInfoRepository.insertFilInfo(filInfo, session)!!
 
         var antallInnTransaksjon = 0
-        recordData.innTransaksjonList.chunked(BATCH_SIZE).forEach { innTransaksjonList ->
+        recordData.transaksjonRecordList.chunked(BATCH_SIZE).forEach { innTransaksjonList ->
             antallInnTransaksjon += innTransaksjonList.size
             innTransaksjonRepository.insertTransactionBatch(innTransaksjonList, filInfoId, session)
             logger.debug { "Antall innTransaksjon som er lagret i DB: $antallInnTransaksjon" }
         }
-        recordData.innTransaksjonList.clear()
+        recordData.transaksjonRecordList.clear()
         logger.info { "Antall transaksjoner $antallInnTransaksjon lagt inn fra fil: ${recordData.filename} med løpenummer: ${recordData.startRecord.filLopenummer}" }
         ftpService.moveFile(recordData.filename!!, Directories.INBOUND, Directories.FERDIG)
     }
@@ -93,7 +94,7 @@ class FileReaderService(
     ) {
         lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
 
-        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FilTilstandType.AVV, exception.statusCode, exception.message)
+        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FILTILSTANDTYPE_AVV, exception.statusCode, exception.message)
         fileInfoRepository.insertFilInfo(filInfo, session)!!
 
         createAvviksFil(recordData.startRecord.rawRecord, exception)
@@ -106,7 +107,7 @@ class FileReaderService(
         var totalBelop = 0L
         lateinit var startRecord: StartRecord
         lateinit var endRecord: EndRecord
-        val innTransaksjons: MutableList<InnTransaksjon> = mutableListOf()
+        val transaksjonRecordList: MutableList<TransaksjonRecord> = mutableListOf()
 
         content.forEach { record ->
             if (totalRecord++ == 0) {
@@ -115,8 +116,8 @@ class FileReaderService(
             } else {
                 if (content.size != totalRecord) {
                     val transaction = FileParser.parseTransaction(record)
-                    totalBelop += transaction.belopStr.toLong()
-                    innTransaksjons.add(transaction)
+                    totalBelop += transaction.belop.toLong()
+                    transaksjonRecordList.add(transaction)
                 } else {
                     logger.debug { "End-record: '$record'" }
                     endRecord = FileParser.parseEndRecord(record)
@@ -126,7 +127,7 @@ class FileReaderService(
         return RecordData(
             startRecord = startRecord,
             endRecord = endRecord,
-            innTransaksjonList = innTransaksjons,
+            transaksjonRecordList = transaksjonRecordList,
             totalBelop = totalBelop
         )
     }
@@ -140,7 +141,7 @@ class FileReaderService(
 
     private fun createAvviksRecord(startRecord: String, exception: ValidationException): String {
         return startRecord.replaceRange(76, 78, exception.statusCode)
-            .replaceRange(78, 113, exception.message)
+            .replaceRange(78, startRecord.length, exception.message)
 
     }
 
