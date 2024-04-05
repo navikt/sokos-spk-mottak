@@ -33,6 +33,7 @@ val hikariVersion = "5.1.0"
 val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.19.7"
+val h2Version = "2.2.224"
 
 dependencies {
 
@@ -82,6 +83,7 @@ dependencies {
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
+    testImplementation("com.h2database:h2:$h2Version")
 
 }
 

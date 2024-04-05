@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.sokos.spk.mottak.SPK_FILE_OK
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.validator.FileStatus
@@ -11,7 +12,7 @@ import no.nav.sokos.spk.mottak.validator.FileStatus
 class FileParserTest : BehaviorSpec({
 
     given("SPK innlesingsfil") {
-        val innlesingsfil = "SPK_NAV_20242503_070026814_INL.txt".readFromResource()
+        val innlesingsfil = SPK_FILE_OK.readFromResource()
         val innlesingRecord = innlesingsfil.lines()
         innlesingRecord.size shouldNotBe 0
 

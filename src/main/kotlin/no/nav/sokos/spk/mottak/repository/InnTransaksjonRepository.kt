@@ -1,16 +1,16 @@
 package no.nav.sokos.spk.mottak.repository
 
+import com.zaxxer.hikari.HikariDataSource
 import java.time.LocalDateTime
-import javax.sql.DataSource
 import kotliquery.Session
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.SPK
-import no.nav.sokos.spk.mottak.domain.record.InnTransaksjon
 import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate
 
 class InnTransaksjonRepository(
-    private val dataSource: DataSource = DatabaseConfig.hikariDataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig().dataSource()
 ) {
     fun insertTransactionBatch(innTransaksjonList: List<InnTransaksjon>, filInfoId: Long, session: Session) {
         session.batchPreparedNamedStatement(

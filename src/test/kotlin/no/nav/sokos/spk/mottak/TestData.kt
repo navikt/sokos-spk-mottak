@@ -2,11 +2,14 @@ package no.nav.sokos.spk.mottak
 
 import java.time.LocalDate
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
-import no.nav.sokos.spk.mottak.domain.record.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 
+const val SPK_FILE_OK = "SPK_NAV_20242503_070026814_INL.txt"
+
 object TestData {
+
     fun recordDataMock(): RecordData {
         return RecordData(
             startRecord = startRecordMock(),

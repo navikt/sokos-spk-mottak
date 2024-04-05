@@ -1,7 +1,7 @@
 package no.nav.sokos.spk.mottak.util
 
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
-import no.nav.sokos.spk.mottak.domain.record.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate

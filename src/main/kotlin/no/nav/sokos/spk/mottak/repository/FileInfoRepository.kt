@@ -1,6 +1,6 @@
 package no.nav.sokos.spk.mottak.repository
 
-import javax.sql.DataSource
+import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
@@ -8,7 +8,7 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FilInfo
 
 class FileInfoRepository(
-    private val dataSource: DataSource = DatabaseConfig.hikariDataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig().dataSource()
 ) {
     fun updateFilInfoTilstandType(
         filInfoId: Int,
@@ -33,7 +33,6 @@ class FileInfoRepository(
             ).asUpdate
         )
     }
-
 
     fun insertFilInfo(filInfo: FilInfo, session: Session): Long? {
         return session.run(

@@ -1,14 +1,16 @@
 package no.nav.sokos.spk.mottak.service
 
+import com.zaxxer.hikari.HikariDataSource
 import java.text.SimpleDateFormat
 import java.util.Date
 import kotliquery.TransactionalSession
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.FILETYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FilTilstandType
+import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
-import no.nav.sokos.spk.mottak.domain.record.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.toFileInfo
@@ -24,13 +26,13 @@ private const val BATCH_SIZE: Int = 20000
 private val logger = KotlinLogging.logger {}
 
 class FileReaderService(
-    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(),
-    private val lopenummerRepository: LopenummerRepository = LopenummerRepository(),
-    private val fileInfoRepository: FileInfoRepository = FileInfoRepository(),
+    private val dataSource: HikariDataSource = DatabaseConfig().dataSource(),
     private val ftpService: FtpService = FtpService()
 ) {
+    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource)
+    private val lopenummerRepository: LopenummerRepository = LopenummerRepository(dataSource)
+    private val fileInfoRepository: FileInfoRepository = FileInfoRepository(dataSource)
     fun readAndParseFile() {
-
         val downloadFiles = ftpService.downloadFiles()
 
         when {
@@ -41,7 +43,7 @@ class FileReaderService(
         downloadFiles.forEach { (filename, content) ->
             lateinit var recordData: RecordData
             runCatching {
-                DatabaseConfig.transaction { session ->
+                dataSource.transaction { session ->
                     val maxLopenummer = lopenummerRepository.findMaxLopenummer(FILETYPE_ANVISER)
 
                     logger.info { "Leser inn fil: '$filename'" }
@@ -56,7 +58,7 @@ class FileReaderService(
             }.onFailure { exception ->
                 when {
                     exception is ValidationException ->
-                        DatabaseConfig.transaction { session ->
+                        dataSource.transaction() { session ->
                             updateFileStatusAndUploadAvviksFil(recordData, exception, session)
                         }
 
