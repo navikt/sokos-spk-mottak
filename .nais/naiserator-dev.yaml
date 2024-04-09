@@ -83,3 +83,7 @@ spec:
       value: "22"
     - name: SFTP_PRIVATE_KEY_FILE_PATH
       value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
+
+      # Pensjon-fullmakt-q2
+    - name: PENSJON_REPRESENTASJON_Q2_URL
+      value: "https://pensjon-representasjon-q2.intern.dev.nav.no"
