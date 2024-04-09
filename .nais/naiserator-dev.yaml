@@ -46,6 +46,11 @@ spec:
         - application: azure-token-generator
           namespace: aura
           cluster: dev-gcp
+    outbound:
+      rules:
+        - application: pensjon-representasjon-q2
+          namespace: pensjon-person
+          cluster: dev-fss
   webproxy: true
   vault:
     enabled: true
