@@ -23,6 +23,8 @@ object PropertiesConfig {
             "USE_AUTHENTICATION" to "false",
             "AZURE_APP_CLIENT_ID" to "azure-app-client-id",
             "AZURE_APP_WELL_KNOWN_URL" to "azure-app-well-known-url",
+            "AZURE_APP_TENANT_ID" to "azure-app-tenant-id",
+            "AZURE_APP_CLIENT_SECRET" to "azure-app-client-secret",
             "DATABASE_HOST" to "databaseHost",
             "DATABASE_PORT" to "databasePort",
             "DATABASE_NAME" to "databaseName",
