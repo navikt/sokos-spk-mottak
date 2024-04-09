@@ -1,20 +1,20 @@
 package no.nav.sokos.spk.mottak.domain.record
 
-data class InnTransaksjon(
+data class TransaksjonRecord(
     val transId: String,
     val fnr: String,
     val utbetalesTil: String,
-    val datoAnviserStr: String,
-    val datoFomStr: String,
-    val datoTomStr: String,
+    val datoAnviser: String,
+    val datoFom: String,
+    val datoTom: String,
     val belopstype: String,
-    val belopStr: String,
+    val belop: String,
     val art: String,
     val refTransId: String,
     val tekstKode: String,
-    val saldoStr: String,
-    val prioritetStr: String,
+    val saldo: String,
+    val prioritet: String,
     val kid: String,
     val trekkansvar: String,
-    val gradStr: String
+    val grad: String
 )

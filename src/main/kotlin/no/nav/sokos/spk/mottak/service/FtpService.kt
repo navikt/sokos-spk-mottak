@@ -67,7 +67,7 @@ class FtpService(
                         val outputStream = ByteArrayOutputStream()
 
                         get(fileName, outputStream)
-                        String(outputStream.toByteArray()).split("\r?\n|\r".toRegex()).filter { it.isNotEmpty() }
+                        String(outputStream.toByteArray()).split("\r?\n|\r".toRegex()).filter { file -> file.isNotEmpty() }
                     }
             } catch (e: SftpException) {
                 logger.error { "Feil i henting av fil $fileName: ${e.message}" }

@@ -4,19 +4,20 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class FilInfo(
-    var id: Int = -1,
-    val status: String,
-    val tilstand: String,
+    val filInfoId: Int? = null,
+    val filStatus: String,
     val anviser: String,
-    val filnavn: String,
+    val filType: String,
+    val filTilstandType: String,
+    val filNavn: String,
     val lopenr: Int,
+    val feiltekst: String?,
     val datoMottatt: LocalDate,
+    val datoSendt: LocalDate?,
     val datoOpprettet: LocalDateTime,
     val opprettetAv: String,
     val datoEndret: LocalDateTime,
     val endretAv: String,
-    val versjon: Int,
-    val filType: String,
-    val feilTekst: String?
+    val versjon: Int
 )
 

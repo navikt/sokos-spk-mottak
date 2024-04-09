@@ -1,15 +1,18 @@
 package no.nav.sokos.spk.mottak.util
 
+import no.nav.sokos.spk.mottak.domain.RECTYPE_SLUTTRECORD
+import no.nav.sokos.spk.mottak.domain.RECTYPE_STARTRECORD
+import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
-import no.nav.sokos.spk.mottak.domain.record.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
+import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate
 import no.nav.sokos.spk.mottak.validator.FileStatus
 
 object FileParser {
     fun parseStartRecord(record: String): StartRecord {
-        if (record.getString(0, 2) != "01") {
+        if (record.getString(0, 2) != RECTYPE_STARTRECORD) {
             throw ValidationException(
                 FileStatus.UGYLDIG_RECTYPE.code,
                 FileStatus.UGYLDIG_RECTYPE.message
@@ -41,7 +44,7 @@ object FileParser {
 
 
     fun parseEndRecord(record: String): EndRecord {
-        if (record.getString(0, 2) != "09") {
+        if (record.getString(0, 2) != RECTYPE_SLUTTRECORD) {
             throw ValidationException(
                 FileStatus.UGYLDIG_RECTYPE.code,
                 FileStatus.UGYLDIG_RECTYPE.message
@@ -53,30 +56,30 @@ object FileParser {
         )
     }
 
-    fun parseTransaction(record: String): InnTransaksjon {
-        if (record.getString(0, 2) != "02") {
+    fun parseTransaction(record: String): TransaksjonRecord {
+        if (record.getString(0, 2) != RECTYPE_TRANSAKSJONSRECORD) {
             throw ValidationException(
                 FileStatus.UGYLDIG_RECTYPE.code,
                 FileStatus.UGYLDIG_RECTYPE.message
             )
         }
-        return InnTransaksjon(
+        return TransaksjonRecord(
             transId = record.getString(2, 14).trim(),
             fnr = record.getString(14, 25),
-            utbetalesTil = record.getString(25, 36),
-            datoAnviserStr = record.getString(36, 44),
-            datoFomStr = record.getString(44, 52),
-            datoTomStr = record.getString(52, 60),
+            utbetalesTil = record.getString(25, 36).trim(),
+            datoAnviser = record.getString(36, 44),
+            datoFom = record.getString(44, 52),
+            datoTom = record.getString(52, 60),
             belopstype = record.getString(60, 62),
-            belopStr = record.getString(62, 73),
+            belop = record.getString(62, 73),
             art = record.getString(73, 77),
             refTransId = record.getString(77, 89),
             tekstKode = record.getString(89, 93),
-            saldoStr = record.getString(93, 104),
-            prioritetStr = record.getString(104, 112),
+            saldo = record.getString(93, 104),
+            prioritet = record.getString(104, 112),
             kid = record.getString(112, 138),
             trekkansvar = record.getString(138, 142),
-            gradStr = record.getString(142, 146)
+            grad = record.getString(142, 146)
         )
     }
 

@@ -9,7 +9,6 @@ import kotliquery.sessionOf
 import kotliquery.using
 
 object DatabaseConfig {
-    fun hikariDataSource() = HikariDataSource(createHikariConfig())
 
     private fun createHikariConfig(): HikariConfig {
         val db2DatabaseConfig: PropertiesConfig.Db2DatabaseConfig = PropertiesConfig.Db2DatabaseConfig()
@@ -32,12 +31,13 @@ object DatabaseConfig {
         }
     }
 
-    fun <A> transaction(operation: (TransactionalSession) -> A): A {
-        val dataSource = DatabaseConfig.hikariDataSource()
-        return using(sessionOf(dataSource, returnGeneratedKey = true)) { session ->
-            session.transaction {
-                operation(it)
-            }
+    fun dataSource(): HikariDataSource = HikariDataSource(createHikariConfig())
+}
+
+fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A {
+    return using(sessionOf(this, returnGeneratedKey = true)) { session ->
+        session.transaction { tx ->
+            operation(tx)
         }
     }
 }

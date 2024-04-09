@@ -1,18 +1,36 @@
 package no.nav.sokos.spk.mottak.repository
 
+import com.zaxxer.hikari.HikariDataSource
 import java.time.LocalDateTime
-import javax.sql.DataSource
+import kotliquery.Row
 import kotliquery.Session
+import kotliquery.queryOf
+import kotliquery.sessionOf
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.BEHANDLET_NEI
+import no.nav.sokos.spk.mottak.domain.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
-import no.nav.sokos.spk.mottak.domain.record.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
+import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate
 
 class InnTransaksjonRepository(
-    private val dataSource: DataSource = DatabaseConfig.hikariDataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
 ) {
-    fun insertTransactionBatch(innTransaksjonList: List<InnTransaksjon>, filInfoId: Long, session: Session) {
+    fun getInnTransaksjoner(filInfoId: Int): List<InnTransaksjon> {
+        return sessionOf(dataSource).list(
+            queryOf(
+                """
+                        SELECT * FROM T_INN_TRANSAKSJON WHERE FIL_INFO_ID = :filInfoId
+                    """.trimIndent(),
+                mapOf("filInfoId" to filInfoId)
+            ), toInntransaksjon
+        )
+    }
+
+    fun insertTransactionBatch(transaksjonRecordList: List<TransaksjonRecord>, filInfoId: Long, session: Session) {
         session.batchPreparedNamedStatement(
             """
                 INSERT INTO T_INN_TRANSAKSJON (
@@ -50,49 +68,88 @@ class InnTransaksjonRepository(
                 GRAD,
                 GRAD_STR) VALUES (:filInfoId, :transaksjonStatus, :fnr, :belopstype, :art, :avsender, :utbetalesTil, :datoFomStr, :datoTomStr, :datoAnviserStr, :belopStr, :refTransId, :tekstkode, :rectype, :transId, :datoFom, :datoTom, :datoAnviser, :belop, :behandlet, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :prioritetStr, :trekkansvar, :saldoStr, :kid, :prioritet, :saldo, :grad, :gradStr)
             """.trimIndent(),
-            innTransaksjonList.convertToListMap(filInfoId)
+            transaksjonRecordList.convertToListMap(filInfoId)
         )
     }
 
 
-    private fun List<InnTransaksjon>.convertToListMap(filInfoId: Long): List<Map<String, Any?>> {
-        return this.map { innTransaksjon ->
+    private fun List<TransaksjonRecord>.convertToListMap(filInfoId: Long): List<Map<String, Any?>> {
+        return this.map { transaksjonRecord ->
             mapOf(
                 "filInfoId" to filInfoId,
-                "transaksjonStatus" to "00",
-                "fnr" to innTransaksjon.fnr,
-                "belopstype" to innTransaksjon.belopstype,
-                "art" to innTransaksjon.art,
+                "transaksjonStatus" to TRANSAKSJONSTATUS_OK,
+                "fnr" to transaksjonRecord.fnr,
+                "belopstype" to transaksjonRecord.belopstype,
+                "art" to transaksjonRecord.art,
                 "avsender" to SPK,
-                "utbetalesTil" to innTransaksjon.utbetalesTil,
-                "datoFomStr" to innTransaksjon.datoFomStr,
-                "datoTomStr" to innTransaksjon.datoTomStr,
-                "datoAnviserStr" to innTransaksjon.datoAnviserStr,
-                "belopStr" to innTransaksjon.belopStr,
-                "refTransId" to "",
-                "tekstkode" to "",
-                "rectype" to "02",
-                "transId" to "",
-                "datoFom" to innTransaksjon.datoFomStr.toLocalDate(),
-                "datoTom" to innTransaksjon.datoTomStr.toLocalDate(),
-                "datoAnviser" to innTransaksjon.datoAnviserStr.toLocalDate(),
-                "belop" to innTransaksjon.belopStr.toIntOrNull(),
-                "behandlet" to "N",
+                "utbetalesTil" to transaksjonRecord.utbetalesTil,
+                "datoFomStr" to transaksjonRecord.datoFom,
+                "datoTomStr" to transaksjonRecord.datoTom,
+                "datoAnviserStr" to transaksjonRecord.datoAnviser,
+                "belopStr" to transaksjonRecord.belop,
+                "refTransId" to transaksjonRecord.refTransId,
+                "tekstkode" to transaksjonRecord.tekstKode,
+                "rectype" to RECTYPE_TRANSAKSJONSRECORD,
+                "transId" to transaksjonRecord.transId,
+                "datoFom" to transaksjonRecord.datoFom.toLocalDate(),
+                "datoTom" to transaksjonRecord.datoTom.toLocalDate(),
+                "datoAnviser" to transaksjonRecord.datoAnviser.toLocalDate(),
+                "belop" to transaksjonRecord.belop.toIntOrNull(),
+                "behandlet" to BEHANDLET_NEI,
                 "datoOpprettet" to LocalDateTime.now(),
                 "opprettetAv" to PropertiesConfig.Configuration().naisAppName,
                 "datoEndret" to LocalDateTime.now(),
                 "endretAv" to PropertiesConfig.Configuration().naisAppName,
                 "versjon" to "1",  // TODO: Versjon? Trenger vi dette
-                "prioritetStr" to innTransaksjon.prioritetStr,
-                "trekkansvar" to innTransaksjon.trekkansvar,
-                "saldoStr" to innTransaksjon.saldoStr,
-                "kid" to innTransaksjon.kid,
-                "prioritet" to innTransaksjon.prioritetStr.toLocalDate(),
-                "saldo" to innTransaksjon.saldoStr.toIntOrNull(),
-                "grad" to innTransaksjon.gradStr.toIntOrNull(),
-                "gradStr" to innTransaksjon.gradStr
+                "prioritetStr" to transaksjonRecord.prioritet,
+                "trekkansvar" to transaksjonRecord.trekkansvar,
+                "saldoStr" to transaksjonRecord.saldo,
+                "kid" to transaksjonRecord.kid,
+                "prioritet" to transaksjonRecord.prioritet.toLocalDate(),
+                "saldo" to transaksjonRecord.saldo.toIntOrNull(),
+                "grad" to transaksjonRecord.grad.toIntOrNull(),
+                "gradStr" to transaksjonRecord.grad
             )
         }
+    }
+
+    private val toInntransaksjon: (Row) -> InnTransaksjon = { row ->
+        InnTransaksjon(
+            row.int("INN_TRANSAKSJON_ID"),
+            row.int("FIL_INFO_ID"),
+            row.string("K_TRANSAKSJON_S"),
+            row.string("FNR_FK"),
+            row.string("BELOPSTYPE"),
+            row.string("ART"),
+            row.string("AVSENDER"),
+            row.string("UTBETALES_TIL"),
+            row.string("DATO_FOM_STR"),
+            row.string("DATO_TOM_STR"),
+            row.string("DATO_ANVISER_STR"),
+            row.string("BELOP_STR"),
+            row.string("REF_TRANS_ID"),
+            row.string("TEKSTKODE"),
+            row.string("RECTYPE"),
+            row.string("TRANS_ID_FK"),
+            row.localDate("DATO_FOM"),
+            row.localDate("DATO_TOM"),
+            row.localDate("DATO_ANVISER"),
+            row.int("BELOP"),
+            row.string("BEHANDLET"),
+            row.localDateTime("DATO_OPPRETTET"),
+            row.string("OPPRETTET_AV"),
+            row.localDateTime("DATO_ENDRET"),
+            row.string("ENDRET_AV"),
+            row.int("VERSJON"),
+            row.string("PRIORITET_STR"),
+            row.string("TREKKANSVAR"),
+            row.string("SALDO_STR"),
+            row.string("KID"),
+            row.localDateOrNull("PRIORITET"),
+            row.int("SALDO"),
+            row.intOrNull("GRAD"),
+            row.string("GRAD_STR")
+        )
     }
 }
 
