@@ -86,4 +86,6 @@ spec:
 
       # Pensjon-fullmakt-q2
     - name: PENSJON_REPRESENTASJON_Q2_URL
-      value: "https://pensjon-representasjon-q2.intern.dev.nav.no"
+      value: https://pensjon-representasjon-q2.intern.dev.nav.no
+    - name: PENSJON_REPRESENTASJON_Q2_CLIENT_ID
+      value: dev-fss.pensjon-person.pensjon-representasjon-q2

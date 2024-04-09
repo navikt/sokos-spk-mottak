@@ -77,7 +77,14 @@ object PropertiesConfig {
 
     class AzureAdConfig(
         val clientId: String = this["AZURE_APP_CLIENT_ID"],
-        val wellKnownUrl: String = this["AZURE_APP_WELL_KNOWN_URL"]
+        val wellKnownUrl: String = this["AZURE_APP_WELL_KNOWN_URL"],
+        val tenantId: String = get("AZURE_APP_TENANT_ID"),
+        val clientSecret: String = get("AZURE_APP_CLIENT_SECRET"),
+    )
+
+    class PensjonFullmaktConfig(
+        val fullmaktUrl: String = this["PENSJON_REPRESENTASJON_Q2_URL"],
+        val fullmaktClientId: String = this["PENSJON_REPRESENTASJON_Q2_CLIENT_ID"],
     )
 
     enum class Profile {
