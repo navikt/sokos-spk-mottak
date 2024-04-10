@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 data class InnTransaksjon(
     val innTransaksjonId: Int? = null,
     val filInfoId: Int,
-    val transaksjonStatus: String,
+    val transaksjonStatus: String?,
     val fnr: String,
     val belopstype: String,
     val art: String,

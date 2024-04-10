@@ -22,7 +22,6 @@ import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.Lopenummer
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
-import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.SftpListener
 import no.nav.sokos.spk.mottak.validator.FileStatus
@@ -97,7 +96,7 @@ class FileReaderServiceTest : BehaviorSpec({
 private fun verifyInntransaksjon(innTransaksjon: InnTransaksjon, filInfoId: Int) {
     innTransaksjon.innTransaksjonId!! shouldBeGreaterThan 0
     innTransaksjon.filInfoId shouldBe filInfoId
-    innTransaksjon.transaksjonStatus shouldBe TRANSAKSJONSTATUS_OK
+    innTransaksjon.transaksjonStatus shouldBe null
     innTransaksjon.fnr shouldNotBe null
     innTransaksjon.belopstype shouldBe BELOPTYPE_SKATTEPLIKTIG_UTBETALING
     innTransaksjon.art shouldNotBe null

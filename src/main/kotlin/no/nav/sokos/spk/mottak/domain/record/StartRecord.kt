@@ -30,6 +30,6 @@ fun StartRecord.toFileInfo(fileName: String, filTilstandType: String, filStatus:
         opprettetAv = PropertiesConfig.Configuration().naisAppName,
         datoEndret = LocalDateTime.now(),
         endretAv = PropertiesConfig.Configuration().naisAppName,
-        versjon = 1 // TODO: Trenger vi denne?
+        versjon = 1
     )
 }

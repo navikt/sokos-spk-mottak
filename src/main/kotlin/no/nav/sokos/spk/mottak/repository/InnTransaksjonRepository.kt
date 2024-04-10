@@ -12,7 +12,6 @@ import no.nav.sokos.spk.mottak.domain.BEHANDLET_NEI
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
-import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate
 
@@ -23,8 +22,8 @@ class InnTransaksjonRepository(
         return sessionOf(dataSource).list(
             queryOf(
                 """
-                        SELECT * FROM T_INN_TRANSAKSJON WHERE FIL_INFO_ID = :filInfoId
-                    """.trimIndent(),
+                    SELECT * FROM T_INN_TRANSAKSJON WHERE FIL_INFO_ID = :filInfoId
+                """.trimIndent(),
                 mapOf("filInfoId" to filInfoId)
             ), toInntransaksjon
         )
@@ -77,7 +76,7 @@ class InnTransaksjonRepository(
         return this.map { transaksjonRecord ->
             mapOf(
                 "filInfoId" to filInfoId,
-                "transaksjonStatus" to TRANSAKSJONSTATUS_OK,
+                "transaksjonStatus" to null,
                 "fnr" to transaksjonRecord.fnr,
                 "belopstype" to transaksjonRecord.belopstype,
                 "art" to transaksjonRecord.art,
@@ -100,7 +99,7 @@ class InnTransaksjonRepository(
                 "opprettetAv" to PropertiesConfig.Configuration().naisAppName,
                 "datoEndret" to LocalDateTime.now(),
                 "endretAv" to PropertiesConfig.Configuration().naisAppName,
-                "versjon" to "1",  // TODO: Versjon? Trenger vi dette
+                "versjon" to "1",
                 "prioritetStr" to transaksjonRecord.prioritet,
                 "trekkansvar" to transaksjonRecord.trekkansvar,
                 "saldoStr" to transaksjonRecord.saldo,
@@ -117,7 +116,7 @@ class InnTransaksjonRepository(
         InnTransaksjon(
             row.int("INN_TRANSAKSJON_ID"),
             row.int("FIL_INFO_ID"),
-            row.string("K_TRANSAKSJON_S"),
+            row.stringOrNull("K_TRANSAKSJON_S"),
             row.string("FNR_FK"),
             row.string("BELOPSTYPE"),
             row.string("ART"),
