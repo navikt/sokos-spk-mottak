@@ -6,14 +6,14 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
-import no.nav.sokos.spk.mottak.service.FullMaktService
+import no.nav.sokos.spk.mottak.service.client.FullmaktClientService
 
 fun Route.fullMaktApi (
-    fullMaktService: FullMaktService = FullMaktService()
+    fullmaktClientService: FullmaktClientService = FullmaktClientService()
 ) {
     route("/api/v1") {
         get("fullmakter") {
-            call.respond(HttpStatusCode.OK, fullMaktService.getFullMakter())
+            call.respond(HttpStatusCode.OK, fullmaktClientService.getFullMakter())
         }
     }
 }

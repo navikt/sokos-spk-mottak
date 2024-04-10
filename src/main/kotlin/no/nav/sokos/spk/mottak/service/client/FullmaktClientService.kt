@@ -1,20 +1,20 @@
-package no.nav.sokos.spk.mottak.service
+package no.nav.sokos.spk.mottak.service.client
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.httpClient
 import no.nav.sokos.spk.mottak.exception.FullmaktException
 import no.nav.sokos.spk.mottak.security.AccessTokenClient
-import org.slf4j.MDC
 
 private val logger = KotlinLogging.logger{}
 
 
-class FullMaktService {
+class FullmaktClientService {
     private val fullmaktUrl: String = PropertiesConfig.PensjonFullmaktConfig().fullmaktUrl
     private val fullmaktHttpClient: HttpClient = httpClient
     private val accessTokenClient: AccessTokenClient = AccessTokenClient()

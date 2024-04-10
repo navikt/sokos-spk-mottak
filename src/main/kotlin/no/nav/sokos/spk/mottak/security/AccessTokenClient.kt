@@ -11,7 +11,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
-import io.ktor.http.append
+
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -72,6 +72,7 @@ class AccessTokenClient(
         }
 }
 
+@Serializable
 private data class AzureAccessToken(
     @SerialName("access_token")
     val accessToken: String,
