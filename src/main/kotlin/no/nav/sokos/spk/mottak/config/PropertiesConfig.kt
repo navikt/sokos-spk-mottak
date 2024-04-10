@@ -35,7 +35,8 @@ object PropertiesConfig {
             "SPK_SFTP_USERNAME" to "sftpUsername",
             "SFTP_PRIVATE_KEY_FILE_PATH" to "sftpPrivateKeyFilePath",
             "SPK_SFTP_PASSWORD" to "sftpPassword",
-            "SFTP_PORT" to "sftpPort"
+            "SFTP_PORT" to "sftpPort",
+            "PENSJON_REPRESENTASJON_URL" to "https://pensjon-representasjon-q2.intern.dev.nav.no",
         )
     )
 
@@ -85,8 +86,7 @@ object PropertiesConfig {
     )
 
     class PensjonFullmaktConfig(
-        val fullmaktUrl: String = this["PENSJON_REPRESENTASJON_Q2_URL"],
-        val fullmaktClientId: String = this["PENSJON_REPRESENTASJON_Q2_CLIENT_ID"],
+        val fullmaktUrl: String = this["PENSJON_REPRESENTASJON_URL"]
     )
 
     enum class Profile {

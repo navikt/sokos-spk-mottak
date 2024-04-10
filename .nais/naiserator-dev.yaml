@@ -85,7 +85,7 @@ spec:
       value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
 
       # Pensjon-fullmakt-q2
-    - name: PENSJON_REPRESENTASJON_Q2_URL
+    - name: PENSJON_REPRESENTASJON_URL
       value: https://pensjon-representasjon-q2.intern.dev.nav.no
-    - name: PENSJON_REPRESENTASJON_Q2_CLIENT_ID
+    - name: PENSJON_REPRESENTASJON_CLIENT_ID
       value: dev-fss.pensjon-person.pensjon-representasjon-q2

@@ -5,6 +5,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import no.nav.sokos.spk.mottak.ApplicationState
+import no.nav.sokos.spk.mottak.api.fullMaktApi
 import no.nav.sokos.spk.mottak.api.mottakApi
 import no.nav.sokos.spk.mottak.api.naisApi
 
@@ -16,6 +17,7 @@ fun Application.routingConfig(
         naisApi({ applicationState.initialized }, { applicationState.running })
         authenticate(useAuthentication, AUTHENTICATION_NAME) {
             mottakApi()
+            fullMaktApi()
         }
     }
 }
