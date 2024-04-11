@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Fullmakt(
+data class FullmaktDTO(
     @SerialName("aktorIdentGirFullmakt")
     val aktorIdentGirFullmakt: String,
 
@@ -20,6 +20,3 @@ data class Fullmakt(
     @SerialName("kodeFullmaktType")
     val kodeFullmaktType: String
 )
-
-@Serializable
-data class FullmaktListe(val fullMaktListe: List<Fullmakt>)

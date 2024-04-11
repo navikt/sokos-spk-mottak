@@ -19,3 +19,5 @@ suspend fun <T> retry(
     }
     throw throwable!!
 }
+
+class RetryException(val exception: Throwable) : Exception()
