@@ -55,7 +55,7 @@ object PropertiesConfig {
 
     data class Configuration(
         val naisAppName: String = get("NAIS_APP_NAME"),
-        val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
+        val profile: Profile = Profile.valueOf(get("APPLICATION_PROFILE")),
         val useAuthentication: Boolean = get("USE_AUTHENTICATION").toBoolean(),
         val azureAdConfig: AzureAdConfig = AzureAdConfig()
     )
@@ -78,15 +78,15 @@ object PropertiesConfig {
     )
 
     class AzureAdConfig(
-        val clientId: String = this["AZURE_APP_CLIENT_ID"],
-        val wellKnownUrl: String = this["AZURE_APP_WELL_KNOWN_URL"],
+        val clientId: String = get("AZURE_APP_CLIENT_ID"),
+        val wellKnownUrl: String = get("AZURE_APP_WELL_KNOWN_URL"),
         val tenantId: String = get("AZURE_APP_TENANT_ID"),
         val clientSecret: String = get("AZURE_APP_CLIENT_SECRET"),
     )
 
     class PensjonFullmaktConfig(
-        val fullmaktUrl: String = this["PENSJON_REPRESENTASJON_Q2_URL"],
-        val fullmaktClientId: String = this["PENSJON_REPRESENTASJON_Q2_CLIENT_ID"],
+        val fullmaktUrl: String = get("PENSJON_REPRESENTASJON_Q2_URL"),
+        val fullmaktClientId: String = get("PENSJON_REPRESENTASJON_Q2_CLIENT_ID"),
     )
 
     enum class Profile {
