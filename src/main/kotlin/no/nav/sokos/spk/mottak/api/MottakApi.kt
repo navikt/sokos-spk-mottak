@@ -30,7 +30,7 @@ fun Route.mottakApi(
             call.respond(HttpStatusCode.OK, "Manuell prosessering av filer er startet, sjekk logger for status")
         }
         get("fullmakter") {
-            call.respond(HttpStatusCode.OK, fullmaktClientService.getFullMakter(0, 5))
+            call.respond(HttpStatusCode.OK, fullmaktClientService.hentAlleFullmakter())
         }
     }
 }

@@ -5,7 +5,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
-import io.ktor.http.append
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.httpClient
@@ -17,36 +17,56 @@ import no.nav.sokos.spk.mottak.util.retry
 private val logger = KotlinLogging.logger {}
 private const val KODER_FULLMAKT_TYPE = "PENGEMOT,VERGE_PENGEMOT"
 
-
 class FullmaktClientService(
     private val pensjonFullmaktUrl: String = PropertiesConfig.PensjonFullmaktConfig().fullmaktUrl,
     private val fullmaktHttpClient: HttpClient = httpClient,
     private val accessTokenClient: AccessTokenClient = AccessTokenClient()
 ) {
-    suspend fun getFullMakter(side: Int, antall: Int): List<FullmaktDTO> =
-        retry {
-            logger.info { "Henter fullmakter" }
-            val accessToken = accessTokenClient.hentAccessToken()
-            fullmaktHttpClient.get("$pensjonFullmaktUrl/finnFullmaktMottakere") {
-                logger.info { "Kaller pensjon-fullmakt" }
-                header("Authorization", "Bearer $accessToken")
-                parameter("side", side)
-                parameter("antall", antall)
-                parameter("koderFullmaktType", KODER_FULLMAKT_TYPE)
-            }
-        }.let { response ->
-            when (response.status.value) {
-                200 -> {
-                    response.body<List<FullmaktDTO>>()
+    fun getFullMakter(side: Int, antall: Int): List<FullmaktDTO> =
+        runBlocking {
+            retry {
+                logger.debug { "Henter fullmakter" }
+                val accessToken = accessTokenClient.hentAccessToken()
+                fullmaktHttpClient.get("$pensjonFullmaktUrl/finnFullmaktMottakere") {
+                    header("Authorization", "Bearer $accessToken")
+                    parameter("side", side)
+                    parameter("antall", antall)
+                    parameter("koderFullmaktType", KODER_FULLMAKT_TYPE)
                 }
+            }.let { response ->
+                when (response.status.value) {
+                    200 -> {
+                        response.body<List<FullmaktDTO>>()
+                    }
 
-                else -> {
-                    logger.error { "Uforventet feil ved oppslag av fullmakter. Statuskode: ${response.status.value}" }
-                    throw FullmaktException(
-                        response.status.value.toString(),
-                        "Uforventet feil ved oppslag av fullmakter"
-                    )
+                    else -> {
+                        logger.error { "Uforventet feil ved oppslag av fullmakter. Statuskode: ${response.status.value}" }
+                        throw FullmaktException(
+                            response.status.value.toString(),
+                            "Uforventet feil ved oppslag av fullmakter"
+                        )
+                    }
                 }
             }
         }
+
+
+    fun hentAlleFullmakter(): Map<String, String> {
+        var sider = 0
+        val antall = 10
+        val fullmaktMap = mutableMapOf<String, String>()
+        while (true) {
+            val fullmakter = getFullMakter(sider, antall)
+            when {
+                fullmakter.isNotEmpty() -> {
+                    fullmaktMap.putAll(fullmakter.map { (it.aktorIdentGirFullmakt to it.aktorIdentMottarFullmakt) })
+                    sider++
+                }
+
+                else -> break
+            }
+        }
+        logger.info { "Returnerer ${fullmaktMap.size} fullmakter" }
+        return fullmaktMap
+    }
 }
