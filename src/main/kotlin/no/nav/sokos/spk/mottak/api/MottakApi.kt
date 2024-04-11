@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.service.FileReaderService
-import no.nav.sokos.spk.mottak.service.client.FullmaktClientService
+import no.nav.sokos.spk.mottak.integration.FullmaktClientService
 
 private val logger = KotlinLogging.logger {}
 
