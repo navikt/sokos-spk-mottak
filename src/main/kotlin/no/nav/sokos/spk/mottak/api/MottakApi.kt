@@ -10,11 +10,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.service.FileReaderService
+import no.nav.sokos.spk.mottak.service.client.FullmaktClientService
 
 private val logger = KotlinLogging.logger {}
 
 fun Route.mottakApi(
-    fileReaderService: FileReaderService = FileReaderService()
+    fileReaderService: FileReaderService = FileReaderService(),
+    fullmaktClientService: FullmaktClientService = FullmaktClientService()
+
 ) {
     route("api/v1") {
 
@@ -25,6 +28,9 @@ fun Route.mottakApi(
                 fileReaderService.readAndParseFile()
             }
             call.respond(HttpStatusCode.OK, "Manuell prosessering av filer er startet, sjekk logger for status")
+        }
+        get("fullmakter") {
+            call.respond(HttpStatusCode.OK, fullmaktClientService.getFullMakter())
         }
     }
 }
