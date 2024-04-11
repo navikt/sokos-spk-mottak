@@ -22,7 +22,27 @@ class FullmaktClientService(
     private val fullmaktHttpClient: HttpClient = httpClient,
     private val accessTokenClient: AccessTokenClient = AccessTokenClient()
 ) {
-    fun getFullMakter(side: Int, antall: Int): List<FullmaktDTO> =
+
+    fun hentAlleFullmakter(): Map<String, String> {
+        var side = 0
+        val antall = 1000
+        val fullmaktMap = mutableMapOf<String, String>()
+        while (true) {
+            val fullmakter = getFullMakter(side, antall)
+            when {
+                fullmakter.isNotEmpty() -> {
+                    fullmaktMap.putAll(fullmakter.map { (it.aktorIdentGirFullmakt to it.aktorIdentMottarFullmakt) })
+                    side++
+                }
+
+                else -> break
+            }
+        }
+        logger.info { "Returnerer ${fullmaktMap.size} fullmakter" }
+        return fullmaktMap
+    }
+
+    private fun getFullMakter(side: Int, antall: Int): List<FullmaktDTO> =
         runBlocking {
             retry {
                 logger.debug { "Henter fullmakter" }
@@ -49,24 +69,4 @@ class FullmaktClientService(
                 }
             }
         }
-
-
-    fun hentAlleFullmakter(): Map<String, String> {
-        var sider = 0
-        val antall = 10
-        val fullmaktMap = mutableMapOf<String, String>()
-        while (true) {
-            val fullmakter = getFullMakter(sider, antall)
-            when {
-                fullmakter.isNotEmpty() -> {
-                    fullmaktMap.putAll(fullmakter.map { (it.aktorIdentGirFullmakt to it.aktorIdentMottarFullmakt) })
-                    sider++
-                }
-
-                else -> break
-            }
-        }
-        logger.info { "Returnerer ${fullmaktMap.size} fullmakter" }
-        return fullmaktMap
-    }
 }
