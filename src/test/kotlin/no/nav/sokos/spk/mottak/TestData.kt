@@ -5,6 +5,7 @@ import no.nav.sokos.spk.mottak.domain.record.EndRecord
 import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
+import no.nav.sokos.spk.mottak.integration.models.FullmaktDTO
 
 const val SPK_FILE_OK = "SPK_NAV_20242503_070026814_INL.txt"
 const val SPK_FILE_FEIL = "SPK_NAV_20242503_080026814_INL.txt"
@@ -58,6 +59,25 @@ object TestData {
             kid = "",
             trekkansvar = "",
             grad = ""
+        )
+    }
+
+    fun fullmakterMock(): List<FullmaktDTO> {
+        return listOf(
+            FullmaktDTO(
+                aktorIdentGirFullmakt = "22031366171",
+                aktorIdentMottarFullmakt = "07846497913",
+                kodeAktorTypeGirFullmakt = "PERSON",
+                kodeAktorTypeMottarFullmakt = "PERSON",
+                kodeFullmaktType = "VERGE_PENGEMOT"
+            ),
+            FullmaktDTO(
+                aktorIdentGirFullmakt = "02500260109",
+                aktorIdentMottarFullmakt = "08049011297",
+                kodeAktorTypeGirFullmakt = "PERSON",
+                kodeAktorTypeMottarFullmakt = "PERSON",
+                kodeFullmaktType = "VERGE_PENGEMOT"
+            )
         )
     }
 }
