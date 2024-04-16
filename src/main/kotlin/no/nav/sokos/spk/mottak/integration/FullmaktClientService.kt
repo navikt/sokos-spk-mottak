@@ -16,6 +16,7 @@ import no.nav.sokos.spk.mottak.util.retry
 
 private val logger = KotlinLogging.logger {}
 private const val KODER_FULLMAKT_TYPE = "PENGEMOT,VERGE_PENGEMOT"
+private const val fullmaktEndepunkt = "/finnFullmaktMottakere"
 
 class FullmaktClientService(
     private val pensjonFullmaktUrl: String = PropertiesConfig.PensjonFullmaktConfig().fullmaktUrl,
@@ -47,7 +48,7 @@ class FullmaktClientService(
             retry {
                 logger.debug { "Henter fullmakter" }
                 val accessToken = accessTokenClient.hentAccessToken()
-                fullmaktHttpClient.get("$pensjonFullmaktUrl/finnFullmaktMottakere") {
+                fullmaktHttpClient.get("$pensjonFullmaktUrl$fullmaktEndepunkt") {
                     header("Authorization", "Bearer $accessToken")
                     parameter("side", side)
                     parameter("antall", antall)
