@@ -8,6 +8,8 @@ import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 
 const val SPK_FILE_OK = "SPK_NAV_20242503_070026814_INL.txt"
 const val SPK_FILE_FEIL = "SPK_NAV_20242503_080026814_INL.txt"
+const val SPK_TOO_FEW_TRANSACTIONS = "SPK_NAV_20252503_080026814_INL.txt"
+const val SPK_TOO_FEW_TRANSACTIONS_AND_MISSING_SLUTTRECORD = "SPK_NAV_20262503_080026814_INL.txt"
 
 object TestData {
 

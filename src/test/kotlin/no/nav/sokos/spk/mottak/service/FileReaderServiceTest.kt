@@ -1,15 +1,17 @@
 package no.nav.sokos.spk.mottak.service
 
+import io.kotest.assertions.fail
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldBeBlank
-import java.time.LocalDate
 import kotliquery.sessionOf
 import no.nav.sokos.spk.mottak.SPK_FILE_FEIL
 import no.nav.sokos.spk.mottak.SPK_FILE_OK
+import no.nav.sokos.spk.mottak.SPK_TOO_FEW_TRANSACTIONS
+import no.nav.sokos.spk.mottak.SPK_TOO_FEW_TRANSACTIONS_AND_MISSING_SLUTTRECORD
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.SftpConfig
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_NEI
@@ -25,6 +27,7 @@ import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.SftpListener
 import no.nav.sokos.spk.mottak.validator.FileStatus
+import java.time.LocalDate
 
 private const val LOPENUMMER = 34
 private const val SYSTEM_ID = "sokos-spk-mottak"
@@ -63,6 +66,50 @@ class FileReaderServiceTest : BehaviorSpec({
                 verifyInntransaksjon(inntransaksjonList.first(), filInfo.filInfoId!!)
 
                 ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
+            }
+        }
+    }
+
+    Given("ikke not transaksjoner") {
+        ftpService.createFile(
+            SPK_TOO_FEW_TRANSACTIONS,
+            Directories.INBOUND,
+            SPK_TOO_FEW_TRANSACTIONS.readFromResource()
+        )
+        // Løpenummer is 33
+        When("leser filen på FTP-serveren og lagre dataene.") {
+            fileReaderService.readAndParseFile()
+
+            Then("skal filen blir flyttet fra \"inbound\" til \"inbound/ferdig\" på FTP-serveren og transaksjoner blir lagret i database.") {
+                ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
+
+                val sisteLopenummer: Int = Db2Listener.lopenummerRepository.findMaxLopenummer(FILETYPE_ANVISER) ?: 0;
+                val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
+                lopenummer?.sisteLopenummer shouldBe 34
+            }
+        }
+    }
+
+    Given("Ikke nok transaksjoner og mangler endrecord") {
+        ftpService.createFile(
+            SPK_TOO_FEW_TRANSACTIONS_AND_MISSING_SLUTTRECORD,
+            Directories.INBOUND,
+            SPK_TOO_FEW_TRANSACTIONS_AND_MISSING_SLUTTRECORD.readFromResource()
+        )
+        // Løpenummer is 33
+        When("leser filen på FTP-serveren og lagre dataene.") {
+            try {
+                fileReaderService.readAndParseFile()
+            } catch (e: Exception) {
+                fail("Forventer en feilmelding som indikerer at sluttrecord mangler, fikk: " + e.message)
+            }
+
+            Then("skal filen blir flyttet fra \"inbound\" til \"inbound/ferdig\" på FTP-serveren og transaksjoner blir lagret i database.") {
+                ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
+
+                val sisteLopenummer: Int = Db2Listener.lopenummerRepository.findMaxLopenummer(FILETYPE_ANVISER) ?: 0;
+                val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
+                lopenummer?.sisteLopenummer shouldBe 34
             }
         }
     }
