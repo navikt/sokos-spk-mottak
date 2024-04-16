@@ -37,6 +37,7 @@ object PropertiesConfig {
             "SPK_SFTP_PASSWORD" to "sftpPassword",
             "SFTP_PORT" to "sftpPort",
             "PENSJON_REPRESENTASJON_URL" to "pensjon-representasjon-url",
+            "PENSJON_REPRESENTASJON_SCOPE" to "pensjon-representasjon-client-id"
         )
     )
 
@@ -87,7 +88,7 @@ object PropertiesConfig {
 
     class PensjonFullmaktConfig(
         val fullmaktUrl: String = get("PENSJON_REPRESENTASJON_URL"),
-        val fullmaktClientId: String = get("PENSJON_REPRESENTASJON_CLIENT_ID"),
+        val fullmaktScope: String = get("PENSJON_REPRESENTASJON_SCOPE"),
     )
 
     enum class Profile {
