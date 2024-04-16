@@ -24,15 +24,15 @@ class FullmaktClientService(
     private val accessTokenClient: AccessTokenClient = AccessTokenClient()
 ) {
 
-    fun hentAlleFullmakter(): Map<String, String> {
+    fun getFullmakter(): Map<String, String> {
         var side = 0
         val antall = 1000
         val fullmaktMap = mutableMapOf<String, String>()
         while (true) {
-            val fullmakter = getFullMakter(side, antall)
+            val fullmaktList = getFullmaktMottakere(side, antall)
             when {
-                fullmakter.isNotEmpty() -> {
-                    fullmaktMap.putAll(fullmakter.map { (it.aktorIdentGirFullmakt to it.aktorIdentMottarFullmakt) })
+                fullmaktList.isNotEmpty() -> {
+                    fullmaktMap.putAll(fullmaktList.map { (it.aktorIdentGirFullmakt to it.aktorIdentMottarFullmakt) })
                     side++
                 }
 
@@ -43,7 +43,7 @@ class FullmaktClientService(
         return fullmaktMap
     }
 
-    private fun getFullMakter(side: Int, antall: Int): List<FullmaktDTO> =
+    private fun getFullmaktMottakere(side: Int, antall: Int): List<FullmaktDTO> =
         runBlocking {
             retry {
                 logger.debug { "Henter fullmakter" }

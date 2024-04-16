@@ -28,8 +28,8 @@ import no.nav.sokos.spk.mottak.config.configureTestApplication
 import no.nav.sokos.spk.mottak.integration.FullmaktClientService
 import no.nav.sokos.spk.mottak.service.FileReaderService
 
-val fileReaderService: FileReaderService = mockk()
-val fullmaktClientService: FullmaktClientService = mockk()
+private val fileReaderService: FileReaderService = mockk()
+private val fullmaktClientService: FullmaktClientService = mockk()
 
 class SecurityTest : FunSpec({
 

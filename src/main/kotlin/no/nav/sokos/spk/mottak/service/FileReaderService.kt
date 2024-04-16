@@ -33,6 +33,7 @@ class FileReaderService(
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource)
     private val lopenummerRepository: LopenummerRepository = LopenummerRepository(dataSource)
     private val fileInfoRepository: FileInfoRepository = FileInfoRepository(dataSource)
+
     fun readAndParseFile() {
         val downloadFiles = ftpService.downloadFiles()
 
@@ -94,7 +95,12 @@ class FileReaderService(
     ) {
         lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
 
-        val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FILTILSTANDTYPE_AVV, exception.statusCode, exception.message)
+        val filInfo = recordData.startRecord.toFileInfo(
+            recordData.filename!!,
+            FILTILSTANDTYPE_AVV,
+            exception.statusCode,
+            exception.message
+        )
         fileInfoRepository.insertFilInfo(filInfo, session)!!
 
         createAvviksFil(recordData.startRecord.rawRecord, exception)
