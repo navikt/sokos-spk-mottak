@@ -25,9 +25,11 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.authenticate
 import no.nav.sokos.spk.mottak.config.configureSecurity
 import no.nav.sokos.spk.mottak.config.configureTestApplication
+import no.nav.sokos.spk.mottak.integration.FullmaktClientService
 import no.nav.sokos.spk.mottak.service.FileReaderService
 
 val fileReaderService: FileReaderService = mockk()
+val fullmaktClientService: FullmaktClientService = mockk()
 
 class SecurityTest : FunSpec({
 
@@ -39,7 +41,7 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            mottakApi(fileReaderService)
+                            mottakApi(fileReaderService, fullmaktClientService)
                         }
                     }
                 }
@@ -71,7 +73,7 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            mottakApi(fileReaderService)
+                            mottakApi(fileReaderService, fullmaktClientService)
                         }
                     }
                 }

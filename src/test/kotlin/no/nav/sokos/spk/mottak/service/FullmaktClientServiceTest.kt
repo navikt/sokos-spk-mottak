@@ -14,14 +14,18 @@ import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.integration.FullmaktClientService
 import no.nav.sokos.spk.mottak.security.AccessTokenClient
 
+lateinit var fullmaktClientServiceServer: WireMockServer
+lateinit var fullmaktClientService: FullmaktClientService
 val accessToken = mockk<AccessTokenClient>()
 
 class FullmaktClientServiceTest : FunSpec({
 
-    val fullmaktClientServiceServer = WireMockServer(9000)
-    fullmaktClientServiceServer.start()
-    listener(WireMockListener(fullmaktClientServiceServer, ListenerMode.PER_SPEC))
-    val fullmaktClientService = FullmaktClientService(pensjonFullmaktUrl = fullmaktClientServiceServer.baseUrl(), accessTokenClient = accessToken)
+    beforeSpec{
+        fullmaktClientServiceServer = WireMockServer(9000)
+        fullmaktClientServiceServer.start()
+        listener(WireMockListener(fullmaktClientServiceServer, ListenerMode.PER_SPEC))
+        fullmaktClientService = FullmaktClientService(pensjonFullmaktUrl = fullmaktClientServiceServer.baseUrl(), accessTokenClient = accessToken)
+    }
 
     afterSpec {
         fullmaktClientServiceServer.stop()
