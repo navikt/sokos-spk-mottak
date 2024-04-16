@@ -27,6 +27,7 @@ private val logger = KotlinLogging.logger {}
 
 class AccessTokenClient(
     private val azureAdConfig: PropertiesConfig.AzureAdConfig = PropertiesConfig.AzureAdConfig(),
+    private val fullmaktConfig: PropertiesConfig.PensjonFullmaktConfig = PropertiesConfig.PensjonFullmaktConfig(),
     private val client: HttpClient = httpClient,
     private val adAccessTokenUrl: String = "https://login.microsoftonline.com/${azureAdConfig.tenantId}/oauth2/v2.0/token"
 ) {
@@ -56,7 +57,7 @@ class AccessTokenClient(
                 setBody(FormDataContent(Parameters.build {
                     append("tenant", azureAdConfig.tenantId)
                     append("client_id", azureAdConfig.clientId)
-                    append("scope", "api://${azureAdConfig.clientId}/.default")
+                    append("scope", "api://${fullmaktConfig.fullmaktScope}/.default")
                     append("client_secret", azureAdConfig.clientSecret)
                     append("grant_type", "client_credentials")
                 }))
