@@ -21,7 +21,7 @@ import no.nav.sokos.spk.mottak.util.FileParser
 import no.nav.sokos.spk.mottak.validator.FileStatus
 import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndEndRecord
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
 
 private const val BATCH_SIZE: Int = 20000
 private val logger = KotlinLogging.logger {}

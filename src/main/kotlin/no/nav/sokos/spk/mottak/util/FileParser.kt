@@ -50,29 +50,10 @@ object FileParser {
                 FileStatus.UGYLDIG_RECTYPE.message
             )
         }
-        val numberOfRecord: Int
-        val totalBelop: Long
-        try {
-            numberOfRecord = record.getString(2, 11).toInt()
-        } catch (e: NumberFormatException) {
-            throw ValidationException(
-                FileStatus.UGYLDIG_ANTRECORDS.code,
-                String.format(FileStatus.UGYLDIG_ANTRECORDS.message, "${record.getString(2, 11)}")
-            )
-        }
-        try {
-            totalBelop = record.getString(11, 25).toLong()
-        } catch (e: NumberFormatException) {
-            throw ValidationException(
-                FileStatus.UGYLDIG_SUMBELOP.code,
-                String.format(FileStatus.UGYLDIG_SUMBELOP.message, "${record.getString(11, 25)}")
-            )
-        }
         return EndRecord(
-            numberOfRecord = numberOfRecord,
-            totalBelop = totalBelop
+            numberOfRecord = record.getString(2, 11).toIntOrNull() ?: 0,
+            totalBelop = record.getString(11, 25).toLongOrNull() ?: 0
         )
-
     }
 
     fun parseTransaction(record: String): TransaksjonRecord {
