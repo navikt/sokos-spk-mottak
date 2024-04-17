@@ -18,7 +18,7 @@ repositories {
 
 val ktorVersion = "2.3.10"
 val jschVersion = "0.2.17"
-val logbackVersion = "1.5.4"
+val logbackVersion = "1.5.5"
 val logstashVersion = "7.4"
 val jacksonVersion = "2.15.3"
 val prometheusVersion = "1.12.5"
@@ -27,13 +27,14 @@ val janionVersion = "3.1.12"
 val natpryceVersion = "1.6.10.0"
 val kotestVersion = "5.8.1"
 val kotlinxSerializationVersion = "1.6.3"
-val mockOAuth2ServerVersion = "2.1.3"
+val mockOAuth2ServerVersion = "2.1.4"
 val mockkVersion = "1.13.10"
 val hikariVersion = "5.1.0"
 val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.19.7"
 val h2Version = "2.2.224"
+val kotestWiremockVersion = "3.0.1"
 
 dependencies {
 
@@ -84,6 +85,7 @@ dependencies {
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("com.h2database:h2:$h2Version")
+    testImplementation("io.kotest.extensions:kotest-extensions-wiremock:${kotestWiremockVersion}")
 
 }
 
