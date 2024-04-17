@@ -51,21 +51,21 @@ class FileInfoRepository(
         return session.run(
             queryOf(
                 """
-                        INSERT INTO T_FIL_INFO (
-                        K_FIL_S,
-                        K_FIL_TILSTAND_T,
-                        K_ANVISER,
-                        FIL_NAVN,
-                        LOPENR,
-                        DATO_MOTTATT,
-                        DATO_OPPRETTET,
-                        OPPRETTET_AV,
-                        DATO_ENDRET,
-                        ENDRET_AV,
-                        VERSJON,
-                        K_FIL_T,
-                        FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopenr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feiltekst)
-                    """.trimIndent(),
+                    INSERT INTO T_FIL_INFO (
+                    K_FIL_S,
+                    K_FIL_TILSTAND_T,
+                    K_ANVISER,
+                    FIL_NAVN,
+                    LOPENR,
+                    DATO_MOTTATT,
+                    DATO_OPPRETTET,
+                    OPPRETTET_AV,
+                    DATO_ENDRET,
+                    ENDRET_AV,
+                    VERSJON,
+                    K_FIL_T,
+                    FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopenr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feiltekst)
+                """.trimIndent(),
                 mapOf(
                     "filStatus" to filInfo.filStatus,
                     "filTilstandType" to filInfo.filTilstandType,

@@ -58,7 +58,7 @@ class FileReaderServiceTest : BehaviorSpec({
                 val filInfo = Db2Listener.fileInfoRepository.getFileInfo(LOPENUMMER)
                 verifyFilInfo(filInfo, FileStatus.OK, FILTILSTANDTYPE_GOD)
 
-                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
+                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getByFilInfoId(filInfo?.filInfoId!!)
                 inntransaksjonList.size shouldBe 8
                 verifyInntransaksjon(inntransaksjonList.first(), filInfo.filInfoId!!)
 
@@ -84,7 +84,7 @@ class FileReaderServiceTest : BehaviorSpec({
                 val feiltekst = "Total beløp 2775200 stemmer ikke med summeringen av enkelt beløpene"
                 verifyFilInfo(filInfo, FileStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, feiltekst)
 
-                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
+                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getByFilInfoId(filInfo?.filInfoId!!)
                 inntransaksjonList.shouldBeEmpty()
 
                 ftpService.downloadFiles(Directories.ANVISNINGSRETUR).size shouldBe 1
@@ -108,7 +108,7 @@ private fun verifyInntransaksjon(innTransaksjon: InnTransaksjon, filInfoId: Int)
     innTransaksjon.belopStr shouldBe "00000346900"
     innTransaksjon.refTransId.shouldBeBlank()
     innTransaksjon.tekstKode.shouldBeBlank()
-    innTransaksjon.recType shouldBe RECTYPE_TRANSAKSJONSRECORD
+    innTransaksjon.rectype shouldBe RECTYPE_TRANSAKSJONSRECORD
     innTransaksjon.transId shouldBe "116684810"
     innTransaksjon.datoFom shouldBe LocalDate.of(2024, 2, 1)
     innTransaksjon.datoTom shouldBe LocalDate.of(2024, 2, 29)

@@ -79,7 +79,7 @@ class FileReaderService(
         var antallInnTransaksjon = 0
         recordData.transaksjonRecordList.chunked(BATCH_SIZE).forEach { innTransaksjonList ->
             antallInnTransaksjon += innTransaksjonList.size
-            innTransaksjonRepository.insertTransactionBatch(innTransaksjonList, filInfoId, session)
+            innTransaksjonRepository.insertBatch(innTransaksjonList, filInfoId, session)
             logger.debug { "Antall innTransaksjon som er lagret i DB: $antallInnTransaksjon" }
         }
         recordData.transaksjonRecordList.clear()

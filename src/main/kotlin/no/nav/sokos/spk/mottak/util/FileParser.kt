@@ -7,7 +7,7 @@ import no.nav.sokos.spk.mottak.domain.record.EndRecord
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.exception.ValidationException
-import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate
+import no.nav.sokos.spk.mottak.util.Util.toLocalDate
 import no.nav.sokos.spk.mottak.validator.FileStatus
 
 object FileParser {
