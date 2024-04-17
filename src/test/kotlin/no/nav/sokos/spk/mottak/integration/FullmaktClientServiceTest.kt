@@ -1,4 +1,4 @@
-package no.nav.sokos.spk.mottak.integraion
+package no.nav.sokos.spk.mottak.integration
 
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
@@ -14,7 +14,6 @@ import io.mockk.mockk
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.WiremockTestConfig.wiremock
 import no.nav.sokos.spk.mottak.exception.FullmaktException
-import no.nav.sokos.spk.mottak.integration.FullmaktClientService
 import no.nav.sokos.spk.mottak.security.AccessTokenClient
 
 private val accessTokenClient = mockk<AccessTokenClient>()
