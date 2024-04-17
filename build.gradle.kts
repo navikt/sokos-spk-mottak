@@ -34,6 +34,7 @@ val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.19.7"
 val h2Version = "2.2.224"
+val kotestWiremockVersion = "3.0.1"
 
 dependencies {
 
@@ -84,6 +85,7 @@ dependencies {
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("com.h2database:h2:$h2Version")
+    testImplementation("io.kotest.extensions:kotest-extensions-wiremock:${kotestWiremockVersion}")
 
 }
 

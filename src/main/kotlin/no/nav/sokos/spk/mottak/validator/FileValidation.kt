@@ -23,10 +23,10 @@ object FileValidation {
                 throw ValidationException(FileStatus.FORVENTER_FILLOPENUMMER.code, String.format(FileStatus.FORVENTER_FILLOPENUMMER.message, "${recordData.maxLopenummer!! + 1}"))
 
             recordData.endRecord.totalBelop != recordData.totalBelop ->
-                throw ValidationException(FileStatus.UGYLDIG_SUMBELOP.code, String.format(FileStatus.UGYLDIG_SUMBELOP.message, "${recordData.totalBelop}"))
+                throw ValidationException(FileStatus.UGYLDIG_SUMBELOP.code, String.format(FileStatus.UGYLDIG_SUMBELOP.message, "${recordData.endRecord.totalBelop}", "${recordData.totalBelop}"))
 
             recordData.endRecord.numberOfRecord != recordData.transaksjonRecordList.size ->
-                throw ValidationException(FileStatus.UGYLDIG_ANTRECORDS.code, String.format(FileStatus.UGYLDIG_ANTRECORDS.message, "${recordData.transaksjonRecordList.size}"))
+                throw ValidationException(FileStatus.UGYLDIG_ANTRECORDS.code, String.format(FileStatus.UGYLDIG_ANTRECORDS.message, "${recordData.endRecord.numberOfRecord}", "${recordData.transaksjonRecordList.size}"))
 
             else -> logger.debug { "ValidationFileStatus: ${FileStatus.OK}" }
         }

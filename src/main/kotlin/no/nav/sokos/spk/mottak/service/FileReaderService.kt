@@ -33,6 +33,7 @@ class FileReaderService(
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource)
     private val lopenummerRepository: LopenummerRepository = LopenummerRepository(dataSource)
     private val fileInfoRepository: FileInfoRepository = FileInfoRepository(dataSource)
+
     fun readAndParseFile() {
         val downloadFiles = ftpService.downloadFiles()
 
@@ -101,7 +102,7 @@ class FileReaderService(
             && exception.statusCode != FileStatus.UGYLDIG_FILTYPE.code
         ) {
             lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
-        }
+        } else logger.error { "Kan ikke oppdatere løpenummer for ${recordData.filename} siden betingelsene ikke er tilfredsstilt" }
 
         val filInfo = recordData.startRecord.toFileInfo(
             recordData.filename!!,
@@ -160,6 +161,6 @@ class FileReaderService(
     }
 
     private fun createFileName(): String {
-        return "SPK_NAV_${SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())}_ANV"
+        return "SPK_NAV_${SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())}_INL"
     }
 }

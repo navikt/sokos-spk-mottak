@@ -1,0 +1,37 @@
+[
+  {
+    "aktorIdentGirFullmakt": "11528524674",
+    "aktorIdentMottarFullmakt": "10488337381",
+    "kodeAktorTypeGirFullmakt": "PERSON",
+    "kodeAktorTypeMottarFullmakt": "PERSON",
+    "kodeFullmaktType": "VERGE_PENGEMOT"
+  },
+  {
+    "aktorIdentGirFullmakt": "04127604695",
+    "aktorIdentMottarFullmakt": "11058114091",
+    "kodeAktorTypeGirFullmakt": "PERSON",
+    "kodeAktorTypeMottarFullmakt": "PERSON",
+    "kodeFullmaktType": "VERGE"
+  },
+  {
+    "aktorIdentGirFullmakt": "61128149685",
+    "aktorIdentMottarFullmakt": "07028229873",
+    "kodeAktorTypeGirFullmakt": "PERSON",
+    "kodeAktorTypeMottarFullmakt": "PERSON",
+    "kodeFullmaktType": "VERGE_PENGEMOT"
+  },
+  {
+    "aktorIdentGirFullmakt": "19917199240",
+    "aktorIdentMottarFullmakt": "03085623833",
+    "kodeAktorTypeGirFullmakt": "PERSON",
+    "kodeAktorTypeMottarFullmakt": "PERSON",
+    "kodeFullmaktType": "VERGE"
+  },
+  {
+    "aktorIdentGirFullmakt": "10410351752",
+    "aktorIdentMottarFullmakt": "11515509803",
+    "kodeAktorTypeGirFullmakt": "PERSON",
+    "kodeAktorTypeMottarFullmakt": "PERSON",
+    "kodeFullmaktType": "VERGE"
+  }
+]
