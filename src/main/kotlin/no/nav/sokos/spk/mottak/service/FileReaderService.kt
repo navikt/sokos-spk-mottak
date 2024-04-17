@@ -1,8 +1,6 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.zaxxer.hikari.HikariDataSource
-import java.text.SimpleDateFormat
-import java.util.Date
 import kotliquery.TransactionalSession
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
@@ -22,6 +20,8 @@ import no.nav.sokos.spk.mottak.repository.LopenummerRepository
 import no.nav.sokos.spk.mottak.util.FileParser
 import no.nav.sokos.spk.mottak.validator.FileStatus
 import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndEndRecord
+import java.text.SimpleDateFormat
+import java.util.Date
 
 private const val BATCH_SIZE: Int = 20000
 private val logger = KotlinLogging.logger {}
@@ -64,7 +64,10 @@ class FileReaderService(
                             updateFileStatusAndUploadAvviksFil(recordData, exception, session)
                         }
 
-                    else -> throw RuntimeException("Unknown exception", exception)
+                    else -> {
+                        logger.error { "Ukjent feil ved innlesing av fil: $filename: ${exception.message}" }
+                        throw RuntimeException("Unknown exception", exception)
+                    }
                 }
             }
             logger.info { "Filen '$filename' er ferdig behandlet" }
@@ -93,7 +96,13 @@ class FileReaderService(
         exception: ValidationException,
         session: TransactionalSession
     ) {
-        lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
+        if (exception.statusCode != FileStatus.FILLOPENUMMER_I_BRUK.code
+            && exception.statusCode != FileStatus.FORVENTER_FILLOPENUMMER.code
+            && exception.statusCode != FileStatus.UGYLDIG_ANVISER.code
+            && exception.statusCode != FileStatus.UGYLDIG_FILTYPE.code
+        ) {
+            lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
+        } else logger.error { "Kan ikke oppdatere løpenummer for ${recordData.filename} siden betingelsene ikke er tilfredsstilt" }
 
         val filInfo = recordData.startRecord.toFileInfo(
             recordData.filename!!,
@@ -152,6 +161,6 @@ class FileReaderService(
     }
 
     private fun createFileName(): String {
-        return "SPK_NAV_${SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())}_ANV"
+        return "SPK_NAV_${SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())}_INL"
     }
 }

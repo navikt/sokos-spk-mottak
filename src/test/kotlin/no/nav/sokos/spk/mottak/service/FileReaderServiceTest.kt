@@ -81,7 +81,7 @@ class FileReaderServiceTest : BehaviorSpec({
                 verifyLopenummer(lopenummer)
 
                 val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer)
-                val feiltekst = "Total beløp 2775200 stemmer ikke med summeringen av enkelt beløpene"
+                val feiltekst = "Total beløp 2775100 stemmer ikke med summeringen av enkelt beløpene 2775200"
                 verifyFilInfo(filInfo, FileStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, feiltekst)
 
                 val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)

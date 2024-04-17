@@ -51,8 +51,8 @@ object FileParser {
             )
         }
         return EndRecord(
-            numberOfRecord = record.getString(2, 11).toInt(),
-            totalBelop = record.getString(11, 25).toLong()
+            numberOfRecord = record.getString(2, 11).toIntOrNull() ?: 0,
+            totalBelop = record.getString(11, 25).toLongOrNull() ?: 0
         )
     }
 

@@ -73,18 +73,29 @@ class FileValidationTest : ExpectSpec({
             exception.message shouldBe "Forventet lopenummer 122"
         }
 
-        expect("FileStatus.UGYLDIG_SUMBELOP når sumbeløp er ugyldig") {
+        expect("FileStatus.UGYLDIG_SUMBELOP når sumbeløp i sluttrecord ikke stemmer med oppsummering av enkeltbeløpene") {
             val exception = shouldThrow<ValidationException> {
                 val recordData = TestData.recordDataMock().copy(
-                    totalBelop = 0
+                    totalBelop = 100
                 )
                 FileValidation.validateStartAndEndRecord(recordData)
             }
             exception.statusCode shouldBe FileStatus.UGYLDIG_SUMBELOP.code
-            exception.message shouldBe "Total beløp 0 stemmer ikke med summeringen av enkelt beløpene"
+            exception.message shouldBe "Total beløp 2775200 stemmer ikke med summeringen av enkelt beløpene 100"
         }
 
-        expect("FileStatus.UGYLDIG_ANTRECORDS når antall records er ugyldig") {
+        expect("FileStatus.UGYLDIG_SUMBELOP når sumbeløp i sluttrecord er ugyldig") {
+            val exception = shouldThrow<ValidationException> {
+                val recordData = TestData.recordDataMock().copy(
+                    endRecord = TestData.endRecordMock().copy(totalBelop = 0)
+                )
+                FileValidation.validateStartAndEndRecord(recordData)
+            }
+            exception.statusCode shouldBe FileStatus.UGYLDIG_SUMBELOP.code
+            exception.message shouldBe "Total beløp 0 stemmer ikke med summeringen av enkelt beløpene 2775200"
+        }
+
+        expect("FileStatus.UGYLDIG_ANTRECORDS når antall records er feil i sluttrecord") {
             val exception = shouldThrow<ValidationException> {
                 val recordData = TestData.recordDataMock().copy(
                     endRecord = TestData.endRecordMock().copy(numberOfRecord = 9)
@@ -92,7 +103,18 @@ class FileValidationTest : ExpectSpec({
                 FileValidation.validateStartAndEndRecord(recordData)
             }
             exception.statusCode shouldBe FileStatus.UGYLDIG_ANTRECORDS.code
-            exception.message shouldBe "Oppsumert antall records 8 stemmer ikke med det faktiske antallet"
+            exception.message shouldBe "Oppsumert antall records 9 stemmer ikke med det faktiske antallet 8"
+        }
+
+        expect("FileStatus.UGYLDIG_ANTRECORDS når antall records er ugyldig i sluttercord") {
+            val exception = shouldThrow<ValidationException> {
+                val recordData = TestData.recordDataMock().copy(
+                    endRecord = TestData.endRecordMock().copy(numberOfRecord = 0)
+                )
+                FileValidation.validateStartAndEndRecord(recordData)
+            }
+            exception.statusCode shouldBe FileStatus.UGYLDIG_ANTRECORDS.code
+            exception.message shouldBe "Oppsumert antall records 0 stemmer ikke med det faktiske antallet 8"
         }
     }
 })
