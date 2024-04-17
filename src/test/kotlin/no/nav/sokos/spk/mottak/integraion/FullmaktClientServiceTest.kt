@@ -1,9 +1,10 @@
-package no.nav.sokos.spk.mottak.service
+package no.nav.sokos.spk.mottak.integraion
 
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.stubbing.Scenario
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -11,7 +12,7 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
-import no.nav.sokos.spk.mottak.config.WiremockTestConfig
+import no.nav.sokos.spk.mottak.config.WiremockTestConfig.wiremock
 import no.nav.sokos.spk.mottak.exception.FullmaktException
 import no.nav.sokos.spk.mottak.integration.FullmaktClientService
 import no.nav.sokos.spk.mottak.security.AccessTokenClient
@@ -21,26 +22,26 @@ private val accessTokenClient = mockk<AccessTokenClient>()
 class FullmaktClientServiceTest : FunSpec({
 
     val fullmaktClientService = FullmaktClientService(
-        pensjonFullmaktUrl = WiremockTestConfig.wiremock.baseUrl(),
+        pensjonFullmaktUrl = wiremock.baseUrl(),
         accessTokenClient = accessTokenClient
     )
 
     test("skal returnere fullmakter") {
 
-        WiremockTestConfig.wiremock.stubFor(
+        wiremock.stubFor(
             get(urlEqualTo("/finnFullmaktMottakere?side=0&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
                 .willReturn(okJson("fullmakter.json".readFromResource()))
         )
-        WiremockTestConfig.wiremock.stubFor(
+        wiremock.stubFor(
             get(urlEqualTo("/finnFullmaktMottakere?side=1&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
                 .willReturn(okJson("[]"))
         )
         coEvery { accessTokenClient.hentAccessToken() } returns "token"
 
-        val fullmaktList = fullmaktClientService.getFullmakter()
+        val fullmaktMap = fullmaktClientService.getFullmakter()
 
-        fullmaktList.size shouldBe 5
-        fullmaktList shouldBe mapOf(
+        fullmaktMap.size shouldBe 5
+        fullmaktMap shouldBe mapOf(
             "11528524674" to "10488337381",
             "04127604695" to "11058114091",
             "61128149685" to "07028229873",
@@ -49,53 +50,43 @@ class FullmaktClientServiceTest : FunSpec({
         )
     }
 
-/*    test("tester retry") {
+    test("tester retry når pensjon-fullmakt api returnerer 500 feil") {
 
-        WiremockTestConfig.wiremock.stubFor(
+        wiremock.stubFor(
             get(urlEqualTo("/finnFullmaktMottakere?side=0&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
                 .inScenario("Retry Scenario")
-                .whenScenarioStateIs(STARTED)
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willSetStateTo("Success")
                 .willReturn(
                     aResponse()
                         .withStatus(HttpStatusCode.InternalServerError.value)
                 )
-                .willSetStateTo("Cause Failure")
         )
 
-        println("Første stub fullført")
-
-        WiremockTestConfig.wiremock.stubFor(
+        wiremock.stubFor(
             get(urlEqualTo("/finnFullmaktMottakere?side=0&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
                 .inScenario("Retry Scenario")
-                .whenScenarioStateIs("Cause Failure")
-                .willReturn(
-                    aResponse()
-                        .withStatus(HttpStatusCode.InternalServerError.value)
-                )
-                .willSetStateTo("Cause Success")
-        )
-
-        println("Andre stub fullført")
-
-        WiremockTestConfig.wiremock.stubFor(
-            get(urlEqualTo("/finnFullmaktMottakere?side=0&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
-                .inScenario("Retry Scenario")
-                .whenScenarioStateIs("Cause Success")
+                .whenScenarioStateIs("Success")
+                .willSetStateTo("Finish")
                 .willReturn(okJson("fullmakter.json".readFromResource()))
         )
 
-        println("Tredje stub fullført, 200 OK")
-
+        wiremock.stubFor(
+            get(urlEqualTo("/finnFullmaktMottakere?side=1&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
+                .inScenario("Retry Scenario")
+                .whenScenarioStateIs("Finish")
+                .willReturn(okJson("[]"))
+        )
 
         coEvery { accessTokenClient.hentAccessToken() } returns "token"
 
-        val actualFullmakter = fullmaktClientService.hentAlleFullmakter()
-        actualFullmakter.size shouldBe 0
-    }*/
+        val actualFullmakter = fullmaktClientService.getFullmakter()
+        actualFullmakter.size shouldBe 5
+    }
 
-    test("skal kaste exception ved feil mot kall til fullmakt") {
+    test("skal kaste exception ved feil mot kall til pensjon-fullmakt api når api er nede") {
 
-        WiremockTestConfig.wiremock.stubFor(
+        wiremock.stubFor(
             get(urlEqualTo("/finnFullmaktMottakere?side=0&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
                 .willReturn(
                     aResponse()
@@ -107,7 +98,6 @@ class FullmaktClientServiceTest : FunSpec({
 
         shouldThrow<FullmaktException> {
             fullmaktClientService.getFullmakter()
-        }.message shouldBe "Uforventet feil ved oppslag av fullmakter"
+        }.message shouldBe "Uforventet feil ved oppslag av fullmakter, statuscode: 500"
     }
-
 })

@@ -1,23 +1,27 @@
 package no.nav.sokos.spk.mottak.util
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 
 suspend fun <T> retry(
-    numOfRetries: Int = 5,
-    initialDelayMs: Long = 250,
-    block: suspend () -> T,
+    numberOfTries: Int = 5,
+    interval: Duration = 250.milliseconds,
+    block: suspend () -> T
 ): T {
-
-    var throwable: Exception? = null
-    for (n in 1..numOfRetries) {
+    var attempt = 0
+    var error: Throwable?
+    do {
         try {
             return block()
-        } catch (ex: Exception) {
-            throwable = ex
-            delay(initialDelayMs)
+        } catch (e: Throwable) {
+            error = e
         }
-    }
-    throw throwable!!
+        attempt++
+        delay(interval)
+    } while (attempt < numberOfTries)
+
+    throw error ?: RetryException("Retry failed without error")
 }
 
-class RetryException(val exception: Throwable) : Exception()
+class RetryException(override val message: String) : Exception(message)

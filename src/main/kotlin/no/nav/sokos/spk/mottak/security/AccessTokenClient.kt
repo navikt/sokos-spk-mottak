@@ -9,9 +9,8 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
-
+import io.ktor.http.isSuccess
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -44,6 +43,7 @@ class AccessTokenClient(
                     token = AccessToken(hentAccessTokenFraProvider())
                     token.accessToken
                 }
+
                 else -> token.accessToken
             }
         }
@@ -62,13 +62,14 @@ class AccessTokenClient(
                     append("grant_type", "client_credentials")
                 }))
             }
-            if (response.status != HttpStatusCode.OK) {
-                val feilmelding =
-                    "Kunne ikke hente accesstoken fra Azure. Statuskode: ${response.status}"
-                logger.error { feilmelding }
-                throw RuntimeException(feilmelding)
-            } else {
-                response.body()
+
+            when {
+                response.status.isSuccess() -> response.body()
+                else -> {
+                    val feilmelding = "Kunne ikke hente accesstoken fra Azure. Statuskode: ${response.status}"
+                    logger.error { feilmelding }
+                    throw RuntimeException(feilmelding)
+                }
             }
         }
 }

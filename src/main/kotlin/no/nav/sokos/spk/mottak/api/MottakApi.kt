@@ -9,8 +9,8 @@ import io.ktor.server.routing.route
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import no.nav.sokos.spk.mottak.service.FileReaderService
 import no.nav.sokos.spk.mottak.integration.FullmaktClientService
+import no.nav.sokos.spk.mottak.service.FileReaderService
 
 private val logger = KotlinLogging.logger {}
 
