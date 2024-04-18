@@ -62,14 +62,14 @@ class FileValidationTest : ExpectSpec({
             exception.message shouldBe "Filløpenummer 123 allerede i bruk"
         }
 
-        expect("FileStatus.FORVENTER_FILLOPENUMMER når fillopenummer er ugyldig") {
+        expect("FileStatus.FORVENTET_FILLOPENUMMER når fillopenummer er ugyldig") {
             val exception = shouldThrow<ValidationException> {
                 val recordData = TestData.recordDataMock().copy(
                     maxLopenummer = 121
                 )
                 FileValidation.validateStartAndEndRecord(recordData)
             }
-            exception.statusCode shouldBe FileStatus.FORVENTER_FILLOPENUMMER.code
+            exception.statusCode shouldBe FileStatus.FORVENTET_FILLOPENUMMER.code
             exception.message shouldBe "Forventet lopenummer 122"
         }
 

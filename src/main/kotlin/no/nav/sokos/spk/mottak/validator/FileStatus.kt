@@ -6,7 +6,7 @@ enum class FileStatus (val code: String, val message: String) {
     UGYLDIG_MOTTAKER ("02", "Ugyldig mottaker"),
     FILLOPENUMMER_I_BRUK ("03", "Filløpenummer %s allerede i bruk"),
     UGYLDIG_FILLOPENUMMER ("04", "Filløpenummer format er ikke gyldig"),
-    FORVENTER_FILLOPENUMMER ("04", "Forventet lopenummer %s"),
+    FORVENTET_FILLOPENUMMER ("04", "Forventet lopenummer %s"),
     UGYLDIG_FILTYPE ("05", "Ugyldig filtype"),
     UGYLDIG_RECTYPE ("06", "Ugyldig recordtype"),
     UGYLDIG_ANTRECORDS ("07", "Oppsumert antall records %s stemmer ikke med det faktiske antallet %s"),

@@ -97,7 +97,7 @@ class FileReaderService(
         session: TransactionalSession
     ) {
         if (exception.statusCode != FileStatus.FILLOPENUMMER_I_BRUK.code
-            && exception.statusCode != FileStatus.FORVENTER_FILLOPENUMMER.code
+            && exception.statusCode != FileStatus.FORVENTET_FILLOPENUMMER.code
             && exception.statusCode != FileStatus.UGYLDIG_ANVISER.code
             && exception.statusCode != FileStatus.UGYLDIG_FILTYPE.code
         ) {

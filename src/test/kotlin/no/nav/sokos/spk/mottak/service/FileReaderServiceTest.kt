@@ -10,6 +10,7 @@ import kotliquery.sessionOf
 import no.nav.sokos.spk.mottak.SPK_FEIL_ANTALL_TRANSAKSJONER
 import no.nav.sokos.spk.mottak.SPK_FEIL_BELOPSUM
 import no.nav.sokos.spk.mottak.SPK_FEIL_LOPENUMMER_DUBLETT
+import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_LOPENUMMER
 import no.nav.sokos.spk.mottak.SPK_FILE_FEIL
 import no.nav.sokos.spk.mottak.SPK_FILE_OK
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
@@ -29,7 +30,6 @@ import no.nav.sokos.spk.mottak.listener.SftpListener
 import no.nav.sokos.spk.mottak.validator.FileStatus
 import java.time.LocalDate
 
-private const val LOPENUMMER = 34
 private const val SYSTEM_ID = "sokos-spk-mottak"
 
 class FileReaderServiceTest : BehaviorSpec({
@@ -57,10 +57,11 @@ class FileReaderServiceTest : BehaviorSpec({
             Then("skal filen bli flyttet fra \"inbound\" til \"inbound/ferdig\" på FTP-serveren og transaksjoner blir lagret i databasen.") {
                 ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
 
-                val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(LOPENUMMER)
+                val sisteLopenummer = 34
+                val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
                 verifyLopenummer(lopenummer)
 
-                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(LOPENUMMER)
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer, FILTILSTANDTYPE_GOD)
                 verifyFilInfo(filInfo, FileStatus.OK, FILTILSTANDTYPE_GOD)
 
                 val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
@@ -86,7 +87,7 @@ class FileReaderServiceTest : BehaviorSpec({
                 val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
                 verifyLopenummer(lopenummer)
 
-                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer)
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer, FILTILSTANDTYPE_AVV)
                 val feiltekst = "Total beløp 2775100 stemmer ikke med summeringen av enkelt beløpene 2775200"
                 verifyFilInfo(filInfo, FileStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, feiltekst)
 
@@ -114,8 +115,8 @@ class FileReaderServiceTest : BehaviorSpec({
                 val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
                 verifyLopenummer(lopenummer)
 
-                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer)
-                val feiltekst = "Total beløp 346900 stemmer ikke med summeringen av enkelt beløpene"
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer, FILTILSTANDTYPE_AVV)
+                val feiltekst = "Total beløp 2775100 stemmer ikke med summeringen av enkelt beløpene 346900"
                 verifyFilInfo(filInfo, FileStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, feiltekst)
 
                 val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
@@ -142,8 +143,8 @@ class FileReaderServiceTest : BehaviorSpec({
                 val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
                 verifyLopenummer(lopenummer)
 
-                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer)
-                val feiltekst = "Oppsumert antall records 1 stemmer ikke med det faktiske antallet"
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer, FILTILSTANDTYPE_AVV)
+                val feiltekst = "Oppsumert antall records 8 stemmer ikke med det faktiske antallet 1"
                 verifyFilInfo(filInfo, FileStatus.UGYLDIG_ANTRECORDS, FILTILSTANDTYPE_AVV, feiltekst)
 
                 val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
@@ -154,11 +155,67 @@ class FileReaderServiceTest : BehaviorSpec({
         }
     }
 
-//    Given("det finnes en ubehandlet fil med allerede brukt løpenummer i \"inbound\" på FTP-serveren ") {
+    Given("det finnes en ubehandlet fil med allerede brukt løpenummer i \"inbound\" på FTP-serveren ") {
+        ftpService.createFile(
+            SPK_FEIL_LOPENUMMER_DUBLETT,
+            Directories.INBOUND,
+            SPK_FEIL_LOPENUMMER_DUBLETT.readFromResource()
+        )
+        When("leser filen på FTP-serveren og lagrer dataene.") {
+            Db2Listener.lopenummerRepository.updateLopenummer(34, FILETYPE_ANVISER, sessionOf(Db2Listener.dataSource))
+            fileReaderService.readAndParseFile()
+
+            Then("skal filen bli flyttet fra \"inbound\" til \"inbound/ferdig\" på FTP-serveren, ingen av transaksjonene blir lagret og en avviksfil blir opprettet i \"inbound\\anvisningsretur\"") {
+                ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
+                val sisteLopenummer = 34
+                val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
+                verifyLopenummer(lopenummer)
+
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer, FILTILSTANDTYPE_AVV)
+                val feiltekst = "Filløpenummer 34 allerede i bruk"
+                verifyFilInfo(filInfo, FileStatus.FILLOPENUMMER_I_BRUK, FILTILSTANDTYPE_AVV, feiltekst)
+
+                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
+                inntransaksjonList.shouldBeEmpty()
+
+                ftpService.downloadFiles(Directories.ANVISNINGSRETUR).size shouldBe 1
+            }
+        }
+    }
+
+    Given("det finnes en ubehandlet fil med et ugyldig løpenummer i \"inbound\" på FTP-serveren ") {
+        ftpService.createFile(
+            SPK_FEIL_UGYLDIG_LOPENUMMER,
+            Directories.INBOUND,
+            SPK_FEIL_UGYLDIG_LOPENUMMER.readFromResource()
+        )
+        When("leser filen på FTP-serveren og lagrer dataene.") {
+            Db2Listener.lopenummerRepository.updateLopenummer(37, FILETYPE_ANVISER, sessionOf(Db2Listener.dataSource))
+            fileReaderService.readAndParseFile()
+
+            Then("skal filen bli flyttet fra \"inbound\" til \"inbound/ferdig\" på FTP-serveren, ingen av transaksjonene blir lagret og en avviksfil blir opprettet i \"inbound\\anvisningsretur\"") {
+                ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
+                val sisteLopenummer = 37
+                val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
+                verifyLopenummer(lopenummer)
+
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer+2, FILTILSTANDTYPE_AVV)
+                val feiltekst = "Forventet lopenummer 38"
+                verifyFilInfo(filInfo, FileStatus.FORVENTET_FILLOPENUMMER, FILTILSTANDTYPE_AVV, feiltekst)
+
+                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
+                inntransaksjonList.shouldBeEmpty()
+
+                ftpService.downloadFiles(Directories.ANVISNINGSRETUR).size shouldBe 1
+            }
+        }
+    }
+
+//    Given("det finnes en ubehandlet fil med et ugyldig prod-dato i \"inbound\" på FTP-serveren ") {
 //        ftpService.createFile(
-//            SPK_FEIL_LOPENUMMER_DUBLETT,
+//            SPK_FEIL_UGYLDIG_PRODDATO,
 //            Directories.INBOUND,
-//            SPK_FEIL_LOPENUMMER_DUBLETT.readFromResource()
+//            SPK_FEIL_UGYLDIG_PRODDATO.readFromResource()
 //        )
 //        When("leser filen på FTP-serveren og lagrer dataene.") {
 //            Db2Listener.lopenummerRepository.updateLopenummer(37, FILETYPE_ANVISER, sessionOf(Db2Listener.dataSource))
@@ -166,13 +223,13 @@ class FileReaderServiceTest : BehaviorSpec({
 //
 //            Then("skal filen bli flyttet fra \"inbound\" til \"inbound/ferdig\" på FTP-serveren, ingen av transaksjonene blir lagret og en avviksfil blir opprettet i \"inbound\\anvisningsretur\"") {
 //                ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
-//                val sisteLopenummer = 37
+//                val sisteLopenummer = 38
 //                val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
 //                verifyLopenummer(lopenummer)
 //
-//                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer)
-//                val feiltekst = "Filløpenummer 37 allerede i bruk"
-//                verifyFilInfo(filInfo, FileStatus.FILLOPENUMMER_I_BRUK, FILTILSTANDTYPE_AVV, feiltekst)
+//                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer, FILTILSTANDTYPE_AVV)
+//                val feiltekst = "Prod-dato (yyyymmdd) har ugyldig format"
+//                verifyFilInfo(filInfo, FileStatus.UGYLDIG_PRODDATO, FILTILSTANDTYPE_AVV, feiltekst)
 //
 //                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
 //                inntransaksjonList.shouldBeEmpty()
@@ -181,31 +238,6 @@ class FileReaderServiceTest : BehaviorSpec({
 //            }
 //        }
 //    }
-
-//    Given("Ikke nok transaksjoner og mangler endrecord") {
-//        ftpService.createFile(
-//            SPK_TOO_FEW_TRANSACTIONS_AND_MISSING_SLUTTRECORD,
-//            Directories.INBOUND,
-//            SPK_TOO_FEW_TRANSACTIONS_AND_MISSING_SLUTTRECORD.readFromResource()
-//        )
-//        // Løpenummer is 33
-//        When("leser filen på FTP-serveren og lagre dataene.") {
-//            try {
-//                fileReaderService.readAndParseFile()
-//            } catch (e: Exception) {
-//                fail("Forventer en feilmelding som indikerer at sluttrecord mangler, fikk: " + e.message)
-//            }
-//
-//            Then("skal filen blir flyttet fra \"inbound\" til \"inbound/ferdig\" på FTP-serveren og transaksjoner blir lagret i database.") {
-//                ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
-//
-//                val sisteLopenummer: Int = Db2Listener.lopenummerRepository.findMaxLopenummer(FILETYPE_ANVISER) ?: 0;
-//                val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
-//                lopenummer?.sisteLopenummer shouldBe 34
-//            }
-//        }
-//    }
-
 
 })
 
