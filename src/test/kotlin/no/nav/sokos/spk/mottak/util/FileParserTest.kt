@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.sokos.spk.mottak.SPK_FILE_OK
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
-import no.nav.sokos.spk.mottak.exception.ValidationException
+import no.nav.sokos.spk.mottak.exception.FileValidationException
 import no.nav.sokos.spk.mottak.validator.FileStatus
 
 class FileParserTest : BehaviorSpec({
@@ -42,7 +42,7 @@ class FileParserTest : BehaviorSpec({
                 inntransaksjon.belop shouldBe "00000346900"
                 inntransaksjon.art shouldBe "UFT"
                 inntransaksjon.refTransId shouldBe ""
-                inntransaksjon.tekstKode shouldBe ""
+                inntransaksjon.tekstkode shouldBe ""
                 inntransaksjon.saldo shouldBe "00000000410"
                 inntransaksjon.prioritet shouldBe ""
                 inntransaksjon.kid shouldBe ""
@@ -64,7 +64,7 @@ class FileParserTest : BehaviorSpec({
         `when`("StartRecord innholder ugyldig record type") {
             val innlesingRecord = "02SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00"
             then("skal det returneres UGYLDIG_RECTYPE") {
-                val exception = shouldThrow<ValidationException> {
+                val exception = shouldThrow<FileValidationException> {
                     FileParser.parseStartRecord(innlesingRecord)
                 }
                 exception.statusCode shouldBe FileStatus.UGYLDIG_RECTYPE.code
@@ -75,7 +75,7 @@ class FileParserTest : BehaviorSpec({
         `when`("StartRecord innholder ugyldig produsert dato") {
             val innlesingRecord = "01SPK        NAV        000034ANV20241331ANVISNINGSFIL                      00"
             then("skal det returneres UGYLDIG_PRODDATO") {
-                val exception = shouldThrow<ValidationException> {
+                val exception = shouldThrow<FileValidationException> {
                     FileParser.parseStartRecord(innlesingRecord)
                 }
                 exception.statusCode shouldBe FileStatus.UGYLDIG_PRODDATO.code
@@ -86,7 +86,7 @@ class FileParserTest : BehaviorSpec({
         `when`("StartRecord innholder ugyldig fil lopenummer") {
             val innlesingRecord = "01SPK        NAV        00003rANV20240131ANVISNINGSFIL                      00"
             then("skal det returneres UGYLDIG_FILLOPENUMMER") {
-                val exception = shouldThrow<ValidationException> {
+                val exception = shouldThrow<FileValidationException> {
                     FileParser.parseStartRecord(innlesingRecord)
                 }
                 exception.statusCode shouldBe FileStatus.UGYLDIG_FILLOPENUMMER.code
@@ -99,7 +99,7 @@ class FileParserTest : BehaviorSpec({
         val innlesingRecord =
             "09116684810   66064900162           2024013120240201202402290100000346900UFT                 00000000410"
         then("skal det returneres UGYLDIG_RECTYPE") {
-            val exception = shouldThrow<ValidationException> {
+            val exception = shouldThrow<FileValidationException> {
                 FileParser.parseTransaction(innlesingRecord)
             }
             exception.statusCode shouldBe FileStatus.UGYLDIG_RECTYPE.code
@@ -110,7 +110,7 @@ class FileParserTest : BehaviorSpec({
     given("Ugyldig innhold i EndRecord i SPK innlesingsfil") {
         val innlesingRecord = "000000000080000002775200"
         then("skal det returneres UGYLDIG_RECTYPE") {
-            val exception = shouldThrow<ValidationException> {
+            val exception = shouldThrow<FileValidationException> {
                 FileParser.parseEndRecord(innlesingRecord)
             }
             exception.statusCode shouldBe FileStatus.UGYLDIG_RECTYPE.code

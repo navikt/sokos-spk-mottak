@@ -15,11 +15,9 @@ data class AvvikTransaksjon(
     val datoFom: String,
     val datoTom: String,
     val datoAnviser: LocalDate,
-    val datoPersonFom: LocalDate,
-    val datoLeakFom: LocalDate,
     val belop: String,
     val refTransId: String,
-    val tekstKode: String,
+    val tekstkode: String,
     val rectype: String,
     val transEksId: String,
     val datoOpprettet: LocalDateTime,
@@ -31,5 +29,5 @@ data class AvvikTransaksjon(
     val saldo: String,
     val trekkansvar: String,
     val kid: String,
-    val grad: Int
+    val grad: Int?
 )

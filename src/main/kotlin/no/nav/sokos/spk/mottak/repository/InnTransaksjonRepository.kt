@@ -6,12 +6,15 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.BEHANDLET_JA
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_NEI
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
+import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_01_UNIK_ID
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_02_GYLDIG_FODSELSNUMMER
@@ -25,34 +28,36 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_10
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_11_GYLDIG_KOMBINASJON_ART_OG_BELOPSTYPE
 import no.nav.sokos.spk.mottak.util.Util.toLocalDate
 
-private const val READ_ROWS: Int = 1000
+private const val READ_ROWS: Int = 10000
 
 class InnTransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
 ) {
     fun getByFilInfoId(filInfoId: Int): List<InnTransaksjon> {
-        return sessionOf(dataSource).list(
-            queryOf(
-                """
-                    SELECT * FROM T_INN_TRANSAKSJON WHERE FIL_INFO_ID = :filInfoId
-                """.trimIndent(),
-                mapOf("filInfoId" to filInfoId)
-            ), toInntransaksjon
-        )
+        return using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    SELECT * FROM T_INN_TRANSAKSJON WHERE FIL_INFO_ID = $filInfoId
+                """.trimIndent()
+                ), toInntransaksjon
+            )
+        }
     }
 
     fun getByTransaksjonStatusIsNullWithPersonId(rows: Int = READ_ROWS): List<InnTransaksjon> {
-        return sessionOf(dataSource).list(
-            queryOf(
-                """
-                    SELECT t.*, p.PERSON_ID FROM T_INN_TRANSAKSJON t LEFT OUTER JOIN T_PERSON p ON t.FNR_FK = p.FNR_FK
-                    WHERE t.BEHANDLET = 'N'
-                    ORDER BY t.FIL_INFO_ID, t.INN_TRANSAKSJON_ID
-                    FETCH FIRST :rows ROWS ONLY;
-                """.trimIndent(),
-                mapOf("rows" to rows)
-            ), toInntransaksjon
-        )
+        return using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                        SELECT t.*, p.PERSON_ID FROM T_INN_TRANSAKSJON t LEFT OUTER JOIN T_PERSON p ON t.FNR_FK = p.FNR_FK
+                        WHERE t.BEHANDLET = 'N'
+                        ORDER BY t.FIL_INFO_ID, t.INN_TRANSAKSJON_ID
+                        FETCH FIRST $rows ROWS ONLY;
+                    """.trimIndent()
+                ), toInntransaksjon
+            )
+        }
     }
 
     fun validateTransaksjon(session: Session) {
@@ -71,7 +76,7 @@ class InnTransaksjonRepository(
         session.run(
             queryOf(
                 """
-                    UPDATE T_INN_TRANSAKSJON SET K_TRANSAKSJON_S='00'
+                    UPDATE T_INN_TRANSAKSJON SET K_TRANSAKSJON_S='$TRANSAKSJONSTATUS_OK'
                     WHERE K_TRANSAKSJON_S IS NULL                
                 """.trimIndent()
             ).asUpdate
@@ -120,8 +125,18 @@ class InnTransaksjonRepository(
         )
     }
 
+    fun updateBehandletStatusBatch(innTransaksjonIdList: List<Int>, session: Session) {
+        session.batchPreparedNamedStatement(
+            """
+                UPDATE T_INN_TRANSAKSJON SET BEHANDLET = '$BEHANDLET_JA' WHERE INN_TRANSAKSJON_ID = :innTransaksjonId
+            """.trimIndent(),
+            innTransaksjonIdList.map { mapOf("innTransaksjonId" to it) }
+        )
+    }
+
 
     private fun List<TransaksjonRecord>.convertToListMap(filInfoId: Long): List<Map<String, Any?>> {
+        val systemId = PropertiesConfig.Configuration().naisAppName
         return this.map { transaksjonRecord ->
             mapOf(
                 "filInfoId" to filInfoId,
@@ -136,7 +151,7 @@ class InnTransaksjonRepository(
                 "datoAnviserStr" to transaksjonRecord.datoAnviser,
                 "belopStr" to transaksjonRecord.belop,
                 "refTransId" to transaksjonRecord.refTransId,
-                "tekstkode" to transaksjonRecord.tekstKode,
+                "tekstkode" to transaksjonRecord.tekstkode,
                 "rectype" to RECTYPE_TRANSAKSJONSRECORD,
                 "transId" to transaksjonRecord.transId,
                 "datoFom" to transaksjonRecord.datoFom.toLocalDate(),
@@ -145,9 +160,9 @@ class InnTransaksjonRepository(
                 "belop" to (transaksjonRecord.belop.toIntOrNull() ?: 0),
                 "behandlet" to BEHANDLET_NEI,
                 "datoOpprettet" to LocalDateTime.now(),
-                "opprettetAv" to PropertiesConfig.Configuration().naisAppName,
+                "opprettetAv" to systemId,
                 "datoEndret" to LocalDateTime.now(),
-                "endretAv" to PropertiesConfig.Configuration().naisAppName,
+                "endretAv" to systemId,
                 "versjon" to "1",
                 "prioritetStr" to transaksjonRecord.prioritet,
                 "trekkansvar" to transaksjonRecord.trekkansvar,
@@ -159,8 +174,6 @@ class InnTransaksjonRepository(
                 "gradStr" to transaksjonRecord.grad
             )
         }
-
-
     }
 
     private val toInntransaksjon: (Row) -> InnTransaksjon = { row ->
@@ -196,7 +209,7 @@ class InnTransaksjonRepository(
             row.string("SALDO_STR"),
             row.string("KID"),
             row.localDateOrNull("PRIORITET"),
-            row.int("SALDO"),
+            row.intOrNull("SALDO"),
             row.intOrNull("GRAD"),
             row.string("GRAD_STR"),
             row.optionalIntOrNull("PERSON_ID")

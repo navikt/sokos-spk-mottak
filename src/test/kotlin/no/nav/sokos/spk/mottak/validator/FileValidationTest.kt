@@ -5,7 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import no.nav.sokos.spk.mottak.TestData
-import no.nav.sokos.spk.mottak.exception.ValidationException
+import no.nav.sokos.spk.mottak.exception.FileValidationException
 
 class FileValidationTest : ExpectSpec({
 
@@ -18,7 +18,7 @@ class FileValidationTest : ExpectSpec({
         }
 
         expect("FileStatus.UGYLDIG_ANVISER når avsender er ugyldig") {
-            val exception = shouldThrow<ValidationException> {
+            val exception = shouldThrow<FileValidationException> {
                 val recordData = TestData.recordDataMock().copy(
                     startRecord = TestData.startRecordMock().copy(avsender = "TEST")
                 )
@@ -30,7 +30,7 @@ class FileValidationTest : ExpectSpec({
         }
 
         expect("FileStatus.UGYLDIG_MOTTAKER når mottager er ugyldig") {
-            val exception = shouldThrow<ValidationException> {
+            val exception = shouldThrow<FileValidationException> {
                 val recordData = TestData.recordDataMock().copy(
                     startRecord = TestData.startRecordMock().copy(mottager = "TEST")
                 )
@@ -41,7 +41,7 @@ class FileValidationTest : ExpectSpec({
         }
 
         expect("FileStatus.UGYLDIG_FILTYPE når filtype er ugyldig") {
-            val exception = shouldThrow<ValidationException> {
+            val exception = shouldThrow<FileValidationException> {
                 val recordData = TestData.recordDataMock().copy(
                     startRecord = TestData.startRecordMock().copy(filType = "TEST")
                 )
@@ -52,7 +52,7 @@ class FileValidationTest : ExpectSpec({
         }
 
         expect("FileStatus.FILLOPENUMMER_I_BRUK når fillopenummer er i bruk") {
-            val exception = shouldThrow<ValidationException> {
+            val exception = shouldThrow<FileValidationException> {
                 val recordData = TestData.recordDataMock().copy(
                     maxLopenummer = 123
                 )
@@ -63,7 +63,7 @@ class FileValidationTest : ExpectSpec({
         }
 
         expect("FileStatus.FORVENTER_FILLOPENUMMER når fillopenummer er ugyldig") {
-            val exception = shouldThrow<ValidationException> {
+            val exception = shouldThrow<FileValidationException> {
                 val recordData = TestData.recordDataMock().copy(
                     maxLopenummer = 121
                 )
@@ -73,26 +73,48 @@ class FileValidationTest : ExpectSpec({
             exception.message shouldBe "Forventet lopenummer 122"
         }
 
-        expect("FileStatus.UGYLDIG_SUMBELOP når sumbeløp er ugyldig") {
-            val exception = shouldThrow<ValidationException> {
+        expect("FileStatus.UGYLDIG_SUMBELOP når sumbeløp i sluttrecord ikke stemmer med oppsummering av enkeltbeløpene") {
+            val exception = shouldThrow<FileValidationException> {
                 val recordData = TestData.recordDataMock().copy(
-                    totalBelop = 0
+                    totalBelop = 100
                 )
                 FileValidation.validateStartAndEndRecord(recordData)
             }
             exception.statusCode shouldBe FileStatus.UGYLDIG_SUMBELOP.code
-            exception.message shouldBe "Total beløp 0 stemmer ikke med summeringen av enkelt beløpene"
+            exception.message shouldBe "Total beløp 2775200 stemmer ikke med summeringen av enkelt beløpene 100"
         }
 
-        expect("FileStatus.UGYLDIG_ANTRECORDS når antall records er ugyldig") {
-            val exception = shouldThrow<ValidationException> {
+        expect("FileStatus.UGYLDIG_SUMBELOP når sumbeløp i sluttrecord er ugyldig") {
+            val exception = shouldThrow<FileValidationException> {
+                val recordData = TestData.recordDataMock().copy(
+                    endRecord = TestData.endRecordMock().copy(totalBelop = 0)
+                )
+                FileValidation.validateStartAndEndRecord(recordData)
+            }
+            exception.statusCode shouldBe FileStatus.UGYLDIG_SUMBELOP.code
+            exception.message shouldBe "Total beløp 0 stemmer ikke med summeringen av enkelt beløpene 2775200"
+        }
+
+        expect("FileStatus.UGYLDIG_ANTRECORDS når antall records er feil i sluttrecord") {
+            val exception = shouldThrow<FileValidationException> {
                 val recordData = TestData.recordDataMock().copy(
                     endRecord = TestData.endRecordMock().copy(numberOfRecord = 9)
                 )
                 FileValidation.validateStartAndEndRecord(recordData)
             }
             exception.statusCode shouldBe FileStatus.UGYLDIG_ANTRECORDS.code
-            exception.message shouldBe "Oppsumert antall records 8 stemmer ikke med det faktiske antallet"
+            exception.message shouldBe "Oppsumert antall records 9 stemmer ikke med det faktiske antallet 8"
+        }
+
+        expect("FileStatus.UGYLDIG_ANTRECORDS når antall records er ugyldig i sluttercord") {
+            val exception = shouldThrow<FileValidationException> {
+                val recordData = TestData.recordDataMock().copy(
+                    endRecord = TestData.endRecordMock().copy(numberOfRecord = 0)
+                )
+                FileValidation.validateStartAndEndRecord(recordData)
+            }
+            exception.statusCode shouldBe FileStatus.UGYLDIG_ANTRECORDS.code
+            exception.message shouldBe "Oppsumert antall records 0 stemmer ikke med det faktiske antallet 8"
         }
     }
 })

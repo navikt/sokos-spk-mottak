@@ -5,7 +5,8 @@ object TransaksjonValidatorQuery {
         """
             UPDATE T_INN_TRANSAKSJON
             SET K_TRANSAKSJON_S = '01'
-            WHERE INN_TRANSAKSJON_ID IN (SELECT t1.INN_TRANSAKSJON_ID
+            WHERE K_TRANSAKSJON_S IS NULL
+              AND INN_TRANSAKSJON_ID IN (SELECT t1.INN_TRANSAKSJON_ID
                                          FROM T_INN_TRANSAKSJON t1
                                                   JOIN T_TRANSAKSJON t2
                                                        ON t1.TRANS_ID_FK = t2.TRANS_EKS_ID_FK AND t1.AVSENDER = t2.K_ANVISER
@@ -103,7 +104,7 @@ object TransaksjonValidatorQuery {
                                    FROM T_INN_TRANSAKSJON t1
                                             LEFT JOIN T_PERSON t2 ON t1.UTBETALES_TIL = t2.FNR_FK
                                    WHERE t1.UTBETALES_TIL IS NOT NULL
-                                     AND t2.FNR_FK IS NULL))
+                                     AND t2.FNR_FK IS NULL)))
         """.trimIndent()
 
     val VALIDATOR_09_GYLDIG_ANVISER_DATO =

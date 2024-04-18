@@ -5,7 +5,6 @@ import java.time.LocalDateTime
 
 data class Transaksjon(
     val transaksjonId: Int? = null,
-    val transaksjonTilstandId: Int? = null,
     val filInfoId: Int,
     val transaksjonStatus: String,
     val personId: Int,
@@ -20,7 +19,7 @@ data class Transaksjon(
     val datoTom: LocalDate,
     val datoAnviser: LocalDate,
     val datoPersonFom: LocalDate,
-    val datoLeakFom: LocalDate,
+    val datoReakFom: LocalDate,
     val belop: Int,
     val refTransId: String,
     val tekstkode: String,
@@ -37,10 +36,10 @@ data class Transaksjon(
     val datoEndret: LocalDateTime,
     val endretAv: String,
     val versjon: Int,
-    val saldo: Int,
+    val saldo: Int?,
     val kid: String,
     val prioritet: LocalDate?,
     val trekkansvar: String,
-    val transTilstandType: String,
+    val transTilstandType: String? = null,
     val grad: Int?
 )

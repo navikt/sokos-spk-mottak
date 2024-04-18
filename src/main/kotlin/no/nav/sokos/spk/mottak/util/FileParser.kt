@@ -6,14 +6,14 @@ import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
-import no.nav.sokos.spk.mottak.exception.ValidationException
+import no.nav.sokos.spk.mottak.exception.FileValidationException
 import no.nav.sokos.spk.mottak.util.Util.toLocalDate
 import no.nav.sokos.spk.mottak.validator.FileStatus
 
 object FileParser {
     fun parseStartRecord(record: String): StartRecord {
         if (record.getString(0, 2) != RECTYPE_STARTRECORD) {
-            throw ValidationException(
+            throw FileValidationException(
                 FileStatus.UGYLDIG_RECTYPE.code,
                 FileStatus.UGYLDIG_RECTYPE.message
             )
@@ -30,12 +30,12 @@ object FileParser {
                 rawRecord = record
             )
         } catch (e: NullPointerException) {
-            throw ValidationException(
+            throw FileValidationException(
                 FileStatus.UGYLDIG_PRODDATO.code,
                 FileStatus.UGYLDIG_PRODDATO.message
             )
         } catch (e: NumberFormatException) {
-            throw ValidationException(
+            throw FileValidationException(
                 FileStatus.UGYLDIG_FILLOPENUMMER.code,
                 FileStatus.UGYLDIG_FILLOPENUMMER.message
             )
@@ -45,20 +45,20 @@ object FileParser {
 
     fun parseEndRecord(record: String): EndRecord {
         if (record.getString(0, 2) != RECTYPE_SLUTTRECORD) {
-            throw ValidationException(
+            throw FileValidationException(
                 FileStatus.UGYLDIG_RECTYPE.code,
                 FileStatus.UGYLDIG_RECTYPE.message
             )
         }
         return EndRecord(
-            numberOfRecord = record.getString(2, 11).toInt(),
-            totalBelop = record.getString(11, 25).toLong()
+            numberOfRecord = record.getString(2, 11).toIntOrNull() ?: 0,
+            totalBelop = record.getString(11, 25).toLongOrNull() ?: 0
         )
     }
 
     fun parseTransaction(record: String): TransaksjonRecord {
         if (record.getString(0, 2) != RECTYPE_TRANSAKSJONSRECORD) {
-            throw ValidationException(
+            throw FileValidationException(
                 FileStatus.UGYLDIG_RECTYPE.code,
                 FileStatus.UGYLDIG_RECTYPE.message
             )
@@ -74,7 +74,7 @@ object FileParser {
             belop = record.getString(62, 73),
             art = record.getString(73, 77),
             refTransId = record.getString(77, 89),
-            tekstKode = record.getString(89, 93),
+            tekstkode = record.getString(89, 93),
             saldo = record.getString(93, 104),
             prioritet = record.getString(104, 112),
             kid = record.getString(112, 138),
