@@ -1,12 +1,10 @@
 package no.nav.sokos.spk.mottak.util
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.sokos.spk.mottak.SPK_FILE_OK
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
-import no.nav.sokos.spk.mottak.exception.ValidationException
 import no.nav.sokos.spk.mottak.validator.FileStatus
 
 class FileParserTest : BehaviorSpec({
@@ -63,34 +61,46 @@ class FileParserTest : BehaviorSpec({
     given("SPK innlesingsfil med ugyldig innhold i StartRecord") {
         `when`("StartRecord innholder ugyldig record type") {
             val innlesingRecord = "02SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00"
+            val startRecord = FileParser.parseStartRecord(innlesingRecord)
             then("skal det returneres UGYLDIG_RECTYPE") {
-                val exception = shouldThrow<ValidationException> {
-                    FileParser.parseStartRecord(innlesingRecord)
-                }
-                exception.statusCode shouldBe FileStatus.UGYLDIG_RECTYPE.code
-                exception.message shouldBe FileStatus.UGYLDIG_RECTYPE.message
+                startRecord.avsender shouldBe "SPK"
+                startRecord.mottager shouldBe "NAV"
+                startRecord.filLopenummer shouldBe 34
+                startRecord.filType shouldBe "ANV"
+                startRecord.produsertDato.toString() shouldBe "2024-01-31"
+                startRecord.beskrivelse shouldBe "ANVISNINGSFIL"
+                startRecord.fileStatus shouldBe FileStatus.UGYLDIG_RECTYPE
+                startRecord.rawRecord shouldBe "02SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00"
             }
         }
 
         `when`("StartRecord innholder ugyldig produsert dato") {
             val innlesingRecord = "01SPK        NAV        000034ANV20241331ANVISNINGSFIL                      00"
+            val startRecord = FileParser.parseStartRecord(innlesingRecord)
             then("skal det returneres UGYLDIG_PRODDATO") {
-                val exception = shouldThrow<ValidationException> {
-                    FileParser.parseStartRecord(innlesingRecord)
-                }
-                exception.statusCode shouldBe FileStatus.UGYLDIG_PRODDATO.code
-                exception.message shouldBe FileStatus.UGYLDIG_PRODDATO.message
+                startRecord.avsender shouldBe "SPK"
+                startRecord.mottager shouldBe "NAV"
+                startRecord.filLopenummer shouldBe 34
+                startRecord.filType shouldBe "ANV"
+                startRecord.produsertDato shouldBe null
+                startRecord.beskrivelse shouldBe "ANVISNINGSFIL"
+                startRecord.fileStatus shouldBe FileStatus.UGYLDIG_PRODDATO
+                startRecord.rawRecord shouldBe "01SPK        NAV        000034ANV20241331ANVISNINGSFIL                      00"
             }
         }
 
         `when`("StartRecord innholder ugyldig fil lopenummer") {
             val innlesingRecord = "01SPK        NAV        00003rANV20240131ANVISNINGSFIL                      00"
+            val startRecord = FileParser.parseStartRecord(innlesingRecord)
             then("skal det returneres UGYLDIG_FILLOPENUMMER") {
-                val exception = shouldThrow<ValidationException> {
-                    FileParser.parseStartRecord(innlesingRecord)
-                }
-                exception.statusCode shouldBe FileStatus.UGYLDIG_FILLOPENUMMER.code
-                exception.message shouldBe FileStatus.UGYLDIG_FILLOPENUMMER.message
+                startRecord.avsender shouldBe "SPK"
+                startRecord.mottager shouldBe "NAV"
+                startRecord.filLopenummer shouldBe 0
+                startRecord.filType shouldBe "ANV"
+                startRecord.produsertDato.toString() shouldBe "2024-01-31"
+                startRecord.beskrivelse shouldBe "ANVISNINGSFIL"
+                startRecord.fileStatus shouldBe FileStatus.UGYLDIG_FILLOPENUMMER
+                startRecord.rawRecord shouldBe "01SPK        NAV        00003rANV20240131ANVISNINGSFIL                      00"
             }
         }
     }
@@ -98,23 +108,27 @@ class FileParserTest : BehaviorSpec({
     given("Ugyldig innhold i InnTransaksjon i SPK innlesingsfil") {
         val innlesingRecord =
             "09116684810   66064900162           2024013120240201202402290100000346900UFT                 00000000410"
+        val transaksjonRecord = FileParser.parseTransaction(innlesingRecord)
         then("skal det returneres UGYLDIG_RECTYPE") {
-            val exception = shouldThrow<ValidationException> {
-                FileParser.parseTransaction(innlesingRecord)
-            }
-            exception.statusCode shouldBe FileStatus.UGYLDIG_RECTYPE.code
-            exception.message shouldBe FileStatus.UGYLDIG_RECTYPE.message
+            transaksjonRecord.transId shouldBe "116684810"
+            transaksjonRecord.fnr shouldBe "66064900162"
+            transaksjonRecord.art shouldBe "UFT"
+            transaksjonRecord.belop.toInt() shouldBe 346900
+            transaksjonRecord.belopstype shouldBe "01"
+            transaksjonRecord.datoAnviser.toString() shouldBe "20240131"
+            transaksjonRecord.datoFom.toString() shouldBe "20240201"
+            transaksjonRecord.datoTom.toString() shouldBe "20240229"
+            transaksjonRecord.fileStatus shouldBe FileStatus.UGYLDIG_RECTYPE
         }
     }
 
     given("Ugyldig innhold i EndRecord i SPK innlesingsfil") {
         val innlesingRecord = "000000000080000002775200"
+        val endRecord = FileParser.parseEndRecord(innlesingRecord)
         then("skal det returneres UGYLDIG_RECTYPE") {
-            val exception = shouldThrow<ValidationException> {
-                FileParser.parseEndRecord(innlesingRecord)
-            }
-            exception.statusCode shouldBe FileStatus.UGYLDIG_RECTYPE.code
-            exception.message shouldBe FileStatus.UGYLDIG_RECTYPE.message
+            endRecord.numberOfRecord shouldBe 8
+            endRecord.totalBelop shouldBe 2775200
+            endRecord.fileStatus shouldBe FileStatus.UGYLDIG_RECTYPE
         }
     }
 })

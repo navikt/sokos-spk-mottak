@@ -97,7 +97,7 @@ class FileInfoRepository(
             row.string("FIL_NAVN"),
             row.int("LOPENR"),
             row.stringOrNull("FEILTEKST"),
-            row.localDate("DATO_MOTTATT"),
+            row.localDateOrNull("DATO_MOTTATT"),
             row.localDateOrNull("DATO_SENDT"),
             row.localDateTime("DATO_OPPRETTET"),
             row.string("OPPRETTET_AV"),

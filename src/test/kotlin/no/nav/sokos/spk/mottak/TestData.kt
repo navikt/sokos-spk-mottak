@@ -6,14 +6,19 @@ import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.integration.models.FullmaktDTO
+import no.nav.sokos.spk.mottak.validator.FileStatus
 
 const val SPK_FILE_OK = "SPK_NAV_20242503_070026814_ANV.txt"
 const val SPK_FILE_FEIL = "SPK_NAV_20242503_080026814_ANV.txt"
 const val SPK_FEIL_BELOPSUM = "SPK_NAV_20252503_080026814_ANV.txt"
 const val SPK_FEIL_ANTALL_TRANSAKSJONER = "SPK_NAV_20262503_080026814_ANV.txt"
 const val SPK_FEIL_LOPENUMMER_DUBLETT = "SPK_NAV_20272503_080026814_ANV.txt"
-const val SPK_FEIL_UGYLDIG_LOPENUMMER = "SPK_NAV_20282503_080026814_ANV.txt"
+const val SPK_FEIL_FORVENTET_FILLOPENUMMER = "SPK_NAV_20282503_080026814_ANV.txt"
 const val SPK_FEIL_UGYLDIG_PRODDATO = "SPK_NAV_20292503_080026814_ANV.txt"
+const val SPK_FEIL_UGYLDIG_TRANS_RECTYPE = "SPK_NAV_20302503_080026814_ANV.txt"
+const val SPK_FEIL_UGYLDIG_START_RECTYPE = "SPK_NAV_20312503_080026814_ANV.txt"
+const val SPK_FEIL_UGYLDIG_END_RECTYPE = "SPK_NAV_20322503_080026814_ANV.txt"
+const val SPK_FEIL_UGYLDIG_LOPENUMMER = "SPK_NAV_20332503_080026814_ANV.txt"
 const val SPK_TOO_FEW_TRANSACTIONS_AND_MISSING_SLUTTRECORD = "SPK_NAV_20302503_080026814_ANV.txt"
 
 object TestData {
@@ -22,9 +27,10 @@ object TestData {
         return RecordData(
             startRecord = startRecordMock(),
             endRecord = endRecordMock(),
-            transaksjonRecordList = MutableList(8) { transaksjonRecordnMock() },
+            transaksjonRecordList = MutableList(8) { transaksjonRecordMock() },
             totalBelop = 2775200L,
-            maxLopenummer = 122
+            maxLopenummer = 122,
+            fileStatus = FileStatus.OK
         )
     }
 
@@ -36,18 +42,20 @@ object TestData {
             filType = "ANV",
             produsertDato = LocalDate.now(),
             beskrivelse = "ANVISNINGSFIL",
-            rawRecord = "01SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00"
+            rawRecord = "01SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00",
+            fileStatus = FileStatus.OK
         )
     }
 
     fun endRecordMock(): EndRecord {
         return EndRecord(
             numberOfRecord = 8,
-            totalBelop = 2775200
+            totalBelop = 2775200,
+            fileStatus = FileStatus.OK
         )
     }
 
-    fun transaksjonRecordnMock(): TransaksjonRecord {
+    fun transaksjonRecordMock(): TransaksjonRecord {
         return TransaksjonRecord(
             transId = "116684810",
             fnr = "66064900162",
@@ -64,7 +72,8 @@ object TestData {
             prioritet = "",
             kid = "",
             trekkansvar = "",
-            grad = ""
+            grad = "",
+            fileStatus = FileStatus.OK
         )
     }
 

@@ -11,6 +11,5 @@ enum class FileStatus (val code: String, val message: String) {
     UGYLDIG_RECTYPE ("06", "Ugyldig recordtype"),
     UGYLDIG_ANTRECORDS ("07", "Oppsumert antall records %s stemmer ikke med det faktiske antallet %s"),
     UGYLDIG_SUMBELOP ("08", "Total beløp %s stemmer ikke med summeringen av enkelt beløpene %s"),
-    UGYLDIG_PRODDATO ("09", "Prod-dato (yyyymmdd) har ugyldig format"),
-    UKJENT ("10", "Ukjent feil ved parsing av fil")
+    UGYLDIG_PRODDATO ("09", "Prod-dato (yyyymmdd) har ugyldig format")
 }
