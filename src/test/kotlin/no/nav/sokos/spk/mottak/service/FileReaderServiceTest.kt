@@ -43,7 +43,8 @@ class FileReaderServiceTest : BehaviorSpec({
         FileReaderService(Db2Listener.dataSource, ftpService)
     }
 
-    afterEach{
+    afterEach {
+        Db2Listener.lopenummerRepository.updateLopenummer(33, FILETYPE_ANVISER, sessionOf(Db2Listener.dataSource))
         ftpService.deleteFile(Directories.INBOUND.value + "/SPK_NAV_*")
         ftpService.deleteFile(Directories.FERDIG.value + "/SPK_NAV_*")
         ftpService.deleteFile(Directories.ANVISNINGSRETUR.value + "/SPK_NAV_*")

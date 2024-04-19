@@ -87,7 +87,6 @@ dependencies {
     testImplementation("com.h2database:h2:$h2Version")
     testImplementation("io.kotest.extensions:kotest-extensions-wiremock:${kotestWiremockVersion}")
 
-    implementation(files("db2jcc_license_cisuz.jar"))
 }
 
 sourceSets {
@@ -106,6 +105,28 @@ kotlin {
 
 tasks {
 
+    withType<ShadowJar>().configureEach {
+        enabled = true
+        archiveFileName.set("app.jar")
+        manifest {
+            attributes["Main-Class"] = "no.nav.sokos.spk.mottak.ApplicationKt"
+            attributes["Class-Path"] = "/var/run/secrets/db2license/db2jcc_license_cisuz.jar"
+        }
+        finalizedBy(jacocoTestReport)
+    }
+
+    ("jar") {
+        enabled = false
+    }
+
+    withType<JacocoReport>().configureEach {
+        dependsOn(test)
+        reports {
+            html.required.set(true)
+        }
+    }
+
+
     withType<Test>().configureEach {
         useJUnitPlatform()
 
@@ -119,34 +140,7 @@ tasks {
         reports.forEach { report -> report.required.value(false) }
     }
 
-    withType<JacocoReport>().configureEach {
-        dependsOn(test)
-        reports {
-            html.required.set(true)
-        }
-    }
-
     withType<Wrapper>() {
         gradleVersion = "8.7"
-    }
-
-    named<Jar>("jar") {
-        archiveFileName.set("app.jar")
-        manifest {
-            attributes["Main-Class"] = "no.nav.sokos.spk.mottak.ApplicationKt"
-            attributes["Class-Path"] =
-                configurations.runtimeClasspath.get().joinToString(separator = " ") {
-                    it.name
-                }.plus(" db2jcc_license_cisuz.jar")
-        }
-        doLast {
-            configurations.runtimeClasspath.get().forEach {
-                val fileProvider: Provider<RegularFile> = layout.buildDirectory.file("libs/${it.name}")
-                val targetFile = File(fileProvider.get().toString())
-                if (!targetFile.exists()) {
-                    it.copyTo(targetFile)
-                }
-            }
-        }
     }
 }
