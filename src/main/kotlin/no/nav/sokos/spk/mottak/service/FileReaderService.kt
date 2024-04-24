@@ -68,7 +68,7 @@ class FileReaderService(
 
                     else -> {
                         logger.error { "Ukjent feil ved innlesing av fil: $filename: ${exception.message}" }
-                        throw RuntimeException("Unknown exception", exception)
+                        throw RuntimeException("Ukjent feil ved innlesing av fil: $filename: ${exception.message}")
                     }
                 }
             }

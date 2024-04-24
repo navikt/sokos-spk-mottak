@@ -1,18 +1,25 @@
 package no.nav.sokos.spk.mottak.service
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.contain
 import io.kotest.matchers.string.shouldBeBlank
 import kotliquery.sessionOf
 import no.nav.sokos.spk.mottak.SPK_FEIL_ANTALL_TRANSAKSJONER
 import no.nav.sokos.spk.mottak.SPK_FEIL_BELOPSUM
 import no.nav.sokos.spk.mottak.SPK_FEIL_FORVENTET_FILLOPENUMMER
 import no.nav.sokos.spk.mottak.SPK_FEIL_LOPENUMMER_DUBLETT
+import no.nav.sokos.spk.mottak.SPK_FEIL_MANGLER_SLUTTRECORD
+import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_ANVISER
 import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_END_RECTYPE
+import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_FILTYPE
 import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_LOPENUMMER
+import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_MOTTAKER
 import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_PRODDATO
 import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_START_RECTYPE
 import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_TRANS_RECTYPE
@@ -356,6 +363,116 @@ class FileReaderServiceTest : BehaviorSpec({
             }
         }
     }
+
+    Given("det finnes en ubehandlet fil med ugyldig mottaker  i \"inbound\" på FTP-serveren ") {
+        ftpService.createFile(
+            SPK_FEIL_UGYLDIG_MOTTAKER,
+            Directories.INBOUND,
+            SPK_FEIL_UGYLDIG_MOTTAKER.readFromResource()
+        )
+        When("leser filen på FTP-serveren og lagrer dataene.") {
+            Db2Listener.lopenummerRepository.updateLopenummer(41, FILETYPE_ANVISER, sessionOf(Db2Listener.dataSource))
+            fileReaderService.readAndParseFile()
+
+            Then("skal filen bli flyttet fra \"inbound\" til \"inbound/ferdig\" på FTP-serveren, ingen av transaksjonene blir lagret og en avviksfil blir opprettet i \"inbound\\anvisningsretur\"") {
+                ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
+                val sisteLopenummer = 42
+                val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
+                verifyLopenummer(lopenummer)
+
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(sisteLopenummer, FILTILSTANDTYPE_AVV)
+                val feiltekst = "Ugyldig mottaker"
+                verifyFilInfo(filInfo, FileStatus.UGYLDIG_MOTTAKER, FILTILSTANDTYPE_AVV, feiltekst)
+
+                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
+                inntransaksjonList.shouldBeEmpty()
+
+                ftpService.downloadFiles(Directories.ANVISNINGSRETUR).size shouldBe 1
+            }
+        }
+    }
+
+
+    Given("det finnes en ubehandlet fil med ugyldig filtype i \"inbound\" på FTP-serveren ") {
+        ftpService.createFile(
+            SPK_FEIL_UGYLDIG_FILTYPE,
+            Directories.INBOUND,
+            SPK_FEIL_UGYLDIG_FILTYPE.readFromResource()
+        )
+        When("leser filen på FTP-serveren og lagrer dataene.") {
+            Db2Listener.lopenummerRepository.updateLopenummer(42, FILETYPE_ANVISER, sessionOf(Db2Listener.dataSource))
+            fileReaderService.readAndParseFile()
+
+            Then("skal filen bli flyttet fra \"inbound\" til \"inbound/ferdig\" på FTP-serveren, ingen av transaksjonene blir lagret og en avviksfil blir opprettet i \"inbound\\anvisningsretur\"") {
+                ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
+                val sisteLopenummer = 42
+                val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
+                verifyLopenummer(lopenummer)
+
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(43, FILTILSTANDTYPE_AVV)
+                val feiltekst = "Ugyldig filtype"
+                verifyFilInfo(filInfo, FileStatus.UGYLDIG_FILTYPE, FILTILSTANDTYPE_AVV, feiltekst, "ANX", "SPK")
+
+                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
+                inntransaksjonList.shouldBeEmpty()
+
+                ftpService.downloadFiles(Directories.ANVISNINGSRETUR).size shouldBe 1
+            }
+        }
+    }
+
+    Given("det finnes en ubehandlet fil med ugyldig anviser i \"inbound\" på FTP-serveren ") {
+        ftpService.createFile(
+            SPK_FEIL_UGYLDIG_ANVISER,
+            Directories.INBOUND,
+            SPK_FEIL_UGYLDIG_ANVISER.readFromResource()
+        )
+        When("leser filen på FTP-serveren og lagrer dataene.") {
+            Db2Listener.lopenummerRepository.updateLopenummer(42, FILETYPE_ANVISER, sessionOf(Db2Listener.dataSource))
+            fileReaderService.readAndParseFile()
+
+            Then("skal filen bli flyttet fra \"inbound\" til \"inbound/ferdig\" på FTP-serveren, ingen av transaksjonene blir lagret og en avviksfil blir opprettet i \"inbound\\anvisningsretur\"") {
+                ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
+                val sisteLopenummer = 42
+                val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(sisteLopenummer)
+                verifyLopenummer(lopenummer)
+
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(43, FILTILSTANDTYPE_AVV, "SPX")
+                val feiltekst = "Ugyldig anviser"
+                verifyFilInfo(filInfo, FileStatus.UGYLDIG_ANVISER, FILTILSTANDTYPE_AVV, feiltekst, "ANV", "SPX")
+
+                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
+                inntransaksjonList.shouldBeEmpty()
+
+                ftpService.downloadFiles(Directories.ANVISNINGSRETUR).size shouldBe 1
+            }
+        }
+    }
+
+    Given("det finnes en ubehandlet fil med manglende sluttrecord i \"inbound\" på FTP-serveren ") {
+        ftpService.createFile(
+            SPK_FEIL_MANGLER_SLUTTRECORD,
+            Directories.INBOUND,
+            SPK_FEIL_MANGLER_SLUTTRECORD.readFromResource()
+        )
+        When("leser filen på FTP-serveren og lagrer dataene.") {
+            Db2Listener.lopenummerRepository.updateLopenummer(42, FILETYPE_ANVISER, sessionOf(Db2Listener.dataSource))
+            val exception = shouldThrow<Exception> {
+                fileReaderService.readAndParseFile()
+            }
+
+            Then("skal det kastes en exception med feilmelding om ukjent feil, ingen av transaksjonene blir lagret, filen blir ikke flyttet til \"inbound/ferdig\"  og ingen avviksfil blir opprettet") {
+                exception.message should contain("Ukjent feil ved innlesing av fil: SPK_NAV_20372503_080026814_ANV.txt")
+                ftpService.downloadFiles(Directories.FERDIG).size shouldBe 0
+                val sisteLopenummer = Db2Listener.lopenummerRepository.findMaxLopenummer(FILETYPE_ANVISER)
+                sisteLopenummer shouldBe 42
+
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(44, FILTILSTANDTYPE_AVV)
+                filInfo shouldBe null
+                ftpService.downloadFiles(Directories.ANVISNINGSRETUR).size shouldBe 0
+            }
+        }
+    }
 })
 
 private fun verifyInntransaksjon(innTransaksjon: InnTransaksjon, filInfoId: Int) {
@@ -409,14 +526,16 @@ private fun verifyFilInfo(
     filInfo: FilInfo?,
     fileStatus: FileStatus,
     filTilstandType: String,
-    feiltekst: String? = null
+    feiltekst: String? = null,
+    fileType: String = FILETYPE_ANVISER,
+    anviser: String = SPK
 ) {
     filInfo shouldNotBe null
     filInfo?.let {
         it.filInfoId shouldNotBe null
         it.filStatus shouldBe fileStatus.code
-        it.anviser shouldBe SPK
-        it.filType shouldBe FILETYPE_ANVISER
+        it.anviser shouldBe anviser
+        it.filType shouldBe fileType
         it.filTilstandType shouldBe filTilstandType
         it.filNavn shouldNotBe null
         it.lopenr shouldNotBe null
