@@ -23,6 +23,10 @@ object Db2Listener : BeforeSpecListener, AfterSpecListener {
     }
 
     override suspend fun afterSpec(spec: Spec) {
+        dataSource.getConnection().createStatement().execute("DROP TABLE IF EXISTS T_LOPENR")
+        dataSource.getConnection().createStatement().execute("DROP TABLE IF EXISTS  T_FIL_INFO")
+        dataSource.getConnection().createStatement().execute("DROP TABLE IF EXISTS  T_INN_TRANSAKSJON")
+        dataSource.getConnection().createStatement().execute("SHUTDOWN");
         dataSource.close()
     }
 }

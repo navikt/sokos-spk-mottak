@@ -12,13 +12,22 @@ import no.nav.sokos.spk.mottak.domain.FilInfo
 class FileInfoRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
 ) {
-    fun getFileInfo(lopenummer: Int): FilInfo? {
+    fun getFileInfo(
+        lopenummer: Int,
+        filTilstandType: String,
+        anviser: String = "SPK"
+    )
+            : FilInfo? {
         return sessionOf(dataSource).single(
             queryOf(
                 """
-                    SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopenummer
+                    SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopenummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = :anviser
                 """.trimIndent(),
-                mapOf("lopenummer" to lopenummer)
+                mapOf(
+                    "lopenummer" to lopenummer,
+                    "filTilstandType" to filTilstandType,
+                    "anviser" to anviser
+                )
             ), toFileInfo
         )
     }
@@ -95,7 +104,7 @@ class FileInfoRepository(
             row.string("FIL_NAVN"),
             row.int("LOPENR"),
             row.stringOrNull("FEILTEKST"),
-            row.localDate("DATO_MOTTATT"),
+            row.localDateOrNull("DATO_MOTTATT"),
             row.localDateOrNull("DATO_SENDT"),
             row.localDateTime("DATO_OPPRETTET"),
             row.string("OPPRETTET_AV"),

@@ -54,8 +54,10 @@ class FileReaderService(
                         this.filename = filename
                     }
 
-                    validateStartAndEndRecord(recordData)
-                    saveRecordDataAndMoveFile(recordData, session)
+                    if (recordData.fileStatus == FileStatus.OK) {
+                        validateStartAndEndRecord(recordData)
+                        saveRecordDataAndMoveFile(recordData, session)
+                    } else throw ValidationException(recordData.fileStatus)
                 }
             }.onFailure { exception ->
                 when {
@@ -66,7 +68,7 @@ class FileReaderService(
 
                     else -> {
                         logger.error { "Ukjent feil ved innlesing av fil: $filename: ${exception.message}" }
-                        throw RuntimeException("Unknown exception", exception)
+                        throw RuntimeException("Ukjent feil ved innlesing av fil: $filename: ${exception.message}")
                     }
                 }
             }
@@ -97,7 +99,7 @@ class FileReaderService(
         session: TransactionalSession
     ) {
         if (exception.statusCode != FileStatus.FILLOPENUMMER_I_BRUK.code
-            && exception.statusCode != FileStatus.FORVENTER_FILLOPENUMMER.code
+            && exception.statusCode != FileStatus.FORVENTET_FILLOPENUMMER.code
             && exception.statusCode != FileStatus.UGYLDIG_ANVISER.code
             && exception.statusCode != FileStatus.UGYLDIG_FILTYPE.code
         ) {
@@ -123,19 +125,23 @@ class FileReaderService(
         lateinit var startRecord: StartRecord
         lateinit var endRecord: EndRecord
         val transaksjonRecordList: MutableList<TransaksjonRecord> = mutableListOf()
+        var fileStatus = FileStatus.OK
 
         content.forEach { record ->
             if (totalRecord++ == 0) {
                 startRecord = FileParser.parseStartRecord(record)
+                if (fileStatus == FileStatus.OK && startRecord.fileStatus != FileStatus.OK) fileStatus = startRecord.fileStatus
                 logger.debug { "Start-record: $record" }
             } else {
                 if (content.size != totalRecord) {
                     val transaction = FileParser.parseTransaction(record)
+                    if (fileStatus == FileStatus.OK && transaction.fileStatus != FileStatus.OK) fileStatus = transaction.fileStatus
                     totalBelop += transaction.belop.toLong()
                     transaksjonRecordList.add(transaction)
                 } else {
                     logger.debug { "End-record: '$record'" }
                     endRecord = FileParser.parseEndRecord(record)
+                    if (fileStatus == FileStatus.OK && endRecord.fileStatus != FileStatus.OK) fileStatus = endRecord.fileStatus
                 }
             }
         }
@@ -143,7 +149,8 @@ class FileReaderService(
             startRecord = startRecord,
             endRecord = endRecord,
             transaksjonRecordList = transaksjonRecordList,
-            totalBelop = totalBelop
+            totalBelop = totalBelop,
+            fileStatus = fileStatus
         )
     }
 

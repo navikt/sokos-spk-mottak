@@ -20,7 +20,7 @@ class FtpService(
 
     fun createFile(fileName: String, directory: Directories, content: String) {
         getSftpChannel().apply {
-            logger.debug { "Lager fil: $fileName i mappen: ${directory.value}" }
+            logger.info { "Lager fil: $fileName i mappen: ${directory.value}" }
             val path = "${directory.value}/$fileName"
             try {
                 put(content.toByteArray().inputStream(), path)
@@ -36,7 +36,7 @@ class FtpService(
 
     fun moveFile(fileName: String, from: Directories, to: Directories) {
         getSftpChannel().apply {
-            logger.debug { "Flytter fil: $fileName fra ${from.value} til ${to.value}" }
+            logger.info { "Flytter fil: $fileName fra ${from.value} til ${to.value}" }
             val oldpath = "${from.value}/$fileName"
             val newpath = "${to.value}/$fileName"
 
@@ -45,6 +45,24 @@ class FtpService(
             } catch (e: SftpException) {
                 logger.error {
                     "Feil i flytting av fil fra $oldpath til $newpath: ${e.message}"
+                }
+                throw e
+            } finally {
+                exit()
+            }
+        }
+    }
+
+    fun deleteFile(fileName: String) {
+        getSftpChannel().apply {
+            logger.debug { "Fjerner fil: $fileName" }
+
+            try {
+                logger.info { "Fjerner fil: $fileName" }
+                rm(fileName)
+            } catch (e: SftpException) {
+                logger.error {
+                    "Feil i fjerning av fil $fileName: ${e.message}"
                 }
                 throw e
             } finally {
@@ -63,7 +81,7 @@ class FtpService(
                     .sorted()
                     .associateWith {
                         fileName = "${directory.value}/$it"
-                        logger.debug { "Henter fil: $fileName" }
+                        logger.info { "Henter fil: $fileName" }
                         val outputStream = ByteArrayOutputStream()
 
                         get(fileName, outputStream)
