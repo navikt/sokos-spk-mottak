@@ -20,7 +20,7 @@ object FileValidation {
                 throw FileValidationException(FileStatus.FILLOPENUMMER_I_BRUK.code, String.format(FileStatus.FILLOPENUMMER_I_BRUK.message, "${recordData.startRecord.filLopenummer}"))
 
             recordData.maxLopenummer?.let { max -> (max + 1) != recordData.startRecord.filLopenummer } ?: false ->
-                throw FileValidationException(FileStatus.FORVENTER_FILLOPENUMMER.code, String.format(FileStatus.FORVENTER_FILLOPENUMMER.message, "${recordData.maxLopenummer!! + 1}"))
+                throw FileValidationException(FileStatus.FORVENTET_FILLOPENUMMER.code, String.format(FileStatus.FORVENTET_FILLOPENUMMER.message, "${recordData.maxLopenummer!! + 1}"))
 
             recordData.endRecord.totalBelop != recordData.totalBelop ->
                 throw FileValidationException(FileStatus.UGYLDIG_SUMBELOP.code, String.format(FileStatus.UGYLDIG_SUMBELOP.message, "${recordData.endRecord.totalBelop}", "${recordData.totalBelop}"))

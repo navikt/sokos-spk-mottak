@@ -12,7 +12,7 @@ data class FilInfo(
     val filNavn: String,
     val lopenr: Int,
     val feiltekst: String?,
-    val datoMottatt: LocalDate,
+    val datoMottatt: LocalDate?,
     val datoSendt: LocalDate?,
     val datoOpprettet: LocalDateTime,
     val opprettetAv: String,

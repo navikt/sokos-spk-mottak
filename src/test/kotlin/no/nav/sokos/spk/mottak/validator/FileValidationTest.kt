@@ -69,7 +69,7 @@ class FileValidationTest : ExpectSpec({
                 )
                 FileValidation.validateStartAndEndRecord(recordData)
             }
-            exception.statusCode shouldBe FileStatus.FORVENTER_FILLOPENUMMER.code
+            exception.statusCode shouldBe FileStatus.FORVENTET_FILLOPENUMMER.code
             exception.message shouldBe "Forventet lopenummer 122"
         }
 
