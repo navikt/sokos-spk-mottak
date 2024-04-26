@@ -39,7 +39,6 @@ object SftpListener : BeforeSpecListener, AfterSpecListener {
 
     override suspend fun beforeSpec(spec: Spec) {
         genericContainer.start()
-
     }
 
     override suspend fun afterSpec(spec: Spec) {

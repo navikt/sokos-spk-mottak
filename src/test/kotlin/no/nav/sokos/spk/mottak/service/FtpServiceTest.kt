@@ -13,19 +13,8 @@ internal class FtpServiceTest : FunSpec({
         FtpService(SftpConfig(SftpListener.sftpConfig).createSftpConnection())
     }
 
-    test("opprette fil i inbound og hente den ut igjen") {
+    test("opprett fil i INBOUND, flytt til FERDIG og last ned fil fra FERDIG") {
         ftpService.createFile("test.txt", Directories.INBOUND, "content")
-
-        val downloadedFiles = ftpService.downloadFiles()
-        downloadedFiles.size shouldBe 1
-
-    }
-
-    test("opprette fil i inbound, flytte fra inbound til outbound og hente den ut igjen") {
-        ftpService.createFile("test.txt", Directories.INBOUND, "content")
-
-        val downloadedFiles = ftpService.downloadFiles()
-        downloadedFiles.size shouldBe 1
 
         ftpService.moveFile("test.txt", Directories.INBOUND, Directories.FERDIG)
 

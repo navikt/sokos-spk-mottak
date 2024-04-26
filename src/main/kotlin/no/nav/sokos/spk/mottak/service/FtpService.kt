@@ -53,6 +53,7 @@ class FtpService(
         }
     }
 
+    // TODO: Flytte denne ut til test istedenfor her fordi denne brukes ikke i applikasjonen
     fun deleteFile(fileName: String) {
         getSftpChannel().apply {
             logger.debug { "Fjerner fil: $fileName" }

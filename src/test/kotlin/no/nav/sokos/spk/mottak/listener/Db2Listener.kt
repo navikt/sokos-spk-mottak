@@ -11,10 +11,12 @@ import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.LopenummerRepository
 
 object Db2Listener : BeforeSpecListener, AfterSpecListener {
+
     val dataSource = HikariDataSource(DatabaseTestConfig().hikariConfig())
     val lopenummerRepository = LopenummerRepository(dataSource)
     val innTransaksjonRepository = InnTransaksjonRepository(dataSource)
     val fileInfoRepository = FileInfoRepository(dataSource)
+
     override suspend fun beforeSpec(spec: Spec) {
         dataSource shouldNotBe null
         lopenummerRepository shouldNotBe null
@@ -23,10 +25,6 @@ object Db2Listener : BeforeSpecListener, AfterSpecListener {
     }
 
     override suspend fun afterSpec(spec: Spec) {
-        dataSource.getConnection().createStatement().execute("DROP TABLE IF EXISTS T_LOPENR")
-        dataSource.getConnection().createStatement().execute("DROP TABLE IF EXISTS  T_FIL_INFO")
-        dataSource.getConnection().createStatement().execute("DROP TABLE IF EXISTS  T_INN_TRANSAKSJON")
-        dataSource.getConnection().createStatement().execute("SHUTDOWN");
         dataSource.close()
     }
 }

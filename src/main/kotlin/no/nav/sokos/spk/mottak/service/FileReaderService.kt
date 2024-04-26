@@ -1,6 +1,8 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.zaxxer.hikari.HikariDataSource
+import java.text.SimpleDateFormat
+import java.util.Date
 import kotliquery.TransactionalSession
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
@@ -20,8 +22,6 @@ import no.nav.sokos.spk.mottak.repository.LopenummerRepository
 import no.nav.sokos.spk.mottak.util.FileParser
 import no.nav.sokos.spk.mottak.validator.FileStatus
 import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndEndRecord
-import java.text.SimpleDateFormat
-import java.util.Date
 
 private const val BATCH_SIZE: Int = 20000
 private val logger = KotlinLogging.logger {}
@@ -130,18 +130,21 @@ class FileReaderService(
         content.forEach { record ->
             if (totalRecord++ == 0) {
                 startRecord = FileParser.parseStartRecord(record)
-                if (fileStatus == FileStatus.OK && startRecord.fileStatus != FileStatus.OK) fileStatus = startRecord.fileStatus
+                if (fileStatus == FileStatus.OK && startRecord.fileStatus != FileStatus.OK) fileStatus =
+                    startRecord.fileStatus
                 logger.debug { "Start-record: $record" }
             } else {
-                if (content.size != totalRecord) {
+                if (content.size != totalRecord) { // TODO: Sjekk om det er en bedre måte å sjekke på
                     val transaction = FileParser.parseTransaction(record)
-                    if (fileStatus == FileStatus.OK && transaction.fileStatus != FileStatus.OK) fileStatus = transaction.fileStatus
+                    if (fileStatus == FileStatus.OK && transaction.fileStatus != FileStatus.OK) fileStatus =
+                        transaction.fileStatus
                     totalBelop += transaction.belop.toLong()
                     transaksjonRecordList.add(transaction)
                 } else {
                     logger.debug { "End-record: '$record'" }
                     endRecord = FileParser.parseEndRecord(record)
-                    if (fileStatus == FileStatus.OK && endRecord.fileStatus != FileStatus.OK) fileStatus = endRecord.fileStatus
+                    if (fileStatus == FileStatus.OK && endRecord.fileStatus != FileStatus.OK) fileStatus =
+                        endRecord.fileStatus
                 }
             }
         }

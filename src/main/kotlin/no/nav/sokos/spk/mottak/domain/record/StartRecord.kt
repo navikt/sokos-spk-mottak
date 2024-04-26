@@ -4,6 +4,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FilInfo
+import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.validator.FileStatus
 
 data class StartRecord(
@@ -21,7 +22,7 @@ fun StartRecord.toFileInfo(fileName: String, filTilstandType: String, filStatus:
     return FilInfo(
         filStatus = filStatus,
         filTilstandType = filTilstandType,
-        anviser = this.avsender,
+        anviser = SPK,
         filType = this.filType,
         filNavn = fileName,
         lopenr = this.filLopenummer,

@@ -8,7 +8,6 @@ import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate
 import no.nav.sokos.spk.mottak.validator.FileStatus
-import java.time.LocalDate
 
 object FileParser {
     fun parseStartRecord(record: String): StartRecord {
