@@ -6,6 +6,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.httpClient
@@ -22,26 +23,29 @@ class FullmaktClientService(
     private val accessTokenClient: AccessTokenClient = AccessTokenClient()
 ) {
 
-    suspend fun getFullmakter(): Map<String, String> {
+    fun getFullmakt(): Map<String, String> {
         var side = 0
         val antall = 1000
         val fullmaktMap = mutableMapOf<String, String>()
-        while (true) {
-            val fullmaktList = getFullmaktMottakere(side, antall)
-            when {
-                fullmaktList.isNotEmpty() -> {
-                    fullmaktMap.putAll(fullmaktList.map { (it.aktorIdentGirFullmakt to it.aktorIdentMottarFullmakt) })
-                    side++
-                }
 
-                else -> break
+        runBlocking {
+            while (true) {
+                val fullmaktList = getFullmaktMottaker(side, antall)
+                when {
+                    fullmaktList.isNotEmpty() -> {
+                        fullmaktMap.putAll(fullmaktList.map { it.aktorIdentGirFullmakt to it.aktorIdentMottarFullmakt })
+                        side++
+                    }
+
+                    else -> break
+                }
             }
+            logger.info { "Returnerer ${fullmaktMap.size} fullmakter" }
         }
-        logger.info { "Returnerer ${fullmaktMap.size} fullmakter" }
         return fullmaktMap
     }
 
-    private suspend fun getFullmaktMottakere(side: Int, antall: Int): List<FullmaktDTO> =
+    private suspend fun getFullmaktMottaker(side: Int, antall: Int): List<FullmaktDTO> =
         retry {
             logger.debug { "Henter fullmakter" }
             val accessToken = accessTokenClient.hentAccessToken()

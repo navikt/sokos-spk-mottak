@@ -2,6 +2,7 @@ package no.nav.sokos.spk.mottak.domain
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+import no.nav.sokos.spk.mottak.config.PropertiesConfig
 
 data class InnTransaksjon(
     val innTransaksjonId: Int? = null,
@@ -17,8 +18,8 @@ data class InnTransaksjon(
     val datoAnviserStr: String,
     val belopStr: String,
     val refTransId: String,
-    val tekstKode: String,
-    val recType: String,
+    val tekstkode: String,
+    val rectype: String,
     val transId: String,
     val datoFom: LocalDate,
     val datoTom: LocalDate,
@@ -35,7 +36,51 @@ data class InnTransaksjon(
     val saldoStr: String,
     val kid: String,
     val prioritet: LocalDate?,
-    val saldo: Int,
+    val saldo: Int?,
     val grad: Int?,
-    val gradStr: String
+    val gradStr: String,
+    val personId: Int? = null
 )
+
+fun InnTransaksjon.toTransaksjon(transaksjon: Transaksjon?): Transaksjon {
+    val systemId = PropertiesConfig.Configuration().naisAppName
+    return Transaksjon(
+        transaksjonId = this.innTransaksjonId,
+        filInfoId = this.filInfoId,
+        transaksjonStatus = this.transaksjonStatus!!,
+        personId = this.personId ?: 600002,
+        beloptype = this.belopstype,
+        art = this.art,
+        anviser = this.avsender,
+        fnr = this.fnr,
+        utbetalesTil = this.utbetalesTil,
+        datoFom = this.datoFom,
+        datoTom = this.datoTom,
+        datoAnviser = this.datoAnviser,
+        datoPersonFom = LocalDate.of(1900, 1, 1),
+        datoReakFom = LocalDate.of(1900, 1, 1),
+        belop = this.belop,
+        refTransId = this.refTransId,
+        tekstkode = this.tekstkode,
+        rectype = this.rectype,
+        transEksId = this.transId,
+        transTolkning = transaksjon?.let { TRANS_TOLKNING_NY_EKSIST } ?: TRANS_TOLKNING_NY,
+        sendtTilOppdrag = "0",
+        fnrEndret = transaksjon?.let { it.fnr != this.fnr } ?: false,
+        motId = "",
+        datoOpprettet = LocalDateTime.now(),
+        opprettetAv = systemId,
+        datoEndret = LocalDateTime.now(),
+        endretAv = systemId,
+        versjon = 1,
+        saldo = this.saldo,
+        kid = this.kid,
+        prioritet = this.prioritet,
+        trekkansvar = TREKKANSVAR_4819,
+        transTilstandType = TRANS_TILSTAND_OPR,
+        grad = this.grad
+    )
+}
+
+
+fun InnTransaksjon.isTransaksjonStatusOK(): Boolean = this.transaksjonStatus == TRANSAKSJONSTATUS_OK

@@ -40,7 +40,7 @@ class FileParserTest : BehaviorSpec({
                 inntransaksjon.belop shouldBe "00000346900"
                 inntransaksjon.art shouldBe "UFT"
                 inntransaksjon.refTransId shouldBe ""
-                inntransaksjon.tekstKode shouldBe ""
+                inntransaksjon.tekstkode shouldBe ""
                 inntransaksjon.saldo shouldBe "00000000410"
                 inntransaksjon.prioritet shouldBe ""
                 inntransaksjon.kid shouldBe ""

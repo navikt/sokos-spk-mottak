@@ -19,6 +19,7 @@ data class StartRecord(
 )
 
 fun StartRecord.toFileInfo(fileName: String, filTilstandType: String, filStatus: String, feiltekst: String? = null): FilInfo {
+    val systemId = PropertiesConfig.Configuration().naisAppName
     return FilInfo(
         filStatus = filStatus,
         filTilstandType = filTilstandType,
@@ -30,9 +31,9 @@ fun StartRecord.toFileInfo(fileName: String, filTilstandType: String, filStatus:
         datoMottatt = this.produsertDato,
         datoSendt = null,
         datoOpprettet = LocalDateTime.now(),
-        opprettetAv = PropertiesConfig.Configuration().naisAppName,
+        opprettetAv = systemId,
         datoEndret = LocalDateTime.now(),
-        endretAv = PropertiesConfig.Configuration().naisAppName,
+        endretAv = systemId,
         versjon = 1
     )
 }

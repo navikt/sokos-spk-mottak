@@ -6,30 +6,84 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.BEHANDLET_JA
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_NEI
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
+import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
-import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate
+import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_01_UNIK_ID
+import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_02_GYLDIG_FODSELSNUMMER
+import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_03_GYLDIG_PERIODE
+import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_04_GYDLIG_BELOPSTYPE
+import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_05_UGYLDIG_ART
+import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_06_GYLDIG_REFERANSE
+import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_08_GYLDIG_UTBETALES_TIL
+import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_09_GYLDIG_ANVISER_DATO
+import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_10_GYLDIG_BELOP
+import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_11_GYLDIG_KOMBINASJON_ART_OG_BELOPSTYPE
+import no.nav.sokos.spk.mottak.util.Util.toLocalDate
+
+private const val READ_ROWS: Int = 10000
 
 class InnTransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
 ) {
-    fun getInnTransaksjoner(filInfoId: Int): List<InnTransaksjon> {
-        return sessionOf(dataSource).list(
+    fun getByFilInfoId(filInfoId: Int): List<InnTransaksjon> {
+        return using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    SELECT * FROM T_INN_TRANSAKSJON WHERE FIL_INFO_ID = $filInfoId
+                """.trimIndent()
+                ), toInntransaksjon
+            )
+        }
+    }
+
+    fun getByTransaksjonStatusIsNullWithPersonId(rows: Int = READ_ROWS): List<InnTransaksjon> {
+        return using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                        SELECT t.*, p.PERSON_ID FROM T_INN_TRANSAKSJON t LEFT OUTER JOIN T_PERSON p ON t.FNR_FK = p.FNR_FK
+                        WHERE t.BEHANDLET = 'N'
+                        ORDER BY t.FIL_INFO_ID, t.INN_TRANSAKSJON_ID
+                        FETCH FIRST $rows ROWS ONLY;
+                    """.trimIndent()
+                ), toInntransaksjon
+            )
+        }
+    }
+
+    fun validateTransaksjon(session: Session) {
+        session.run(queryOf(VALIDATOR_01_UNIK_ID).asUpdate)
+        session.run(queryOf(VALIDATOR_02_GYLDIG_FODSELSNUMMER).asUpdate)
+        session.run(queryOf(VALIDATOR_03_GYLDIG_PERIODE).asUpdate)
+        session.run(queryOf(VALIDATOR_08_GYLDIG_UTBETALES_TIL).asUpdate)
+        session.run(queryOf(VALIDATOR_09_GYLDIG_ANVISER_DATO).asUpdate)
+        session.run(queryOf(VALIDATOR_10_GYLDIG_BELOP).asUpdate)
+        session.run(queryOf(VALIDATOR_04_GYDLIG_BELOPSTYPE).asUpdate)
+        session.run(queryOf(VALIDATOR_05_UGYLDIG_ART).asUpdate)
+        session.run(queryOf(VALIDATOR_11_GYLDIG_KOMBINASJON_ART_OG_BELOPSTYPE).asUpdate)
+        session.run(queryOf(VALIDATOR_06_GYLDIG_REFERANSE).asUpdate)
+
+        // set OK til resterende T_INN_TRANSAKSJON med K_TRANSAKSJON_S='00'
+        session.run(
             queryOf(
                 """
-                    SELECT * FROM T_INN_TRANSAKSJON WHERE FIL_INFO_ID = :filInfoId
-                """.trimIndent(),
-                mapOf("filInfoId" to filInfoId)
-            ), toInntransaksjon
+                    UPDATE T_INN_TRANSAKSJON SET K_TRANSAKSJON_S='$TRANSAKSJONSTATUS_OK'
+                    WHERE K_TRANSAKSJON_S IS NULL                
+                """.trimIndent()
+            ).asUpdate
         )
     }
 
-    fun insertTransactionBatch(transaksjonRecordList: List<TransaksjonRecord>, filInfoId: Long, session: Session) {
+    fun insertBatch(transaksjonRecordList: List<TransaksjonRecord>, filInfoId: Long, session: Session) {
         session.batchPreparedNamedStatement(
             """
                 INSERT INTO T_INN_TRANSAKSJON (
@@ -71,8 +125,18 @@ class InnTransaksjonRepository(
         )
     }
 
+    fun updateBehandletStatusBatch(innTransaksjonIdList: List<Int>, session: Session) {
+        session.batchPreparedNamedStatement(
+            """
+                UPDATE T_INN_TRANSAKSJON SET BEHANDLET = '$BEHANDLET_JA' WHERE INN_TRANSAKSJON_ID = :innTransaksjonId
+            """.trimIndent(),
+            innTransaksjonIdList.map { mapOf("innTransaksjonId" to it) }
+        )
+    }
+
 
     private fun List<TransaksjonRecord>.convertToListMap(filInfoId: Long): List<Map<String, Any?>> {
+        val systemId = PropertiesConfig.Configuration().naisAppName
         return this.map { transaksjonRecord ->
             mapOf(
                 "filInfoId" to filInfoId,
@@ -87,18 +151,18 @@ class InnTransaksjonRepository(
                 "datoAnviserStr" to transaksjonRecord.datoAnviser,
                 "belopStr" to transaksjonRecord.belop,
                 "refTransId" to transaksjonRecord.refTransId,
-                "tekstkode" to transaksjonRecord.tekstKode,
+                "tekstkode" to transaksjonRecord.tekstkode,
                 "rectype" to RECTYPE_TRANSAKSJONSRECORD,
                 "transId" to transaksjonRecord.transId,
                 "datoFom" to transaksjonRecord.datoFom.toLocalDate(),
                 "datoTom" to transaksjonRecord.datoTom.toLocalDate(),
                 "datoAnviser" to transaksjonRecord.datoAnviser.toLocalDate(),
-                "belop" to transaksjonRecord.belop.toIntOrNull(),
+                "belop" to (transaksjonRecord.belop.toIntOrNull() ?: 0),
                 "behandlet" to BEHANDLET_NEI,
                 "datoOpprettet" to LocalDateTime.now(),
-                "opprettetAv" to PropertiesConfig.Configuration().naisAppName,
+                "opprettetAv" to systemId,
                 "datoEndret" to LocalDateTime.now(),
-                "endretAv" to PropertiesConfig.Configuration().naisAppName,
+                "endretAv" to systemId,
                 "versjon" to "1",
                 "prioritetStr" to transaksjonRecord.prioritet,
                 "trekkansvar" to transaksjonRecord.trekkansvar,
@@ -145,10 +209,17 @@ class InnTransaksjonRepository(
             row.string("SALDO_STR"),
             row.string("KID"),
             row.localDateOrNull("PRIORITET"),
-            row.int("SALDO"),
+            row.intOrNull("SALDO"),
             row.intOrNull("GRAD"),
-            row.string("GRAD_STR")
+            row.string("GRAD_STR"),
+            row.optionalIntOrNull("PERSON_ID")
         )
+    }
+
+    private fun Row.optionalIntOrNull(columnLable: String): Int? {
+        return runCatching {
+            this.intOrNull(columnLable)
+        }.getOrNull()
     }
 }
 

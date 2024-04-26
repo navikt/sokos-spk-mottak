@@ -6,7 +6,7 @@ import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.record.EndRecord
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
-import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate
+import no.nav.sokos.spk.mottak.util.Util.toLocalDate
 import no.nav.sokos.spk.mottak.validator.FileStatus
 
 object FileParser {
@@ -14,7 +14,7 @@ object FileParser {
         var fileStatus = FileStatus.OK
         if (record.getString(0, 2) != RECTYPE_STARTRECORD) {
             fileStatus = FileStatus.UGYLDIG_RECTYPE
-        }  else {
+        } else {
             runCatching {
                 record.getString(24, 30).toInt() // filLopenummer
                 record.getString(33, 41).toLocalDate()!! // produsertDato
@@ -66,7 +66,7 @@ object FileParser {
             belop = record.getString(62, 73),
             art = record.getString(73, 77),
             refTransId = record.getString(77, 89),
-            tekstKode = record.getString(89, 93),
+            tekstkode = record.getString(89, 93),
             saldo = record.getString(93, 104),
             prioritet = record.getString(104, 112),
             kid = record.getString(112, 138),

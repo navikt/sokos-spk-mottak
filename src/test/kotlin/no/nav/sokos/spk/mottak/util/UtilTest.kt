@@ -3,9 +3,9 @@ package no.nav.sokos.spk.mottak.util
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import java.time.LocalDate
-import no.nav.sokos.spk.mottak.util.StringUtil.toLocalDate
+import no.nav.sokos.spk.mottak.util.Util.toLocalDate
 
-class StringUtilTest : ExpectSpec({
+class UtilTest : ExpectSpec({
 
     context("string konverteres til LocalDate") {
 

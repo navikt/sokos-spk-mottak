@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldBeBlank
 import java.time.LocalDate
-import kotliquery.sessionOf
 import no.nav.sokos.spk.mottak.SPK_FEIL_FILLOPENUMMER_I_BRUK
 import no.nav.sokos.spk.mottak.SPK_FEIL_FORVENTET_FILLOPENUMMER
 import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_ANTRECORDS
@@ -36,6 +35,7 @@ import no.nav.sokos.spk.mottak.domain.Lopenummer
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.listener.Db2Listener
+import no.nav.sokos.spk.mottak.listener.Db2Listener.dataSource
 import no.nav.sokos.spk.mottak.listener.SftpListener
 import no.nav.sokos.spk.mottak.validator.FileStatus
 
@@ -43,7 +43,6 @@ private const val SYSTEM_ID = "sokos-spk-mottak"
 private const val MAX_LOPENUMMER = 33
 
 class FileReaderServiceTest : BehaviorSpec({
-
     extensions(listOf(Db2Listener, SftpListener))
 
     val ftpService: FtpService by lazy {
@@ -51,14 +50,16 @@ class FileReaderServiceTest : BehaviorSpec({
     }
 
     val fileReaderService: FileReaderService by lazy {
-        FileReaderService(Db2Listener.dataSource, ftpService)
+        FileReaderService(dataSource, ftpService)
     }
 
     afterEach {
-        Db2Listener.lopenummerRepository.updateLopenummer(MAX_LOPENUMMER, FILETYPE_ANVISER, sessionOf(Db2Listener.dataSource))
-        Db2Listener.dataSource.connection.createStatement().execute("DELETE FROM T_FIL_INFO")
+        SftpListener.deleteFile(
+            Directories.INBOUND.value + "/SPK_NAV_*",
+            Directories.FERDIG.value + "/SPK_NAV_*",
+            Directories.ANVISNINGSRETUR.value + "/SPK_NAV_*"
+        )
     }
-
 
     Given("det finnes en ubehandlet fil i \"inbound\" på FTP-serveren ") {
         ftpService.createFile(SPK_FILE_OK, Directories.INBOUND, SPK_FILE_OK.readFromResource())
@@ -76,11 +77,9 @@ class FileReaderServiceTest : BehaviorSpec({
                 val filInfo = Db2Listener.fileInfoRepository.getFileInfo(lopeNummerFraFil, FILTILSTANDTYPE_GOD)
                 verifyFilInfo(filInfo, FileStatus.OK, FILTILSTANDTYPE_GOD)
 
-                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
+                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getByFilInfoId(filInfo?.filInfoId!!)
                 inntransaksjonList.size shouldBe 8
                 verifyInntransaksjon(inntransaksjonList.first(), filInfo.filInfoId!!)
-
-                ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
             }
         }
     }
@@ -94,6 +93,7 @@ class FileReaderServiceTest : BehaviorSpec({
 
             Then("skal begge filene bli flyttet fra \"inbound\" til \"inbound/ferdig\", transaksjoner blir lagret i databasen og en avviksfil blir opprettet i \"inbound\\anvisningsretur\"") {
                 ftpService.downloadFiles(Directories.FERDIG).size shouldBe 2
+                ftpService.downloadFiles(Directories.ANVISNINGSRETUR).size shouldBe 1
 
                 val lopeNummerFraFil = 35
                 val lopenummer = Db2Listener.lopenummerRepository.getLopenummer(lopeNummerFraFil)
@@ -103,10 +103,8 @@ class FileReaderServiceTest : BehaviorSpec({
                 val feiltekst = "Total beløp 2775100 stemmer ikke med summeringen av enkelt beløpene 2775200"
                 verifyFilInfo(filInfo, FileStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, feiltekst)
 
-                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getInnTransaksjoner(filInfo?.filInfoId!!)
+                val inntransaksjonList = Db2Listener.innTransaksjonRepository.getByFilInfoId(filInfo?.filInfoId!!)
                 inntransaksjonList.shouldBeEmpty()
-
-                ftpService.downloadFiles(Directories.ANVISNINGSRETUR).size shouldBe 1
             }
         }
     }
@@ -126,7 +124,7 @@ class FileReaderServiceTest : BehaviorSpec({
         }
     }
 
-    Given("det finnes ubehandlet fil med ugyldig mottaker") {
+    Given("det finnes en ubehandlet fil med ugyldig mottaker") {
         ftpService.createFile(SPK_FEIL_UGYLDIG_MOTTAKER, Directories.INBOUND, SPK_FEIL_UGYLDIG_MOTTAKER.readFromResource())
 
         When("leser filen og parser") {
@@ -141,7 +139,7 @@ class FileReaderServiceTest : BehaviorSpec({
         }
     }
 
-    Given("det finnes ubehandlet fil med filløpenummer i bruk") {
+    Given("det finnes en ubehandlet fil med filløpenummer i bruk") {
         ftpService.createFile(SPK_FEIL_FILLOPENUMMER_I_BRUK, Directories.INBOUND, SPK_FEIL_FILLOPENUMMER_I_BRUK.readFromResource())
 
         When("leser filen og parser") {
@@ -156,7 +154,7 @@ class FileReaderServiceTest : BehaviorSpec({
         }
     }
 
-    Given("det finnes ubehandlet fil med ugyldig løpenummer") {
+    Given("det finnes en ubehandlet fil med ugyldig løpenummer") {
         ftpService.createFile(SPK_FEIL_UGYLDIG_LOPENUMMER, Directories.INBOUND, SPK_FEIL_UGYLDIG_LOPENUMMER.readFromResource())
 
         When("leser filen og parser") {
@@ -170,7 +168,7 @@ class FileReaderServiceTest : BehaviorSpec({
         }
     }
 
-    Given("det finnes ubehandlet fil med feil forventet løpenummer") {
+    Given("det finnes en ubehandlet fil med feil forventet løpenummer") {
         ftpService.createFile(SPK_FEIL_FORVENTET_FILLOPENUMMER, Directories.INBOUND, SPK_FEIL_FORVENTET_FILLOPENUMMER.readFromResource())
 
         When("leser filen og parser") {
@@ -185,7 +183,7 @@ class FileReaderServiceTest : BehaviorSpec({
         }
     }
 
-    Given("det finnes ubehandlet fil som har ugyldig filtype") {
+    Given("det finnes en ubehandlet fil som har ugyldig filtype") {
         ftpService.createFile(SPK_FEIL_UGYLDIG_FILTYPE, Directories.INBOUND, SPK_FEIL_UGYLDIG_FILTYPE.readFromResource())
 
         When("leser filen og parser") {
@@ -200,7 +198,7 @@ class FileReaderServiceTest : BehaviorSpec({
         }
     }
 
-    Given("det finnes ubehandlet fil med ugydlig antall records") {
+    Given("det finnes en ubehandlet fil med ugydlig antall records") {
         ftpService.createFile(SPK_FEIL_UGYLDIG_ANTRECORDS, Directories.INBOUND, SPK_FEIL_UGYLDIG_ANTRECORDS.readFromResource())
 
         When("leser filen og parser") {
@@ -281,24 +279,40 @@ class FileReaderServiceTest : BehaviorSpec({
         }
     }
 
-    // TODO: Fix test
-    Given("det finnes en ubehandlet fil med ugyldig transaksjonsbeløp") {
+    Given("det finnes en ubehandlet fil med ugyldig transaksjonsbeløp format") {
         ftpService.createFile(
             SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP,
             Directories.INBOUND,
             SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP.readFromResource()
         )
+        When("leser filen og parser") {
+            fileReaderService.readAndParseFile()
+
+            Then("skal fil info inneholde en filestatus UGYLDIG_SUMBELOP") {
+                val lopeNummerFraFil = 34
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
+                verifyFilInfo(filInfo, FileStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, "Total beløp 346900 stemmer ikke med summeringen av enkelt beløpene 0")
+                verifyLopenummer(Db2Listener.lopenummerRepository.getLopenummer(lopeNummerFraFil))
+            }
+        }
     }
 
-
-    // TODO: Fix test
     Given("det finnes en ubehandlet fil med ugyldig transaksjon-recordtype starter med 03") {
         ftpService.createFile(
             SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE,
             Directories.INBOUND,
             SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE.readFromResource()
         )
+        When("leser filen og parser") {
+            fileReaderService.readAndParseFile()
 
+            Then("skal fil info inneholde en filestatus UGYLDIG_RECTYPE") {
+                val lopeNummerFraFil = 34
+                val filInfo = Db2Listener.fileInfoRepository.getFileInfo(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
+                verifyFilInfo(filInfo, FileStatus.UGYLDIG_RECTYPE, FILTILSTANDTYPE_AVV, "Ugyldig recordtype")
+                verifyLopenummer(Db2Listener.lopenummerRepository.getLopenummer(lopeNummerFraFil))
+            }
+        }
     }
 })
 
@@ -316,8 +330,8 @@ private fun verifyInntransaksjon(innTransaksjon: InnTransaksjon, filInfoId: Int)
     innTransaksjon.datoAnviserStr shouldBe "20240131"
     innTransaksjon.belopStr shouldBe "00000346900"
     innTransaksjon.refTransId.shouldBeBlank()
-    innTransaksjon.tekstKode.shouldBeBlank()
-    innTransaksjon.recType shouldBe RECTYPE_TRANSAKSJONSRECORD
+    innTransaksjon.tekstkode.shouldBeBlank()
+    innTransaksjon.rectype shouldBe RECTYPE_TRANSAKSJONSRECORD
     innTransaksjon.transId shouldBe "116684810"
     innTransaksjon.datoFom shouldBe LocalDate.of(2024, 2, 1)
     innTransaksjon.datoTom shouldBe LocalDate.of(2024, 2, 29)

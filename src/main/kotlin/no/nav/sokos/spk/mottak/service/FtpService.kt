@@ -53,25 +53,6 @@ class FtpService(
         }
     }
 
-    // TODO: Flytte denne ut til test istedenfor her fordi denne brukes ikke i applikasjonen
-    fun deleteFile(fileName: String) {
-        getSftpChannel().apply {
-            logger.debug { "Fjerner fil: $fileName" }
-
-            try {
-                logger.info { "Fjerner fil: $fileName" }
-                rm(fileName)
-            } catch (e: SftpException) {
-                logger.error {
-                    "Feil i fjerning av fil $fileName: ${e.message}"
-                }
-                throw e
-            } finally {
-                exit()
-            }
-        }
-    }
-
     fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> {
         var fileName = ""
         getSftpChannel().apply {

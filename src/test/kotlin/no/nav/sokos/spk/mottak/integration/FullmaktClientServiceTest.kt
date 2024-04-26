@@ -37,7 +37,7 @@ class FullmaktClientServiceTest : FunSpec({
         )
         coEvery { accessTokenClient.hentAccessToken() } returns "token"
 
-        val fullmaktMap = fullmaktClientService.getFullmakter()
+        val fullmaktMap = fullmaktClientService.getFullmakt()
 
         fullmaktMap.size shouldBe 5
         fullmaktMap shouldBe mapOf(
@@ -79,7 +79,7 @@ class FullmaktClientServiceTest : FunSpec({
 
         coEvery { accessTokenClient.hentAccessToken() } returns "token"
 
-        val actualFullmakter = fullmaktClientService.getFullmakter()
+        val actualFullmakter = fullmaktClientService.getFullmakt()
         actualFullmakter.size shouldBe 5
     }
 
@@ -96,7 +96,7 @@ class FullmaktClientServiceTest : FunSpec({
         coEvery { accessTokenClient.hentAccessToken() } returns "token"
 
         shouldThrow<FullmaktException> {
-            fullmaktClientService.getFullmakter()
+            fullmaktClientService.getFullmakt()
         }.message shouldBe "Uforventet feil ved oppslag av fullmakter, statuscode: 500"
     }
 })

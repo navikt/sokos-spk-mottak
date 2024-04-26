@@ -5,9 +5,11 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FilInfo
+import no.nav.sokos.spk.mottak.util.Util.asMap
 
 class FileInfoRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
@@ -16,20 +18,21 @@ class FileInfoRepository(
         lopenummer: Int,
         filTilstandType: String,
         anviser: String = "SPK"
-    )
-            : FilInfo? {
-        return sessionOf(dataSource).single(
-            queryOf(
-                """
-                    SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopenummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = :anviser
-                """.trimIndent(),
-                mapOf(
-                    "lopenummer" to lopenummer,
-                    "filTilstandType" to filTilstandType,
-                    "anviser" to anviser
-                )
-            ), toFileInfo
-        )
+    ): FilInfo? {
+        return using(sessionOf(dataSource)) { session ->
+            session.single(
+                queryOf(
+                    """
+                        SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopenummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = :anviser
+                    """.trimIndent(),
+                    mapOf(
+                        "lopenummer" to lopenummer,
+                        "filTilstandType" to filTilstandType,
+                        "anviser" to anviser
+                    )
+                ), toFileInfo
+            )
+        }
     }
 
     fun updateFilInfoTilstandType(
@@ -56,40 +59,26 @@ class FileInfoRepository(
         )
     }
 
-    fun insertFilInfo(filInfo: FilInfo, session: Session): Long? {
+    fun insert(filInfo: FilInfo, session: Session): Long? {
         return session.run(
             queryOf(
                 """
-                        INSERT INTO T_FIL_INFO (
-                        K_FIL_S,
-                        K_FIL_TILSTAND_T,
-                        K_ANVISER,
-                        FIL_NAVN,
-                        LOPENR,
-                        DATO_MOTTATT,
-                        DATO_OPPRETTET,
-                        OPPRETTET_AV,
-                        DATO_ENDRET,
-                        ENDRET_AV,
-                        VERSJON,
-                        K_FIL_T,
-                        FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopenr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feiltekst)
-                    """.trimIndent(),
-                mapOf(
-                    "filStatus" to filInfo.filStatus,
-                    "filTilstandType" to filInfo.filTilstandType,
-                    "anviser" to filInfo.anviser,
-                    "filNavn" to filInfo.filNavn,
-                    "lopenr" to filInfo.lopenr,
-                    "datoMottatt" to filInfo.datoMottatt,
-                    "datoOpprettet" to filInfo.datoOpprettet,
-                    "opprettetAv" to filInfo.opprettetAv,
-                    "datoEndret" to filInfo.datoEndret,
-                    "endretAv" to filInfo.endretAv,
-                    "versjon" to filInfo.versjon,
-                    "filType" to filInfo.filType,
-                    "feiltekst" to filInfo.feiltekst
-                )
+                    INSERT INTO T_FIL_INFO (
+                    K_FIL_S,
+                    K_FIL_TILSTAND_T,
+                    K_ANVISER,
+                    FIL_NAVN,
+                    LOPENR,
+                    DATO_MOTTATT,
+                    DATO_OPPRETTET,
+                    OPPRETTET_AV,
+                    DATO_ENDRET,
+                    ENDRET_AV,
+                    VERSJON,
+                    K_FIL_T,
+                    FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopenr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feiltekst)
+                """.trimIndent(),
+                filInfo.asMap()
             ).asUpdateAndReturnGeneratedKey
         )
     }

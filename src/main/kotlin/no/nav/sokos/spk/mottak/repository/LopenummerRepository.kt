@@ -30,25 +30,27 @@ class LopenummerRepository(
     }
 
     fun getLopenummer(sisteLopenummer: Int): Lopenummer? {
-        return sessionOf(dataSource).single(
-            queryOf(
-                """
+        return using(sessionOf(dataSource)) { session ->
+            session.single(
+                queryOf(
+                    """
                         SELECT * FROM T_LOPENR WHERE SISTE_LOPENR = :sisteLopenummer
                     """.trimIndent(),
-                mapOf("sisteLopenummer" to sisteLopenummer)
-            ), toLopenummer
-        )
+                    mapOf("sisteLopenummer" to sisteLopenummer)
+                ), toLopenummer
+            )
+        }
     }
 
     fun updateLopenummer(lopenummer: Int, filType: String, session: Session) {
         session.run(
             queryOf(
                 """
-                        UPDATE T_LOPENR 
-                        SET SISTE_LOPENR = (:lopenummer), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP 
-                        WHERE K_ANVISER = 'SPK'
-                        AND K_FIL_T = (:filType)
-                    """.trimIndent(),
+                    UPDATE T_LOPENR 
+                    SET SISTE_LOPENR = (:lopenummer), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP 
+                    WHERE K_ANVISER = 'SPK'
+                    AND K_FIL_T = (:filType)
+                """.trimIndent(),
                 mapOf(
                     "lopenummer" to lopenummer,
                     "filType" to filType

@@ -13,7 +13,7 @@ data class TransaksjonRecord(
     val belop: String,
     val art: String,
     val refTransId: String,
-    val tekstKode: String,
+    val tekstkode: String,
     val saldo: String,
     val prioritet: String,
     val kid: String,

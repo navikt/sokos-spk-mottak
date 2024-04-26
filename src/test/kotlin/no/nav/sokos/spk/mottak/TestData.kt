@@ -70,7 +70,7 @@ object TestData {
             belop = "00000346900",
             art = "UFT",
             refTransId = "",
-            tekstKode = "",
+            tekstkode = "",
             saldo = "00000000410",
             prioritet = "",
             kid = "",

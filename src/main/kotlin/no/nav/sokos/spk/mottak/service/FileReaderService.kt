@@ -15,7 +15,7 @@ import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.domain.record.toFileInfo
-import no.nav.sokos.spk.mottak.exception.ValidationException
+import no.nav.sokos.spk.mottak.exception.FileValidationException
 import no.nav.sokos.spk.mottak.repository.FileInfoRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.LopenummerRepository
@@ -57,11 +57,11 @@ class FileReaderService(
                     if (recordData.fileStatus == FileStatus.OK) {
                         validateStartAndEndRecord(recordData)
                         saveRecordDataAndMoveFile(recordData, session)
-                    } else throw ValidationException(recordData.fileStatus)
+                    } else throw FileValidationException(recordData.fileStatus)
                 }
             }.onFailure { exception ->
                 when {
-                    exception is ValidationException ->
+                    exception is FileValidationException ->
                         dataSource.transaction() { session ->
                             updateFileStatusAndUploadAvviksFil(recordData, exception, session)
                         }
@@ -80,12 +80,12 @@ class FileReaderService(
         lopenummerRepository.updateLopenummer(recordData.startRecord.filLopenummer, FILETYPE_ANVISER, session)
 
         val filInfo = recordData.startRecord.toFileInfo(recordData.filename!!, FILTILSTANDTYPE_GOD, FileStatus.OK.code)
-        val filInfoId = fileInfoRepository.insertFilInfo(filInfo, session)!!
+        val filInfoId = fileInfoRepository.insert(filInfo, session)!!
 
         var antallInnTransaksjon = 0
         recordData.transaksjonRecordList.chunked(BATCH_SIZE).forEach { innTransaksjonList ->
             antallInnTransaksjon += innTransaksjonList.size
-            innTransaksjonRepository.insertTransactionBatch(innTransaksjonList, filInfoId, session)
+            innTransaksjonRepository.insertBatch(innTransaksjonList, filInfoId, session)
             logger.debug { "Antall innTransaksjon som er lagret i DB: $antallInnTransaksjon" }
         }
         recordData.transaksjonRecordList.clear()
@@ -95,7 +95,7 @@ class FileReaderService(
 
     private fun updateFileStatusAndUploadAvviksFil(
         recordData: RecordData,
-        exception: ValidationException,
+        exception: FileValidationException,
         session: TransactionalSession
     ) {
         if (exception.statusCode != FileStatus.FILLOPENUMMER_I_BRUK.code
@@ -112,7 +112,7 @@ class FileReaderService(
             exception.statusCode,
             exception.message
         )
-        fileInfoRepository.insertFilInfo(filInfo, session)!!
+        fileInfoRepository.insert(filInfo, session)!!
 
         createAvviksFil(recordData.startRecord.rawRecord, exception)
         logger.info { "Avviksfil er opprettet for fil: ${recordData.filename} med status: ${exception.statusCode} med løpenummer: ${recordData.startRecord.filLopenummer}" }
@@ -130,21 +130,24 @@ class FileReaderService(
         content.forEach { record ->
             if (totalRecord++ == 0) {
                 startRecord = FileParser.parseStartRecord(record)
-                if (fileStatus == FileStatus.OK && startRecord.fileStatus != FileStatus.OK) fileStatus =
-                    startRecord.fileStatus
+                if (fileStatus == FileStatus.OK && startRecord.fileStatus != FileStatus.OK) {
+                    fileStatus = startRecord.fileStatus
+                }
                 logger.debug { "Start-record: $record" }
             } else {
                 if (content.size != totalRecord) { // TODO: Sjekk om det er en bedre måte å sjekke på
                     val transaction = FileParser.parseTransaction(record)
-                    if (fileStatus == FileStatus.OK && transaction.fileStatus != FileStatus.OK) fileStatus =
-                        transaction.fileStatus
-                    totalBelop += transaction.belop.toLong()
+                    if (fileStatus == FileStatus.OK && transaction.fileStatus != FileStatus.OK) {
+                        fileStatus = transaction.fileStatus
+                    }
+                    totalBelop += transaction.belop.toLongOrNull() ?: 0L
                     transaksjonRecordList.add(transaction)
                 } else {
                     logger.debug { "End-record: '$record'" }
                     endRecord = FileParser.parseEndRecord(record)
-                    if (fileStatus == FileStatus.OK && endRecord.fileStatus != FileStatus.OK) fileStatus =
-                        endRecord.fileStatus
+                    if (fileStatus == FileStatus.OK && endRecord.fileStatus != FileStatus.OK) {
+                        fileStatus = endRecord.fileStatus
+                    }
                 }
             }
         }
@@ -157,14 +160,14 @@ class FileReaderService(
         )
     }
 
-    private fun createAvviksFil(startRecordUnparsed: String, exception: ValidationException) {
+    private fun createAvviksFil(startRecordUnparsed: String, exception: FileValidationException) {
         val fileName = createFileName()
         val content = createAvviksRecord(startRecordUnparsed, exception)
 
-        ftpService.createFile(fileName, Directories.ANVISNINGSRETUR, content)
+        ftpService.createFile(fileName = fileName, Directories.ANVISNINGSRETUR, content)
     }
 
-    private fun createAvviksRecord(startRecord: String, exception: ValidationException): String {
+    private fun createAvviksRecord(startRecord: String, exception: FileValidationException): String {
         return startRecord.replaceRange(76, 78, exception.statusCode)
             .replaceRange(78, startRecord.length, exception.message)
 

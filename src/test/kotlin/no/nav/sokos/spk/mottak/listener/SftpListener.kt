@@ -3,6 +3,9 @@ package no.nav.sokos.spk.mottak.listener
 import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.api.model.PortBinding
 import com.github.dockerjava.api.model.Ports
+import com.jcraft.jsch.ChannelSftp
+import com.jcraft.jsch.Session
+import com.jcraft.jsch.SftpException
 import io.kotest.core.listeners.AfterSpecListener
 import io.kotest.core.listeners.BeforeSpecListener
 import io.kotest.core.spec.Spec
@@ -12,7 +15,9 @@ import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.Base64
+import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.config.SftpConfig
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.images.builder.Transferable
 import org.testcontainers.shaded.org.bouncycastle.crypto.AsymmetricCipherKeyPair
@@ -23,6 +28,8 @@ import org.testcontainers.shaded.org.bouncycastle.crypto.util.OpenSSHPrivateKeyU
 import org.testcontainers.shaded.org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemObject
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter
+
+private val logger = KotlinLogging.logger {}
 
 object SftpListener : BeforeSpecListener, AfterSpecListener {
     private val keyPair = generateKeyPair()
@@ -89,5 +96,24 @@ object SftpListener : BeforeSpecListener, AfterSpecListener {
         val openSshEncodedPublicKey = OpenSSHPublicKeyUtil.encodePublicKey(publicKey)
         val base64EncodedPublicKey = Base64.getEncoder().encodeToString(openSshEncodedPublicKey)
         return "ssh-ed25519 $base64EncodedPublicKey".toByteArray(StandardCharsets.UTF_8)
+    }
+
+    fun deleteFile(vararg fileName: String) {
+        val deleteFilename = fileName.joinToString(separator = " ")
+        val sftpSession: Session = SftpConfig(SftpListener.sftpConfig).createSftpConnection()
+        val channelSftp = sftpSession.openChannel("sftp") as ChannelSftp
+
+        channelSftp.apply {
+            connect()
+            try {
+                logger.info { "Fjerner fil: $deleteFilename" }
+                fileName.forEach { rm(it) }
+            } catch (e: SftpException) {
+                logger.error { "Feil i fjerning av filer $deleteFilename: ${e.message}" }
+                throw e
+            } finally {
+                exit()
+            }
+        }
     }
 }
