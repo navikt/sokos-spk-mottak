@@ -40,8 +40,8 @@ object Db2Listener : BeforeSpecListener, AfterSpecListener, AfterEachListener {
     private fun resetDatabase() {
         dataSource.transaction { session ->
             lopenummerRepository.updateLopenummer(33, FILETYPE_ANVISER, session)
-            session.update(queryOf("DELETE FROM T_INN_TRANSAKSJON WHERE INN_TRANSAKSJON_ID > 0"))
-            session.update(queryOf("DELETE FROM T_FIL_INFO WHERE FIL_INFO_ID > 0"))
+            session.update(queryOf("DELETE FROM T_INN_TRANSAKSJON"))
+            session.update(queryOf("DELETE FROM T_FIL_INFO"))
         }
     }
 }

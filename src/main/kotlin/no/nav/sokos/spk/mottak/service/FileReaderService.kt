@@ -130,18 +130,24 @@ class FileReaderService(
         content.forEach { record ->
             if (totalRecord++ == 0) {
                 startRecord = FileParser.parseStartRecord(record)
-                if (fileStatus == FileStatus.OK && startRecord.fileStatus != FileStatus.OK) fileStatus = startRecord.fileStatus
+                if (fileStatus == FileStatus.OK && startRecord.fileStatus != FileStatus.OK) {
+                    fileStatus = startRecord.fileStatus
+                }
                 logger.debug { "Start-record: $record" }
             } else {
-                if (content.size != totalRecord) {
+                if (content.size != totalRecord) { // TODO: Sjekk om det er en bedre måte å sjekke på
                     val transaction = FileParser.parseTransaction(record)
-                    if (fileStatus == FileStatus.OK && transaction.fileStatus != FileStatus.OK) fileStatus = transaction.fileStatus
-                    totalBelop += transaction.belop.toLong()
+                    if (fileStatus == FileStatus.OK && transaction.fileStatus != FileStatus.OK) {
+                        fileStatus = transaction.fileStatus
+                    }
+                    totalBelop += transaction.belop.toLongOrNull() ?: 0L
                     transaksjonRecordList.add(transaction)
                 } else {
                     logger.debug { "End-record: '$record'" }
                     endRecord = FileParser.parseEndRecord(record)
-                    if (fileStatus == FileStatus.OK && endRecord.fileStatus != FileStatus.OK) fileStatus = endRecord.fileStatus
+                    if (fileStatus == FileStatus.OK && endRecord.fileStatus != FileStatus.OK) {
+                        fileStatus = endRecord.fileStatus
+                    }
                 }
             }
         }
@@ -158,7 +164,7 @@ class FileReaderService(
         val fileName = createFileName()
         val content = createAvviksRecord(startRecordUnparsed, exception)
 
-        ftpService.createFile(fileName, Directories.ANVISNINGSRETUR, content)
+        ftpService.createFile(fileName = fileName, Directories.ANVISNINGSRETUR, content)
     }
 
     private fun createAvviksRecord(startRecord: String, exception: FileValidationException): String {
