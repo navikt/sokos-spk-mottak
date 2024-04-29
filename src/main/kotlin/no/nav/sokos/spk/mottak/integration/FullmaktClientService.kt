@@ -48,7 +48,7 @@ class FullmaktClientService(
     private suspend fun getFullmaktMottaker(side: Int, antall: Int): List<FullmaktDTO> =
         retry {
             logger.debug { "Henter fullmakter" }
-            val accessToken = accessTokenClient.hentAccessToken()
+            val accessToken = accessTokenClient.getAccessToken()
             val response = fullmaktHttpClient.get("$pensjonFullmaktUrl/finnFullmaktMottakere") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("side", side)

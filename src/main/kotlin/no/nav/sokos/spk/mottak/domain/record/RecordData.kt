@@ -1,13 +1,13 @@
 package no.nav.sokos.spk.mottak.domain.record
 
-import no.nav.sokos.spk.mottak.validator.FileStatus
+import no.nav.sokos.spk.mottak.domain.FilStatus
 
 data class RecordData(
-    var filename: String? = null,
+    var filNavn: String? = null,
     val startRecord: StartRecord,
-    val endRecord: EndRecord,
+    val sluttRecord: SluttRecord,
     val transaksjonRecordList: MutableList<TransaksjonRecord>,
     var maxLopenummer: Int? = 0,
     val totalBelop: Long,
-    var fileStatus: FileStatus
+    var filStatus: FilStatus
 )

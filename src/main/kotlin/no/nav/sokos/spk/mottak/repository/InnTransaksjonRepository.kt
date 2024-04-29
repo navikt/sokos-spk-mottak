@@ -72,7 +72,6 @@ class InnTransaksjonRepository(
         session.run(queryOf(VALIDATOR_11_GYLDIG_KOMBINASJON_ART_OG_BELOPSTYPE).asUpdate)
         session.run(queryOf(VALIDATOR_06_GYLDIG_REFERANSE).asUpdate)
 
-        // set OK til resterende T_INN_TRANSAKSJON med K_TRANSAKSJON_S='00'
         session.run(
             queryOf(
                 """

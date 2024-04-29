@@ -4,7 +4,7 @@ const val SPK = "SPK"
 const val NAV = "NAV"
 
 // FILETYPE
-const val FILETYPE_ANVISER = "ANV"
+const val FILTYPE_ANVISER = "ANV"
 
 // FILTILSTANDTYPE
 const val FILTILSTANDTYPE_AVV = "AVV"

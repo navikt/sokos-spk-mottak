@@ -1,34 +1,35 @@
 package no.nav.sokos.spk.mottak.validator
 
 import mu.KotlinLogging
-import no.nav.sokos.spk.mottak.domain.FILETYPE_ANVISER
+import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
+import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.NAV
 import no.nav.sokos.spk.mottak.domain.SPK
 
 import no.nav.sokos.spk.mottak.domain.record.RecordData
-import no.nav.sokos.spk.mottak.exception.FileValidationException
+import no.nav.sokos.spk.mottak.exception.FilValidationException
 
 private val logger = KotlinLogging.logger {}
 
 object FileValidation {
-    fun validateStartAndEndRecord(recordData: RecordData) {
+    fun validateStartAndSluttRecord(recordData: RecordData) {
         when {
-            recordData.startRecord.avsender != SPK -> throw FileValidationException(FileStatus.UGYLDIG_ANVISER)
-            recordData.startRecord.mottager != NAV -> throw FileValidationException(FileStatus.UGYLDIG_MOTTAKER)
-            recordData.startRecord.filType != FILETYPE_ANVISER -> throw FileValidationException(FileStatus.UGYLDIG_FILTYPE)
+            recordData.startRecord.avsender != SPK -> throw FilValidationException(FilStatus.UGYLDIG_ANVISER)
+            recordData.startRecord.mottager != NAV -> throw FilValidationException(FilStatus.UGYLDIG_MOTTAKER)
+            recordData.startRecord.filType != FILTYPE_ANVISER -> throw FilValidationException(FilStatus.UGYLDIG_FILTYPE)
             recordData.maxLopenummer?.let { max -> max >= recordData.startRecord.filLopenummer } ?: false ->
-                throw FileValidationException(FileStatus.FILLOPENUMMER_I_BRUK.code, String.format(FileStatus.FILLOPENUMMER_I_BRUK.message, "${recordData.startRecord.filLopenummer}"))
+                throw FilValidationException(FilStatus.FILLOPENUMMER_I_BRUK.code, String.format(FilStatus.FILLOPENUMMER_I_BRUK.message, "${recordData.startRecord.filLopenummer}"))
 
             recordData.maxLopenummer?.let { max -> (max + 1) != recordData.startRecord.filLopenummer } ?: false ->
-                throw FileValidationException(FileStatus.FORVENTET_FILLOPENUMMER.code, String.format(FileStatus.FORVENTET_FILLOPENUMMER.message, "${recordData.maxLopenummer!! + 1}"))
+                throw FilValidationException(FilStatus.FORVENTET_FILLOPENUMMER.code, String.format(FilStatus.FORVENTET_FILLOPENUMMER.message, "${recordData.maxLopenummer!! + 1}"))
 
-            recordData.endRecord.totalBelop != recordData.totalBelop ->
-                throw FileValidationException(FileStatus.UGYLDIG_SUMBELOP.code, String.format(FileStatus.UGYLDIG_SUMBELOP.message, "${recordData.endRecord.totalBelop}", "${recordData.totalBelop}"))
+            recordData.sluttRecord.totalBelop != recordData.totalBelop ->
+                throw FilValidationException(FilStatus.UGYLDIG_SUMBELOP.code, String.format(FilStatus.UGYLDIG_SUMBELOP.message, "${recordData.sluttRecord.totalBelop}", "${recordData.totalBelop}"))
 
-            recordData.endRecord.numberOfRecord != recordData.transaksjonRecordList.size ->
-                throw FileValidationException(FileStatus.UGYLDIG_ANTRECORDS.code, String.format(FileStatus.UGYLDIG_ANTRECORDS.message, "${recordData.endRecord.numberOfRecord}", "${recordData.transaksjonRecordList.size}"))
+            recordData.sluttRecord.antallRecord != recordData.transaksjonRecordList.size ->
+                throw FilValidationException(FilStatus.UGYLDIG_ANTRECORDS.code, String.format(FilStatus.UGYLDIG_ANTRECORDS.message, "${recordData.sluttRecord.antallRecord}", "${recordData.transaksjonRecordList.size}"))
 
-            else -> logger.debug { "ValidationFileStatus: ${FileStatus.OK}" }
+            else -> logger.debug { "Status på filen: ${FilStatus.OK}" }
         }
     }
 }

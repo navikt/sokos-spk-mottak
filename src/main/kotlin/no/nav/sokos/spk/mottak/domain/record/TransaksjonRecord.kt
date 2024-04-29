@@ -1,6 +1,6 @@
 package no.nav.sokos.spk.mottak.domain.record
 
-import no.nav.sokos.spk.mottak.validator.FileStatus
+import no.nav.sokos.spk.mottak.domain.FilStatus
 
 data class TransaksjonRecord(
     val transId: String,
@@ -19,5 +19,5 @@ data class TransaksjonRecord(
     val kid: String,
     val trekkansvar: String,
     val grad: String,
-    var fileStatus: FileStatus
+    var filStatus: FilStatus
 )

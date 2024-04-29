@@ -47,10 +47,6 @@
     </if>
 
     <logger name="no.nav.sokos.spk.mottak" level="INFO"/>
-    <!--
-    <logger name="com.zaxxer.hikari" level="TRACE" />
-    <logger name="com.zaxxer.hikari.HikariConfig" level="DEBUG" />
-    <logger name="com.jcraft.jsch.JSch" level="DEBUG"/>
-    -->
+    <!-- <logger name="com.jcraft.jsch.JSch" level="DEBUG"/> -->
 
 </configuration>

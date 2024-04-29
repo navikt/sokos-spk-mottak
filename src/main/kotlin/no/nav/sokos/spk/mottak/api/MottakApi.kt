@@ -10,38 +10,38 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.integration.FullmaktClientService
-import no.nav.sokos.spk.mottak.service.FileReaderService
-import no.nav.sokos.spk.mottak.service.TransaksjonValideringService
+import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
+import no.nav.sokos.spk.mottak.service.ValidateTransactionService
 
 private val logger = KotlinLogging.logger {}
 
 fun Route.mottakApi(
-    fileReaderService: FileReaderService = FileReaderService(),
+    readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
     fullmaktClientService: FullmaktClientService = FullmaktClientService(),
-    transaksjonValideringService: TransaksjonValideringService = TransaksjonValideringService()
+    validateTransactionService: ValidateTransactionService = ValidateTransactionService()
 
 ) {
     route("api/v1") {
 
-        get("/manuellprosessering") {
-            logger.info { "Trigger manuell prosessering av filer" }
+        get("filprosessering") {
             launch(Dispatchers.IO) {
-                fileReaderService.readAndParseFile()
+                readAndParseFileService.readAndParseFile()
             }
-            call.respond(HttpStatusCode.OK, "Manuell prosessering av filer er startet, sjekk logger for status")
+            call.respond(HttpStatusCode.OK, "Filprosessering av filer har startet, sjekk logger for status")
+        }
+
+        get("transaksjonvalidering") {
+            launch(Dispatchers.IO) {
+                validateTransactionService.validateInnTransaksjon()
+            }
+            call.respond(HttpStatusCode.OK, "Transaksjonsvalidering har startet, sjekk logger for status")
         }
 
         get("fullmakter") {
             logger.info { "Hent aller fullmakter" }
             call.respond(HttpStatusCode.OK, fullmaktClientService.getFullmakt())
         }
-
-        get("transaksjonvalidering") {
-            logger.info { "Trigger manuell prosessering av filer" }
-            launch(Dispatchers.IO) {
-                transaksjonValideringService.validereTransaksjon()
-            }
-            call.respond(HttpStatusCode.OK, "Transaksjon validering er startet, sjekk logger for status")
-        }
     }
+
+
 }
