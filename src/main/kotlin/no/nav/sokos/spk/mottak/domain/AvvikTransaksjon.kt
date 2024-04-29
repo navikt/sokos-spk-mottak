@@ -4,7 +4,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class AvvikTransaksjon(
-    val avvvikTransaksjonId: Int? = null,
+    val avvikTransaksjonId: Int? = null,
     val filInfoId: Int,
     val transaksjonStatus: String,
     val fnr: String,
@@ -17,8 +17,8 @@ data class AvvikTransaksjon(
     val datoAnviser: LocalDate,
     val belop: String,
     val refTransId: String,
-    val tekstkode: String,
-    val rectype: String,
+    val tekstKode: String,
+    val rectType: String,
     val transEksId: String,
     val datoOpprettet: LocalDateTime,
     val opprettetAv: String,

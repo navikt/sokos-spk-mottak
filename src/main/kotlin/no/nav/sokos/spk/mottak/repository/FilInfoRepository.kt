@@ -11,11 +11,11 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.util.Util.asMap
 
-class FileInfoRepository(
+class FilInfoRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
 ) {
-    fun getFileInfo(
-        lopenummer: Int,
+    fun getFilInfo(
+        lopeNummer: Int,
         filTilstandType: String,
         anviser: String = "SPK"
     ): FilInfo? {
@@ -23,10 +23,10 @@ class FileInfoRepository(
             session.single(
                 queryOf(
                     """
-                        SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopenummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = :anviser
+                        SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopeNummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = :anviser
                     """.trimIndent(),
                     mapOf(
-                        "lopenummer" to lopenummer,
+                        "lopeNummer" to lopeNummer,
                         "filTilstandType" to filTilstandType,
                         "anviser" to anviser
                     )
@@ -76,7 +76,7 @@ class FileInfoRepository(
                     ENDRET_AV,
                     VERSJON,
                     K_FIL_T,
-                    FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopenr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feiltekst)
+                    FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopeNr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feilTekst)
                 """.trimIndent(),
                 filInfo.asMap()
             ).asUpdateAndReturnGeneratedKey

@@ -35,7 +35,7 @@ class FullmaktClientServiceTest : FunSpec({
             get(urlEqualTo("/finnFullmaktMottakere?side=1&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
                 .willReturn(okJson("[]"))
         )
-        coEvery { accessTokenClient.hentAccessToken() } returns "token"
+        coEvery { accessTokenClient.getAccessToken() } returns "token"
 
         val fullmaktMap = fullmaktClientService.getFullmakt()
 
@@ -77,7 +77,7 @@ class FullmaktClientServiceTest : FunSpec({
                 .willReturn(okJson("[]"))
         )
 
-        coEvery { accessTokenClient.hentAccessToken() } returns "token"
+        coEvery { accessTokenClient.getAccessToken() } returns "token"
 
         val actualFullmakter = fullmaktClientService.getFullmakt()
         actualFullmakter.size shouldBe 5
@@ -93,7 +93,7 @@ class FullmaktClientServiceTest : FunSpec({
                 )
         )
 
-        coEvery { accessTokenClient.hentAccessToken() } returns "token"
+        coEvery { accessTokenClient.getAccessToken() } returns "token"
 
         shouldThrow<FullmaktException> {
             fullmaktClientService.getFullmakt()

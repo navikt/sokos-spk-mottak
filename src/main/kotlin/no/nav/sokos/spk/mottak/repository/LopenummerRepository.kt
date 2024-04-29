@@ -8,12 +8,12 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.domain.Lopenummer
+import no.nav.sokos.spk.mottak.domain.LopeNummer
 
 class LopenummerRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
 ) {
-    fun findMaxLopenummer(filType: String): Int? {
+    fun findMaxLopeNummer(filType: String): Int? {
         return using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
@@ -29,30 +29,30 @@ class LopenummerRepository(
         }
     }
 
-    fun getLopenummer(sisteLopenummer: Int): Lopenummer? {
+    fun getLopeNummer(sisteLopeNummer: Int): LopeNummer? {
         return using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
-                        SELECT * FROM T_LOPENR WHERE SISTE_LOPENR = :sisteLopenummer
+                        SELECT * FROM T_LOPENR WHERE SISTE_LOPENR = :sisteLopeNummer
                     """.trimIndent(),
-                    mapOf("sisteLopenummer" to sisteLopenummer)
-                ), toLopenummer
+                    mapOf("sisteLopeNummer" to sisteLopeNummer)
+                ), toLopeNummer
             )
         }
     }
 
-    fun updateLopenummer(lopenummer: Int, filType: String, session: Session) {
+    fun updateLopeNummer(lopeNummer: Int, filType: String, session: Session) {
         session.run(
             queryOf(
                 """
                     UPDATE T_LOPENR 
-                    SET SISTE_LOPENR = (:lopenummer), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP 
+                    SET SISTE_LOPENR = (:lopeNummer), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP 
                     WHERE K_ANVISER = 'SPK'
                     AND K_FIL_T = (:filType)
                 """.trimIndent(),
                 mapOf(
-                    "lopenummer" to lopenummer,
+                    "lopeNummer" to lopeNummer,
                     "filType" to filType
                 )
             ).asUpdate
@@ -60,8 +60,8 @@ class LopenummerRepository(
     }
 
 
-    private val toLopenummer: (Row) -> Lopenummer = { row ->
-        Lopenummer(
+    private val toLopeNummer: (Row) -> LopeNummer = { row ->
+        LopeNummer(
             row.int("LOPENR_ID"),
             row.int("SISTE_LOPENR"),
             row.string("K_FIL_T"),

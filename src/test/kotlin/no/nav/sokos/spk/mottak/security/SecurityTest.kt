@@ -26,12 +26,12 @@ import no.nav.sokos.spk.mottak.config.authenticate
 import no.nav.sokos.spk.mottak.config.configureSecurity
 import no.nav.sokos.spk.mottak.config.configureTestApplication
 import no.nav.sokos.spk.mottak.integration.FullmaktClientService
-import no.nav.sokos.spk.mottak.service.FileReaderService
-import no.nav.sokos.spk.mottak.service.TransaksjonValideringService
+import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
+import no.nav.sokos.spk.mottak.service.ValidateTransactionService
 
-private val fileReaderService: FileReaderService = mockk()
+private val readAndParseFileService: ReadAndParseFileService = mockk()
 private val fullmaktClientService: FullmaktClientService = mockk()
-private val transaksjonValideringService: TransaksjonValideringService = mockk()
+private val validateTransactionService: ValidateTransactionService = mockk()
 
 class SecurityTest : FunSpec({
 
@@ -43,11 +43,11 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            mottakApi(fileReaderService, fullmaktClientService, transaksjonValideringService)
+                            mottakApi(readAndParseFileService, fullmaktClientService, validateTransactionService)
                         }
                     }
                 }
-                val response = client.get("$API_BASE_PATH/manuellprosessering")
+                val response = client.get("$API_BASE_PATH/filprosessering")
                 response.status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -75,14 +75,14 @@ class SecurityTest : FunSpec({
                     configureSecurity(authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            mottakApi(fileReaderService, fullmaktClientService, transaksjonValideringService)
+                            mottakApi(readAndParseFileService, fullmaktClientService, validateTransactionService)
                         }
                     }
                 }
 
-                every { fileReaderService.readAndParseFile() } returns Unit
+                every { readAndParseFileService.readAndParseFile() } returns Unit
 
-                val response = client.get("$API_BASE_PATH/manuellprosessering") {
+                val response = client.get("$API_BASE_PATH/filprosessering") {
                     header("Authorization", "Bearer ${mockOAuth2Server.tokenFromDefaultProvider()}")
                     contentType(ContentType.Application.Json)
                 }

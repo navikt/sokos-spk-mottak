@@ -34,12 +34,12 @@ class AccessTokenClient(
 
     @Volatile
     private var token: AccessToken = runBlocking { AccessToken(hentAccessTokenFraProvider()) }
-    suspend fun hentAccessToken(): String {
-        val omToMinutter = Instant.now().plusSeconds(120L)
+    suspend fun getAccessToken(): String {
+        val expiresInTwoMinutes = Instant.now().plusSeconds(120L)
         return mutex.withLock {
             when {
-                token.expiresAt.isBefore(omToMinutter) -> {
-                    logger.info("Henter ny accesstoken")
+                token.expiresAt.isBefore(expiresInTwoMinutes) -> {
+                    logger.debug { "Henter ny accesstoken" }
                     token = AccessToken(hentAccessTokenFraProvider())
                     token.accessToken
                 }
@@ -66,9 +66,9 @@ class AccessTokenClient(
             when {
                 response.status.isSuccess() -> response.body()
                 else -> {
-                    val feilmelding = "Kunne ikke hente accesstoken fra Azure. Statuskode: ${response.status}"
-                    logger.error { feilmelding }
-                    throw RuntimeException(feilmelding)
+                    val errorMessage = "Kunne ikke hente accesstoken fra Azure. Statuskode: ${response.status}"
+                    logger.error { errorMessage }
+                    throw RuntimeException(errorMessage)
                 }
             }
         }

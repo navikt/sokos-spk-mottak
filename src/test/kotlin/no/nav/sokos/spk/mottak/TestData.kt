@@ -1,12 +1,12 @@
 package no.nav.sokos.spk.mottak
 
 import java.time.LocalDate
-import no.nav.sokos.spk.mottak.domain.record.EndRecord
+import no.nav.sokos.spk.mottak.domain.record.SluttRecord
 import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.integration.models.FullmaktDTO
-import no.nav.sokos.spk.mottak.validator.FileStatus
+import no.nav.sokos.spk.mottak.domain.FilStatus
 
 const val SPK_FILE_OK = "SPK_NAV_20242503_070026814_ANV.txt"
 const val SPK_FEIL_UGYLDIG_ANVISER = "SPK_NAV_20362503_080026814_ANV.txt"
@@ -29,11 +29,11 @@ object TestData {
     fun recordDataMock(): RecordData {
         return RecordData(
             startRecord = startRecordMock(),
-            endRecord = endRecordMock(),
+            sluttRecord = sluttRecordMock(),
             transaksjonRecordList = MutableList(8) { transaksjonRecordMock() },
             totalBelop = 2775200L,
             maxLopenummer = 122,
-            fileStatus = FileStatus.OK
+            filStatus = FilStatus.OK
         )
     }
 
@@ -45,16 +45,16 @@ object TestData {
             filType = "ANV",
             produsertDato = LocalDate.now(),
             beskrivelse = "ANVISNINGSFIL",
-            rawRecord = "01SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00",
-            fileStatus = FileStatus.OK
+            raaRecord = "01SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00",
+            filStatus = FilStatus.OK
         )
     }
 
-    fun endRecordMock(): EndRecord {
-        return EndRecord(
-            numberOfRecord = 8,
+    fun sluttRecordMock(): SluttRecord {
+        return SluttRecord(
+            antallRecord = 8,
             totalBelop = 2775200,
-            fileStatus = FileStatus.OK
+            filStatus = FilStatus.OK
         )
     }
 
@@ -76,7 +76,7 @@ object TestData {
             kid = "",
             trekkansvar = "",
             grad = "",
-            fileStatus = FileStatus.OK
+            filStatus = FilStatus.OK
         )
     }
 

@@ -3,26 +3,26 @@ package no.nav.sokos.spk.mottak.util
 import no.nav.sokos.spk.mottak.domain.RECTYPE_SLUTTRECORD
 import no.nav.sokos.spk.mottak.domain.RECTYPE_STARTRECORD
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
-import no.nav.sokos.spk.mottak.domain.record.EndRecord
+import no.nav.sokos.spk.mottak.domain.record.SluttRecord
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.util.Util.toLocalDate
-import no.nav.sokos.spk.mottak.validator.FileStatus
+import no.nav.sokos.spk.mottak.domain.FilStatus
 
 object FileParser {
     fun parseStartRecord(record: String): StartRecord {
-        var fileStatus = FileStatus.OK
+        var filStatus = FilStatus.OK
         if (record.getString(0, 2) != RECTYPE_STARTRECORD) {
-            fileStatus = FileStatus.UGYLDIG_RECTYPE
+            filStatus = FilStatus.UGYLDIG_RECTYPE
         } else {
             runCatching {
                 record.getString(24, 30).toInt() // filLopenummer
                 record.getString(33, 41).toLocalDate()!! // produsertDato
             }.onFailure {
-                fileStatus = when (it) {
-                    is NumberFormatException -> FileStatus.UGYLDIG_FILLOPENUMMER
-                    is NullPointerException -> FileStatus.UGYLDIG_PRODDATO
-                    else -> FileStatus.OK
+                filStatus = when (it) {
+                    is NumberFormatException -> FilStatus.UGYLDIG_FILLOPENUMMER
+                    is NullPointerException -> FilStatus.UGYLDIG_PRODDATO
+                    else -> FilStatus.OK
                 }
             }
         }
@@ -33,27 +33,27 @@ object FileParser {
             filType = record.getString(30, 33),
             produsertDato = record.getString(33, 41).toLocalDate(),
             beskrivelse = record.getString(41, 75),
-            rawRecord = record,
-            fileStatus = fileStatus
+            raaRecord = record,
+            filStatus = filStatus
         )
     }
 
-    fun parseEndRecord(record: String): EndRecord {
-        var fileStatus = FileStatus.OK
+    fun parseSluttRecord(record: String): SluttRecord {
+        var filStatus = FilStatus.OK
         if (record.getString(0, 2) != RECTYPE_SLUTTRECORD) {
-            fileStatus = FileStatus.UGYLDIG_RECTYPE
+            filStatus = FilStatus.UGYLDIG_RECTYPE
         }
-        return EndRecord(
-            numberOfRecord = record.getString(2, 11).toIntOrNull() ?: 0,
+        return SluttRecord(
+            antallRecord = record.getString(2, 11).toIntOrNull() ?: 0,
             totalBelop = record.getString(11, 25).toLongOrNull() ?: 0,
-            fileStatus = fileStatus
+            filStatus = filStatus
         )
     }
 
-    fun parseTransaction(record: String): TransaksjonRecord {
-        var fileStatus = FileStatus.OK
+    fun parseTransaksjonRecord(record: String): TransaksjonRecord {
+        var filStatus = FilStatus.OK
         if (record.getString(0, 2) != RECTYPE_TRANSAKSJONSRECORD) {
-            fileStatus = FileStatus.UGYLDIG_RECTYPE
+            filStatus = FilStatus.UGYLDIG_RECTYPE
         }
         return TransaksjonRecord(
             transId = record.getString(2, 14).trim(),
@@ -72,7 +72,7 @@ object FileParser {
             kid = record.getString(112, 138),
             trekkansvar = record.getString(138, 142),
             grad = record.getString(142, 146),
-            fileStatus = fileStatus
+            filStatus = filStatus
         )
     }
 

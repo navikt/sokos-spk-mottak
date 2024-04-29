@@ -18,7 +18,7 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 
 private val logger = KotlinLogging.logger {}
 
-class TransaksjonValideringService(
+class ValidateTransactionService(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource(),
     private val fullmaktClientService: FullmaktClientService = FullmaktClientService()
 ) {
@@ -27,40 +27,42 @@ class TransaksjonValideringService(
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
     private val avvikTransaksjonRepository: AvvikTransaksjonRepository = AvvikTransaksjonRepository(dataSource)
 
-    fun validereTransaksjon() {
+    fun validateInnTransaksjon() {
+        logger.info { "Transaksjonsvalidering jobben startet" }
         val timer = Instant.now()
-        var count = 0
+        var totalInnTransaksjoner = 0
+        var totalAvvikTransaksjoner = 0
 
         runCatching {
-            // henter ut alle fullmakter
-            val fullmaktMap = fullmaktClientService.getFullmakt().ifEmpty { throw MottakException("Mangler fullmakter") }
+            //val fullmaktMap = fullmaktClientService.getFullmakt().ifEmpty { throw MottakException("Mangler fullmakter") }
 
-            // validering alle rader i T_INN_TRANSAKSJON
             executeInntransaksjonValidation()
 
             while (true) {
                 val innTransaksjonList = innTransaksjonRepository.getByTransaksjonStatusIsNullWithPersonId()
-                count += innTransaksjonList.size
-                logger.info { "Antall InnTransaksjon blir hentet: ${innTransaksjonList.size}" }
+                totalInnTransaksjoner += innTransaksjonList.size
+                totalAvvikTransaksjoner += innTransaksjonList.filter { it.transaksjonStatus != TRANSAKSJONSTATUS_OK }.size
+                logger.debug { "Henter inn ${innTransaksjonList.size} innTransaksjoner fra databasen" }
 
                 when {
-                    innTransaksjonList.isNotEmpty() -> validereTransaksjon(innTransaksjonList)
-                    else -> {
-                        if (count > 0) {
-                            logger.info { "Total $count InnTransaksjoner validert på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder" }
-                        } else {
-                            logger.info { "Finner ingen Inntransaksjoner ubehandlet." }
-                        }
-                        break
-                    }
+                    innTransaksjonList.isNotEmpty() -> saveTransaksjonAndAvvikTransaksjon(innTransaksjonList)
+                    else -> break
                 }
             }
+            when {
+                totalInnTransaksjoner > 0 -> logger.info {
+                    "$totalInnTransaksjoner innTransaksjoner validert på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " +
+                            "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
+                }
+                else -> logger.info { "Finner ingen innTransaksjoner som er ubehandlet" }
+            }
         }.onFailure { exception ->
-            logger.error(exception) { "Alvorlig feil under behandling av utbetalinger og trekk." }
+            logger.error(exception) { "Feil under behandling av innTransaksjoner" }
+            throw MottakException("Feil under behandling av innTransaksjoner")
         }
     }
 
-    private fun validereTransaksjon(innTransaksjonList: List<InnTransaksjon>) {
+    private fun saveTransaksjonAndAvvikTransaksjon(innTransaksjonList: List<InnTransaksjon>) {
         val innTransaksjonMap = innTransaksjonList.groupBy { it.transaksjonStatus == TRANSAKSJONSTATUS_OK }
 
         dataSource.transaction { session ->
@@ -71,12 +73,12 @@ class TransaksjonValideringService(
                 val transakjonIdList = this.map { it.innTransaksjonId!! }
                 transaksjonTilstandRepository.insertBatch(transakjonIdList, session)
 
-                logger.info { "Antall transaksjoner blir opprettet: ${transakjonIdList.size}" }
+                logger.debug { "${transakjonIdList.size} transaksjoner opprettet" }
             }
 
             innTransaksjonMap[false]?.takeIf { it.isNotEmpty() }?.apply {
                 val avvikTransaksjonIdList = avvikTransaksjonRepository.insertBatch(this, session)
-                logger.info { "Antall avvik transaksjoner blir opprettet: ${avvikTransaksjonIdList.size}" }
+                logger.debug { "${avvikTransaksjonIdList.size} avvik transaksjoner opprettet: " }
             }
 
             innTransaksjonRepository.updateBehandletStatusBatch(innTransaksjonList.map { it.innTransaksjonId!! }, session)

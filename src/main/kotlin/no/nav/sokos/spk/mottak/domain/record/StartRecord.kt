@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.SPK
-import no.nav.sokos.spk.mottak.validator.FileStatus
+import no.nav.sokos.spk.mottak.domain.FilStatus
 
 data class StartRecord(
     val avsender: String,
@@ -14,20 +14,20 @@ data class StartRecord(
     val filType: String,
     val produsertDato: LocalDate? = null,
     val beskrivelse: String,
-    val rawRecord: String,
-    val fileStatus: FileStatus
+    val raaRecord: String,
+    val filStatus: FilStatus
 )
 
-fun StartRecord.toFileInfo(fileName: String, filTilstandType: String, filStatus: String, feiltekst: String? = null): FilInfo {
+fun StartRecord.toFileInfo(filNavn: String, filTilstandType: String, filStatus: String, feilTekst: String? = null): FilInfo {
     val systemId = PropertiesConfig.Configuration().naisAppName
     return FilInfo(
         filStatus = filStatus,
         filTilstandType = filTilstandType,
         anviser = SPK,
         filType = this.filType,
-        filNavn = fileName,
-        lopenr = this.filLopenummer,
-        feiltekst = feiltekst,
+        filNavn = filNavn,
+        lopeNr = this.filLopenummer,
+        feilTekst = feilTekst,
         datoMottatt = this.produsertDato,
         datoSendt = null,
         datoOpprettet = LocalDateTime.now(),

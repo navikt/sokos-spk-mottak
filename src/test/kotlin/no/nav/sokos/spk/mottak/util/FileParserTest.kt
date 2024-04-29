@@ -9,12 +9,12 @@ import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 class FileParserTest : BehaviorSpec({
 
     Given("SPK innlesingsfil") {
-        val innlesingsfil = SPK_FILE_OK.readFromResource()
-        val innlesingRecord = innlesingsfil.lines()
-        innlesingRecord.size shouldNotBe 0
+        val spkFil = SPK_FILE_OK.readFromResource()
+        val recordData = spkFil.lines()
+        recordData.size shouldNotBe 0
 
         When("leser StartRecord") {
-            val startRecord = FileParser.parseStartRecord(innlesingRecord.first())
+            val startRecord = FileParser.parseStartRecord(recordData.first())
             then("skal det returneres med StartRecord data") {
                 startRecord.avsender shouldBe "SPK"
                 startRecord.mottager shouldBe "NAV"
@@ -22,39 +22,39 @@ class FileParserTest : BehaviorSpec({
                 startRecord.filType shouldBe "ANV"
                 startRecord.produsertDato.toString() shouldBe "2024-01-31"
                 startRecord.beskrivelse shouldBe "ANVISNINGSFIL"
-                startRecord.rawRecord shouldBe "01SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00"
+                startRecord.raaRecord shouldBe "01SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00"
             }
         }
 
         When("leser InnTransaksjon") {
-            val inntransaksjon = FileParser.parseTransaction(innlesingRecord[1])
+            val transaksjonRecord = FileParser.parseTransaksjonRecord(recordData[1])
 
             Then("skal det returneres med InnTransaksjon data") {
-                inntransaksjon.transId shouldBe "116684810"
-                inntransaksjon.fnr shouldBe "66064900162"
-                inntransaksjon.utbetalesTil shouldBe ""
-                inntransaksjon.datoAnviser shouldBe "20240131"
-                inntransaksjon.datoFom shouldBe "20240201"
-                inntransaksjon.datoTom shouldBe "20240229"
-                inntransaksjon.belopstype shouldBe "01"
-                inntransaksjon.belop shouldBe "00000346900"
-                inntransaksjon.art shouldBe "UFT"
-                inntransaksjon.refTransId shouldBe ""
-                inntransaksjon.tekstkode shouldBe ""
-                inntransaksjon.saldo shouldBe "00000000410"
-                inntransaksjon.prioritet shouldBe ""
-                inntransaksjon.kid shouldBe ""
-                inntransaksjon.trekkansvar shouldBe ""
-                inntransaksjon.grad shouldBe ""
+                transaksjonRecord.transId shouldBe "116684810"
+                transaksjonRecord.fnr shouldBe "66064900162"
+                transaksjonRecord.utbetalesTil shouldBe ""
+                transaksjonRecord.datoAnviser shouldBe "20240131"
+                transaksjonRecord.datoFom shouldBe "20240201"
+                transaksjonRecord.datoTom shouldBe "20240229"
+                transaksjonRecord.belopstype shouldBe "01"
+                transaksjonRecord.belop shouldBe "00000346900"
+                transaksjonRecord.art shouldBe "UFT"
+                transaksjonRecord.refTransId shouldBe ""
+                transaksjonRecord.tekstkode shouldBe ""
+                transaksjonRecord.saldo shouldBe "00000000410"
+                transaksjonRecord.prioritet shouldBe ""
+                transaksjonRecord.kid shouldBe ""
+                transaksjonRecord.trekkansvar shouldBe ""
+                transaksjonRecord.grad shouldBe ""
             }
         }
 
         When("leser EndRecord") {
-            val endRecord = FileParser.parseEndRecord(innlesingRecord.last())
+            val sluttRecord = FileParser.parseSluttRecord(recordData.last())
 
             Then("skal det returneres med EndRecord data") {
-                endRecord.numberOfRecord shouldBe 8
-                endRecord.totalBelop shouldBe 2775200
+                sluttRecord.antallRecord shouldBe 8
+                sluttRecord.totalBelop shouldBe 2775200
             }
         }
     }

@@ -11,22 +11,22 @@ import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.config.DatabaseTestConfig
 import no.nav.sokos.spk.mottak.config.transaction
-import no.nav.sokos.spk.mottak.domain.FILETYPE_ANVISER
-import no.nav.sokos.spk.mottak.repository.FileInfoRepository
+import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
+import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.LopenummerRepository
 
 object Db2Listener : BeforeSpecListener, AfterSpecListener, AfterEachListener {
     val dataSource = HikariDataSource(DatabaseTestConfig().hikariConfig())
-    val lopenummerRepository = LopenummerRepository(dataSource)
+    val lopeNummerRepository = LopenummerRepository(dataSource)
     val innTransaksjonRepository = InnTransaksjonRepository(dataSource)
-    val fileInfoRepository = FileInfoRepository(dataSource)
+    val filInfoRepository = FilInfoRepository(dataSource)
 
     override suspend fun beforeSpec(spec: Spec) {
         dataSource shouldNotBe null
-        lopenummerRepository shouldNotBe null
+        lopeNummerRepository shouldNotBe null
         innTransaksjonRepository shouldNotBe null
-        fileInfoRepository shouldNotBe null
+        filInfoRepository shouldNotBe null
     }
 
     override suspend fun afterSpec(spec: Spec) {
@@ -39,7 +39,7 @@ object Db2Listener : BeforeSpecListener, AfterSpecListener, AfterEachListener {
 
     private fun resetDatabase() {
         dataSource.transaction { session ->
-            lopenummerRepository.updateLopenummer(33, FILETYPE_ANVISER, session)
+            lopeNummerRepository.updateLopeNummer(33, FILTYPE_ANVISER, session)
             session.update(queryOf("DELETE FROM T_INN_TRANSAKSJON"))
             session.update(queryOf("DELETE FROM T_FIL_INFO"))
         }
