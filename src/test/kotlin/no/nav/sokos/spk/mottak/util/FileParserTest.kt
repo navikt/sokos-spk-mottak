@@ -9,7 +9,7 @@ import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 class FileParserTest : BehaviorSpec({
 
     Given("SPK innlesingsfil") {
-        val spkFil = SPK_FILE_OK.readFromResource()
+        val spkFil = readFromResource("/spk/$SPK_FILE_OK")
         val recordData = spkFil.lines()
         recordData.size shouldNotBe 0
 

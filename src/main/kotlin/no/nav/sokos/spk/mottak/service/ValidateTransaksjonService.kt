@@ -10,7 +10,6 @@ import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOK
 import no.nav.sokos.spk.mottak.domain.toTransaksjon
 import no.nav.sokos.spk.mottak.exception.MottakException
-import no.nav.sokos.spk.mottak.integration.FullmaktClientService
 import no.nav.sokos.spk.mottak.repository.AvvikTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
@@ -20,7 +19,6 @@ private val logger = KotlinLogging.logger {}
 
 class ValidateTransaksjonService(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource(),
-    private val fullmaktClientService: FullmaktClientService = FullmaktClientService()
 ) {
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource)
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
@@ -34,12 +32,10 @@ class ValidateTransaksjonService(
         var totalAvvikTransaksjoner = 0
 
         runCatching {
-            //val fullmaktMap = fullmaktClientService.getFullmakt().ifEmpty { throw MottakException("Mangler fullmakter") }
-
             executeInntransaksjonValidation()
 
             while (true) {
-                val innTransaksjonList = innTransaksjonRepository.getByBehandletIsNeiWithPersonId()
+                val innTransaksjonList = innTransaksjonRepository.getByBehandletWithPersonId()
                 totalInnTransaksjoner += innTransaksjonList.size
                 totalAvvikTransaksjoner += innTransaksjonList.filter { !it.isTransaksjonStatusOK() }.size
                 logger.debug { "Henter inn ${innTransaksjonList.size} innTransaksjoner fra databasen" }

@@ -6,7 +6,6 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldBeBlank
 import io.mockk.every
 import io.mockk.mockk
 import java.io.IOException
@@ -67,7 +66,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
     }
 
     Given("det finnes en ubehandlet fil i \"inbound\" på FTP-serveren ") {
-        ftpService.createFile(SPK_FILE_OK, Directories.INBOUND, SPK_FILE_OK.readFromResource())
+        ftpService.createFile(SPK_FILE_OK, Directories.INBOUND, readFromResource("/spk/$SPK_FILE_OK"))
 
         When("leser filen og parser") {
             readAndParseFileService.readAndParseFile()
@@ -90,8 +89,8 @@ class ReadParseFileServiceTest : BehaviorSpec({
     }
 
     Given("det finnes to ubehandlede filer i \"inbound\" på FTP-serveren ") {
-        ftpService.createFile(SPK_FILE_OK, Directories.INBOUND, SPK_FILE_OK.readFromResource())
-        ftpService.createFile(SPK_FILE_FEIL, Directories.INBOUND, SPK_FILE_FEIL.readFromResource())
+        ftpService.createFile(SPK_FILE_OK, Directories.INBOUND, readFromResource("/spk/$SPK_FILE_OK"))
+        ftpService.createFile(SPK_FILE_FEIL, Directories.INBOUND, readFromResource("/spk/$SPK_FILE_FEIL"))
 
         When("leser begge filene og parser") {
             readAndParseFileService.readAndParseFile()
@@ -114,6 +113,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
     }
 
+    @Suppress("NAME_SHADOWING")
     Given("det finnes ubehandlet fil i \"inbound\" på FTP-serveren ") {
         val ftpServiceMock = mockk<FtpService>()
         val readAndParseFileService: ReadAndParseFileService by lazy {
@@ -121,31 +121,31 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser ok format filen og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FILE_OK to SPK_FILE_OK.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FILE_OK to readFromResource("/spk/$SPK_FILE_OK").lines())
 
             Then("skal det kastet en MottakException med uforventet feil") {
                 every { ftpServiceMock.moveFile(any(), any(), any()) } throws IOException("Ftp server is down!")
                 val exception = shouldThrow<MottakException> {
                     readAndParseFileService.readAndParseFile()
                 }
-                exception.message shouldBe "Ukjent feil ved innlesing av fil: SPK_NAV_20242503_070026814_ANV.txt. Feilmelding: Ftp server is down!"
+                exception.message shouldBe "Ukjent feil ved innlesing av fil: SPK_NAV_20242503_070026814_ANV_OK.txt. Feilmelding: Ftp server is down!"
             }
         }
 
         When("leser feil format filen og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FILE_FEIL to SPK_FILE_FEIL.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FILE_FEIL to readFromResource("/spk/$SPK_FILE_FEIL").lines())
 
             Then("skal det kastet en MottakException med uforventet feil") {
                 every { ftpServiceMock.createFile(any(), any(), any()) } throws IOException("Ftp server can not move file!")
                 val exception = shouldThrow<MottakException> {
                     readAndParseFileService.readAndParseFile()
                 }
-                exception.message shouldBe "Feil ved opprettelse av avviksfil: SPK_NAV_20242503_080026814_ANV.txt. Feilmelding: Ftp server can not move file!"
+                exception.message shouldBe "Feil ved opprettelse av avviksfil: SPK_NAV_20242503_080026814_ANV_FEIL.txt. Feilmelding: Ftp server can not move file!"
             }
         }
 
         When("leser fil med ugyldig anviser og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_ANVISER to SPK_FEIL_UGYLDIG_ANVISER.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_ANVISER to readFromResource("/spk/$SPK_FEIL_UGYLDIG_ANVISER").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -159,7 +159,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med ugyldig mottaker og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_MOTTAKER to SPK_FEIL_UGYLDIG_MOTTAKER.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_MOTTAKER to readFromResource("/spk/$SPK_FEIL_UGYLDIG_MOTTAKER").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -173,7 +173,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med løpenummer som er i bruk og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_FILLOPENUMMER_I_BRUK to SPK_FEIL_FILLOPENUMMER_I_BRUK.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_FILLOPENUMMER_I_BRUK to readFromResource("/spk/$SPK_FEIL_FILLOPENUMMER_I_BRUK").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -187,7 +187,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med ugyldig løpenummer og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_LOPENUMMER to SPK_FEIL_UGYLDIG_LOPENUMMER.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_LOPENUMMER to readFromResource("/spk/$SPK_FEIL_UGYLDIG_LOPENUMMER").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -200,7 +200,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med ikke forventet løpenummer og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_FORVENTET_FILLOPENUMMER to SPK_FEIL_FORVENTET_FILLOPENUMMER.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_FORVENTET_FILLOPENUMMER to readFromResource("/spk/$SPK_FEIL_FORVENTET_FILLOPENUMMER").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -214,7 +214,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med ugyldig filtype og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_FILTYPE to SPK_FEIL_UGYLDIG_FILTYPE.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_FILTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_FILTYPE").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -228,7 +228,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med ugyldig antall record og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_ANTRECORDS to SPK_FEIL_UGYLDIG_ANTRECORDS.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_ANTRECORDS to readFromResource("/spk/$SPK_FEIL_UGYLDIG_ANTRECORDS").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -242,7 +242,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med ugyldig sumbeløp og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_SUMBELOP to SPK_FEIL_UGYLDIG_SUMBELOP.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_SUMBELOP to readFromResource("/spk/$SPK_FEIL_UGYLDIG_SUMBELOP").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -256,7 +256,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med ugyldig produksjonsdato og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_PRODDATO to SPK_FEIL_UGYLDIG_PRODDATO.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_PRODDATO to readFromResource("/spk/$SPK_FEIL_UGYLDIG_PRODDATO").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -270,7 +270,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med ugyldig startrecordtype starter med 11 og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_START_RECTYPE to SPK_FEIL_UGYLDIG_START_RECTYPE.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_START_RECTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_START_RECTYPE").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -284,7 +284,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med ugyldig endrecordtype starter med 10 og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_END_RECTYPE to SPK_FEIL_UGYLDIG_END_RECTYPE.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_END_RECTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_END_RECTYPE").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -298,7 +298,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med ugyldig transaksjonsbeløp format og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP to SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP to readFromResource("/spk/$SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -312,7 +312,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser fil med ugyldig transaksjon-recordtype starter med 03 og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE to SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE.readFromResource().lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE").lines())
             every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
             every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
@@ -335,13 +335,13 @@ private fun verifyInntransaksjon(innTransaksjon: InnTransaksjon, filInfoId: Int)
     innTransaksjon.belopstype shouldBe BELOPTYPE_SKATTEPLIKTIG_UTBETALING
     innTransaksjon.art shouldNotBe null
     innTransaksjon.avsender shouldBe SPK
-    innTransaksjon.utbetalesTil.shouldBeBlank()
+    innTransaksjon.utbetalesTil shouldBe null
     innTransaksjon.datoFomStr shouldBe "20240201"
     innTransaksjon.datoTomStr shouldBe "20240229"
     innTransaksjon.datoAnviserStr shouldBe "20240131"
     innTransaksjon.belopStr shouldBe "00000346900"
-    innTransaksjon.refTransId.shouldBeBlank()
-    innTransaksjon.tekstkode.shouldBeBlank()
+    innTransaksjon.refTransId shouldBe null
+    innTransaksjon.tekstkode shouldBe null
     innTransaksjon.rectype shouldBe RECTYPE_TRANSAKSJONSRECORD
     innTransaksjon.transId shouldBe "116684810"
     innTransaksjon.datoFom shouldBe LocalDate.of(2024, 2, 1)
@@ -353,14 +353,8 @@ private fun verifyInntransaksjon(innTransaksjon: InnTransaksjon, filInfoId: Int)
     innTransaksjon.datoEndret.toLocalDate() shouldBe LocalDate.now()
     innTransaksjon.endretAv shouldBe SYSTEM_ID
     innTransaksjon.versjon shouldBe 1
-    innTransaksjon.prioritetStr.shouldBeBlank()
-    innTransaksjon.trekkansvar.shouldBeBlank()
-    innTransaksjon.saldoStr shouldBe "00000000410"
-    innTransaksjon.kid.shouldBeBlank()
-    innTransaksjon.prioritet shouldBe null
-    innTransaksjon.saldo shouldBe 410
     innTransaksjon.grad shouldBe null
-    innTransaksjon.gradStr.shouldBeBlank()
+    innTransaksjon.gradStr shouldBe null
 }
 
 private fun verifyLopenummer(lopeNummer: LopeNummer?) {

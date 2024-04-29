@@ -31,12 +31,12 @@ class TransaksjonTilstandRepository(
         )
     }
 
-    fun getTransaksjonTilstandByTransaksjonId(transaksjonIdList: List<Int>): List<TransaksjonTilstand> {
+    fun getByTransaksjonId(transaksjonId: Int): TransaksjonTilstand? {
         return using(sessionOf(dataSource)) { session ->
-            session.list(
+            session.single(
                 queryOf(
                     """
-                        SELECT * FROM T_TRANS_TILSTAND WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()});
+                        SELECT * FROM T_TRANS_TILSTAND WHERE TRANSAKSJON_ID = $transaksjonId;
                     """.trimIndent()
                 ), toTransaksjonTilstand
             )

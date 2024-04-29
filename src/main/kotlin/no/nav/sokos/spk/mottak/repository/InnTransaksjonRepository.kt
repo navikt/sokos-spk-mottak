@@ -21,8 +21,6 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_02
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_03_GYLDIG_PERIODE
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_04_GYDLIG_BELOPSTYPE
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_05_UGYLDIG_ART
-import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_06_GYLDIG_REFERANSE
-import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_08_GYLDIG_UTBETALES_TIL
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_09_GYLDIG_ANVISER_DATO
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_10_GYLDIG_BELOP
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_11_GYLDIG_KOMBINASJON_ART_OG_BELOPSTYPE
@@ -45,13 +43,13 @@ class InnTransaksjonRepository(
         }
     }
 
-    fun getByBehandletIsNeiWithPersonId(rows: Int = READ_ROWS): List<InnTransaksjon> {
+    fun getByBehandletWithPersonId(behandlet: String = BEHANDLET_NEI, rows: Int = READ_ROWS): List<InnTransaksjon> {
         return using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
                     """
                         SELECT t.*, p.PERSON_ID FROM T_INN_TRANSAKSJON t LEFT OUTER JOIN T_PERSON p ON t.FNR_FK = p.FNR_FK
-                        WHERE t.BEHANDLET = 'N'
+                        WHERE t.BEHANDLET = '$behandlet'
                         ORDER BY t.FIL_INFO_ID, t.INN_TRANSAKSJON_ID
                         FETCH FIRST $rows ROWS ONLY;
                     """.trimIndent()
@@ -64,13 +62,11 @@ class InnTransaksjonRepository(
         session.run(queryOf(VALIDATOR_01_UNIK_ID).asUpdate)
         session.run(queryOf(VALIDATOR_02_GYLDIG_FODSELSNUMMER).asUpdate)
         session.run(queryOf(VALIDATOR_03_GYLDIG_PERIODE).asUpdate)
-        session.run(queryOf(VALIDATOR_08_GYLDIG_UTBETALES_TIL).asUpdate)
         session.run(queryOf(VALIDATOR_09_GYLDIG_ANVISER_DATO).asUpdate)
         session.run(queryOf(VALIDATOR_10_GYLDIG_BELOP).asUpdate)
         session.run(queryOf(VALIDATOR_04_GYDLIG_BELOPSTYPE).asUpdate)
         session.run(queryOf(VALIDATOR_05_UGYLDIG_ART).asUpdate)
         session.run(queryOf(VALIDATOR_11_GYLDIG_KOMBINASJON_ART_OG_BELOPSTYPE).asUpdate)
-        session.run(queryOf(VALIDATOR_06_GYLDIG_REFERANSE).asUpdate)
 
         session.run(
             queryOf(
@@ -111,14 +107,8 @@ class InnTransaksjonRepository(
                 DATO_ENDRET,
                 ENDRET_AV,
                 VERSJON,
-                PRIORITET_STR,
-                TREKKANSVAR,
-                SALDO_STR,
-                KID,
-                PRIORITET,
-                SALDO,
                 GRAD,
-                GRAD_STR) VALUES (:filInfoId, :transaksjonStatus, :fnr, :belopstype, :art, :avsender, :utbetalesTil, :datoFomStr, :datoTomStr, :datoAnviserStr, :belopStr, :refTransId, :tekstkode, :rectype, :transId, :datoFom, :datoTom, :datoAnviser, :belop, :behandlet, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :prioritetStr, :trekkansvar, :saldoStr, :kid, :prioritet, :saldo, :grad, :gradStr)
+                GRAD_STR) VALUES (:filInfoId, :transaksjonStatus, :fnr, :belopstype, :art, :avsender, :utbetalesTil, :datoFomStr, :datoTomStr, :datoAnviserStr, :belopStr, :refTransId, :tekstkode, :rectype, :transId, :datoFom, :datoTom, :datoAnviser, :belop, :behandlet, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :grad, :gradStr)
             """.trimIndent(),
             transaksjonRecordList.convertToListMap(filInfoId)
         )
@@ -144,13 +134,13 @@ class InnTransaksjonRepository(
                 "belopstype" to transaksjonRecord.belopstype,
                 "art" to transaksjonRecord.art,
                 "avsender" to SPK,
-                "utbetalesTil" to transaksjonRecord.utbetalesTil,
+                "utbetalesTil" to transaksjonRecord.utbetalesTil.trim().ifBlank { null },
                 "datoFomStr" to transaksjonRecord.datoFom,
                 "datoTomStr" to transaksjonRecord.datoTom,
                 "datoAnviserStr" to transaksjonRecord.datoAnviser,
                 "belopStr" to transaksjonRecord.belop,
-                "refTransId" to transaksjonRecord.refTransId,
-                "tekstkode" to transaksjonRecord.tekstkode,
+                "refTransId" to transaksjonRecord.refTransId.ifBlank { null },
+                "tekstkode" to transaksjonRecord.tekstkode.ifBlank { null },
                 "rectype" to RECTYPE_TRANSAKSJONSRECORD,
                 "transId" to transaksjonRecord.transId,
                 "datoFom" to transaksjonRecord.datoFom.toLocalDate(),
@@ -163,14 +153,8 @@ class InnTransaksjonRepository(
                 "datoEndret" to LocalDateTime.now(),
                 "endretAv" to systemId,
                 "versjon" to "1",
-                "prioritetStr" to transaksjonRecord.prioritet,
-                "trekkansvar" to transaksjonRecord.trekkansvar,
-                "saldoStr" to transaksjonRecord.saldo,
-                "kid" to transaksjonRecord.kid,
-                "prioritet" to transaksjonRecord.prioritet.toLocalDate(),
-                "saldo" to transaksjonRecord.saldo.toIntOrNull(),
                 "grad" to transaksjonRecord.grad.toIntOrNull(),
-                "gradStr" to transaksjonRecord.grad
+                "gradStr" to transaksjonRecord.grad.trim().ifBlank { null }
             )
         }
     }
@@ -184,13 +168,13 @@ class InnTransaksjonRepository(
             row.string("BELOPSTYPE"),
             row.string("ART"),
             row.string("AVSENDER"),
-            row.string("UTBETALES_TIL"),
+            row.stringOrNull("UTBETALES_TIL"),
             row.string("DATO_FOM_STR"),
             row.string("DATO_TOM_STR"),
             row.string("DATO_ANVISER_STR"),
             row.string("BELOP_STR"),
-            row.string("REF_TRANS_ID"),
-            row.string("TEKSTKODE"),
+            row.stringOrNull("REF_TRANS_ID"),
+            row.stringOrNull("TEKSTKODE"),
             row.string("RECTYPE"),
             row.string("TRANS_ID_FK"),
             row.localDate("DATO_FOM"),
@@ -203,14 +187,8 @@ class InnTransaksjonRepository(
             row.localDateTime("DATO_ENDRET"),
             row.string("ENDRET_AV"),
             row.int("VERSJON"),
-            row.string("PRIORITET_STR"),
-            row.string("TREKKANSVAR"),
-            row.string("SALDO_STR"),
-            row.string("KID"),
-            row.localDateOrNull("PRIORITET"),
-            row.intOrNull("SALDO"),
             row.intOrNull("GRAD"),
-            row.string("GRAD_STR"),
+            row.stringOrNull("GRAD_STR"),
             row.optionalIntOrNull("PERSON_ID")
         )
     }

@@ -3,6 +3,7 @@ package no.nav.sokos.spk.mottak.domain
 import java.time.LocalDate
 import java.time.LocalDateTime
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.util.Util.toChar
 
 data class InnTransaksjon(
     val innTransaksjonId: Int? = null,
@@ -12,13 +13,13 @@ data class InnTransaksjon(
     val belopstype: String,
     val art: String,
     val avsender: String,
-    val utbetalesTil: String,
+    val utbetalesTil: String?,
     val datoFomStr: String,
     val datoTomStr: String,
     val datoAnviserStr: String,
     val belopStr: String,
-    val refTransId: String,
-    val tekstkode: String,
+    val refTransId: String?,
+    val tekstkode: String?,
     val rectype: String,
     val transId: String,
     val datoFom: LocalDate,
@@ -31,14 +32,8 @@ data class InnTransaksjon(
     val datoEndret: LocalDateTime,
     val endretAv: String,
     val versjon: Int,
-    val prioritetStr: String,
-    val trekkansvar: String,
-    val saldoStr: String,
-    val kid: String,
-    val prioritet: LocalDate?,
-    val saldo: Int?,
     val grad: Int?,
-    val gradStr: String,
+    val gradStr: String?,
     val personId: Int? = null
 )
 
@@ -49,7 +44,7 @@ fun InnTransaksjon.toTransaksjon(transaksjon: Transaksjon?): Transaksjon {
         filInfoId = this.filInfoId,
         transaksjonStatus = this.transaksjonStatus!!,
         personId = this.personId ?: 600002,
-        belopType = this.belopstype,
+        belopstype = this.belopstype,
         art = this.art,
         anviser = this.avsender,
         fnr = this.fnr,
@@ -61,22 +56,18 @@ fun InnTransaksjon.toTransaksjon(transaksjon: Transaksjon?): Transaksjon {
         datoReakFom = LocalDate.of(1900, 1, 1),
         belop = this.belop,
         refTransId = this.refTransId,
-        tekstKode = this.tekstkode,
-        recType = this.rectype,
+        tekstkode = this.tekstkode,
+        rectype = this.rectype,
         transEksId = this.transId,
         transTolkning = transaksjon?.let { TRANS_TOLKNING_NY_EKSIST } ?: TRANS_TOLKNING_NY,
         sendtTilOppdrag = "0",
-        fnrEndret = transaksjon?.let { it.fnr != this.fnr } ?: false,
-        motId = "",
+        fnrEndret = (transaksjon?.let { it.fnr != this.fnr } ?: false).toChar(),
+        motId = null,
         datoOpprettet = LocalDateTime.now(),
         opprettetAv = systemId,
         datoEndret = LocalDateTime.now(),
         endretAv = systemId,
         versjon = 1,
-        saldo = this.saldo,
-        kid = this.kid,
-        prioritet = this.prioritet,
-        trekkansvar = TREKKANSVAR_4819,
         transTilstandType = TRANS_TILSTAND_OPR,
         grad = this.grad
     )

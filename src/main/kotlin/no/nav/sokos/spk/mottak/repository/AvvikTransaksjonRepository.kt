@@ -1,9 +1,14 @@
 package no.nav.sokos.spk.mottak.repository
 
 import com.zaxxer.hikari.HikariDataSource
+import kotliquery.Row
 import kotliquery.Session
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.AvvikTransaksjon
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.util.Util.asMap
 
@@ -35,15 +40,50 @@ class AvvikTransaksjonRepository(
                     OPPRETTET_AV,
                     DATO_ENDRET, 
                     ENDRET_AV, 
-                    VERSJON, 
-                    PRIORITET, 
-                    SALDO, 
-                    TREKKANSVAR,                    
-                    KID,         
+                    VERSJON,   
                     GRAD
-                ) VALUES (:innTransaksjonId, :filInfoId, :transaksjonStatus, :fnr, :belopstype, :art, :avsender, :utbetalesTil, :datoFomStr, :datoTomStr, :datoAnviserStr, :belopStr, :refTransId, :tekstkode, :rectype, :transId, CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', :versjon, :prioritetStr, :saldoStr, :trekkansvar, :kid, :grad) 
+                ) VALUES (:innTransaksjonId, :filInfoId, :transaksjonStatus, :fnr, :belopstype, :art, :avsender, :utbetalesTil, :datoFomStr, :datoTomStr, :datoAnviserStr, :belopStr, :refTransId, :tekstkode, :rectype, :transId, CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', :versjon, :grad) 
             """.trimIndent(),
             innTransaksjonList.map { it.asMap() }
+        )
+    }
+
+    fun getByAvvTransaksjonId(avvikTransaksjonId: Int): AvvikTransaksjon? {
+        return using(sessionOf(dataSource)) { session ->
+            session.single(
+                queryOf(
+                    """
+                        SELECT * FROM T_AVV_TRANSAKSJON WHERE AVV_TRANSAKSJON_ID = $avvikTransaksjonId
+                    """.trimIndent()
+                ), toAvvikTransaksjon
+            )
+        }
+    }
+
+    private val toAvvikTransaksjon: (Row) -> AvvikTransaksjon = { row ->
+        AvvikTransaksjon(
+            avvikTransaksjonId = row.int("AVV_TRANSAKSJON_ID"),
+            filInfoId = row.int("FIL_INFO_ID"),
+            transaksjonStatus = row.string("K_TRANSAKSJON_S"),
+            fnr = row.string("FNR_FK"),
+            belopType = row.string("BELOPSTYPE"),
+            art = row.string("ART"),
+            avsender = row.string("AVSENDER"),
+            utbetalesTil = row.stringOrNull("UTBETALES_TIL"),
+            datoFom = row.string("DATO_FOM"),
+            datoTom = row.string("DATO_TOM"),
+            datoAnviser = row.string("DATO_ANVISER"),
+            belop = row.string("BELOP"),
+            refTransId = row.stringOrNull("REF_TRANS_ID"),
+            tekstKode = row.stringOrNull("TEKSTKODE"),
+            rectType = row.string("RECTYPE"),
+            transEksId = row.string("TRANS_EKS_ID_FK"),
+            datoOpprettet = row.localDateTime("DATO_OPPRETTET"),
+            opprettetAv = row.string("OPPRETTET_AV"),
+            datoEndret = row.localDateTime("DATO_ENDRET"),
+            endretAv = row.string("ENDRET_AV"),
+            versjon = row.int("VERSJON"),
+            grad = row.intOrNull("GRAD")
         )
     }
 }
