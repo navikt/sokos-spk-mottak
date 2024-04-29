@@ -67,7 +67,6 @@ class FtpService(
                         logger.debug { "$fileName ble lastet ned fra mappen $directory" }
                         get(fileName, outputStream)
                         String(outputStream.toByteArray()).split("\r?\n|\r".toRegex()).filter { file -> file.isNotEmpty() }
-
                     }
             } catch (e: SftpException) {
                 logger.error { "$fileName ble ikke hentet. Feilmelding: ${e.message}" }
@@ -75,7 +74,6 @@ class FtpService(
             } finally {
                 exit()
             }
-
         }
     }
 

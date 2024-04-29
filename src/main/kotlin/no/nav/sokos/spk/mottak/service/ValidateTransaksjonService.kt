@@ -7,7 +7,7 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
-import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
+import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOK
 import no.nav.sokos.spk.mottak.domain.toTransaksjon
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.integration.FullmaktClientService
@@ -18,7 +18,7 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 
 private val logger = KotlinLogging.logger {}
 
-class ValidateTransactionService(
+class ValidateTransaksjonService(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource(),
     private val fullmaktClientService: FullmaktClientService = FullmaktClientService()
 ) {
@@ -39,9 +39,9 @@ class ValidateTransactionService(
             executeInntransaksjonValidation()
 
             while (true) {
-                val innTransaksjonList = innTransaksjonRepository.getByTransaksjonStatusIsNullWithPersonId()
+                val innTransaksjonList = innTransaksjonRepository.getByBehandletIsNeiWithPersonId()
                 totalInnTransaksjoner += innTransaksjonList.size
-                totalAvvikTransaksjoner += innTransaksjonList.filter { it.transaksjonStatus != TRANSAKSJONSTATUS_OK }.size
+                totalAvvikTransaksjoner += innTransaksjonList.filter { !it.isTransaksjonStatusOK() }.size
                 logger.debug { "Henter inn ${innTransaksjonList.size} innTransaksjoner fra databasen" }
 
                 when {
@@ -54,6 +54,7 @@ class ValidateTransactionService(
                     "$totalInnTransaksjoner innTransaksjoner validert på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " +
                             "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
                 }
+
                 else -> logger.info { "Finner ingen innTransaksjoner som er ubehandlet" }
             }
         }.onFailure { exception ->
@@ -63,17 +64,17 @@ class ValidateTransactionService(
     }
 
     private fun saveTransaksjonAndAvvikTransaksjon(innTransaksjonList: List<InnTransaksjon>) {
-        val innTransaksjonMap = innTransaksjonList.groupBy { it.transaksjonStatus == TRANSAKSJONSTATUS_OK }
+        val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
 
         dataSource.transaction { session ->
             innTransaksjonMap[true]?.takeIf { it.isNotEmpty() }?.apply {
-                val transaksonMap = transaksjonRepository.getLastTransaksjonByPersonId(this.map { it.personId!! }).associateBy { it.personId }
-                transaksjonRepository.insertBatch(this.map { it.toTransaksjon(transaksonMap[it.personId]) }, session)
+                val transaksjonMap = transaksjonRepository.getLastTransaksjonByPersonId(this.map { it.personId!! }).associateBy { it.personId }
+                transaksjonRepository.insertBatch(this.map { it.toTransaksjon(transaksjonMap[it.personId]) }, session)
 
-                val transakjonIdList = this.map { it.innTransaksjonId!! }
-                transaksjonTilstandRepository.insertBatch(transakjonIdList, session)
+                val transaksjonIdList = this.map { it.innTransaksjonId!! }
+                transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
 
-                logger.debug { "${transakjonIdList.size} transaksjoner opprettet" }
+                logger.debug { "${transaksjonIdList.size} transaksjoner opprettet" }
             }
 
             innTransaksjonMap[false]?.takeIf { it.isNotEmpty() }?.apply {

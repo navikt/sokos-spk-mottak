@@ -15,14 +15,10 @@ internal class FtpServiceTest : FunSpec({
 
     test("opprett fil i INBOUND, flytt til FERDIG og last ned fil fra FERDIG") {
         ftpService.createFile("test.txt", Directories.INBOUND, "content")
+        ftpService.downloadFiles(Directories.INBOUND).size shouldBe 1
 
         ftpService.moveFile("test.txt", Directories.INBOUND, Directories.FERDIG)
-
-        val downloadedFilesFromInbound = ftpService.downloadFiles(Directories.INBOUND)
-        downloadedFilesFromInbound.size shouldBe 0
-
-        val downloadedFilesFromOutbound = ftpService.downloadFiles(Directories.FERDIG)
-        downloadedFilesFromOutbound.size shouldBe 1
-
+        ftpService.downloadFiles(Directories.INBOUND).size shouldBe 0
+        ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
     }
 })

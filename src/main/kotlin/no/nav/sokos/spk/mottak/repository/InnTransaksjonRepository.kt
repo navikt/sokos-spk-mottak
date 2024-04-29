@@ -45,7 +45,7 @@ class InnTransaksjonRepository(
         }
     }
 
-    fun getByTransaksjonStatusIsNullWithPersonId(rows: Int = READ_ROWS): List<InnTransaksjon> {
+    fun getByBehandletIsNeiWithPersonId(rows: Int = READ_ROWS): List<InnTransaksjon> {
         return using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(

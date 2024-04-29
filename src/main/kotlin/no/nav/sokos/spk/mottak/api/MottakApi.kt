@@ -11,14 +11,14 @@ import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.integration.FullmaktClientService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
-import no.nav.sokos.spk.mottak.service.ValidateTransactionService
+import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 
 private val logger = KotlinLogging.logger {}
 
 fun Route.mottakApi(
     readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
     fullmaktClientService: FullmaktClientService = FullmaktClientService(),
-    validateTransactionService: ValidateTransactionService = ValidateTransactionService()
+    validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService()
 
 ) {
     route("api/v1") {
@@ -32,7 +32,7 @@ fun Route.mottakApi(
 
         get("transaksjonvalidering") {
             launch(Dispatchers.IO) {
-                validateTransactionService.validateInnTransaksjon()
+                validateTransaksjonService.validateInnTransaksjon()
             }
             call.respond(HttpStatusCode.OK, "Transaksjonsvalidering har startet, sjekk logger for status")
         }

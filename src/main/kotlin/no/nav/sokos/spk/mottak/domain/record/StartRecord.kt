@@ -14,7 +14,7 @@ data class StartRecord(
     val filType: String,
     val produsertDato: LocalDate? = null,
     val beskrivelse: String,
-    val raaRecord: String,
+    val kildeData: String,
     val filStatus: FilStatus
 )
 
