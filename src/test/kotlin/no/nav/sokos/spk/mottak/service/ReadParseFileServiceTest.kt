@@ -1,11 +1,14 @@
 package no.nav.sokos.spk.mottak.service
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldBeBlank
+import io.mockk.every
+import io.mockk.mockk
+import java.io.IOException
 import java.time.LocalDate
 import no.nav.sokos.spk.mottak.SPK_FEIL_FILLOPENUMMER_I_BRUK
 import no.nav.sokos.spk.mottak.SPK_FEIL_FORVENTET_FILLOPENUMMER
@@ -26,18 +29,19 @@ import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.SftpConfig
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_NEI
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_SKATTEPLIKTIG_UTBETALING
-import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_AVV
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
+import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FilInfo
+import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.LopeNummer
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
+import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.Db2Listener.dataSource
 import no.nav.sokos.spk.mottak.listener.SftpListener
-import no.nav.sokos.spk.mottak.domain.FilStatus
 
 private const val SYSTEM_ID = "sokos-spk-mottak"
 private const val MAX_LOPENUMMER = 33
@@ -62,7 +66,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
     }
 
     Given("det finnes en ubehandlet fil i \"inbound\" på FTP-serveren ") {
-        ftpService.createFile(SPK_FILE_OK, Directories.INBOUND, SPK_FILE_OK.readFromResource())
+        ftpService.createFile(SPK_FILE_OK, Directories.INBOUND, readFromResource("/spk/$SPK_FILE_OK"))
 
         When("leser filen og parser") {
             readAndParseFileService.readAndParseFile()
@@ -85,8 +89,8 @@ class ReadParseFileServiceTest : BehaviorSpec({
     }
 
     Given("det finnes to ubehandlede filer i \"inbound\" på FTP-serveren ") {
-        ftpService.createFile(SPK_FILE_OK, Directories.INBOUND, SPK_FILE_OK.readFromResource())
-        ftpService.createFile(SPK_FILE_FEIL, Directories.INBOUND, SPK_FILE_FEIL.readFromResource())
+        ftpService.createFile(SPK_FILE_OK, Directories.INBOUND, readFromResource("/spk/$SPK_FILE_OK"))
+        ftpService.createFile(SPK_FILE_FEIL, Directories.INBOUND, readFromResource("/spk/$SPK_FILE_FEIL"))
 
         When("leser begge filene og parser") {
             readAndParseFileService.readAndParseFile()
@@ -109,10 +113,41 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
     }
 
-    Given("det finnes en ubehandlet fil med ugyldig anviser") {
-        ftpService.createFile(SPK_FEIL_UGYLDIG_ANVISER, Directories.INBOUND, SPK_FEIL_UGYLDIG_ANVISER.readFromResource())
+    @Suppress("NAME_SHADOWING")
+    Given("det finnes ubehandlet fil i \"inbound\" på FTP-serveren ") {
+        val ftpServiceMock = mockk<FtpService>()
+        val readAndParseFileService: ReadAndParseFileService by lazy {
+            ReadAndParseFileService(dataSource, ftpServiceMock)
+        }
 
-        When("leser filen og parser") {
+        When("leser ok format filen og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FILE_OK to readFromResource("/spk/$SPK_FILE_OK").lines())
+
+            Then("skal det kastet en MottakException med uforventet feil") {
+                every { ftpServiceMock.moveFile(any(), any(), any()) } throws IOException("Ftp server is down!")
+                val exception = shouldThrow<MottakException> {
+                    readAndParseFileService.readAndParseFile()
+                }
+                exception.message shouldBe "Ukjent feil ved innlesing av fil: SPK_NAV_20242503_070026814_ANV_OK.txt. Feilmelding: Ftp server is down!"
+            }
+        }
+
+        When("leser feil format filen og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FILE_FEIL to readFromResource("/spk/$SPK_FILE_FEIL").lines())
+
+            Then("skal det kastet en MottakException med uforventet feil") {
+                every { ftpServiceMock.createFile(any(), any(), any()) } throws IOException("Ftp server can not move file!")
+                val exception = shouldThrow<MottakException> {
+                    readAndParseFileService.readAndParseFile()
+                }
+                exception.message shouldBe "Feil ved opprettelse av avviksfil: SPK_NAV_20242503_080026814_ANV_FEIL.txt. Feilmelding: Ftp server can not move file!"
+            }
+        }
+
+        When("leser fil med ugyldig anviser og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_ANVISER to readFromResource("/spk/$SPK_FEIL_UGYLDIG_ANVISER").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus UGYLDIG_ANVISER") {
@@ -122,12 +157,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_ANVISER) shouldBe MAX_LOPENUMMER
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil med ugyldig mottaker") {
-        ftpService.createFile(SPK_FEIL_UGYLDIG_MOTTAKER, Directories.INBOUND, SPK_FEIL_UGYLDIG_MOTTAKER.readFromResource())
-
-        When("leser filen og parser") {
+        When("leser fil med ugyldig mottaker og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_MOTTAKER to readFromResource("/spk/$SPK_FEIL_UGYLDIG_MOTTAKER").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus UGYLDIG_MOTTAKER") {
@@ -137,12 +171,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil med filløpenummer i bruk") {
-        ftpService.createFile(SPK_FEIL_FILLOPENUMMER_I_BRUK, Directories.INBOUND, SPK_FEIL_FILLOPENUMMER_I_BRUK.readFromResource())
-
-        When("leser filen og parser") {
+        When("leser fil med løpenummer som er i bruk og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_FILLOPENUMMER_I_BRUK to readFromResource("/spk/$SPK_FEIL_FILLOPENUMMER_I_BRUK").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus FILLOPENUMMER_I_BRUK") {
@@ -152,12 +185,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_ANVISER) shouldBe MAX_LOPENUMMER
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil med ugyldig løpenummer") {
-        ftpService.createFile(SPK_FEIL_UGYLDIG_LOPENUMMER, Directories.INBOUND, SPK_FEIL_UGYLDIG_LOPENUMMER.readFromResource())
-
-        When("leser filen og parser") {
+        When("leser fil med ugyldig løpenummer og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_LOPENUMMER to readFromResource("/spk/$SPK_FEIL_UGYLDIG_LOPENUMMER").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus UGYLDIG_FILLOPENUMMER") {
@@ -166,12 +198,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_ANVISER) shouldBe MAX_LOPENUMMER
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil med feil forventet løpenummer") {
-        ftpService.createFile(SPK_FEIL_FORVENTET_FILLOPENUMMER, Directories.INBOUND, SPK_FEIL_FORVENTET_FILLOPENUMMER.readFromResource())
-
-        When("leser filen og parser") {
+        When("leser fil med ikke forventet løpenummer og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_FORVENTET_FILLOPENUMMER to readFromResource("/spk/$SPK_FEIL_FORVENTET_FILLOPENUMMER").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus FORVENTET_FILLOPENUMMER") {
@@ -181,12 +212,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_ANVISER) shouldBe MAX_LOPENUMMER
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil som har ugyldig filtype") {
-        ftpService.createFile(SPK_FEIL_UGYLDIG_FILTYPE, Directories.INBOUND, SPK_FEIL_UGYLDIG_FILTYPE.readFromResource())
-
-        When("leser filen og parser") {
+        When("leser fil med ugyldig filtype og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_FILTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_FILTYPE").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus UGYLDIG_FILTYPE") {
@@ -196,12 +226,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_ANVISER) shouldBe MAX_LOPENUMMER
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil med ugydlig antall records") {
-        ftpService.createFile(SPK_FEIL_UGYLDIG_ANTRECORDS, Directories.INBOUND, SPK_FEIL_UGYLDIG_ANTRECORDS.readFromResource())
-
-        When("leser filen og parser") {
+        When("leser fil med ugyldig antall record og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_ANTRECORDS to readFromResource("/spk/$SPK_FEIL_UGYLDIG_ANTRECORDS").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus UGYLDIG_ANTRECORDS") {
@@ -211,12 +240,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil med ugyldig sumbeløp") {
-        ftpService.createFile(SPK_FEIL_UGYLDIG_SUMBELOP, Directories.INBOUND, SPK_FEIL_UGYLDIG_SUMBELOP.readFromResource())
-
-        When("leser filen og parser") {
+        When("leser fil med ugyldig sumbeløp og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_SUMBELOP to readFromResource("/spk/$SPK_FEIL_UGYLDIG_SUMBELOP").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus UGYLDIG_SUMBELOP") {
@@ -226,12 +254,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil med ugyldig produsert dato") {
-        ftpService.createFile(SPK_FEIL_UGYLDIG_PRODDATO, Directories.INBOUND, SPK_FEIL_UGYLDIG_PRODDATO.readFromResource())
-
-        When("leser filen og parser") {
+        When("leser fil med ugyldig produksjonsdato og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_PRODDATO to readFromResource("/spk/$SPK_FEIL_UGYLDIG_PRODDATO").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus UGYLDIG_PRODDATO") {
@@ -241,15 +268,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil med ugyldig startrecordtype starter med 11") {
-        ftpService.createFile(
-            SPK_FEIL_UGYLDIG_START_RECTYPE,
-            Directories.INBOUND,
-            SPK_FEIL_UGYLDIG_START_RECTYPE.readFromResource()
-        )
-        When("leser filen og parser") {
+        When("leser fil med ugyldig startrecordtype starter med 11 og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_START_RECTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_START_RECTYPE").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus UGYLDIG_RECTYPE") {
@@ -259,15 +282,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil med ugyldig endrecordtype starter med 10") {
-        ftpService.createFile(
-            SPK_FEIL_UGYLDIG_END_RECTYPE,
-            Directories.INBOUND,
-            SPK_FEIL_UGYLDIG_END_RECTYPE.readFromResource()
-        )
-        When("leser filen og parser") {
+        When("leser fil med ugyldig endrecordtype starter med 10 og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_END_RECTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_END_RECTYPE").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus UGYLDIG_RECTYPE") {
@@ -277,15 +296,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil med ugyldig transaksjonsbeløp format") {
-        ftpService.createFile(
-            SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP,
-            Directories.INBOUND,
-            SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP.readFromResource()
-        )
-        When("leser filen og parser") {
+        When("leser fil med ugyldig transaksjonsbeløp format og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP to readFromResource("/spk/$SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus UGYLDIG_SUMBELOP") {
@@ -295,15 +310,11 @@ class ReadParseFileServiceTest : BehaviorSpec({
                 verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
             }
         }
-    }
 
-    Given("det finnes en ubehandlet fil med ugyldig transaksjon-recordtype starter med 03") {
-        ftpService.createFile(
-            SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE,
-            Directories.INBOUND,
-            SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE.readFromResource()
-        )
-        When("leser filen og parser") {
+        When("leser fil med ugyldig transaksjon-recordtype starter med 03 og parser") {
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE").lines())
+            every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
+            every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
             readAndParseFileService.readAndParseFile()
 
             Then("skal fil info inneholde en filestatus UGYLDIG_RECTYPE") {
@@ -324,13 +335,13 @@ private fun verifyInntransaksjon(innTransaksjon: InnTransaksjon, filInfoId: Int)
     innTransaksjon.belopstype shouldBe BELOPTYPE_SKATTEPLIKTIG_UTBETALING
     innTransaksjon.art shouldNotBe null
     innTransaksjon.avsender shouldBe SPK
-    innTransaksjon.utbetalesTil.shouldBeBlank()
+    innTransaksjon.utbetalesTil shouldBe null
     innTransaksjon.datoFomStr shouldBe "20240201"
     innTransaksjon.datoTomStr shouldBe "20240229"
     innTransaksjon.datoAnviserStr shouldBe "20240131"
     innTransaksjon.belopStr shouldBe "00000346900"
-    innTransaksjon.refTransId.shouldBeBlank()
-    innTransaksjon.tekstkode.shouldBeBlank()
+    innTransaksjon.refTransId shouldBe null
+    innTransaksjon.tekstkode shouldBe null
     innTransaksjon.rectype shouldBe RECTYPE_TRANSAKSJONSRECORD
     innTransaksjon.transId shouldBe "116684810"
     innTransaksjon.datoFom shouldBe LocalDate.of(2024, 2, 1)
@@ -342,14 +353,8 @@ private fun verifyInntransaksjon(innTransaksjon: InnTransaksjon, filInfoId: Int)
     innTransaksjon.datoEndret.toLocalDate() shouldBe LocalDate.now()
     innTransaksjon.endretAv shouldBe SYSTEM_ID
     innTransaksjon.versjon shouldBe 1
-    innTransaksjon.prioritetStr.shouldBeBlank()
-    innTransaksjon.trekkansvar.shouldBeBlank()
-    innTransaksjon.saldoStr shouldBe "00000000410"
-    innTransaksjon.kid.shouldBeBlank()
-    innTransaksjon.prioritet shouldBe null
-    innTransaksjon.saldo shouldBe 410
     innTransaksjon.grad shouldBe null
-    innTransaksjon.gradStr.shouldBeBlank()
+    innTransaksjon.gradStr shouldBe null
 }
 
 private fun verifyLopenummer(lopeNummer: LopeNummer?) {

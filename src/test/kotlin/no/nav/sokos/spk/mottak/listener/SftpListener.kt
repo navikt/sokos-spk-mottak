@@ -6,8 +6,7 @@ import com.github.dockerjava.api.model.Ports
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.Session
 import com.jcraft.jsch.SftpException
-import io.kotest.core.listeners.AfterSpecListener
-import io.kotest.core.listeners.BeforeSpecListener
+import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -31,7 +30,7 @@ import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter
 
 private val logger = KotlinLogging.logger {}
 
-object SftpListener : BeforeSpecListener, AfterSpecListener {
+object SftpListener : TestListener {
     private val keyPair = generateKeyPair()
     private val privateKeyFile = createPrivateKeyFile(keyPair.private)
     private val genericContainer = setupSftpTestContainer(keyPair.public)

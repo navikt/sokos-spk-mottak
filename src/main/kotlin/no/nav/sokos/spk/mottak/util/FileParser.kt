@@ -1,5 +1,6 @@
 package no.nav.sokos.spk.mottak.util
 
+import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.RECTYPE_SLUTTRECORD
 import no.nav.sokos.spk.mottak.domain.RECTYPE_STARTRECORD
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
@@ -7,7 +8,6 @@ import no.nav.sokos.spk.mottak.domain.record.SluttRecord
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.util.Util.toLocalDate
-import no.nav.sokos.spk.mottak.domain.FilStatus
 
 object FileParser {
     fun parseStartRecord(record: String): StartRecord {
@@ -33,7 +33,7 @@ object FileParser {
             filType = record.getString(30, 33),
             produsertDato = record.getString(33, 41).toLocalDate(),
             beskrivelse = record.getString(41, 75),
-            raaRecord = record,
+            kildeData = record,
             filStatus = filStatus
         )
     }

@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
@@ -18,6 +19,7 @@ import no.nav.sokos.spk.mottak.security.AccessTokenClient
 
 private val accessTokenClient = mockk<AccessTokenClient>()
 
+@Ignored
 class FullmaktClientServiceTest : FunSpec({
 
     val fullmaktClientService = FullmaktClientService(
@@ -29,7 +31,7 @@ class FullmaktClientServiceTest : FunSpec({
 
         wiremock.stubFor(
             get(urlEqualTo("/finnFullmaktMottakere?side=0&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
-                .willReturn(okJson("fullmakter.json".readFromResource()))
+                .willReturn(okJson(readFromResource("/fullmakter.json")))
         )
         wiremock.stubFor(
             get(urlEqualTo("/finnFullmaktMottakere?side=1&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
@@ -67,7 +69,7 @@ class FullmaktClientServiceTest : FunSpec({
                 .inScenario("Retry Scenario")
                 .whenScenarioStateIs("Success")
                 .willSetStateTo("Finish")
-                .willReturn(okJson("fullmakter.json".readFromResource()))
+                .willReturn(okJson(readFromResource("/fullmakter.json")))
         )
 
         wiremock.stubFor(

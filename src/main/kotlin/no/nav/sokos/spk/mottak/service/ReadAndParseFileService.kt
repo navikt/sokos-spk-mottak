@@ -116,7 +116,7 @@ class ReadAndParseFileService(
             )
             filInfoRepository.insert(filInfo, session)!!
 
-            createAvviksFil(recordData.startRecord.raaRecord, exception)
+            createAvviksFil(recordData.startRecord.kildeData, exception)
             ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.FERDIG)
             logger.info { "Avviksfil er opprettet for fil: ${recordData.filNavn} med status: ${exception.statusCode} med løpenummer: ${recordData.startRecord.filLopenummer}" }
         }.onFailure {

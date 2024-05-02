@@ -9,7 +9,7 @@ import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 class FileParserTest : BehaviorSpec({
 
     Given("SPK innlesingsfil") {
-        val spkFil = SPK_FILE_OK.readFromResource()
+        val spkFil = readFromResource("/spk/$SPK_FILE_OK")
         val recordData = spkFil.lines()
         recordData.size shouldNotBe 0
 
@@ -22,7 +22,7 @@ class FileParserTest : BehaviorSpec({
                 startRecord.filType shouldBe "ANV"
                 startRecord.produsertDato.toString() shouldBe "2024-01-31"
                 startRecord.beskrivelse shouldBe "ANVISNINGSFIL"
-                startRecord.raaRecord shouldBe "01SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00"
+                startRecord.kildeData shouldBe "01SPK        NAV        000034ANV20240131ANVISNINGSFIL                      00"
             }
         }
 

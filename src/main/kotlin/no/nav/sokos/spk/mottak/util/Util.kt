@@ -11,6 +11,10 @@ object Util {
         }.getOrNull()
     }
 
+    fun Boolean.toChar(): Char {
+        return if (this) '1' else '0'
+    }
+
     inline fun <reified T : Any> T.asMap(): Map<String, Any?> {
         val props = T::class.memberProperties.associateBy { it.name }
         return props.keys.associateWith { props[it]?.get(this) }
