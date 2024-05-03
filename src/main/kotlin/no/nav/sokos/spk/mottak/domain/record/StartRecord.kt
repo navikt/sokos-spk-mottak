@@ -4,8 +4,8 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FilInfo
-import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.domain.FilStatus
+import no.nav.sokos.spk.mottak.domain.SPK
 
 data class StartRecord(
     val avsender: String,

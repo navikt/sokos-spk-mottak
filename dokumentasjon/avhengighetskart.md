@@ -1,5 +1,5 @@
-
 # Avhengighetskart
+
 ````mermaid
     C4Context
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")

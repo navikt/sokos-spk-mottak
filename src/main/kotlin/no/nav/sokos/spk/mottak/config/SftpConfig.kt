@@ -1,10 +1,10 @@
 package no.nav.sokos.spk.mottak.config
 
 import com.jcraft.jsch.JSch
-import com.jcraft.jsch.Session
 import com.jcraft.jsch.Logger
-import org.slf4j.LoggerFactory
+import com.jcraft.jsch.Session
 import mu.KotlinLogging
+import org.slf4j.LoggerFactory
 
 private val logger = KotlinLogging.logger {}
 

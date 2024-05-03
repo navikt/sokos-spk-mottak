@@ -13,14 +13,7 @@ object PropertiesConfig {
     private val defaultProperties = ConfigurationMap(
         mapOf(
             "NAIS_APP_NAME" to "sokos-spk-mottak",
-            "NAIS_NAMESPACE" to "okonomi"
-        )
-    )
-
-    private val localDevProperties = ConfigurationMap(
-        mapOf(
-            "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
-            "USE_AUTHENTICATION" to "false",
+            "NAIS_NAMESPACE" to "okonomi",
 
             // Azure
             "AZURE_APP_CLIENT_ID" to "",
@@ -36,6 +29,13 @@ object PropertiesConfig {
             "DATABASE_USERNAME" to "",
             "DATABASE_PASSWORD" to "",
 
+            // POSTGRES
+            "POSTGRES_USER_USERNAME" to "",
+            "POSTGRES_USER_PASSWORD" to "",
+            "POSTGRES_ADMIN_USERNAME" to "",
+            "POSTGRES_ADMIN_PASSWORD" to "",
+            "VAULT_MOUNTPATH" to "",
+
             // SFTP
             "SFTP_SERVER" to "",
             "SPK_SFTP_USERNAME" to "",
@@ -43,19 +43,22 @@ object PropertiesConfig {
             "SPK_SFTP_PASSWORD" to "",
             "SFTP_PORT" to "",
 
-            // Postgres
-            "POSTGRES_HOST" to "dev-pg.intern.nav.no",
-            "POSTGRES_PORT" to "5432",
-            "POSTGRES_NAME" to "sokos-spk-mottak",
-            "POSTGRES_USER_USERNAME" to "",
-            "POSTGRES_USER_PASSWORD" to "",
-            "POSTGRES_ADMIN_USERNAME" to "",
-            "POSTGRES_ADMIN_PASSWORD" to "",
-            "VAULT_MOUNTPATH" to "",
 
             // Pensjon Representasjon
             "PENSJON_REPRESENTASJON_URL" to "",
             "PENSJON_REPRESENTASJON_SCOPE" to "",
+        )
+    )
+
+    private val localDevProperties = ConfigurationMap(
+        mapOf(
+            "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
+            "USE_AUTHENTICATION" to "false",
+
+            // Postgres
+            "POSTGRES_HOST" to "dev-pg.intern.nav.no",
+            "POSTGRES_PORT" to "5432",
+            "POSTGRES_NAME" to "sokos-spk-mottak",
         )
     )
 
