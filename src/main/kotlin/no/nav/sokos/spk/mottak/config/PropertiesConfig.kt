@@ -113,10 +113,10 @@ object PropertiesConfig {
         val host: String = get("POSTGRES_HOST"),
         val port: String = get("POSTGRES_PORT"),
         val databaseName: String = get("POSTGRES_NAME"),
-        val username: String = get("POSTGRES_USER_USERNAME"),
-        val password: String = get("POSTGRES_USER_PASSWORD"),
-        val adminUsername: String = get("POSTGRES_ADMIN_USERNAME"),
-        val adminPassword: String = get("POSTGRES_ADMIN_PASSWORD"),
+        val username: String? = get("POSTGRES_USER_USERNAME"),
+        val password: String? = get("POSTGRES_USER_PASSWORD"),
+        val adminUsername: String? = get("POSTGRES_ADMIN_USERNAME"),
+        val adminPassword: String? = get("POSTGRES_ADMIN_PASSWORD"),
         val vaultMountPath: String = get("VAULT_MOUNTPATH"),
     ) {
         val adminUser = "${get("POSTGRES_NAME")}-admin"
