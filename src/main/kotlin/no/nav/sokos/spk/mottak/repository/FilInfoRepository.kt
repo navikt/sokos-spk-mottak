@@ -12,7 +12,7 @@ import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.util.Util.asMap
 
 class FilInfoRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource()
 ) {
     fun getFilInfo(
         lopeNummer: Int,

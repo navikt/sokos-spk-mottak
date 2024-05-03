@@ -13,7 +13,7 @@ import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.util.Util.asMap
 
 class AvvikTransaksjonRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource()
 ) {
     fun insertBatch(innTransaksjonList: List<InnTransaksjon>, session: Session): List<Int> {
         val systemId = PropertiesConfig.Configuration().naisAppName

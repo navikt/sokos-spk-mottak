@@ -11,7 +11,7 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.TransaksjonTilstand
 
 class TransaksjonTilstandRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource()
 ) {
     fun insertBatch(transaksjonIdList: List<Int>, session: Session): List<Int> {
         val systemId = PropertiesConfig.Configuration().naisAppName

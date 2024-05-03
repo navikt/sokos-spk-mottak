@@ -23,37 +23,39 @@ object PropertiesConfig {
             "USE_AUTHENTICATION" to "false",
 
             // Azure
-            "AZURE_APP_CLIENT_ID" to "azure-app-client-id",
-            "AZURE_APP_WELL_KNOWN_URL" to "azure-app-well-known-url",
-            "AZURE_APP_TENANT_ID" to "azure-app-tenant-id",
-            "AZURE_APP_CLIENT_SECRET" to "azure-app-client-secret",
+            "AZURE_APP_CLIENT_ID" to "",
+            "AZURE_APP_WELL_KNOWN_URL" to "",
+            "AZURE_APP_TENANT_ID" to "",
+            "AZURE_APP_CLIENT_SECRET" to "",
 
             // DB2
-            "DATABASE_HOST" to "databaseHost",
-            "DATABASE_PORT" to "databasePort",
-            "DATABASE_NAME" to "databaseName",
-            "DATABASE_SCHEMA" to "databaseSchema",
-            "DATABASE_USERNAME" to "databaseUsername",
-            "DATABASE_PASSWORD" to "databasePassword",
+            "DATABASE_HOST" to "",
+            "DATABASE_PORT" to "",
+            "DATABASE_NAME" to "",
+            "DATABASE_SCHEMA" to "",
+            "DATABASE_USERNAME" to "",
+            "DATABASE_PASSWORD" to "",
 
             // SFTP
-            "SFTP_SERVER" to "sftpServer",
-            "SPK_SFTP_USERNAME" to "sftpUsername",
-            "SFTP_PRIVATE_KEY_FILE_PATH" to "sftpPrivateKeyFilePath",
-            "SPK_SFTP_PASSWORD" to "sftpPassword",
-            "SFTP_PORT" to "sftpPort",
+            "SFTP_SERVER" to "",
+            "SPK_SFTP_USERNAME" to "",
+            "SFTP_PRIVATE_KEY_FILE_PATH" to "",
+            "SPK_SFTP_PASSWORD" to "",
+            "SFTP_PORT" to "",
 
             // Postgres
-            "POSTGRES_USERNAME" to "",
-            "POSTGRES_PASSWORD" to "",
             "POSTGRES_HOST" to "dev-pg.intern.nav.no",
             "POSTGRES_PORT" to "5432",
-            "POSTGRES_NAME" to "sokos-ske-krav",
+            "POSTGRES_NAME" to "sokos-spk-mottak",
+            "POSTGRES_USER_USERNAME" to "",
+            "POSTGRES_USER_PASSWORD" to "",
+            "POSTGRES_ADMIN_USERNAME" to "",
+            "POSTGRES_ADMIN_PASSWORD" to "",
             "VAULT_MOUNTPATH" to "",
 
             // Pensjon Representasjon
-            "PENSJON_REPRESENTASJON_URL" to "pensjon-representasjon-url",
-            "PENSJON_REPRESENTASJON_SCOPE" to "pensjon-representasjon-client-id",
+            "PENSJON_REPRESENTASJON_URL" to "",
+            "PENSJON_REPRESENTASJON_SCOPE" to "",
         )
     )
 
@@ -110,16 +112,24 @@ object PropertiesConfig {
     data class PostgresConfig(
         val host: String = get("POSTGRES_HOST"),
         val port: String = get("POSTGRES_PORT"),
-        val name: String = get("POSTGRES_NAME"),
-        val username: String = if (Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) get("POSTGRES_USERNAME").trim() else "",
-        val password: String = if (Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) get("POSTGRES_PASSWORD").trim() else "",
+        val databaseName: String = get("POSTGRES_NAME"),
+        val username: String = get("POSTGRES_USER_USERNAME"),
+        val password: String = get("POSTGRES_USER_PASSWORD"),
+        val adminUsername: String = get("POSTGRES_ADMIN_USERNAME"),
+        val adminPassword: String = get("POSTGRES_ADMIN_PASSWORD"),
         val vaultMountPath: String = get("VAULT_MOUNTPATH"),
     ) {
-        val jdbcUrl: String = "jdbc:postgresql://$host:$port/$name"
+        val adminUser = "${get("POSTGRES_NAME")}-admin"
+        val user = "${get("POSTGRES_NAME")}-user"
     }
 
     enum class Profile {
         LOCAL, DEV, PROD
     }
 }
+
+fun PropertiesConfig.isLocal() = PropertiesConfig.Configuration().profile == PropertiesConfig.Profile.LOCAL
+
+
+
 

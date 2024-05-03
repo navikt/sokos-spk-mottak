@@ -11,7 +11,7 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.LopeNummer
 
 class LopenummerRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource()
 ) {
     fun findMaxLopeNummer(filType: String): Int? {
         return using(sessionOf(dataSource)) { session ->

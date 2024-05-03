@@ -28,7 +28,7 @@ private const val BATCH_SIZE: Int = 20000
 private val logger = KotlinLogging.logger {}
 
 class ReadAndParseFileService(
-    private val dataSource: HikariDataSource = DatabaseConfig.dataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
     private val ftpService: FtpService = FtpService()
 ) {
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource)

@@ -18,7 +18,7 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 private val logger = KotlinLogging.logger {}
 
 class ValidateTransaksjonService(
-    private val dataSource: HikariDataSource = DatabaseConfig.dataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource)
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)

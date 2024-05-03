@@ -35,8 +35,9 @@ val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.19.7"
 val h2Version = "2.2.224"
 val kotestWiremockVersion = "3.0.1"
-val postgresqlVersion = "42.6.1"
 val flywayVersion = "9.16.1"
+val postgresVersion = "42.7.3"
+val dbSchedulerVersion = "14.0.0"
 val vaultVersion = "1.3.10"
 
 dependencies {
@@ -75,13 +76,16 @@ dependencies {
     // Database
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("com.ibm.db2:jcc:$db2JccVersion")
-    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
-    implementation("org.postgresql:postgresql:$postgresqlVersion")
-    implementation("no.nav:vault-jdbc:$vaultVersion")
+    implementation("org.postgresql:postgresql:$postgresVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
+    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
     // Config
     implementation("com.natpryce:konfig:$natpryceVersion")
+    implementation("no.nav:vault-jdbc:$vaultVersion")
+
+    // Scheduler
+    implementation("com.github.kagkarlsson:db-scheduler:$dbSchedulerVersion")
 
     // Test
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")

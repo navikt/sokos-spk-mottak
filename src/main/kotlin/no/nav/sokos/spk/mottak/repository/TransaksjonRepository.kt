@@ -12,7 +12,7 @@ import no.nav.sokos.spk.mottak.util.Util.asMap
 import no.nav.sokos.spk.mottak.util.Util.toChar
 
 class TransaksjonRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource()
 ) {
     fun insertBatch(transaksjonList: List<Transaksjon>, session: Session): List<Int> {
         return session.batchPreparedNamedStatement(

@@ -29,7 +29,7 @@ import no.nav.sokos.spk.mottak.util.Util.toLocalDate
 private const val READ_ROWS: Int = 10000
 
 class InnTransaksjonRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.dataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource()
 ) {
     fun getByFilInfoId(filInfoId: Int): List<InnTransaksjon> {
         return using(sessionOf(dataSource)) { session ->
