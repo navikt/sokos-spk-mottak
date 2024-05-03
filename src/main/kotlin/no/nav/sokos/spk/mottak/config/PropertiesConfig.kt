@@ -72,6 +72,7 @@ object PropertiesConfig {
     }
 
     operator fun get(key: String): String = config[Key(key, stringType)]
+    fun getOrNull(key: String): String? = config.getOrNull(Key(key, stringType))
 
     data class Configuration(
         val naisAppName: String = get("NAIS_APP_NAME"),
@@ -113,10 +114,10 @@ object PropertiesConfig {
         val host: String = get("POSTGRES_HOST"),
         val port: String = get("POSTGRES_PORT"),
         val databaseName: String = get("POSTGRES_NAME"),
-        val username: String? = get("POSTGRES_USER_USERNAME"),
-        val password: String? = get("POSTGRES_USER_PASSWORD"),
-        val adminUsername: String? = get("POSTGRES_ADMIN_USERNAME"),
-        val adminPassword: String? = get("POSTGRES_ADMIN_PASSWORD"),
+        val username: String? = getOrNull("POSTGRES_USER_USERNAME"),
+        val password: String? = getOrNull("POSTGRES_USER_PASSWORD"),
+        val adminUsername: String? = getOrNull("POSTGRES_ADMIN_USERNAME"),
+        val adminPassword: String? = getOrNull("POSTGRES_ADMIN_PASSWORD"),
         val vaultMountPath: String = get("VAULT_MOUNTPATH"),
     ) {
         val adminUser = "${get("POSTGRES_NAME")}-admin"
