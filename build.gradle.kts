@@ -35,6 +35,9 @@ val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.19.7"
 val h2Version = "2.2.224"
 val kotestWiremockVersion = "3.0.1"
+val postgresqlVersion = "42.6.1"
+val flywayVersion = "9.16.1"
+val vaultVersion = "1.3.10"
 
 dependencies {
 
@@ -73,6 +76,9 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("com.ibm.db2:jcc:$db2JccVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
+    implementation("org.postgresql:postgresql:$postgresqlVersion")
+    implementation("no.nav:vault-jdbc:$vaultVersion")
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
 
     // Config
     implementation("com.natpryce:konfig:$natpryceVersion")

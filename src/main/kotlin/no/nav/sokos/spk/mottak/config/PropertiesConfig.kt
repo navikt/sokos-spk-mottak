@@ -21,23 +21,39 @@ object PropertiesConfig {
         mapOf(
             "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
             "USE_AUTHENTICATION" to "false",
+
+            // Azure
             "AZURE_APP_CLIENT_ID" to "azure-app-client-id",
             "AZURE_APP_WELL_KNOWN_URL" to "azure-app-well-known-url",
             "AZURE_APP_TENANT_ID" to "azure-app-tenant-id",
             "AZURE_APP_CLIENT_SECRET" to "azure-app-client-secret",
+
+            // DB2
             "DATABASE_HOST" to "databaseHost",
             "DATABASE_PORT" to "databasePort",
             "DATABASE_NAME" to "databaseName",
             "DATABASE_SCHEMA" to "databaseSchema",
             "DATABASE_USERNAME" to "databaseUsername",
             "DATABASE_PASSWORD" to "databasePassword",
+
+            // SFTP
             "SFTP_SERVER" to "sftpServer",
             "SPK_SFTP_USERNAME" to "sftpUsername",
             "SFTP_PRIVATE_KEY_FILE_PATH" to "sftpPrivateKeyFilePath",
             "SPK_SFTP_PASSWORD" to "sftpPassword",
             "SFTP_PORT" to "sftpPort",
+
+            // Postgres
+            "POSTGRES_USERNAME" to "",
+            "POSTGRES_PASSWORD" to "",
+            "POSTGRES_HOST" to "dev-pg.intern.nav.no",
+            "POSTGRES_PORT" to "5432",
+            "POSTGRES_NAME" to "sokos-ske-krav",
+            "VAULT_MOUNTPATH" to "",
+
+            // Pensjon Representasjon
             "PENSJON_REPRESENTASJON_URL" to "pensjon-representasjon-url",
-            "PENSJON_REPRESENTASJON_SCOPE" to "pensjon-representasjon-client-id"
+            "PENSJON_REPRESENTASJON_SCOPE" to "pensjon-representasjon-client-id",
         )
     )
 
@@ -79,17 +95,28 @@ object PropertiesConfig {
         val port: Int = get("SFTP_PORT").toInt()
     )
 
-    class AzureAdConfig(
+    data class AzureAdConfig(
         val clientId: String = get("AZURE_APP_CLIENT_ID"),
         val wellKnownUrl: String = get("AZURE_APP_WELL_KNOWN_URL"),
         val tenantId: String = get("AZURE_APP_TENANT_ID"),
         val clientSecret: String = get("AZURE_APP_CLIENT_SECRET"),
     )
 
-    class PensjonFullmaktConfig(
+    data class PensjonFullmaktConfig(
         val fullmaktUrl: String = get("PENSJON_REPRESENTASJON_URL"),
         val fullmaktScope: String = get("PENSJON_REPRESENTASJON_SCOPE"),
     )
+
+    data class PostgresConfig(
+        val host: String = get("POSTGRES_HOST"),
+        val port: String = get("POSTGRES_PORT"),
+        val name: String = get("POSTGRES_NAME"),
+        val username: String = if (Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) get("POSTGRES_USERNAME").trim() else "",
+        val password: String = if (Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) get("POSTGRES_PASSWORD").trim() else "",
+        val vaultMountPath: String = get("VAULT_MOUNTPATH"),
+    ) {
+        val jdbcUrl: String = "jdbc:postgresql://$host:$port/$name"
+    }
 
     enum class Profile {
         LOCAL, DEV, PROD

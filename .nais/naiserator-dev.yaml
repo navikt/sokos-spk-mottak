@@ -66,7 +66,7 @@ spec:
     - name: USE_AUTHENTICATION
       value: "true"
 
-    # Database
+    # DB2
     - name: DATABASE_HOST
       value: "155.55.1.82"
     - name: DATABASE_PORT
@@ -75,6 +75,16 @@ spec:
       value: "QDB2"
     - name: DATABASE_SCHEMA
       value: "MO611QX"
+
+    # Postgres
+    - name: POSTGRES_HOST
+      value: b27dbvl034.preprod.local
+    - name: POSTGRES_PORT
+      value: "5432"
+    - name: POSTGRES_NAME
+      value: sokos-spk-mottak
+    - name: VAULT_MOUNTPATH
+      value: postgresql/preprod-fss/
 
     # SFTP
     - name: SFTP_SERVER
