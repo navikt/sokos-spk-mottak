@@ -1,8 +1,6 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.zaxxer.hikari.HikariDataSource
-import java.time.Duration
-import java.time.Instant
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.transaction
@@ -14,6 +12,8 @@ import no.nav.sokos.spk.mottak.repository.AvvikTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
+import java.time.Duration
+import java.time.Instant
 
 private val logger = KotlinLogging.logger {}
 
@@ -47,7 +47,9 @@ class ValidateTransaksjonService(
             }
             when {
                 totalInnTransaksjoner > 0 -> logger.info {
-                    "$totalInnTransaksjoner innTransaksjoner validert på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " +
+                    "$totalInnTransaksjoner innTransaksjoner validert på ${
+                        Duration.between(timer, Instant.now()).toSeconds()
+                    } sekunder. " +
                             "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
                 }
 
@@ -64,8 +66,14 @@ class ValidateTransaksjonService(
 
         dataSource.transaction { session ->
             innTransaksjonMap[true]?.takeIf { it.isNotEmpty() }?.apply {
-                val transaksjonMap = transaksjonRepository.getLastTransaksjonByPersonId(this.map { it.personId!! }).associateBy { it.personId }
-                transaksjonRepository.insertBatch(this.map { it.toTransaksjon(transaksjonMap[it.personId]) }, session)
+                val transaksjonMap = transaksjonRepository.getLastTransaksjonByPersonId(this.map { it.personId!! })
+                    .associateBy { it.personId }
+                val nyttOppdragEllerTrekkMap = this.associate { innTransaksjon ->
+                    val endretArt = transaksjonRepository.getTransaksjonerForEndretArtForPerson(innTransaksjon)!! > 0
+                    val nyttFagomraade = transaksjonRepository.getTransaksjonerForNyttFagomraadeForPerson(innTransaksjon)!! > 0
+                    innTransaksjon.personId!! to (endretArt && nyttFagomraade)
+                }
+                transaksjonRepository.insertBatch(this.map { it.toTransaksjon(transaksjonMap[it.personId], nyttOppdragEllerTrekkMap) }, session)
 
                 val transaksjonIdList = this.map { it.innTransaksjonId!! }
                 transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
@@ -78,7 +86,10 @@ class ValidateTransaksjonService(
                 logger.debug { "${avvikTransaksjonIdList.size} avvik transaksjoner opprettet: " }
             }
 
-            innTransaksjonRepository.updateBehandletStatusBatch(innTransaksjonList.map { it.innTransaksjonId!! }, session)
+            innTransaksjonRepository.updateBehandletStatusBatch(
+                innTransaksjonList.map { it.innTransaksjonId!! },
+                session
+            )
         }
     }
 

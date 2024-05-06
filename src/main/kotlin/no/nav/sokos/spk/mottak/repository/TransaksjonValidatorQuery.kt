@@ -22,7 +22,7 @@ object TransaksjonValidatorQuery {
                                          UNION
                                          SELECT t1.INN_TRANSAKSJON_ID
                                          FROM T_INN_TRANSAKSJON t1,
-                                              (SELECT AVSENDER, TRANS_ID_FK, count(*)
+                                              (SELECT AVSENDER, TRANS_ID_FK
                                                FROM T_INN_TRANSAKSJON
                                                WHERE TRANS_ID_FK IS NOT NULL
                                                GROUP BY TRANS_ID_FK, AVSENDER
@@ -49,8 +49,8 @@ object TransaksjonValidatorQuery {
             WHERE K_TRANSAKSJON_S IS NULL
               AND INN_TRANSAKSJON_ID IN (SELECT INN_TRANSAKSJON_ID
                                          FROM T_INN_TRANSAKSJON
-                                         WHERE (BELOPSTYPE IN ('01', '02', '04') AND NOT (day(COALESCE(DATO_FOM, '1900-01-02')) = 1 AND day(COALESCE(DATO_TOM, '1900-01-01') + 1 DAY) = 1 AND month(DATO_FOM) = month(DATO_TOM)))
-                                            OR (BELOPSTYPE IN ('03', '05') AND NOT (day(COALESCE(DATO_FOM, '1900-01-02')) = 1 AND day(COALESCE(DATO_TOM, '1900-01-31') + 1 DAY) = 1)))
+                                         WHERE (BELOPSTYPE IN ('01', '02') AND NOT (day(COALESCE(DATO_FOM, '1900-01-02')) = 1 AND day(COALESCE(DATO_TOM, '1900-01-01') + 1 DAY) = 1 AND month(DATO_FOM) = month(DATO_TOM)))
+                                            OR (BELOPSTYPE IN ('03') AND NOT (day(COALESCE(DATO_FOM, '1900-01-02')) = 1 AND day(COALESCE(DATO_TOM, '1900-01-31') + 1 DAY) = 1)))
         """.trimIndent()
 
     val VALIDATOR_04_GYDLIG_BELOPSTYPE =

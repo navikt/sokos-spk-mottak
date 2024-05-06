@@ -7,6 +7,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.util.Util.asMap
 import no.nav.sokos.spk.mottak.util.Util.toChar
@@ -60,11 +61,62 @@ class TransaksjonRepository(
                 queryOf(
                     """
                         SELECT t.*
-                        FROM T_INN_TRANSAKSJON inn INNER JOIN T_PERSON p on inn.FNR_FK = p.FNR_FK INNER JOIN T_TRANSAKSJON t on t.PERSON_ID = p.PERSON_ID
-                        WHERE p.PERSON_ID IN (${personIdListe.joinToString()}) AND t.K_ANVISER = 'SPK' AND inn.BELOPSTYPE = t.K_BELOP_T
-                        AND t.DATO_TOM IN (SELECT MAX(t2.DATO_TOM) FROM T_TRANSAKSJON t2 WHERE t2.PERSON_ID = p.PERSON_ID);
+                        FROM T_INN_TRANSAKSJON inn 
+                        INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK 
+                        INNER JOIN T_TRANSAKSJON t ON t.PERSON_ID = p.PERSON_ID
+                        WHERE p.PERSON_ID IN (${personIdListe.joinToString()}) 
+                        AND ((inn.BELOPSTYPE = '01' OR inn.BELOPSTYPE = '02') AND (t.K_BELOP_T = '01' OR t.K_BELOP_T = '02'))
+                        AND t.K_ANVISER = 'SPK' 
+                        AND t.DATO_TOM IN 
+                            (SELECT MAX(t2.DATO_TOM) FROM T_TRANSAKSJON t2 
+                            WHERE t2.PERSON_ID = p.PERSON_ID 
+                            AND t2.K_ANVISER = 'SPK');
                     """.trimIndent()
                 ), toTransaksjon
+            )
+        }
+    }
+
+    fun getTransaksjonerForEndretArtForPerson(innTransaksjon: InnTransaksjon): Int? {
+        return using(sessionOf(dataSource)) { session ->
+            session.single(
+                queryOf(
+                    """ 
+                    SELECT COUNT(*) FROM T_TRANSAKSJON t1 
+                    WHERE t1.person_id = ${innTransaksjon.personId}
+                    AND t1.k_anviser = 'SPK' 
+                    AND (t1.dato_tom >= '${innTransaksjon.datoTom}'
+                        OR t1.dato_tom IN 
+                            (SELECT max(t2.dato_tom) FROM T_TRANSAKSJON t2 
+                            WHERE t2.person_id = ${innTransaksjon.personId}
+                            AND t2.k_anviser = 'SPK'
+                            AND t2.dato_tom < '${innTransaksjon.datoTom}'))
+                    AND t1.k_art != '${innTransaksjon.art}' 
+                    """.trimIndent()
+                ), { it.int(1) }
+            )
+        }
+    }
+
+    fun getTransaksjonerForNyttFagomraadeForPerson(innTransaksjon: InnTransaksjon): Int? {
+        return using(sessionOf(dataSource)) { session ->
+            session.single(
+                queryOf(
+                    """ 
+                        SELECT count(*)
+                        FROM T_TRANSAKSJON t, T_K_GYLDIG_KOMBIN g
+	                    WHERE t.person_Id = ${innTransaksjon.personId}
+	                    AND g.k_art = t.k_art
+	                    AND g.k_anviser = 'SPK'
+	                    AND g.k_belop_t = t.k_belop_t
+	                    AND g.k_fagomrade NOT IN (
+                            SELECT g2.k_fagomrade 
+                            FROM T_K_GYLDIG_KOMBIN g2 
+                            WHERE g2.k_art = '${innTransaksjon.art}'
+                            AND g2.k_anviser = 'SPK'
+                            AND g2.k_belop_t = '${innTransaksjon.belopstype}')
+                    """.trimIndent()
+                ), { it.int(1) }
             )
         }
     }
@@ -108,7 +160,7 @@ class TransaksjonRepository(
             sendtTilOppdrag = row.string("SENDT_TIL_OPPDRAG"),
             trekkvedtakId = row.stringOrNull("TREKKVEDTAK_ID_FK"),
             fnrEndret = row.boolean("FNR_ENDRET").toChar(),
-            motId = row.stringOrNull("MOT_ID"),
+            motId = row.string("MOT_ID"),
             osStatus = row.stringOrNull("OS_STATUS"),
             datoOpprettet = row.localDateTime("DATO_OPPRETTET"),
             opprettetAv = row.string("OPPRETTET_AV"),

@@ -22,9 +22,9 @@ data class InnTransaksjon(
     val tekstkode: String?,
     val rectype: String,
     val transId: String,
-    val datoFom: LocalDate,
-    val datoTom: LocalDate,
-    val datoAnviser: LocalDate,
+    val datoFom: LocalDate?,
+    val datoTom: LocalDate?,
+    val datoAnviser: LocalDate?,
     val belop: Int,
     val behandlet: String,
     val datoOpprettet: LocalDateTime,
@@ -37,7 +37,7 @@ data class InnTransaksjon(
     val personId: Int? = null
 )
 
-fun InnTransaksjon.toTransaksjon(transaksjon: Transaksjon?): Transaksjon {
+fun InnTransaksjon.toTransaksjon(transaksjon: Transaksjon?, endretFagomraadeForPerson: Map<Int, Boolean>): Transaksjon {
     val systemId = PropertiesConfig.Configuration().naisAppName
     return Transaksjon(
         transaksjonId = this.innTransaksjonId,
@@ -59,10 +59,10 @@ fun InnTransaksjon.toTransaksjon(transaksjon: Transaksjon?): Transaksjon {
         tekstkode = this.tekstkode,
         rectype = this.rectype,
         transEksId = this.transId,
-        transTolkning = transaksjon?.let { TRANS_TOLKNING_NY_EKSIST } ?: TRANS_TOLKNING_NY,
+        transTolkning = transaksjon?.let { TRANS_TOLKNING_NY_EKSIST } ?: if (endretFagomraadeForPerson[this.personId]==true) TRANS_TOLKNING_NY else TRANS_TOLKNING_NY_EKSIST,
         sendtTilOppdrag = "0",
         fnrEndret = (transaksjon?.let { it.fnr != this.fnr } ?: false).toChar(),
-        motId = null,
+        motId = this.innTransaksjonId.toString(),
         datoOpprettet = LocalDateTime.now(),
         opprettetAv = systemId,
         datoEndret = LocalDateTime.now(),
