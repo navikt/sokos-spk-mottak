@@ -1,8 +1,6 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.zaxxer.hikari.HikariDataSource
-import java.text.SimpleDateFormat
-import java.util.Date
 import kotliquery.TransactionalSession
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
@@ -23,13 +21,15 @@ import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.LopenummerRepository
 import no.nav.sokos.spk.mottak.util.FileParser
 import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndSluttRecord
+import java.text.SimpleDateFormat
+import java.util.Date
 
 private const val BATCH_SIZE: Int = 20000
 private val logger = KotlinLogging.logger {}
 
 class ReadAndParseFileService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
-    private val ftpService: FtpService = FtpService()
+    private val ftpService: FtpService = FtpService(),
 ) {
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource)
     private val lopenummerRepository: LopenummerRepository = LopenummerRepository(dataSource)
@@ -51,15 +51,18 @@ class ReadAndParseFileService(
                     val maxLopenummer = lopenummerRepository.findMaxLopeNummer(FILTYPE_ANVISER)
 
                     logger.info { "Leser inn fil: $filename" }
-                    recordData = readRecords(content).apply {
-                        this.maxLopenummer = maxLopenummer
-                        this.filNavn = filename
-                    }
+                    recordData =
+                        readRecords(content).apply {
+                            this.maxLopenummer = maxLopenummer
+                            this.filNavn = filename
+                        }
 
                     if (recordData.filStatus == FilStatus.OK) {
                         validateStartAndSluttRecord(recordData)
                         saveRecordDataAndMoveFile(recordData, session)
-                    } else throw FilValidationException(recordData.filStatus)
+                    } else {
+                        throw FilValidationException(recordData.filStatus)
+                    }
                 }
             }.onFailure { exception ->
                 when {
@@ -77,7 +80,10 @@ class ReadAndParseFileService(
         }
     }
 
-    private fun saveRecordDataAndMoveFile(recordData: RecordData, session: TransactionalSession) {
+    private fun saveRecordDataAndMoveFile(
+        recordData: RecordData,
+        session: TransactionalSession,
+    ) {
         lopenummerRepository.updateLopeNummer(recordData.startRecord.filLopenummer, FILTYPE_ANVISER, session)
 
         val filInfo = recordData.startRecord.toFileInfo(recordData.filNavn!!, FILTILSTANDTYPE_GOD, FilStatus.OK.code)
@@ -97,23 +103,26 @@ class ReadAndParseFileService(
     private fun updateFileStatusAndUploadAvviksFil(
         recordData: RecordData,
         exception: FilValidationException,
-        session: TransactionalSession
+        session: TransactionalSession,
     ) {
         runCatching {
-            if (exception.statusCode != FilStatus.FILLOPENUMMER_I_BRUK.code
-                && exception.statusCode != FilStatus.FORVENTET_FILLOPENUMMER.code
-                && exception.statusCode != FilStatus.UGYLDIG_ANVISER.code
-                && exception.statusCode != FilStatus.UGYLDIG_FILTYPE.code
+            if (exception.statusCode != FilStatus.FILLOPENUMMER_I_BRUK.code &&
+                exception.statusCode != FilStatus.FORVENTET_FILLOPENUMMER.code &&
+                exception.statusCode != FilStatus.UGYLDIG_ANVISER.code &&
+                exception.statusCode != FilStatus.UGYLDIG_FILTYPE.code
             ) {
                 lopenummerRepository.updateLopeNummer(recordData.startRecord.filLopenummer, FILTYPE_ANVISER, session)
-            } else logger.info { "Kan ikke oppdatere løpenummer for ${recordData.filNavn} siden betingelsene ikke er tilfredsstilt" }
+            } else {
+                logger.info { "Kan ikke oppdatere løpenummer for ${recordData.filNavn} siden betingelsene ikke er tilfredsstilt" }
+            }
 
-            val filInfo = recordData.startRecord.toFileInfo(
-                recordData.filNavn!!,
-                FILTILSTANDTYPE_AVV,
-                exception.statusCode,
-                exception.message
-            )
+            val filInfo =
+                recordData.startRecord.toFileInfo(
+                    recordData.filNavn!!,
+                    FILTILSTANDTYPE_AVV,
+                    exception.statusCode,
+                    exception.message,
+                )
             filInfoRepository.insert(filInfo, session)!!
 
             createAvviksFil(recordData.startRecord.kildeData, exception)
@@ -162,21 +171,26 @@ class ReadAndParseFileService(
             sluttRecord = sluttRecord,
             transaksjonRecordList = transaksjonRecordList,
             totalBelop = totalBelop,
-            filStatus = filStatus
+            filStatus = filStatus,
         )
     }
 
-    private fun createAvviksFil(startRecordUnparsed: String, exception: FilValidationException) {
+    private fun createAvviksFil(
+        startRecordUnparsed: String,
+        exception: FilValidationException,
+    ) {
         val fileName = createFileName()
         val content = createAvviksRecord(startRecordUnparsed, exception)
 
         ftpService.createFile(fileName = fileName, Directories.ANVISNINGSRETUR, content)
     }
 
-    private fun createAvviksRecord(startRecord: String, exception: FilValidationException): String {
+    private fun createAvviksRecord(
+        startRecord: String,
+        exception: FilValidationException,
+    ): String {
         return startRecord.replaceRange(76, 78, exception.statusCode)
             .replaceRange(78, startRecord.length, exception.message)
-
     }
 
     private fun createFileName(): String {

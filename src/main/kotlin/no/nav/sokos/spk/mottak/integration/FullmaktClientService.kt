@@ -20,9 +20,8 @@ private val logger = KotlinLogging.logger {}
 class FullmaktClientService(
     private val pensjonFullmaktUrl: String = PropertiesConfig.PensjonFullmaktConfig().fullmaktUrl,
     private val fullmaktHttpClient: HttpClient = httpClient,
-    private val accessTokenClient: AccessTokenClient = AccessTokenClient()
+    private val accessTokenClient: AccessTokenClient = AccessTokenClient(),
 ) {
-
     fun getFullmakt(): Map<String, String> {
         var side = 0
         val antall = 1000
@@ -45,16 +44,20 @@ class FullmaktClientService(
         return fullmaktMap
     }
 
-    private suspend fun getFullmaktMottaker(side: Int, antall: Int): List<FullmaktDTO> =
+    private suspend fun getFullmaktMottaker(
+        side: Int,
+        antall: Int,
+    ): List<FullmaktDTO> =
         retry {
             logger.debug { "Henter fullmakter" }
             val accessToken = accessTokenClient.getAccessToken()
-            val response = fullmaktHttpClient.get("$pensjonFullmaktUrl/finnFullmaktMottakere") {
-                header("Authorization", "Bearer $accessToken")
-                parameter("side", side)
-                parameter("antall", antall)
-                parameter("koderFullmaktType", "PENGEMOT,VERGE_PENGEMOT")
-            }
+            val response =
+                fullmaktHttpClient.get("$pensjonFullmaktUrl/finnFullmaktMottakere") {
+                    header("Authorization", "Bearer $accessToken")
+                    parameter("side", side)
+                    parameter("antall", antall)
+                    parameter("koderFullmaktType", "PENGEMOT,VERGE_PENGEMOT")
+                }
 
             when {
                 response.status.isSuccess() -> response.body<List<FullmaktDTO>>()
@@ -64,5 +67,4 @@ class FullmaktClientService(
                 }
             }
         }
-
 }

@@ -5,7 +5,6 @@ import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.NAV
 import no.nav.sokos.spk.mottak.domain.SPK
-
 import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.exception.FilValidationException
 
@@ -27,7 +26,10 @@ object FileValidation {
                 throw FilValidationException(FilStatus.UGYLDIG_SUMBELOP.code, String.format(FilStatus.UGYLDIG_SUMBELOP.message, "${recordData.sluttRecord.totalBelop}", "${recordData.totalBelop}"))
 
             recordData.sluttRecord.antallRecord != recordData.transaksjonRecordList.size ->
-                throw FilValidationException(FilStatus.UGYLDIG_ANTRECORDS.code, String.format(FilStatus.UGYLDIG_ANTRECORDS.message, "${recordData.sluttRecord.antallRecord}", "${recordData.transaksjonRecordList.size}"))
+                throw FilValidationException(
+                    FilStatus.UGYLDIG_ANTRECORDS.code,
+                    String.format(FilStatus.UGYLDIG_ANTRECORDS.message, "${recordData.sluttRecord.antallRecord}", "${recordData.transaksjonRecordList.size}"),
+                )
 
             else -> logger.debug { "Status på filen: ${FilStatus.OK}" }
         }

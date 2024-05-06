@@ -19,5 +19,5 @@ data class TransaksjonRecord(
     val kid: String,
     val trekkansvar: String,
     val grad: String,
-    var filStatus: FilStatus
+    var filStatus: FilStatus,
 )

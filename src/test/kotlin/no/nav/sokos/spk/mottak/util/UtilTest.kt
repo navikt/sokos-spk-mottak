@@ -2,8 +2,8 @@ package no.nav.sokos.spk.mottak.util
 
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
-import java.time.LocalDate
 import no.nav.sokos.spk.mottak.util.Util.toLocalDate
+import java.time.LocalDate
 
 class UtilTest : ExpectSpec({
 

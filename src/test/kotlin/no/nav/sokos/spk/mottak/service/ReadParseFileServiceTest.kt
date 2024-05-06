@@ -8,8 +8,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
-import java.io.IOException
-import java.time.LocalDate
 import no.nav.sokos.spk.mottak.SPK_FEIL_FILLOPENUMMER_I_BRUK
 import no.nav.sokos.spk.mottak.SPK_FEIL_FORVENTET_FILLOPENUMMER
 import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_ANTRECORDS
@@ -42,6 +40,8 @@ import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.Db2Listener.dataSource
 import no.nav.sokos.spk.mottak.listener.SftpListener
+import java.io.IOException
+import java.time.LocalDate
 
 private const val SYSTEM_ID = "sokos-spk-mottak"
 private const val MAX_LOPENUMMER = 33
@@ -61,7 +61,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         SftpListener.deleteFile(
             Directories.INBOUND.value + "/SPK_NAV_*",
             Directories.FERDIG.value + "/SPK_NAV_*",
-            Directories.ANVISNINGSRETUR.value + "/SPK_NAV_*"
+            Directories.ANVISNINGSRETUR.value + "/SPK_NAV_*",
         )
     }
 
@@ -125,9 +125,10 @@ class ReadParseFileServiceTest : BehaviorSpec({
 
             Then("skal det kastet en MottakException med uforventet feil") {
                 every { ftpServiceMock.moveFile(any(), any(), any()) } throws IOException("Ftp server is down!")
-                val exception = shouldThrow<MottakException> {
-                    readAndParseFileService.readAndParseFile()
-                }
+                val exception =
+                    shouldThrow<MottakException> {
+                        readAndParseFileService.readAndParseFile()
+                    }
                 exception.message shouldBe "Ukjent feil ved innlesing av fil: SPK_NAV_20242503_070026814_ANV_OK.txt. Feilmelding: Ftp server is down!"
             }
         }
@@ -137,9 +138,10 @@ class ReadParseFileServiceTest : BehaviorSpec({
 
             Then("skal det kastet en MottakException med uforventet feil") {
                 every { ftpServiceMock.createFile(any(), any(), any()) } throws IOException("Ftp server can not move file!")
-                val exception = shouldThrow<MottakException> {
-                    readAndParseFileService.readAndParseFile()
-                }
+                val exception =
+                    shouldThrow<MottakException> {
+                        readAndParseFileService.readAndParseFile()
+                    }
                 exception.message shouldBe "Feil ved opprettelse av avviksfil: SPK_NAV_20242503_080026814_ANV_FEIL.txt. Feilmelding: Ftp server can not move file!"
             }
         }
@@ -327,7 +329,10 @@ class ReadParseFileServiceTest : BehaviorSpec({
     }
 })
 
-private fun verifyInntransaksjon(innTransaksjon: InnTransaksjon, filInfoId: Int) {
+private fun verifyInntransaksjon(
+    innTransaksjon: InnTransaksjon,
+    filInfoId: Int,
+) {
     innTransaksjon.innTransaksjonId!! shouldBeGreaterThan 0
     innTransaksjon.filInfoId shouldBe filInfoId
     innTransaksjon.transaksjonStatus shouldBe null
@@ -374,7 +379,7 @@ private fun verifyFilInfo(
     filTilstandType: String,
     feilTekst: String? = null,
     fileType: String = FILTYPE_ANVISER,
-    anviser: String = SPK
+    anviser: String = SPK,
 ) {
     filInfo shouldNotBe null
     filInfo?.let {

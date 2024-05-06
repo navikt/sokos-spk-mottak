@@ -11,7 +11,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.Parameters
 import io.ktor.http.isSuccess
-import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -21,6 +20,7 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.httpClient
 import no.nav.sokos.spk.mottak.util.retry
+import java.time.Instant
 
 private val logger = KotlinLogging.logger {}
 
@@ -28,12 +28,13 @@ class AccessTokenClient(
     private val azureAdConfig: PropertiesConfig.AzureAdConfig = PropertiesConfig.AzureAdConfig(),
     private val fullmaktConfig: PropertiesConfig.PensjonFullmaktConfig = PropertiesConfig.PensjonFullmaktConfig(),
     private val client: HttpClient = httpClient,
-    private val adAccessTokenUrl: String = "https://login.microsoftonline.com/${azureAdConfig.tenantId}/oauth2/v2.0/token"
+    private val adAccessTokenUrl: String = "https://login.microsoftonline.com/${azureAdConfig.tenantId}/oauth2/v2.0/token",
 ) {
     private val mutex = Mutex()
 
     @Volatile
     private var token: AccessToken = runBlocking { AccessToken(hentAccessTokenFraProvider()) }
+
     suspend fun getAccessToken(): String {
         val expiresInTwoMinutes = Instant.now().plusSeconds(120L)
         return mutex.withLock {
@@ -51,17 +52,22 @@ class AccessTokenClient(
 
     private suspend fun hentAccessTokenFraProvider(): AzureAccessToken =
         retry {
-            val response: HttpResponse = client.post(adAccessTokenUrl) {
-                accept(ContentType.Application.Json)
-                method = HttpMethod.Post
-                setBody(FormDataContent(Parameters.build {
-                    append("tenant", azureAdConfig.tenantId)
-                    append("client_id", azureAdConfig.clientId)
-                    append("scope", "api://${fullmaktConfig.fullmaktScope}/.default")
-                    append("client_secret", azureAdConfig.clientSecret)
-                    append("grant_type", "client_credentials")
-                }))
-            }
+            val response: HttpResponse =
+                client.post(adAccessTokenUrl) {
+                    accept(ContentType.Application.Json)
+                    method = HttpMethod.Post
+                    setBody(
+                        FormDataContent(
+                            Parameters.build {
+                                append("tenant", azureAdConfig.tenantId)
+                                append("client_id", azureAdConfig.clientId)
+                                append("scope", "api://${fullmaktConfig.fullmaktScope}/.default")
+                                append("client_secret", azureAdConfig.clientSecret)
+                                append("grant_type", "client_credentials")
+                            },
+                        ),
+                    )
+                }
 
             when {
                 response.status.isSuccess() -> response.body()
@@ -79,15 +85,15 @@ private data class AzureAccessToken(
     @SerialName("access_token")
     val accessToken: String,
     @SerialName("expires_in")
-    val expiresIn: Long
+    val expiresIn: Long,
 )
 
 private data class AccessToken(
     val accessToken: String,
-    val expiresAt: Instant
+    val expiresAt: Instant,
 ) {
     constructor(azureAccessToken: AzureAccessToken) : this(
         accessToken = azureAccessToken.accessToken,
-        expiresAt = Instant.now().plusSeconds(azureAccessToken.expiresIn)
+        expiresAt = Instant.now().plusSeconds(azureAccessToken.expiresIn),
     )
 }

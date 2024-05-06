@@ -12,25 +12,26 @@ import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.util.Util.asMap
 
 class FilInfoRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
     fun getFilInfo(
         lopeNummer: Int,
         filTilstandType: String,
-        anviser: String = "SPK"
+        anviser: String = "SPK",
     ): FilInfo? {
         return using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
-                        SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopeNummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = :anviser
+                    SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopeNummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = :anviser
                     """.trimIndent(),
                     mapOf(
                         "lopeNummer" to lopeNummer,
                         "filTilstandType" to filTilstandType,
-                        "anviser" to anviser
-                    )
-                ), toFileInfo
+                        "anviser" to anviser,
+                    ),
+                ),
+                toFileInfo,
             )
         }
     }
@@ -39,47 +40,50 @@ class FilInfoRepository(
         filInfoId: Int,
         filTilstandType: String,
         filType: String,
-        session: Session
+        session: Session,
     ) {
         session.run(
             queryOf(
                 """
-                    UPDATE T_FIL_INFO
-                    SET K_FIL_TILSTAND_T = (:filTilstandType), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP
-                    WHERE K_ANVISER = 'SPK'
-                    AND K_FIL_T = (:filType)
-                    AND FIL_INFO_ID = (:filInfoId)
+                UPDATE T_FIL_INFO
+                SET K_FIL_TILSTAND_T = (:filTilstandType), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP
+                WHERE K_ANVISER = 'SPK'
+                AND K_FIL_T = (:filType)
+                AND FIL_INFO_ID = (:filInfoId)
                 """.trimIndent(),
                 mapOf(
                     "filInfoId" to filInfoId,
                     "filTilstandType" to filTilstandType,
-                    "filType" to filType
-                )
-            ).asUpdate
+                    "filType" to filType,
+                ),
+            ).asUpdate,
         )
     }
 
-    fun insert(filInfo: FilInfo, session: Session): Long? {
+    fun insert(
+        filInfo: FilInfo,
+        session: Session,
+    ): Long? {
         return session.run(
             queryOf(
                 """
-                    INSERT INTO T_FIL_INFO (
-                    K_FIL_S,
-                    K_FIL_TILSTAND_T,
-                    K_ANVISER,
-                    FIL_NAVN,
-                    LOPENR,
-                    DATO_MOTTATT,
-                    DATO_OPPRETTET,
-                    OPPRETTET_AV,
-                    DATO_ENDRET,
-                    ENDRET_AV,
-                    VERSJON,
-                    K_FIL_T,
-                    FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopeNr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feilTekst)
+                INSERT INTO T_FIL_INFO (
+                K_FIL_S,
+                K_FIL_TILSTAND_T,
+                K_ANVISER,
+                FIL_NAVN,
+                LOPENR,
+                DATO_MOTTATT,
+                DATO_OPPRETTET,
+                OPPRETTET_AV,
+                DATO_ENDRET,
+                ENDRET_AV,
+                VERSJON,
+                K_FIL_T,
+                FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopeNr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feilTekst)
                 """.trimIndent(),
-                filInfo.asMap()
-            ).asUpdateAndReturnGeneratedKey
+                filInfo.asMap(),
+            ).asUpdateAndReturnGeneratedKey,
         )
     }
 
@@ -99,7 +103,7 @@ class FilInfoRepository(
             row.string("OPPRETTET_AV"),
             row.localDateTime("DATO_ENDRET"),
             row.string("ENDRET_AV"),
-            row.int("VERSJON")
+            row.int("VERSJON"),
         )
     }
 }

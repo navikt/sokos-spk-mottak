@@ -11,23 +11,26 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.TransaksjonTilstand
 
 class TransaksjonTilstandRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
-    fun insertBatch(transaksjonIdList: List<Int>, session: Session): List<Int> {
+    fun insertBatch(
+        transaksjonIdList: List<Int>,
+        session: Session,
+    ): List<Int> {
         val systemId = PropertiesConfig.Configuration().naisAppName
         return session.batchPreparedNamedStatement(
             """
-                INSERT INTO T_TRANS_TILSTAND (
-                    TRANSAKSJON_ID, 
-                    K_TRANS_TILST_T, 
-                    DATO_OPPRETTET, 
-                    OPPRETTET_AV, 
-                    DATO_ENDRET, 
-                    ENDRET_AV, 
-                    VERSJON
-                ) VALUES (:transaksjonId, 'OPR', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)
+            INSERT INTO T_TRANS_TILSTAND (
+                TRANSAKSJON_ID, 
+                K_TRANS_TILST_T, 
+                DATO_OPPRETTET, 
+                OPPRETTET_AV, 
+                DATO_ENDRET, 
+                ENDRET_AV, 
+                VERSJON
+            ) VALUES (:transaksjonId, 'OPR', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)
             """.trimIndent(),
-            transaksjonIdList.map { mapOf("transaksjonId" to it) }
+            transaksjonIdList.map { mapOf("transaksjonId" to it) },
         )
     }
 
@@ -36,9 +39,10 @@ class TransaksjonTilstandRepository(
             session.single(
                 queryOf(
                     """
-                        SELECT * FROM T_TRANS_TILSTAND WHERE TRANSAKSJON_ID = $transaksjonId;
-                    """.trimIndent()
-                ), toTransaksjonTilstand
+                    SELECT * FROM T_TRANS_TILSTAND WHERE TRANSAKSJON_ID = $transaksjonId;
+                    """.trimIndent(),
+                ),
+                toTransaksjonTilstand,
             )
         }
     }
@@ -52,7 +56,7 @@ class TransaksjonTilstandRepository(
             row.string("OPPRETTET_AV"),
             row.localDateTime("DATO_ENDRET"),
             row.string("ENDRET_AV"),
-            row.int("VERSJON")
+            row.int("VERSJON"),
         )
     }
 }

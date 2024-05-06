@@ -1,9 +1,9 @@
 package no.nav.sokos.spk.mottak.domain
 
-import java.time.LocalDate
-import java.time.LocalDateTime
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.util.Util.toChar
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class InnTransaksjon(
     val innTransaksjonId: Int? = null,
@@ -34,7 +34,7 @@ data class InnTransaksjon(
     val versjon: Int,
     val grad: Int?,
     val gradStr: String?,
-    val personId: Int? = null
+    val personId: Int? = null,
 )
 
 fun InnTransaksjon.toTransaksjon(transaksjon: Transaksjon?): Transaksjon {
@@ -69,9 +69,8 @@ fun InnTransaksjon.toTransaksjon(transaksjon: Transaksjon?): Transaksjon {
         endretAv = systemId,
         versjon = 1,
         transTilstandType = TRANS_TILSTAND_OPR,
-        grad = this.grad
+        grad = this.grad,
     )
 }
-
 
 fun InnTransaksjon.isTransaksjonStatusOK(): Boolean = this.transaksjonStatus == TRANSAKSJONSTATUS_OK

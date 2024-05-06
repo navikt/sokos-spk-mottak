@@ -3,7 +3,6 @@ package no.nav.sokos.spk.mottak.service
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import java.time.LocalDate
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
@@ -18,7 +17,7 @@ import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.TransaksjonTilstand
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOK
 import no.nav.sokos.spk.mottak.listener.Db2Listener
-
+import java.time.LocalDate
 
 class ValidateTransaksjonServiceTest : BehaviorSpec({
     extensions(listOf(Db2Listener))
@@ -61,7 +60,10 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
     }
 })
 
-private fun verifyTransaksjonTilstand(transaksjonTilstand: TransaksjonTilstand, innTransaksjon: InnTransaksjon) {
+private fun verifyTransaksjonTilstand(
+    transaksjonTilstand: TransaksjonTilstand,
+    innTransaksjon: InnTransaksjon,
+) {
     val systemId = PropertiesConfig.Configuration().naisAppName
 
     transaksjonTilstand.transaksjonId shouldBe innTransaksjon.innTransaksjonId
@@ -74,7 +76,10 @@ private fun verifyTransaksjonTilstand(transaksjonTilstand: TransaksjonTilstand, 
     transaksjonTilstand.versjon shouldBe 1
 }
 
-private fun verifyAvvikTransaksjon(avvikTransaksjon: AvvikTransaksjon, innTransaksjon: InnTransaksjon) {
+private fun verifyAvvikTransaksjon(
+    avvikTransaksjon: AvvikTransaksjon,
+    innTransaksjon: InnTransaksjon,
+) {
     val systemId = PropertiesConfig.Configuration().naisAppName
 
     avvikTransaksjon.avvikTransaksjonId shouldBe innTransaksjon.innTransaksjonId
@@ -101,8 +106,11 @@ private fun verifyAvvikTransaksjon(avvikTransaksjon: AvvikTransaksjon, innTransa
     avvikTransaksjon.grad shouldBe innTransaksjon.grad
 }
 
-
-private fun verifyTransaksjon(transaksjon: Transaksjon, innTransaksjon: InnTransaksjon, transaksjonType: String = TRANSAKSJONSTATUS_OK) {
+private fun verifyTransaksjon(
+    transaksjon: Transaksjon,
+    innTransaksjon: InnTransaksjon,
+    transaksjonType: String = TRANSAKSJONSTATUS_OK,
+) {
     val systemId = PropertiesConfig.Configuration().naisAppName
 
     transaksjon.transaksjonId shouldBe innTransaksjon.innTransaksjonId

@@ -9,5 +9,5 @@ data class RecordData(
     val transaksjonRecordList: MutableList<TransaksjonRecord>,
     var maxLopenummer: Int? = 0,
     val totalBelop: Long,
-    var filStatus: FilStatus
+    var filStatus: FilStatus,
 )

@@ -13,38 +13,41 @@ import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.util.Util.asMap
 
 class AvvikTransaksjonRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
-    fun insertBatch(innTransaksjonList: List<InnTransaksjon>, session: Session): List<Int> {
+    fun insertBatch(
+        innTransaksjonList: List<InnTransaksjon>,
+        session: Session,
+    ): List<Int> {
         val systemId = PropertiesConfig.Configuration().naisAppName
         return session.batchPreparedNamedStatement(
             """
-                INSERT INTO T_AVV_TRANSAKSJON (
-                    AVV_TRANSAKSJON_ID,
-                    FIL_INFO_ID, 
-                    K_TRANSAKSJON_S, 
-                    FNR_FK, 
-                    BELOPSTYPE, 
-                    ART, 
-                    AVSENDER, 
-                    UTBETALES_TIL, 
-                    DATO_FOM, 
-                    DATO_TOM, 
-                    DATO_ANVISER, 
-                    BELOP, 
-                    REF_TRANS_ID, 
-                    TEKSTKODE, 
-                    RECTYPE, 
-                    TRANS_EKS_ID_FK, 
-                    DATO_OPPRETTET, 
-                    OPPRETTET_AV,
-                    DATO_ENDRET, 
-                    ENDRET_AV, 
-                    VERSJON,   
-                    GRAD
-                ) VALUES (:innTransaksjonId, :filInfoId, :transaksjonStatus, :fnr, :belopstype, :art, :avsender, :utbetalesTil, :datoFomStr, :datoTomStr, :datoAnviserStr, :belopStr, :refTransId, :tekstkode, :rectype, :transId, CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', :versjon, :grad) 
+            INSERT INTO T_AVV_TRANSAKSJON (
+                AVV_TRANSAKSJON_ID,
+                FIL_INFO_ID, 
+                K_TRANSAKSJON_S, 
+                FNR_FK, 
+                BELOPSTYPE, 
+                ART, 
+                AVSENDER, 
+                UTBETALES_TIL, 
+                DATO_FOM, 
+                DATO_TOM, 
+                DATO_ANVISER, 
+                BELOP, 
+                REF_TRANS_ID, 
+                TEKSTKODE, 
+                RECTYPE, 
+                TRANS_EKS_ID_FK, 
+                DATO_OPPRETTET, 
+                OPPRETTET_AV,
+                DATO_ENDRET, 
+                ENDRET_AV, 
+                VERSJON,   
+                GRAD
+            ) VALUES (:innTransaksjonId, :filInfoId, :transaksjonStatus, :fnr, :belopstype, :art, :avsender, :utbetalesTil, :datoFomStr, :datoTomStr, :datoAnviserStr, :belopStr, :refTransId, :tekstkode, :rectype, :transId, CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', :versjon, :grad) 
             """.trimIndent(),
-            innTransaksjonList.map { it.asMap() }
+            innTransaksjonList.map { it.asMap() },
         )
     }
 
@@ -53,9 +56,10 @@ class AvvikTransaksjonRepository(
             session.single(
                 queryOf(
                     """
-                        SELECT * FROM T_AVV_TRANSAKSJON WHERE AVV_TRANSAKSJON_ID = $avvikTransaksjonId
-                    """.trimIndent()
-                ), toAvvikTransaksjon
+                    SELECT * FROM T_AVV_TRANSAKSJON WHERE AVV_TRANSAKSJON_ID = $avvikTransaksjonId
+                    """.trimIndent(),
+                ),
+                toAvvikTransaksjon,
             )
         }
     }
@@ -83,7 +87,7 @@ class AvvikTransaksjonRepository(
             datoEndret = row.localDateTime("DATO_ENDRET"),
             endretAv = row.string("ENDRET_AV"),
             versjon = row.int("VERSJON"),
-            grad = row.intOrNull("GRAD")
+            grad = row.intOrNull("GRAD"),
         )
     }
 }

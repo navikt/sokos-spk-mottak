@@ -59,4 +59,3 @@ class FileParserTest : BehaviorSpec({
         }
     }
 })
-

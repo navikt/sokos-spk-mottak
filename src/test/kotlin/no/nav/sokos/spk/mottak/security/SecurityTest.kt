@@ -57,19 +57,21 @@ class SecurityTest : FunSpec({
         withMockOAuth2Server {
             val mockOAuth2Server = this
             testApplication {
-                val client = createClient {
-                    install(ContentNegotiation) {
-                        json(Json {
-                            prettyPrint = true
-                            ignoreUnknownKeys = true
-                            encodeDefaults = true
+                val client =
+                    createClient {
+                        install(ContentNegotiation) {
+                            json(
+                                Json {
+                                    prettyPrint = true
+                                    ignoreUnknownKeys = true
+                                    encodeDefaults = true
 
-                            @OptIn(ExperimentalSerializationApi::class)
-                            explicitNulls = false
+                                    @OptIn(ExperimentalSerializationApi::class)
+                                    explicitNulls = false
+                                },
+                            )
                         }
-                        )
                     }
-                }
                 configureTestApplication()
                 this.application {
                     configureSecurity(authConfig())
@@ -82,10 +84,11 @@ class SecurityTest : FunSpec({
 
                 every { readAndParseFileService.readAndParseFile() } returns Unit
 
-                val response = client.get("$API_BASE_PATH/filprosessering") {
-                    header("Authorization", "Bearer ${mockOAuth2Server.tokenFromDefaultProvider()}")
-                    contentType(ContentType.Application.Json)
-                }
+                val response =
+                    client.get("$API_BASE_PATH/filprosessering") {
+                        header("Authorization", "Bearer ${mockOAuth2Server.tokenFromDefaultProvider()}")
+                        contentType(ContentType.Application.Json)
+                    }
 
                 response.status shouldBe HttpStatusCode.OK
             }
@@ -96,12 +99,12 @@ class SecurityTest : FunSpec({
 private fun MockOAuth2Server.authConfig() =
     PropertiesConfig.AzureAdConfig(
         wellKnownUrl = wellKnownUrl("default").toString(),
-        clientId = "default"
+        clientId = "default",
     )
 
 private fun MockOAuth2Server.tokenFromDefaultProvider() =
     issueToken(
         issuerId = "default",
         clientId = "default",
-        tokenCallback = DefaultOAuth2TokenCallback()
+        tokenCallback = DefaultOAuth2TokenCallback(),
     ).serialize()

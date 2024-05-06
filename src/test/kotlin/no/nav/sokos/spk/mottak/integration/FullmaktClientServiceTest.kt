@@ -22,33 +22,35 @@ private val accessTokenClient = mockk<AccessTokenClient>()
 @Ignored
 class FullmaktClientServiceTest : FunSpec({
 
-    val fullmaktClientService = FullmaktClientService(
-        pensjonFullmaktUrl = wiremock.baseUrl(),
-        accessTokenClient = accessTokenClient
-    )
+    val fullmaktClientService =
+        FullmaktClientService(
+            pensjonFullmaktUrl = wiremock.baseUrl(),
+            accessTokenClient = accessTokenClient,
+        )
 
     test("skal returnere fullmakter") {
 
         wiremock.stubFor(
             get(urlEqualTo("/finnFullmaktMottakere?side=0&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
-                .willReturn(okJson(readFromResource("/fullmakter.json")))
+                .willReturn(okJson(readFromResource("/fullmakter.json"))),
         )
         wiremock.stubFor(
             get(urlEqualTo("/finnFullmaktMottakere?side=1&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
-                .willReturn(okJson("[]"))
+                .willReturn(okJson("[]")),
         )
         coEvery { accessTokenClient.getAccessToken() } returns "token"
 
         val fullmaktMap = fullmaktClientService.getFullmakt()
 
         fullmaktMap.size shouldBe 5
-        fullmaktMap shouldBe mapOf(
-            "11528524674" to "10488337381",
-            "04127604695" to "11058114091",
-            "61128149685" to "07028229873",
-            "19917199240" to "03085623833",
-            "10410351752" to "11515509803"
-        )
+        fullmaktMap shouldBe
+            mapOf(
+                "11528524674" to "10488337381",
+                "04127604695" to "11058114091",
+                "61128149685" to "07028229873",
+                "19917199240" to "03085623833",
+                "10410351752" to "11515509803",
+            )
     }
 
     test("tester retry når pensjon-fullmakt api returnerer 500 feil") {
@@ -60,8 +62,8 @@ class FullmaktClientServiceTest : FunSpec({
                 .willSetStateTo("Success")
                 .willReturn(
                     aResponse()
-                        .withStatus(HttpStatusCode.InternalServerError.value)
-                )
+                        .withStatus(HttpStatusCode.InternalServerError.value),
+                ),
         )
 
         wiremock.stubFor(
@@ -69,14 +71,14 @@ class FullmaktClientServiceTest : FunSpec({
                 .inScenario("Retry Scenario")
                 .whenScenarioStateIs("Success")
                 .willSetStateTo("Finish")
-                .willReturn(okJson(readFromResource("/fullmakter.json")))
+                .willReturn(okJson(readFromResource("/fullmakter.json"))),
         )
 
         wiremock.stubFor(
             get(urlEqualTo("/finnFullmaktMottakere?side=1&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
                 .inScenario("Retry Scenario")
                 .whenScenarioStateIs("Finish")
-                .willReturn(okJson("[]"))
+                .willReturn(okJson("[]")),
         )
 
         coEvery { accessTokenClient.getAccessToken() } returns "token"
@@ -91,8 +93,8 @@ class FullmaktClientServiceTest : FunSpec({
             get(urlEqualTo("/finnFullmaktMottakere?side=0&antall=1000&koderFullmaktType=PENGEMOT%2CVERGE_PENGEMOT"))
                 .willReturn(
                     aResponse()
-                        .withStatus(HttpStatusCode.InternalServerError.value)
-                )
+                        .withStatus(HttpStatusCode.InternalServerError.value),
+                ),
         )
 
         coEvery { accessTokenClient.getAccessToken() } returns "token"

@@ -41,7 +41,10 @@ object Db2Listener : TestListener {
         }
     }
 
-    override suspend fun afterEach(testCase: TestCase, result: TestResult) {
+    override suspend fun afterEach(
+        testCase: TestCase,
+        result: TestResult,
+    ) {
         resetDatabase()
     }
 

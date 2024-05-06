@@ -11,5 +11,5 @@ data class LopeNummer(
     val opprettetAv: String,
     val datoEndret: LocalDateTime,
     val endretAv: String,
-    val versjon: Int
+    val versjon: Int,
 )

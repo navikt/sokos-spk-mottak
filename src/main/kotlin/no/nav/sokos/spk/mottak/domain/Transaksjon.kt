@@ -37,5 +37,5 @@ data class Transaksjon(
     val endretAv: String,
     val versjon: Int,
     val transTilstandType: String? = null,
-    val grad: Int?
+    val grad: Int?,
 )

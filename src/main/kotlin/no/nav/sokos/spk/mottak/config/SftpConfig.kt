@@ -9,9 +9,8 @@ import org.slf4j.LoggerFactory
 private val logger = KotlinLogging.logger {}
 
 class SftpConfig(
-    private val sftpConfig: PropertiesConfig.SftpConfig = PropertiesConfig.SftpConfig()
+    private val sftpConfig: PropertiesConfig.SftpConfig = PropertiesConfig.SftpConfig(),
 ) {
-
     fun createSftpConnection(): Session {
         return JSch().apply {
             JSch.setLogger(JSchLogger())
@@ -34,7 +33,10 @@ class JSchLogger : Logger {
         return level == Logger.DEBUG && logger.isDebugEnabled
     }
 
-    override fun log(level: Int, message: String) {
+    override fun log(
+        level: Int,
+        message: String,
+    ) {
         when (level) {
             Logger.DEBUG -> logger.debug(message)
             Logger.INFO -> logger.info(message)

@@ -19,11 +19,12 @@ object FileParser {
                 record.getString(24, 30).toInt() // filLopenummer
                 record.getString(33, 41).toLocalDate()!! // produsertDato
             }.onFailure {
-                filStatus = when (it) {
-                    is NumberFormatException -> FilStatus.UGYLDIG_FILLOPENUMMER
-                    is NullPointerException -> FilStatus.UGYLDIG_PRODDATO
-                    else -> FilStatus.OK
-                }
+                filStatus =
+                    when (it) {
+                        is NumberFormatException -> FilStatus.UGYLDIG_FILLOPENUMMER
+                        is NullPointerException -> FilStatus.UGYLDIG_PRODDATO
+                        else -> FilStatus.OK
+                    }
             }
         }
         return StartRecord(
@@ -34,7 +35,7 @@ object FileParser {
             produsertDato = record.getString(33, 41).toLocalDate(),
             beskrivelse = record.getString(41, 75),
             kildeData = record,
-            filStatus = filStatus
+            filStatus = filStatus,
         )
     }
 
@@ -46,7 +47,7 @@ object FileParser {
         return SluttRecord(
             antallRecord = record.getString(2, 11).toIntOrNull() ?: 0,
             totalBelop = record.getString(11, 25).toLongOrNull() ?: 0,
-            filStatus = filStatus
+            filStatus = filStatus,
         )
     }
 
@@ -72,11 +73,14 @@ object FileParser {
             kid = record.getString(112, 138),
             trekkansvar = record.getString(138, 142),
             grad = record.getString(142, 146),
-            filStatus = filStatus
+            filStatus = filStatus,
         )
     }
 
-    private fun String.getString(start: Int, end: Int): String {
+    private fun String.getString(
+        start: Int,
+        end: Int,
+    ): String {
         return runCatching {
             if (this.length >= end) {
                 return this.substring(start, end).trim()

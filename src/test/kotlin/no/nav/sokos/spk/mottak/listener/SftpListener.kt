@@ -8,12 +8,6 @@ import com.jcraft.jsch.Session
 import com.jcraft.jsch.SftpException
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.OutputStreamWriter
-import java.nio.charset.StandardCharsets
-import java.security.SecureRandom
-import java.util.Base64
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpConfig
@@ -27,6 +21,12 @@ import org.testcontainers.shaded.org.bouncycastle.crypto.util.OpenSSHPrivateKeyU
 import org.testcontainers.shaded.org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemObject
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.OutputStreamWriter
+import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
+import java.util.Base64
 
 private val logger = KotlinLogging.logger {}
 
@@ -35,13 +35,14 @@ object SftpListener : TestListener {
     private val privateKeyFile = createPrivateKeyFile(keyPair.private)
     private val genericContainer = setupSftpTestContainer(keyPair.public)
 
-    val sftpConfig = PropertiesConfig.SftpConfig(
-        host = "localhost",
-        username = "foo",
-        privateKey = privateKeyFile.absolutePath,
-        privateKeyPassword = "pass",
-        port = 5678
-    )
+    val sftpConfig =
+        PropertiesConfig.SftpConfig(
+            host = "localhost",
+            username = "foo",
+            privateKey = privateKeyFile.absolutePath,
+            privateKeyPassword = "pass",
+            port = 5678,
+        )
 
     override suspend fun beforeSpec(spec: Spec) {
         genericContainer.start()
@@ -56,7 +57,7 @@ object SftpListener : TestListener {
         return GenericContainer("atmoz/sftp:alpine")
             .withCopyToContainer(
                 Transferable.of(publicKeyAsBytes),
-                "/home/foo/.ssh/keys/id_rsa.pub"
+                "/home/foo/.ssh/keys/id_rsa.pub",
             )
             .withExposedPorts(22)
             .withCreateContainerCmdModifier { cmd -> cmd.hostConfig!!.withPortBindings(PortBinding(Ports.Binding.bindPort(5678), ExposedPort(22))) }
@@ -84,8 +85,8 @@ object SftpListener : TestListener {
             writer.writeObject(
                 PemObject(
                     "OPENSSH PRIVATE KEY",
-                    encodedPrivateKey
-                )
+                    encodedPrivateKey,
+                ),
             )
         }
         return outputStream.toString()

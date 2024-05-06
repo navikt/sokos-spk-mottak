@@ -4,7 +4,6 @@ import com.ibm.db2.jcc.DB2BaseDataSource
 import com.ibm.db2.jcc.DB2SimpleDataSource
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import java.time.Duration
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
@@ -12,6 +11,7 @@ import mu.KotlinLogging
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
+import java.time.Duration
 
 private val logger = KotlinLogging.logger {}
 
@@ -23,18 +23,19 @@ object DatabaseConfig {
             maximumPoolSize = 10
             poolName = "HikariPool-SOKOS-SPK-MOTTAK"
             connectionTestQuery = "select 1 from sysibm.sysdummy1"
-            dataSource = DB2SimpleDataSource().apply {
-                driverType = 4
-                enableNamedParameterMarkers = DB2BaseDataSource.YES
-                databaseName = db2DatabaseConfig.name
-                serverName = db2DatabaseConfig.host
-                portNumber = db2DatabaseConfig.port.toInt()
-                currentSchema = db2DatabaseConfig.schema
-                connectionTimeout = 1000
-                commandTimeout = 10000
-                user = db2DatabaseConfig.username
-                setPassword(db2DatabaseConfig.password)
-            }
+            dataSource =
+                DB2SimpleDataSource().apply {
+                    driverType = 4
+                    enableNamedParameterMarkers = DB2BaseDataSource.YES
+                    databaseName = db2DatabaseConfig.name
+                    serverName = db2DatabaseConfig.host
+                    portNumber = db2DatabaseConfig.port.toInt()
+                    currentSchema = db2DatabaseConfig.schema
+                    connectionTimeout = 1000
+                    commandTimeout = 10000
+                    user = db2DatabaseConfig.username
+                    setPassword(db2DatabaseConfig.password)
+                }
         }
     }
 
@@ -44,18 +45,19 @@ object DatabaseConfig {
             poolName = "HikariPool-SOKOS-SPK-MOTTAK-POSTGRES"
             maximumPoolSize = 5
             minimumIdle = 1
-            dataSource = PGSimpleDataSource().apply {
-                if (PropertiesConfig.isLocal()) {
-                    user = postgresConfig.adminUsername
-                    password = postgresConfig.adminPassword
+            dataSource =
+                PGSimpleDataSource().apply {
+                    if (PropertiesConfig.isLocal()) {
+                        user = postgresConfig.adminUsername
+                        password = postgresConfig.adminPassword
+                    }
+                    serverNames = arrayOf(postgresConfig.host)
+                    databaseName = postgresConfig.databaseName
+                    portNumbers = intArrayOf(postgresConfig.port.toInt())
+                    connectionTimeout = Duration.ofSeconds(10).toMillis()
+                    maxLifetime = Duration.ofMinutes(30).toMillis()
+                    initializationFailTimeout = Duration.ofMinutes(30).toMillis()
                 }
-                serverNames = arrayOf(postgresConfig.host)
-                databaseName = postgresConfig.databaseName
-                portNumbers = intArrayOf(postgresConfig.port.toInt())
-                connectionTimeout = Duration.ofSeconds(10).toMillis()
-                maxLifetime = Duration.ofMinutes(30).toMillis()
-                initializationFailTimeout = Duration.ofMinutes(30).toMillis()
-            }
         }
     }
 
@@ -63,15 +65,16 @@ object DatabaseConfig {
 
     fun postgresDataSource(
         hikariConfig: HikariConfig = postgresHikariConfig(),
-        role: String = PropertiesConfig.PostgresConfig().user
+        role: String = PropertiesConfig.PostgresConfig().user,
     ): HikariDataSource {
         return when {
             PropertiesConfig.isLocal() -> HikariDataSource(hikariConfig)
-            else -> HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
-                hikariConfig,
-                PropertiesConfig.PostgresConfig().vaultMountPath,
-                role
-            )
+            else ->
+                HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
+                    hikariConfig,
+                    PropertiesConfig.PostgresConfig().vaultMountPath,
+                    role,
+                )
         }
     }
 
@@ -94,4 +97,3 @@ fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A 
         }
     }
 }
-

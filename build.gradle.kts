@@ -1,11 +1,13 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.9.23"
     kotlin("plugin.serialization") version "1.9.23"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
     jacoco
 }
 
@@ -95,8 +97,7 @@ dependencies {
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("com.h2database:h2:$h2Version")
-    testImplementation("io.kotest.extensions:kotest-extensions-wiremock:${kotestWiremockVersion}")
-
+    testImplementation("io.kotest.extensions:kotest-extensions-wiremock:$kotestWiremockVersion")
 }
 
 sourceSets {
@@ -114,6 +115,10 @@ kotlin {
 }
 
 tasks {
+
+    withType<KotlinCompile>().configureEach {
+        dependsOn("ktlintFormat")
+    }
 
     withType<ShadowJar>().configureEach {
         enabled = true
@@ -136,7 +141,6 @@ tasks {
         }
     }
 
-
     withType<Test>().configureEach {
         useJUnitPlatform()
 
@@ -150,7 +154,7 @@ tasks {
         reports.forEach { report -> report.required.value(false) }
     }
 
-    withType<Wrapper>() {
+    withType<Wrapper> {
         gradleVersion = "8.7"
     }
 }

@@ -4,21 +4,20 @@ import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.engine.stop
 import io.ktor.server.netty.Netty
-import java.util.concurrent.TimeUnit
-import kotlin.properties.Delegates
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.configureSecurity
 import no.nav.sokos.spk.mottak.config.routingConfig
 import no.nav.sokos.spk.mottak.metrics.Metrics
+import java.util.concurrent.TimeUnit
+import kotlin.properties.Delegates
 
 fun main() {
     val applicationState = ApplicationState()
     val applicationConfiguration = PropertiesConfig.Configuration()
     DatabaseConfig.postgresMigrate()
     HttpServer(applicationState, applicationConfiguration).start()
-
 }
 
 class HttpServer(
@@ -26,9 +25,10 @@ class HttpServer(
     private val applicationConfiguration: PropertiesConfig.Configuration,
     port: Int = 8080,
 ) {
-    private val embeddedServer = embeddedServer(Netty, port, module = {
-        applicationModule(applicationConfiguration, applicationState)
-    })
+    private val embeddedServer =
+        embeddedServer(Netty, port, module = {
+            applicationModule(applicationConfiguration, applicationState)
+        })
 
     fun start() {
         applicationState.running = true
@@ -43,7 +43,7 @@ class HttpServer(
 
 class ApplicationState(
     alive: Boolean = true,
-    ready: Boolean = false
+    ready: Boolean = false,
 ) {
     var initialized: Boolean by Delegates.observable(alive) { _, _, newValue ->
         if (!newValue) Metrics.appStateReadyFalse.inc()
@@ -55,7 +55,7 @@ class ApplicationState(
 
 fun Application.applicationModule(
     applicationConfiguration: PropertiesConfig.Configuration,
-    applicationState: ApplicationState
+    applicationState: ApplicationState,
 ) {
     commonConfig()
     configureSecurity(applicationConfiguration.azureAdConfig, applicationConfiguration.useAuthentication)

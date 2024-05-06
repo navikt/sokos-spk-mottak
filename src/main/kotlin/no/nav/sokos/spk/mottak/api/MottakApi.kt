@@ -18,11 +18,9 @@ private val logger = KotlinLogging.logger {}
 fun Route.mottakApi(
     readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
     fullmaktClientService: FullmaktClientService = FullmaktClientService(),
-    validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService()
-
+    validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService(),
 ) {
     route("api/v1") {
-
         get("filprosessering") {
             launch(Dispatchers.IO) {
                 readAndParseFileService.readAndParseFile()
@@ -42,6 +40,4 @@ fun Route.mottakApi(
             call.respond(HttpStatusCode.OK, fullmaktClientService.getFullmakt())
         }
     }
-
-
 }

@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.sokos.spk.mottak.config.SftpConfig
 import no.nav.sokos.spk.mottak.listener.SftpListener
 
-
 internal class FtpServiceTest : FunSpec({
     extensions(SftpListener)
 

@@ -12,45 +12,48 @@ import no.nav.sokos.spk.mottak.util.Util.asMap
 import no.nav.sokos.spk.mottak.util.Util.toChar
 
 class TransaksjonRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource()
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
-    fun insertBatch(transaksjonList: List<Transaksjon>, session: Session): List<Int> {
+    fun insertBatch(
+        transaksjonList: List<Transaksjon>,
+        session: Session,
+    ): List<Int> {
         return session.batchPreparedNamedStatement(
             """
-                INSERT INTO T_TRANSAKSJON  (
-                    TRANSAKSJON_ID,
-                    FIL_INFO_ID, 
-                    K_TRANSAKSJON_S, 
-                    PERSON_ID, 
-                    K_BELOP_T, 
-                    K_ART, 
-                    K_ANVISER, 
-                    FNR_FK, 
-                    UTBETALES_TIL, 
-                    DATO_FOM, 
-                    DATO_TOM, 
-                    DATO_ANVISER, 
-                    DATO_PERSON_FOM, 
-                    DATO_REAK_FOM, 
-                    BELOP, 
-                    REF_TRANS_ID, 
-                    TEKSTKODE, 
-                    RECTYPE, 
-                    TRANS_EKS_ID_FK, 
-                    K_TRANS_TOLKNING, 
-                    SENDT_TIL_OPPDRAG,
-                    FNR_ENDRET, 
-                    MOT_ID, 
-                    DATO_OPPRETTET, 
-                    OPPRETTET_AV, 
-                    DATO_ENDRET, 
-                    ENDRET_AV, 
-                    VERSJON, 
-                    K_TRANS_TILST_T,
-                    GRAD
-                ) VALUES (:transaksjonId, :filInfoId, :transaksjonStatus, :personId, :belopstype, :art, :anviser, :fnr, :utbetalesTil, :datoFom, :datoTom, :datoAnviser, :datoPersonFom, :datoReakFom, :belop, :refTransId, :tekstkode, :rectype, :transEksId, :transTolkning, :sendtTilOppdrag, :fnrEndret, :motId, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :transTilstandType, :grad)
+            INSERT INTO T_TRANSAKSJON  (
+                TRANSAKSJON_ID,
+                FIL_INFO_ID, 
+                K_TRANSAKSJON_S, 
+                PERSON_ID, 
+                K_BELOP_T, 
+                K_ART, 
+                K_ANVISER, 
+                FNR_FK, 
+                UTBETALES_TIL, 
+                DATO_FOM, 
+                DATO_TOM, 
+                DATO_ANVISER, 
+                DATO_PERSON_FOM, 
+                DATO_REAK_FOM, 
+                BELOP, 
+                REF_TRANS_ID, 
+                TEKSTKODE, 
+                RECTYPE, 
+                TRANS_EKS_ID_FK, 
+                K_TRANS_TOLKNING, 
+                SENDT_TIL_OPPDRAG,
+                FNR_ENDRET, 
+                MOT_ID, 
+                DATO_OPPRETTET, 
+                OPPRETTET_AV, 
+                DATO_ENDRET, 
+                ENDRET_AV, 
+                VERSJON, 
+                K_TRANS_TILST_T,
+                GRAD
+            ) VALUES (:transaksjonId, :filInfoId, :transaksjonStatus, :personId, :belopstype, :art, :anviser, :fnr, :utbetalesTil, :datoFom, :datoTom, :datoAnviser, :datoPersonFom, :datoReakFom, :belop, :refTransId, :tekstkode, :rectype, :transEksId, :transTolkning, :sendtTilOppdrag, :fnrEndret, :motId, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :transTilstandType, :grad)
             """.trimIndent(),
-            transaksjonList.map { it.asMap() }
+            transaksjonList.map { it.asMap() },
         )
     }
 
@@ -59,12 +62,13 @@ class TransaksjonRepository(
             session.list(
                 queryOf(
                     """
-                        SELECT t.*
-                        FROM T_INN_TRANSAKSJON inn INNER JOIN T_PERSON p on inn.FNR_FK = p.FNR_FK INNER JOIN T_TRANSAKSJON t on t.PERSON_ID = p.PERSON_ID
-                        WHERE p.PERSON_ID IN (${personIdListe.joinToString()}) AND t.K_ANVISER = 'SPK' AND inn.BELOPSTYPE = t.K_BELOP_T
-                        AND t.DATO_TOM IN (SELECT MAX(t2.DATO_TOM) FROM T_TRANSAKSJON t2 WHERE t2.PERSON_ID = p.PERSON_ID);
-                    """.trimIndent()
-                ), toTransaksjon
+                    SELECT t.*
+                    FROM T_INN_TRANSAKSJON inn INNER JOIN T_PERSON p on inn.FNR_FK = p.FNR_FK INNER JOIN T_TRANSAKSJON t on t.PERSON_ID = p.PERSON_ID
+                    WHERE p.PERSON_ID IN (${personIdListe.joinToString()}) AND t.K_ANVISER = 'SPK' AND inn.BELOPSTYPE = t.K_BELOP_T
+                    AND t.DATO_TOM IN (SELECT MAX(t2.DATO_TOM) FROM T_TRANSAKSJON t2 WHERE t2.PERSON_ID = p.PERSON_ID);
+                    """.trimIndent(),
+                ),
+                toTransaksjon,
             )
         }
     }
@@ -74,9 +78,10 @@ class TransaksjonRepository(
             session.single(
                 queryOf(
                     """
-                        SELECT * FROM T_TRANSAKSJON WHERE TRANSAKSJON_ID = $transaksjonId
-                    """.trimIndent()
-                ), toTransaksjon
+                    SELECT * FROM T_TRANSAKSJON WHERE TRANSAKSJON_ID = $transaksjonId
+                    """.trimIndent(),
+                ),
+                toTransaksjon,
             )
         }
     }
@@ -116,7 +121,7 @@ class TransaksjonRepository(
             endretAv = row.string("ENDRET_AV"),
             versjon = row.int("VERSJON"),
             transTilstandType = row.stringOrNull("K_TRANS_TILST_T"),
-            grad = row.intOrNull("GRAD")
+            grad = row.intOrNull("GRAD"),
         )
     }
 }

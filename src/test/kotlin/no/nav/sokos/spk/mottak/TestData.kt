@@ -1,13 +1,13 @@
 package no.nav.sokos.spk.mottak
 
-import java.time.LocalDate
-import java.time.LocalDateTime
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_SKATTEPLIKTIG_UTBETALING
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.integration.models.FullmaktDTO
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 const val SPK_FILE_OK = "SPK_NAV_20242503_070026814_ANV_OK.txt"
 const val SPK_FEIL_UGYLDIG_ANVISER = "SPK_NAV_20362503_080026814_ANV_UGYLDIG_ANVISER.txt"
@@ -26,7 +26,6 @@ const val SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP = "SPK_NAV_20372503_080026814_ANV_
 const val SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE = "SPK_NAV_20302503_080026814_ANV_UGYLDIG_TRANSAKSJON_RECTYPE.txt"
 
 object TestData {
-
     fun fullmakterMock(): List<FullmaktDTO> {
         return listOf(
             FullmaktDTO(
@@ -34,15 +33,15 @@ object TestData {
                 aktorIdentMottarFullmakt = "07846497913",
                 kodeAktorTypeGirFullmakt = "PERSON",
                 kodeAktorTypeMottarFullmakt = "PERSON",
-                kodeFullmaktType = "VERGE_PENGEMOT"
+                kodeFullmaktType = "VERGE_PENGEMOT",
             ),
             FullmaktDTO(
                 aktorIdentGirFullmakt = "02500260109",
                 aktorIdentMottarFullmakt = "08049011297",
                 kodeAktorTypeGirFullmakt = "PERSON",
                 kodeAktorTypeMottarFullmakt = "PERSON",
-                kodeFullmaktType = "VERGE_PENGEMOT"
-            )
+                kodeFullmaktType = "VERGE_PENGEMOT",
+            ),
         )
     }
 
@@ -77,7 +76,7 @@ object TestData {
             versjon = 1,
             grad = null,
             gradStr = null,
-            personId = 12345
+            personId = 12345,
         )
     }
 }

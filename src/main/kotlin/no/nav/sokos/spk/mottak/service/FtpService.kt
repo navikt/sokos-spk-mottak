@@ -3,22 +3,27 @@ package no.nav.sokos.spk.mottak.service
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.Session
 import com.jcraft.jsch.SftpException
-import java.io.ByteArrayOutputStream
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpConfig
+import java.io.ByteArrayOutputStream
 
 private val logger = KotlinLogging.logger {}
 
 enum class Directories(var value: String) {
-    INBOUND("/inbound"), FERDIG("/inbound/ferdig"), ANVISNINGSRETUR("/outbound/anvisningsretur")
+    INBOUND("/inbound"),
+    FERDIG("/inbound/ferdig"),
+    ANVISNINGSRETUR("/outbound/anvisningsretur"),
 }
 
 class FtpService(
     private val sftpSession: Session = SftpConfig(PropertiesConfig.SftpConfig()).createSftpConnection(),
 ) {
-
-    fun createFile(fileName: String, directory: Directories, content: String) {
+    fun createFile(
+        fileName: String,
+        directory: Directories,
+        content: String,
+    ) {
         getSftpChannel().apply {
             val path = "${directory.value}/$fileName"
             try {
@@ -33,8 +38,11 @@ class FtpService(
         }
     }
 
-
-    fun moveFile(fileName: String, from: Directories, to: Directories) {
+    fun moveFile(
+        fileName: String,
+        from: Directories,
+        to: Directories,
+    ) {
         getSftpChannel().apply {
             val oldpath = "${from.value}/$fileName"
             val newpath = "${to.value}/$fileName"
@@ -84,4 +92,3 @@ class FtpService(
         }
     }
 }
-

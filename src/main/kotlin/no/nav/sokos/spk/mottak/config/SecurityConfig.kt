@@ -8,19 +8,19 @@ import io.ktor.server.application.Application
 import io.ktor.server.auth.authentication
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
-import java.net.URI
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
+import java.net.URI
+import java.util.concurrent.TimeUnit
 
 private val logger = KotlinLogging.logger {}
 const val AUTHENTICATION_NAME = "azureAd"
 
 fun Application.configureSecurity(
     azureAdConfig: PropertiesConfig.AzureAdConfig,
-    useAuthentication: Boolean = true
+    useAuthentication: Boolean = true,
 ) {
     logger.info { "Use authentication: $useAuthentication" }
     if (useAuthentication) {
@@ -32,7 +32,7 @@ fun Application.configureSecurity(
                 realm = PropertiesConfig.Configuration().naisAppName
                 verifier(
                     jwkProvider = jwkProvider,
-                    issuer = openIdMetadata.issuer
+                    issuer = openIdMetadata.issuer,
                 )
                 validate { credential ->
                     try {

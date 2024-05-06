@@ -24,5 +24,5 @@ data class AvvikTransaksjon(
     val datoEndret: LocalDateTime,
     val endretAv: String,
     val versjon: Int,
-    val grad: Int?
+    val grad: Int?,
 )
