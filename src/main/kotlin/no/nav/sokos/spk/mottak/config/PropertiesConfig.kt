@@ -14,33 +14,8 @@ object PropertiesConfig {
             mapOf(
                 "NAIS_APP_NAME" to "sokos-spk-mottak",
                 "NAIS_NAMESPACE" to "okonomi",
-                // Azure
-                "AZURE_APP_CLIENT_ID" to "",
-                "AZURE_APP_WELL_KNOWN_URL" to "",
-                "AZURE_APP_TENANT_ID" to "",
-                "AZURE_APP_CLIENT_SECRET" to "",
-                // DB2
-                "DATABASE_HOST" to "",
-                "DATABASE_PORT" to "",
-                "DATABASE_NAME" to "",
-                "DATABASE_SCHEMA" to "",
-                "DATABASE_USERNAME" to "",
-                "DATABASE_PASSWORD" to "",
-                // POSTGRES
-                "POSTGRES_USER_USERNAME" to "",
-                "POSTGRES_USER_PASSWORD" to "",
-                "POSTGRES_ADMIN_USERNAME" to "",
-                "POSTGRES_ADMIN_PASSWORD" to "",
-                "VAULT_MOUNTPATH" to "",
-                // SFTP
-                "SFTP_SERVER" to "",
-                "SPK_SFTP_USERNAME" to "",
-                "SFTP_PRIVATE_KEY_FILE_PATH" to "",
-                "SPK_SFTP_PASSWORD" to "",
-                "SFTP_PORT" to "",
-                // Pensjon Representasjon
-                "PENSJON_REPRESENTASJON_URL" to "",
-                "PENSJON_REPRESENTASJON_SCOPE" to "",
+                "READ_AND_PARSEFILE_CRON_PATTERN" to "0 0 10 * * *",
+                "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 30 * * * *",
             ),
         )
 
@@ -72,7 +47,7 @@ object PropertiesConfig {
 
     operator fun get(key: String): String = config[Key(key, stringType)]
 
-    fun getOrNull(key: String): String? = config.getOrNull(Key(key, stringType))
+    fun getOrEmpty(key: String): String = config.getOrElse(Key(key, stringType), "")
 
     data class Configuration(
         val naisAppName: String = get("NAIS_APP_NAME"),
@@ -82,53 +57,58 @@ object PropertiesConfig {
     )
 
     data class Db2DatabaseConfig(
-        val host: String = get("DATABASE_HOST"),
-        val port: String = get("DATABASE_PORT"),
-        val name: String = get("DATABASE_NAME"),
-        val schema: String = get("DATABASE_SCHEMA"),
-        val username: String = get("DATABASE_USERNAME"),
-        val password: String = get("DATABASE_PASSWORD"),
+        val host: String = getOrEmpty("DATABASE_HOST"),
+        val port: String = getOrEmpty("DATABASE_PORT"),
+        val name: String = getOrEmpty("DATABASE_NAME"),
+        val schema: String = getOrEmpty("DATABASE_SCHEMA"),
+        val username: String = getOrEmpty("DATABASE_USERNAME"),
+        val password: String = getOrEmpty("DATABASE_PASSWORD"),
     )
 
     data class SftpConfig(
-        val host: String = get("SFTP_SERVER"),
-        val username: String = get("SPK_SFTP_USERNAME"),
-        val privateKey: String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
-        val privateKeyPassword: String = get("SPK_SFTP_PASSWORD"),
-        val port: Int = get("SFTP_PORT").toInt(),
+        val host: String = getOrEmpty("SFTP_SERVER"),
+        val username: String = getOrEmpty("SPK_SFTP_USERNAME"),
+        val privateKey: String = getOrEmpty("SFTP_PRIVATE_KEY_FILE_PATH"),
+        val privateKeyPassword: String = getOrEmpty("SPK_SFTP_PASSWORD"),
+        val port: Int = getOrEmpty("SFTP_PORT").toInt(),
     )
 
     data class AzureAdConfig(
-        val clientId: String = get("AZURE_APP_CLIENT_ID"),
-        val wellKnownUrl: String = get("AZURE_APP_WELL_KNOWN_URL"),
-        val tenantId: String = get("AZURE_APP_TENANT_ID"),
-        val clientSecret: String = get("AZURE_APP_CLIENT_SECRET"),
+        val clientId: String = getOrEmpty("AZURE_APP_CLIENT_ID"),
+        val wellKnownUrl: String = getOrEmpty("AZURE_APP_WELL_KNOWN_URL"),
+        val tenantId: String = getOrEmpty("AZURE_APP_TENANT_ID"),
+        val clientSecret: String = getOrEmpty("AZURE_APP_CLIENT_SECRET"),
     )
 
     data class PensjonFullmaktConfig(
-        val fullmaktUrl: String = get("PENSJON_REPRESENTASJON_URL"),
-        val fullmaktScope: String = get("PENSJON_REPRESENTASJON_SCOPE"),
+        val fullmaktUrl: String = getOrEmpty("PENSJON_REPRESENTASJON_URL"),
+        val fullmaktScope: String = getOrEmpty("PENSJON_REPRESENTASJON_SCOPE"),
     )
 
     data class PostgresConfig(
         val host: String = get("POSTGRES_HOST"),
         val port: String = get("POSTGRES_PORT"),
         val databaseName: String = get("POSTGRES_NAME"),
-        val username: String? = getOrNull("POSTGRES_USER_USERNAME"),
-        val password: String? = getOrNull("POSTGRES_USER_PASSWORD"),
-        val adminUsername: String? = getOrNull("POSTGRES_ADMIN_USERNAME"),
-        val adminPassword: String? = getOrNull("POSTGRES_ADMIN_PASSWORD"),
-        val vaultMountPath: String = get("VAULT_MOUNTPATH"),
+        val username: String? = getOrEmpty("POSTGRES_USER_USERNAME"),
+        val password: String? = getOrEmpty("POSTGRES_USER_PASSWORD"),
+        val adminUsername: String? = getOrEmpty("POSTGRES_ADMIN_USERNAME"),
+        val adminPassword: String? = getOrEmpty("POSTGRES_ADMIN_PASSWORD"),
+        val vaultMountPath: String = getOrEmpty("VAULT_MOUNTPATH"),
     ) {
-        val adminUser = "${get("POSTGRES_NAME")}-admin"
-        val user = "${get("POSTGRES_NAME")}-user"
+        val adminUser = "${Configuration().naisAppName}-admin"
+        val user = "${Configuration().naisAppName}-user"
     }
+
+    data class SchedulerConfig(
+        val readAndParseFileCronPattern: String = getOrEmpty("READ_AND_PARSEFILE_CRON_PATTERN"),
+        val validateTransaksjonCronPattern: String = getOrEmpty("VALIDATE_TRANSAKSJON_CRON_PATTERN"),
+    )
 
     enum class Profile {
         LOCAL,
         DEV,
         PROD,
     }
-}
 
-fun PropertiesConfig.isLocal() = PropertiesConfig.Configuration().profile == PropertiesConfig.Profile.LOCAL
+    fun isLocal() = Configuration().profile == Profile.LOCAL
+}

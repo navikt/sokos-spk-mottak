@@ -5,6 +5,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.engine.stop
 import io.ktor.server.netty.Netty
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.configureSecurity
@@ -17,6 +18,8 @@ fun main() {
     val applicationState = ApplicationState()
     val applicationConfiguration = PropertiesConfig.Configuration()
     DatabaseConfig.postgresMigrate()
+    JobTaskConfig.scheduler().start()
+
     HttpServer(applicationState, applicationConfiguration).start()
 }
 

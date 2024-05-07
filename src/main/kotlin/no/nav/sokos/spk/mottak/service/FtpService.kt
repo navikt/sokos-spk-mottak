@@ -66,7 +66,7 @@ class FtpService(
         getSftpChannel().apply {
             try {
                 return this.ls("${directory.value}/*")
-                    .filter { !it.filename.contains("ferdig") }
+                    .filter { !it.attrs.isDir }
                     .map { it.filename }
                     .sorted()
                     .associateWith {

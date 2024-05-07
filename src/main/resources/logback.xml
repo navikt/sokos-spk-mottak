@@ -40,7 +40,7 @@
             </root>
         </then>
         <else>
-            <root level="INFO">
+            <root level="DEBUG">
                 <appender-ref ref="CONSOLE"/>
             </root>
         </else>
@@ -48,6 +48,6 @@
 
     <logger name="no.nav.sokos.spk.mottak" level="INFO"/>
     <!-- <logger name="com.jcraft.jsch.JSch" level="DEBUG"/> -->
-    <!-- <logger name="com.zaxxer.hikari" level="TRACE" /> -->
-    <!-- <logger name="com.zaxxer.hikari.HikariConfig" level="DEBUG" /> -->
+     <logger name="com.zaxxer.hikari" level="TRACE" />
+     <logger name="com.zaxxer.hikari.HikariConfig" level="DEBUG" />
 </configuration>
