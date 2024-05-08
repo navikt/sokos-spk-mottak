@@ -12,32 +12,40 @@ import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.listener.PostgresListener
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
-import java.time.Duration.ofSeconds
-import java.time.Instant
+import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 
 class SchedulerTest : ShouldSpec({
     extensions(PostgresListener)
 
     val readAndParseFileService = mockk<ReadAndParseFileService>()
+    val validateTransaksjonService = mockk<ValidateTransaksjonService>()
 
-    should("skal starte å trigge readAndParseFileService") {
+    should("skal starte skedulering og trigge jobber") {
         every { readAndParseFileService.readAndParseFile() } returns Unit
+        every { validateTransaksjonService.validateInnTransaksjon() } returns Unit
 
-        val schedulerConfig = PropertiesConfig.SchedulerConfig().copy(readAndParseFileCronPattern = "* * * * * *")
-        val task = JobTaskConfig.recurringReadAndParseFileTask(readAndParseFileService, schedulerConfig)
+        val schedulerConfig =
+            PropertiesConfig.SchedulerConfig()
+                .copy(
+                    readAndParseFileCronPattern = "* * * * * *",
+                    validateTransaksjonCronPattern = "* * * * * *",
+                )
+        val readAndParseFileTask = JobTaskConfig.recurringReadAndParseFileTask(readAndParseFileService, schedulerConfig)
+        val validateTransaksjonTask = JobTaskConfig.recurringValidateTransaksjonTask(validateTransaksjonService, schedulerConfig)
+
         val scheduler =
             Scheduler.create(PostgresListener.dataSource)
-                .startTasks(task)
+                .startTasks(readAndParseFileTask, validateTransaksjonTask)
                 .failureLogging(LogLevel.ERROR, true)
                 .build()
-
-        val executionTime: Instant = Instant.now().plus(ofSeconds(1))
 
         runBlocking {
             scheduler.start()
             delay(12000)
             scheduler.stop()
         }
+
         verify { readAndParseFileService.readAndParseFile() }
+        verify { validateTransaksjonService.validateInnTransaksjon() }
     }
 })

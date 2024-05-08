@@ -95,8 +95,8 @@ object PropertiesConfig {
         val adminPassword: String? = getOrEmpty("POSTGRES_ADMIN_PASSWORD"),
         val vaultMountPath: String = getOrEmpty("VAULT_MOUNTPATH"),
     ) {
-        val adminUser = "${Configuration().naisAppName}-admin"
-        val user = "${Configuration().naisAppName}-user"
+        val adminUser = "${get("POSTGRES_NAME")}-admin"
+        val user = "${get("POSTGRES_NAME")}-user"
     }
 
     data class SchedulerConfig(
