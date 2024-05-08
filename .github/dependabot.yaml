@@ -7,6 +7,9 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Europe/Oslo"
+    ignore:
+      - dependency-name: "org.flywaydb:flyway-core"
+        versions: ["9.22.3"]
     groups:
       gradle:
         patterns:
