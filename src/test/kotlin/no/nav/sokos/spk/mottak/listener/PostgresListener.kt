@@ -17,7 +17,7 @@ import java.time.Duration
 
 object PostgresListener : TestListener {
     private val container =
-        GenericContainer("postgres:15-alpine")
+        GenericContainer("postgres:16-alpine")
             .withExposedPorts(5432)
             .withEnv("POSTGRES_DB", PropertiesConfig.PostgresConfig().databaseName)
             .withEnv("POSTGRES_USER", PropertiesConfig.PostgresConfig().adminUser)

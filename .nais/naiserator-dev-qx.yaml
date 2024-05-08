@@ -97,6 +97,6 @@ spec:
 
     # DB-SCHEDULER
     - name: READ_AND_PARSEFILE_CRON_PATTERN
-      value: "* 30 * * * *"
+      value: "0 * * * * *"
     - name: VALIDATE_TRANSAKSJON_CRON_PATTERN
-      value: "* 5 * * * *"
+      value: "0 * * * * *"
