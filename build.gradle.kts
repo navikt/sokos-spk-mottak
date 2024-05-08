@@ -4,10 +4,10 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.9.23"
-    kotlin("plugin.serialization") version "1.9.23"
+    kotlin("jvm") version "1.9.24"
+    kotlin("plugin.serialization") version "1.9.24"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
     jacoco
 }
 
@@ -37,7 +37,7 @@ val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.19.7"
 val h2Version = "2.2.224"
 val kotestWiremockVersion = "3.0.1"
-val flywayVersion = "9.22.3"
+val flywayVersion = "10.12.0"
 val postgresVersion = "42.7.3"
 val dbSchedulerVersion = "14.0.0"
 val vaultVersion = "1.3.10"
