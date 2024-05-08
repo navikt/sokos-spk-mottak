@@ -77,7 +77,7 @@ class TransaksjonRepository(
         }
     }
 
-    fun getTransaksjonerForEndretArtForPerson(innTransaksjon: InnTransaksjon): Int? {
+    fun getTransaksjonerForNyArtForPerson(innTransaksjon: InnTransaksjon): Int? {
         return using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
@@ -85,20 +85,20 @@ class TransaksjonRepository(
                     SELECT COUNT(*) FROM T_TRANSAKSJON t1 
                     WHERE t1.person_id = ${innTransaksjon.personId}
                     AND t1.k_anviser = 'SPK' 
+                    AND t1.k_art != '${innTransaksjon.art}' 
                     AND (t1.dato_tom >= '${innTransaksjon.datoTom}'
                         OR t1.dato_tom IN 
                             (SELECT max(t2.dato_tom) FROM T_TRANSAKSJON t2 
                             WHERE t2.person_id = ${innTransaksjon.personId}
                             AND t2.k_anviser = 'SPK'
                             AND t2.dato_tom < '${innTransaksjon.datoTom}'))
-                    AND t1.k_art != '${innTransaksjon.art}' 
                     """.trimIndent()
                 ), { it.int(1) }
             )
         }
     }
 
-    fun getTransaksjonerForNyttFagomraadeForPerson(innTransaksjon: InnTransaksjon): Int? {
+    fun getTransaksjonerForNyArtINyttFagomraadeForPerson(innTransaksjon: InnTransaksjon): Int? {
         return using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
@@ -109,7 +109,7 @@ class TransaksjonRepository(
 	                    AND g.k_art = t.k_art
 	                    AND g.k_anviser = 'SPK'
 	                    AND g.k_belop_t = t.k_belop_t
-	                    AND g.k_fagomrade NOT IN (
+	                    AND g.k_fagomrade IN (
                             SELECT g2.k_fagomrade 
                             FROM T_K_GYLDIG_KOMBIN g2 
                             WHERE g2.k_art = '${innTransaksjon.art}'

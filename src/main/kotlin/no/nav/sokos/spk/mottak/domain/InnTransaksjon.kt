@@ -39,6 +39,12 @@ data class InnTransaksjon(
 
 fun InnTransaksjon.toTransaksjon(transaksjon: Transaksjon?, endretFagomraadeForPerson: Map<Int, Boolean>): Transaksjon {
     val systemId = PropertiesConfig.Configuration().naisAppName
+    val transTolkning = when {
+        transaksjon == null -> TRANS_TOLKNING_NY
+        endretFagomraadeForPerson[this.personId] == true -> TRANS_TOLKNING_NY
+        else -> TRANS_TOLKNING_NY_EKSIST
+    }
+
     return Transaksjon(
         transaksjonId = this.innTransaksjonId,
         filInfoId = this.filInfoId,
@@ -59,7 +65,7 @@ fun InnTransaksjon.toTransaksjon(transaksjon: Transaksjon?, endretFagomraadeForP
         tekstkode = this.tekstkode,
         rectype = this.rectype,
         transEksId = this.transId,
-        transTolkning = transaksjon?.let { TRANS_TOLKNING_NY_EKSIST } ?: if (endretFagomraadeForPerson[this.personId]==true) TRANS_TOLKNING_NY else TRANS_TOLKNING_NY_EKSIST,
+        transTolkning = transTolkning,
         sendtTilOppdrag = "0",
         fnrEndret = (transaksjon?.let { it.fnr != this.fnr } ?: false).toChar(),
         motId = this.innTransaksjonId.toString(),

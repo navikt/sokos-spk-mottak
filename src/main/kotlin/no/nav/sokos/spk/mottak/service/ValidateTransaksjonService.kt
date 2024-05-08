@@ -68,12 +68,12 @@ class ValidateTransaksjonService(
             innTransaksjonMap[true]?.takeIf { it.isNotEmpty() }?.apply {
                 val transaksjonMap = transaksjonRepository.getLastTransaksjonByPersonId(this.map { it.personId!! })
                     .associateBy { it.personId }
-                val nyttOppdragEllerTrekkMap = this.associate { innTransaksjon ->
-                    val endretArt = transaksjonRepository.getTransaksjonerForEndretArtForPerson(innTransaksjon)!! > 0
-                    val nyttFagomraade = transaksjonRepository.getTransaksjonerForNyttFagomraadeForPerson(innTransaksjon)!! > 0
-                    innTransaksjon.personId!! to (endretArt && nyttFagomraade)
+                val nyttOppdragMap = this.associate { innTransaksjon ->
+                    val nyArt = transaksjonRepository.getTransaksjonerForNyArtForPerson(innTransaksjon)!! > 0
+                    val nyttFagomraade = transaksjonRepository.getTransaksjonerForNyArtINyttFagomraadeForPerson(innTransaksjon)!! == 0
+                    innTransaksjon.personId!! to (nyArt && nyttFagomraade)
                 }
-                transaksjonRepository.insertBatch(this.map { it.toTransaksjon(transaksjonMap[it.personId], nyttOppdragEllerTrekkMap) }, session)
+                transaksjonRepository.insertBatch(this.map { it.toTransaksjon(transaksjonMap[it.personId], nyttOppdragMap) }, session)
 
                 val transaksjonIdList = this.map { it.innTransaksjonId!! }
                 transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
