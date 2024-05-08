@@ -15,7 +15,7 @@ object PropertiesConfig {
                 "NAIS_APP_NAME" to "sokos-spk-mottak",
                 "NAIS_NAMESPACE" to "okonomi",
                 "READ_AND_PARSEFILE_CRON_PATTERN" to "0 0 10 * * *",
-                "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 30 * * * *",
+                "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "* 30 * * * *",
             ),
         )
 

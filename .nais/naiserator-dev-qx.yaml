@@ -1,7 +1,7 @@
 apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
-  name: sokos-spk-mottak
+  name: sokos-spk-mottak-qx
   namespace: okonomi
   labels:
     team: okonomi
@@ -30,7 +30,7 @@ spec:
       cpu: 2000m
       memory: 4096Mi
   ingresses:
-    - https://sokos-spk-mottak.intern.dev.nav.no
+    - https://sokos-spk-mottak-qx.intern.dev.nav.no
   prometheus:
     enabled: true
     path: /internal/metrics
@@ -46,11 +46,6 @@ spec:
         - application: azure-token-generator
           namespace: aura
           cluster: dev-gcp
-    outbound:
-      rules:
-        - application: pensjon-representasjon-q2
-          namespace: pensjon-person
-          cluster: dev-fss
   webproxy: true
   vault:
     enabled: true
@@ -61,7 +56,7 @@ spec:
       mountPath: /var/run/secrets/spk-sftp-private-key
   envFrom:
     - secret: spk-sftp-creds
-    - secret: oppdrag-q1-credentials
+    - secret: oppdrag-qx-credentials
   env:
     - name: USE_AUTHENTICATION
       value: "true"
@@ -74,7 +69,7 @@ spec:
     - name: DATABASE_NAME
       value: "QDB2"
     - name: DATABASE_SCHEMA
-      value: "MO611Q1"
+      value: "MO611QX"
 
     # Postgres
     - name: POSTGRES_HOST
@@ -82,7 +77,7 @@ spec:
     - name: POSTGRES_PORT
       value: "5432"
     - name: POSTGRES_NAME
-      value: sokos-spk-mottak
+      value: sokos-spk-mottak-qx
     - name: VAULT_MOUNTPATH
       value: postgresql/preprod-fss/
 
@@ -102,6 +97,6 @@ spec:
 
     # DB-SCHEDULER
     - name: READ_AND_PARSEFILE_CRON_PATTERN
-      value: "0 0 10 * * *"
-    - name: VALIDATE_TRANSAKSJON_CRON_PATTERN
       value: "* 30 * * * *"
+    - name: VALIDATE_TRANSAKSJON_CRON_PATTERN
+      value: "* 5 * * * *"

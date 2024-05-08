@@ -12,6 +12,7 @@ on:
       - '.gitignore'
       - '.github/workflows/build-pr.yaml'
       - '.github/workflows/manual-deploy-dev.yaml'
+      - '.github/workflows/manual-deploy-dev-qx.yaml'
       - '.github/workflows/security.yaml'
       - '.github/workflows/alerts.yaml'
       - '.nais/alerts-dev.yaml'
@@ -69,15 +70,28 @@ jobs:
           IMAGE: ${{ needs.build.outputs.image }}
           PRINT_PAYLOAD: true
 
+  deploy-dev-qx:
+    name: Deploy to dev-qx
+    needs: [ build, deploy-dev ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: dev-fss
+          RESOURCE: .nais/naiserator-dev-qx.yaml
+          IMAGE: ${{ needs.build.outputs.image }}
+          PRINT_PAYLOAD: true
+
 #  deploy-prod:
 #    name: Deploy to prod
-#    needs: [ build , deploy-dev ]
+#    needs: [ build , deploy-dev, deploy-dev-qx ]
 #    runs-on: ubuntu-latest
 #    steps:
 #      - uses: actions/checkout@v4
 #      - uses: nais/deploy/actions/deploy@v2
 #        env:
 #          CLUSTER: prod-fss
-#          RESOURCE: .nais/naiserator-dev.yaml
+#          RESOURCE: .nais/naiserator-prod.yaml
 #          IMAGE: ${{ needs.build.outputs.image }}
 #          PRINT_PAYLOAD: true
