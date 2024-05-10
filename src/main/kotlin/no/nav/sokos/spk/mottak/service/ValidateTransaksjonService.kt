@@ -52,7 +52,7 @@ class ValidateTransaksjonService(
                             "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
                     }
 
-                else -> logger.info { "Finner ingen innTransaksjoner som er ubehandlet" }
+                else -> logger.debug { "Finner ingen innTransaksjoner som er ubehandlet" }
             }
         }.onFailure { exception ->
             logger.error(exception) { "Feil under behandling av innTransaksjoner" }
