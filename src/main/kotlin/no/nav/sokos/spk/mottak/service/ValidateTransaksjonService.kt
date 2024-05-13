@@ -48,7 +48,9 @@ class ValidateTransaksjonService(
             when {
                 totalInnTransaksjoner > 0 ->
                     logger.info {
-                        "$totalInnTransaksjoner innTransaksjoner validert på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " +
+                        "$totalInnTransaksjoner innTransaksjoner validert på ${
+                            Duration.between(timer, Instant.now()).toSeconds()
+                        } sekunder. " +
                             "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
                     }
 
@@ -66,20 +68,29 @@ class ValidateTransaksjonService(
         dataSource.transaction { session ->
             innTransaksjonMap[true]?.takeIf { it.isNotEmpty() }?.apply {
                 val transaksjonMap = transaksjonRepository.getLastTransaksjonByPersonId(this.map { it.personId!! }).associateBy { it.personId }
-                transaksjonRepository.insertBatch(this.map { it.toTransaksjon(transaksjonMap[it.personId]) }, session)
+                val nyttOppdragMap =
+                    this.associate { innTransaksjon ->
+                        val nyArt = transaksjonRepository.getTransaksjonerForNyArtForPerson(innTransaksjon)!! > 0
+                        val nyttFagomraade = transaksjonRepository.getTransaksjonerForNyArtINyttFagomraadeForPerson(innTransaksjon)!! == 0
+                        innTransaksjon.personId!! to (nyArt && nyttFagomraade)
+                    }
+                transaksjonRepository.insertBatch(innTransaksjonList.map { innTransaksjon -> innTransaksjon.toTransaksjon(transaksjonMap[innTransaksjon.personId], nyttOppdragMap) }, session)
 
-                val transaksjonIdList = this.map { it.innTransaksjonId!! }
+                val transaksjonIdList = this.map { innTransaksjon -> innTransaksjon.innTransaksjonId!! }
                 transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
 
                 logger.debug { "${transaksjonIdList.size} transaksjoner opprettet" }
             }
 
             innTransaksjonMap[false]?.takeIf { it.isNotEmpty() }?.apply {
-                val avvikTransaksjonIdList = avvikTransaksjonRepository.insertBatch(this, session)
+                val avvikTransaksjonIdList = avvikTransaksjonRepository.insertBatch(innTransaksjonList, session)
                 logger.debug { "${avvikTransaksjonIdList.size} avvik transaksjoner opprettet: " }
             }
 
-            innTransaksjonRepository.updateBehandletStatusBatch(innTransaksjonList.map { it.innTransaksjonId!! }, session)
+            innTransaksjonRepository.updateBehandletStatusBatch(
+                innTransaksjonList.map { it.innTransaksjonId!! },
+                session,
+            )
         }
     }
 
