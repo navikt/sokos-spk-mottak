@@ -45,7 +45,7 @@ fun InnTransaksjon.toTransaksjon(
     val transTolkning =
         when {
             transaksjon == null -> TRANS_TOLKNING_NY
-            endretFagomraadeForPerson[this.personId] == true -> TRANS_TOLKNING_NY
+            endretFagomraadeForPerson[this.innTransaksjonId] == true -> TRANS_TOLKNING_NY
             else -> TRANS_TOLKNING_NY_EKSIST
         }
 

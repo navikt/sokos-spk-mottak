@@ -45,6 +45,11 @@ class ValidateTransaksjonService(
                     else -> break
                 }
             }
+            if (transaksjonRepository.getAllFnrWhereTranstolkningIsNyForMoreThanOneInstance().isNotEmpty()) {
+                logger.info { "Det finnes flere inn-transaksjoner med samme fnr og transTolkning = 'NY'" }
+                checkTranstolkning(transaksjonRepository.getAllFnrWhereTranstolkningIsNyForMoreThanOneInstance())
+            }
+
             when {
                 totalInnTransaksjoner > 0 ->
                     logger.info {
@@ -62,6 +67,21 @@ class ValidateTransaksjonService(
         }
     }
 
+    private fun checkTranstolkning(allFnrWhereTranstolkningIsNyForMoreThanOneInstance: List<String>) {
+        for (fnr in allFnrWhereTranstolkningIsNyForMoreThanOneInstance) {
+            val (fagomraadeList, artList) = transaksjonRepository.getAllFagomraadeAndArtForFnr(fnr).unzip()
+            for (i in fagomraadeList.indices) {
+                if (i > 0) {
+                    if (fagomraadeList[i] in fagomraadeList.subList(0, i)) {
+                        transaksjonRepository.updateTransTolkningForFnr(fnr, artList[i])
+                    } else {
+                        logger.info { "Fagomraade endret for fnr: $fnr" }
+                    }
+                }
+            }
+        }
+    }
+
     private fun saveTransaksjonAndAvvikTransaksjon(innTransaksjonList: List<InnTransaksjon>) {
         val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
 
@@ -70,9 +90,8 @@ class ValidateTransaksjonService(
                 val transaksjonMap = transaksjonRepository.getLastTransaksjonByPersonId(this.map { it.personId!! }).associateBy { it.personId }
                 val nyttOppdragMap =
                     this.associate { innTransaksjon ->
-                        val nyArt = transaksjonRepository.getTransaksjonerForNyArtForPerson(innTransaksjon)!! > 0
                         val nyttFagomraade = transaksjonRepository.getTransaksjonerForNyArtINyttFagomraadeForPerson(innTransaksjon)!! == 0
-                        innTransaksjon.personId!! to (nyArt && nyttFagomraade)
+                        innTransaksjon.innTransaksjonId!! to (nyttFagomraade)
                     }
                 transaksjonRepository.insertBatch(innTransaksjonList.map { innTransaksjon -> innTransaksjon.toTransaksjon(transaksjonMap[innTransaksjon.personId], nyttOppdragMap) }, session)
 

@@ -58,6 +58,60 @@ class TransaksjonRepository(
         )
     }
 
+    fun getAllFnrWhereTranstolkningIsNyForMoreThanOneInstance(): List<String> {
+        return using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    SELECT fnr_fk
+                    FROM T_TRANSAKSJON
+                    WHERE k_trans_tilst_t = 'OPR'
+                    AND k_trans_tolkning = 'NY'
+                    GROUP BY fnr_fk, k_trans_tolkning
+                    HAVING COUNT(*) > 1
+                    """.trimIndent(),
+                ),
+            ) { row -> row.string("FNR_FK") }
+        }
+    }
+
+    fun getAllFagomraadeAndArtForFnr(fnr: String): List<Pair<String, String>> {
+        return using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    SELECT g.k_fagomrade, t.art
+                    FROM T_INN_TRANSAKSJON t, T_K_GYLDIG_KOMBIN g
+                    WHERE t.fnr_fk = $fnr
+                    AND g.k_art = t.art
+                    AND g.k_anviser = 'SPK'
+                    AND g.k_belop_t = t.belopstype
+                    ORDER BY t.inn_transaksjon_id
+                    """.trimIndent(),
+                ),
+                toFagomraadeAndArt,
+            )
+        }
+    }
+
+    fun updateTransTolkningForFnr(
+        fnr: String,
+        art: String,
+    ) {
+        return using(sessionOf(dataSource)) { session ->
+            session.update(
+                queryOf(
+                    """
+                    UPDATE T_TRANSAKSJON 
+                    SET k_trans_tolkning = 'NY_EKSIST'
+                    WHERE fnr_fk = $fnr
+                    AND k_art = '$art'
+                    """.trimIndent(),
+                ),
+            )
+        }
+    }
+
     fun getLastTransaksjonByPersonId(personIdListe: List<Int>): List<Transaksjon> {
         return using(sessionOf(dataSource)) { session ->
             session.list(
@@ -137,6 +191,13 @@ class TransaksjonRepository(
                 toTransaksjon,
             )
         }
+    }
+
+    private val toFagomraadeAndArt: (Row) -> Pair<String, String> = { row ->
+        Pair(
+            row.string("K_FAGOMRADE"),
+            row.string("ART"),
+        )
     }
 
     private val toTransaksjon: (Row) -> Transaksjon = { row ->

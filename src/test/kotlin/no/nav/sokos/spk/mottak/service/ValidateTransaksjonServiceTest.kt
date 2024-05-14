@@ -682,6 +682,120 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
             }
         }
     }
+    Given("det finnes 2 innTransaksjoner med samme fnr hvor art tilhører ulike fagområder og personen eksisterer ikke i T_TRANSAKSJON") {
+        Db2Listener.dataSource.transaction { session ->
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ny_person_med_2_art_i_ulike_fagomraader.sql")))
+        }
+        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 2
+        When("det valideres ") {
+            validateTransaksjonService.validateInnTransaksjon()
+            Then("skal det opprettes to transaksjoner med tolkning NY") {
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                innTransaksjonMap[true]!!.size shouldBe 2
+                innTransaksjonMap[false] shouldBe null
+
+                innTransaksjonMap[true]!!.forEach { innTransaksjon ->
+                    val transaksjon =
+                        Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
+
+                    val transaksjonTilstand =
+                        Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
+                }
+            }
+        }
+    }
+    Given("det finnes 2 innTransaksjoner med samme fnr hvor art tilhører samme fagområde og personen eksisterer ikke i T_TRANSAKSJON") {
+        Db2Listener.dataSource.transaction { session ->
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ny_person_med_2_art_i_like_fagomraader.sql")))
+        }
+        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 2
+        When("det valideres ") {
+            validateTransaksjonService.validateInnTransaksjon()
+            Then("skal det opprettes en transaksjon med tolkning NY en transaksjon med tolkning NY_EKSIST") {
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                innTransaksjonMap[true]!!.size shouldBe 2
+                innTransaksjonMap[false] shouldBe null
+
+                for (i in innTransaksjonMap[true]!!.indices) {
+                    val innTransaksjon = innTransaksjonMap[true]!![i]
+                    val transaksjon =
+                        Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    if (i == 0) {
+                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
+                    } else {
+                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY_EKSIST, FNR_IKKE_ENDRET)
+                    }
+                    val transaksjonTilstand =
+                        Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
+                }
+            }
+        }
+    }
+    Given("det finnes 4 innTransaksjoner med samme fnr hvor det er 2 ulike art i hvert fagområde og personen eksisterer ikke i T_TRANSAKSJON") {
+        Db2Listener.dataSource.transaction { session ->
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ny_person_med_4_art_i_2_ulike_fagomraader.sql")))
+        }
+        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 4
+        When("det valideres ") {
+            validateTransaksjonService.validateInnTransaksjon()
+            Then("skal det opprettes to transaksjoner med tolkning NY to transaksjoner med tolkning NY_EKSIST") {
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                innTransaksjonMap[true]!!.size shouldBe 4
+                innTransaksjonMap[false] shouldBe null
+                for (i in innTransaksjonMap[true]!!.indices) {
+                    val innTransaksjon = innTransaksjonMap[true]!![i]
+                    val transaksjon =
+                        Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    if (i == 0 || i == 2) {
+                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
+                    } else {
+                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY_EKSIST, FNR_IKKE_ENDRET)
+                    }
+                    val transaksjonTilstand =
+                        Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
+                }
+            }
+        }
+    }
+    Given("det finnes 2 innTransaksjoner med samme fnr hvor 1 har art i ikke eksisterende fagområde og personen eksisterer i T_TRANSAKSJON") {
+        Db2Listener.dataSource.transaction { session ->
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_person_med_2_art_og_1_nytt_fagomraade.sql")))
+        }
+        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 2
+        When("det valideres ") {
+            validateTransaksjonService.validateInnTransaksjon()
+            Then("skal det opprettes to transaksjoner, en med tolkning NY og en med tolkning NY_EKSIST") {
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                innTransaksjonMap[true]!!.size shouldBe 2
+                innTransaksjonMap[false] shouldBe null
+                for (i in innTransaksjonMap[true]!!.indices) {
+                    val innTransaksjon = innTransaksjonMap[true]!![i]
+                    val transaksjon =
+                        Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    if (i == 0) {
+                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
+                    } else {
+                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY_EKSIST, FNR_IKKE_ENDRET)
+                    }
+                    val transaksjonTilstand =
+                        Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
+                }
+            }
+        }
+    }
 })
 
 private fun verifyTransaksjonTilstand(
