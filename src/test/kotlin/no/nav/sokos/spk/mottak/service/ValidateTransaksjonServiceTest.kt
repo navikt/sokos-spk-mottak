@@ -134,7 +134,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
 
     Given("det finnes en innTransaksjon som har ugyldig fnr") {
         Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/validering/innTransaksjoner_med_ugyldig_fnr.sql")))
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ugyldig_fnr.sql")))
         }
         Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
         When("det valideres ") {
@@ -157,7 +157,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
 
     Given("det finnes en innTransaksjon med belopstype skattepliktig utbetaling som har ugyldig DatoFom") {
         Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/validering/innTransaksjoner_med_belopstype_01_ugyldig_datofom.sql")))
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_belopstype_01_ugyldig_datofom.sql")))
         }
         val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId()
         innTransaksjonList.size shouldBe 1
@@ -181,7 +181,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
 
     Given("det finnes en innTransaksjon med belopstype skattepliktig utbetaling som har ugyldig DatoTom") {
         Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/validering/innTransaksjoner_med_belopstype_01_ugyldig_datotom.sql")))
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_belopstype_01_ugyldig_datotom.sql")))
         }
         val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId()
         innTransaksjonList.size shouldBe 1
@@ -205,7 +205,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
 
     Given("det finnes en innTransaksjon med belopstype trekk som har ugyldig DatoFom") {
         Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/validering/innTransaksjoner_med_belopstype_03_ugyldig_datofom.sql")))
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_belopstype_03_ugyldig_datofom.sql")))
         }
         val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId()
         innTransaksjonList.size shouldBe 1
@@ -229,7 +229,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
 
     Given("det finnes en innTransaksjon med belopstype 03 som har ugyldig DatoTom") {
         Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/validering/innTransaksjoner_med_belopstype_03_ugyldig_datotom.sql")))
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_belopstype_03_ugyldig_datotom.sql")))
         }
         val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId()
         innTransaksjonList.size shouldBe 1
@@ -253,7 +253,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
 
     Given("det finnes en innTransaksjon som har ugyldig belopstype") {
         Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/validering/innTransaksjoner_med_ugyldig_belopstype.sql")))
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ugyldig_belopstype.sql")))
         }
         Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
         When("det valideres ") {
@@ -276,7 +276,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
 
     Given("det finnes en innTransaksjon som har ugyldig art") {
         Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/validering/innTransaksjoner_med_ugyldig_art.sql")))
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ugyldig_art.sql")))
         }
         Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
         When("det valideres ") {
@@ -299,7 +299,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
 
     Given("det finnes en innTransaksjon som har ugyldig anviser dato") {
         Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/validering/innTransaksjoner_med_ugyldig_anviser_dato.sql")))
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ugyldig_anviser_dato.sql")))
         }
         Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
         When("det valideres ") {
@@ -322,7 +322,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
 
     Given("det finnes en innTransaksjon som har ugyldig beløp") {
         Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/validering/innTransaksjoner_med_ugyldig_belop.sql")))
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ugyldig_belop.sql")))
         }
         Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
         When("det valideres ") {
@@ -345,7 +345,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
 
     Given("det finnes en innTransaksjon som har ugyldig kombinasjon av art og belopstype") {
         Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/validering/innTransaksjoner_ugyldig_kombinasjon_av_art_og_belopstype.sql")))
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_ugyldig_kombinasjon_av_art_og_belopstype.sql")))
         }
         Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
         When("det valideres ") {
@@ -556,45 +556,8 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
     }
 
     Given("det finnes en innTransaksjon med eksisterende fnr og en art som tilhører et annet fagområde enn eksisterende art for personen i T_TRANSAKSJON men med en annen anviser") {
-        var personId: Long?
         Db2Listener.dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    "insert into T_INN_TRANSAKSJON (FIL_INFO_ID, K_TRANSAKSJON_S, FNR_FK, BELOPSTYPE, ART, AVSENDER, UTBETALES_TIL, DATO_FOM_STR, DATO_TOM_STR, DATO_ANVISER_STR, BELOP_STR, " +
-                        "REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_ID_FK, DATO_FOM, DATO_TOM, DATO_ANVISER, BELOP, BEHANDLET, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, " +
-                        "GRAD, GRAD_STR) " +
-                        "values (20000816, null, '66043800214', '01', 'ETT', 'SPK', null, '20230601', '20230630', '20230525', '00001151600', null, null, '02', '111517616', '2023-06-01', " +
-                        "'2023-06-30', " +
-                        "'2023-05-25', 1151600, 'N', '2024-04-10 09:28:50.816459', 'sokos-spk-mottak', '2024-04-10 09:28:50.816542', 'sokos-spk-mottak', 1, null, null)",
-                ),
-            )
-            personId =
-                session.updateAndReturnGeneratedKey(
-                    queryOf(
-                        "insert into T_PERSON (FNR_FK, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON) " +
-                            "values ('66043800214', '2008-12-31 15:42:58.000000', 'KF37/T_PERSON', '1900-01-01 00:00:00.000000', 'KF37/T_PERSON', 1)",
-                    ),
-                )
-            session.update(
-                queryOf(
-                    "insert into T_TRANSAKSJON (TRANSAKSJON_ID, TRANS_TILSTAND_ID, FIL_INFO_ID, K_TRANSAKSJON_S, PERSON_ID, K_BELOP_T, K_ART, K_ANVISER, FNR_FK, UTBETALES_TIL, OS_ID_FK, " +
-                        "OS_LINJE_ID_FK, DATO_FOM, DATO_TOM, DATO_ANVISER, DATO_PERSON_FOM, DATO_REAK_FOM, BELOP, REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_EKS_ID_FK, K_TRANS_TOLKNING, " +
-                        "SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_TREKKANSVAR, K_TRANS_TILST_T, GRAD) " +
-                        "values (98000000, null, 20000816, '00', " + personId + ", '02', 'UFE', 'OK', '66043800214', null, null, null, '2023-05-01', '2023-05-31', '2023-04-25', '1900-01-01', " +
-                        "'1900-01-01', 51700, null, null, '02', '999999999', 'NY', '0', null, '0', '1', null, '2024-04-24 08:45:08.998930','sokos-spk-mottak', '2024-04-24 08:45:08.999190', " +
-                        "'sokos-spk-mottak', 1, '4819', 'OPR', null)",
-                ),
-            )
-            session.update(
-                queryOf(
-                    "insert into T_TRANSAKSJON (TRANSAKSJON_ID, TRANS_TILSTAND_ID, FIL_INFO_ID, K_TRANSAKSJON_S, PERSON_ID, K_BELOP_T, K_ART, K_ANVISER, FNR_FK, UTBETALES_TIL, OS_ID_FK, " +
-                        "OS_LINJE_ID_FK, DATO_FOM, DATO_TOM, DATO_ANVISER, DATO_PERSON_FOM, DATO_REAK_FOM, BELOP, REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_EKS_ID_FK, K_TRANS_TOLKNING, " +
-                        "SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_TREKKANSVAR, K_TRANS_TILST_T, GRAD) " +
-                        "values (99000000, null, 20000816, '00', " + personId + ", '01', 'UFT', 'OK', '66043800214', null, null, null, '2023-07-01', '2023-07-31', '2023-04-25', '1900-01-01', " +
-                        "'1900-01-01', 51700, null, null, '02', '6666666666', 'NY', '0', null, '0', '1', null, '2024-04-24 08:45:08.998930','sokos-spk-mottak', '2024-04-24 08:45:08.999190', " +
-                        "'sokos-spk-mottak', 1, '4819', 'OPR', null)",
-                ),
-            )
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ulik_fagomrade_til_eksisterende_transaskjon.sql")))
         }
         Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
         When("det valideres ") {
@@ -618,47 +581,12 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
             }
         }
     }
+
     Given(
         "det finnes en innTransaksjon med eksisterende fnr og en art som er ulik en historisk art som tilhører et annet fagområde for personen i T_TRANSAKSJON",
     ) {
-        var personId: Long?
         Db2Listener.dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    "insert into T_INN_TRANSAKSJON (FIL_INFO_ID, K_TRANSAKSJON_S, FNR_FK, BELOPSTYPE, ART, AVSENDER, UTBETALES_TIL, DATO_FOM_STR, DATO_TOM_STR, DATO_ANVISER_STR, BELOP_STR, " +
-                        "REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_ID_FK, DATO_FOM, DATO_TOM, DATO_ANVISER, BELOP, BEHANDLET, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, " +
-                        "GRAD, GRAD_STR) " +
-                        "values (20000816, null, '66043800214', '01', 'ETT', 'SPK', null, '20230601', '20230630', '20230525', '00001151600', null, null, '02', '111517616', '2023-06-01', " +
-                        "'2023-06-30', '2023-05-25', 1151600, 'N', '2024-04-10 09:28:50.816459', 'sokos-spk-mottak', '2024-04-10 09:28:50.816542', 'sokos-spk-mottak', 1, null, null)",
-                ),
-            )
-            personId =
-                session.updateAndReturnGeneratedKey(
-                    queryOf(
-                        "insert into T_PERSON (FNR_FK, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON) " +
-                            "values ('66043800214', '2008-12-31 15:42:58.000000', 'KF37/T_PERSON', '1900-01-01 00:00:00.000000', 'KF37/T_PERSON', 1)",
-                    ),
-                )
-            session.update(
-                queryOf(
-                    "insert into T_TRANSAKSJON (TRANSAKSJON_ID, TRANS_TILSTAND_ID, FIL_INFO_ID, K_TRANSAKSJON_S, PERSON_ID, K_BELOP_T, K_ART, K_ANVISER, FNR_FK, UTBETALES_TIL, OS_ID_FK, " +
-                        "OS_LINJE_ID_FK, DATO_FOM, DATO_TOM, DATO_ANVISER, DATO_PERSON_FOM, DATO_REAK_FOM, BELOP, REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_EKS_ID_FK, K_TRANS_TOLKNING, " +
-                        "SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_TREKKANSVAR, K_TRANS_TILST_T, GRAD) " +
-                        "values (98000000, null, 20000816, '00', " + personId + ", '02', 'UFT', 'SPK', '66043800214', null, null, null, '2023-04-01', '2023-04-30', '2023-04-25', '1900-01-01', " +
-                        "'1900-01-01', 51700, null, null, '02', '999999999', 'NY', '0', null, '0', '1', null, '2024-04-24 08:45:08.998930','sokos-spk-mottak', '2024-04-24 08:45:08.999190', " +
-                        "'sokos-spk-mottak', 1, '4819', 'OPR', null)",
-                ),
-            )
-            session.update(
-                queryOf(
-                    "insert into T_TRANSAKSJON (TRANSAKSJON_ID, TRANS_TILSTAND_ID, FIL_INFO_ID, K_TRANSAKSJON_S, PERSON_ID, K_BELOP_T, K_ART, K_ANVISER, FNR_FK, UTBETALES_TIL, OS_ID_FK, " +
-                        "OS_LINJE_ID_FK, DATO_FOM, DATO_TOM, DATO_ANVISER, DATO_PERSON_FOM, DATO_REAK_FOM, BELOP, REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_EKS_ID_FK, K_TRANS_TOLKNING, " +
-                        "SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_TREKKANSVAR, K_TRANS_TILST_T, GRAD) " +
-                        "values (99000000, null, 20000816, '00', " + personId + ", '01', 'RNT', 'SPK', '66043800214', null, null, null, '2023-05-01', '2023-05-31', '2023-04-25', '1900-01-01', " +
-                        "'1900-01-01', 51700, null, null, '02', '6666666666', 'NY', '0', null, '0', '1', null, '2024-04-24 08:45:08.998930','sokos-spk-mottak', '2024-04-24 08:45:08.999190', " +
-                        "'sokos-spk-mottak', 1, '4819', 'OPR', null)",
-                ),
-            )
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_samme_fagomrade_til_eksisterende_transaskjon.sql")))
         }
         Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
         When("det valideres ") {

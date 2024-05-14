@@ -32,29 +32,31 @@ class ValidateTransaksjonService(
         var totalAvvikTransaksjoner = 0
 
         runCatching {
-            executeInntransaksjonValidation()
+            if (innTransaksjonRepository.getByBehandletWithPersonId(rows = 1).isNotEmpty()) {
+                executeInntransaksjonValidation()
 
-            while (true) {
-                val innTransaksjonList = innTransaksjonRepository.getByBehandletWithPersonId()
-                totalInnTransaksjoner += innTransaksjonList.size
-                totalAvvikTransaksjoner += innTransaksjonList.filter { !it.isTransaksjonStatusOK() }.size
-                logger.debug { "Henter inn ${innTransaksjonList.size} innTransaksjoner fra databasen" }
+                while (true) {
+                    val innTransaksjonList = innTransaksjonRepository.getByBehandletWithPersonId()
+                    totalInnTransaksjoner += innTransaksjonList.size
+                    totalAvvikTransaksjoner += innTransaksjonList.filter { !it.isTransaksjonStatusOK() }.size
+                    logger.debug { "Henter inn ${innTransaksjonList.size} innTransaksjoner fra databasen" }
 
-                when {
-                    innTransaksjonList.isNotEmpty() -> saveTransaksjonAndAvvikTransaksjon(innTransaksjonList)
-                    else -> break
-                }
-            }
-            when {
-                totalInnTransaksjoner > 0 ->
-                    logger.info {
-                        "$totalInnTransaksjoner innTransaksjoner validert på ${
-                            Duration.between(timer, Instant.now()).toSeconds()
-                        } sekunder. " +
-                            "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
+                    when {
+                        innTransaksjonList.isNotEmpty() -> saveTransaksjonAndAvvikTransaksjon(innTransaksjonList)
+                        else -> break
                     }
+                }
+                when {
+                    totalInnTransaksjoner > 0 ->
+                        logger.info {
+                            "$totalInnTransaksjoner innTransaksjoner validert på ${
+                                Duration.between(timer, Instant.now()).toSeconds()
+                            } sekunder. " +
+                                "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
+                        }
 
-                else -> logger.info { "Finner ingen innTransaksjoner som er ubehandlet" }
+                    else -> logger.info { "Finner ingen innTransaksjoner som er ubehandlet" }
+                }
             }
         }.onFailure { exception ->
             logger.error(exception) { "Feil under behandling av innTransaksjoner" }
@@ -67,14 +69,11 @@ class ValidateTransaksjonService(
 
         dataSource.transaction { session ->
             innTransaksjonMap[true]?.takeIf { it.isNotEmpty() }?.apply {
-                val transaksjonMap = transaksjonRepository.getLastTransaksjonByPersonId(this.map { it.personId!! }).associateBy { it.personId }
-                val nyttOppdragMap =
-                    this.associate { innTransaksjon ->
-                        val nyArt = transaksjonRepository.getTransaksjonerForNyArtForPerson(innTransaksjon)!! > 0
-                        val nyttFagomraade = transaksjonRepository.getTransaksjonerForNyArtINyttFagomraadeForPerson(innTransaksjon)!! == 0
-                        innTransaksjon.personId!! to (nyArt && nyttFagomraade)
-                    }
-                transaksjonRepository.insertBatch(innTransaksjonList.map { innTransaksjon -> innTransaksjon.toTransaksjon(transaksjonMap[innTransaksjon.personId], nyttOppdragMap) }, session)
+                val personIdList = this.map { it.personId!! }
+                val forrigeTransaksjonMap = transaksjonRepository.findForrigeTransaksjonByPersonId(personIdList).associateBy { it.personId }
+                val forrigeFagomradeMap = transaksjonRepository.findForrigeFagomradeByPersonId(personIdList)
+
+                transaksjonRepository.insertBatch(this.map { it.toTransaksjon(forrigeTransaksjonMap[it.personId], forrigeFagomradeMap) }, session)
 
                 val transaksjonIdList = this.map { innTransaksjon -> innTransaksjon.innTransaksjonId!! }
                 transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
@@ -83,14 +82,11 @@ class ValidateTransaksjonService(
             }
 
             innTransaksjonMap[false]?.takeIf { it.isNotEmpty() }?.apply {
-                val avvikTransaksjonIdList = avvikTransaksjonRepository.insertBatch(innTransaksjonList, session)
+                val avvikTransaksjonIdList = avvikTransaksjonRepository.insertBatch(this, session)
                 logger.debug { "${avvikTransaksjonIdList.size} avvik transaksjoner opprettet: " }
             }
 
-            innTransaksjonRepository.updateBehandletStatusBatch(
-                innTransaksjonList.map { it.innTransaksjonId!! },
-                session,
-            )
+            innTransaksjonRepository.updateBehandletStatusBatch(innTransaksjonList.map { it.innTransaksjonId!! }, session)
         }
     }
 
