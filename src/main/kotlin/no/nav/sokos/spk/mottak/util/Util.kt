@@ -11,6 +11,10 @@ object Util {
         }.getOrNull()
     }
 
+    fun LocalDate.toLocalDateString(): String {
+        return this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+    }
+
     fun Boolean.toChar(): Char {
         return if (this) '1' else '0'
     }

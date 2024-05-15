@@ -37,23 +37,16 @@ data class InnTransaksjon(
     val personId: Int? = null,
 )
 
-fun InnTransaksjon.toTransaksjon(
+fun InnTransaksjon.mapToTransaksjon(
     transaksjon: Transaksjon?,
-    endretFagomraadeForPerson: Map<Int, Boolean>,
+    lastFagOmraadeMap: Map<Int, String>,
 ): Transaksjon {
     val systemId = PropertiesConfig.Configuration().naisAppName
-    val transTolkning =
-        when {
-            transaksjon == null -> TRANS_TOLKNING_NY
-            endretFagomraadeForPerson[this.personId] == true -> TRANS_TOLKNING_NY
-            else -> TRANS_TOLKNING_NY_EKSIST
-        }
-
     return Transaksjon(
         transaksjonId = this.innTransaksjonId,
         filInfoId = this.filInfoId,
         transaksjonStatus = this.transaksjonStatus!!,
-        personId = this.personId ?: 600002,
+        personId = this.personId!!,
         belopstype = this.belopstype,
         art = this.art,
         anviser = this.avsender,
@@ -69,7 +62,7 @@ fun InnTransaksjon.toTransaksjon(
         tekstkode = this.tekstkode,
         rectype = this.rectype,
         transEksId = this.transId,
-        transTolkning = transTolkning,
+        transTolkning = lastFagOmraadeMap[this.innTransaksjonId]?.let { TRANS_TOLKNING_NY_EKSIST } ?: TRANS_TOLKNING_NY,
         sendtTilOppdrag = "0",
         fnrEndret = (transaksjon?.let { it.fnr != this.fnr } ?: false).toChar(),
         motId = this.innTransaksjonId.toString(),
@@ -83,4 +76,4 @@ fun InnTransaksjon.toTransaksjon(
     )
 }
 
-fun InnTransaksjon.isTransaksjonStatusOK(): Boolean = this.transaksjonStatus == TRANSAKSJONSTATUS_OK
+fun InnTransaksjon.isValideringStatusIsOK(): Boolean = this.transaksjonStatus == TRANSAKSJONSTATUS_OK

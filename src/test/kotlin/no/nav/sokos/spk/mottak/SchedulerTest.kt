@@ -13,16 +13,19 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.listener.PostgresListener
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
+import no.nav.sokos.spk.mottak.service.WriteToFileService
 
 class SchedulerTest : ShouldSpec({
     extensions(PostgresListener)
 
     val readAndParseFileService = mockk<ReadAndParseFileService>()
     val validateTransaksjonService = mockk<ValidateTransaksjonService>()
+    val writeToFileService = mockk<WriteToFileService>()
 
     should("skal starte skedulering og trigge jobber") {
         every { readAndParseFileService.readAndParseFile() } returns Unit
         every { validateTransaksjonService.validateInnTransaksjon() } returns Unit
+        every { writeToFileService.writeReturnFile() } returns Unit
 
         val schedulerConfig =
             PropertiesConfig.SchedulerConfig()
@@ -31,7 +34,7 @@ class SchedulerTest : ShouldSpec({
                     validateTransaksjonCronPattern = "* * * * * *",
                 )
         val readAndParseFileTask = JobTaskConfig.recurringReadAndParseFileTask(readAndParseFileService, schedulerConfig)
-        val validateTransaksjonTask = JobTaskConfig.recurringValidateTransaksjonTask(validateTransaksjonService, schedulerConfig)
+        val validateTransaksjonTask = JobTaskConfig.recurringValidateTransaksjonTask(validateTransaksjonService, writeToFileService, schedulerConfig)
 
         val scheduler =
             Scheduler.create(PostgresListener.dataSource)

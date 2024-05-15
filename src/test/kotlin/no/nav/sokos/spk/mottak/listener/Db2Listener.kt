@@ -19,7 +19,7 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 
 object Db2Listener : TestListener {
-    val dataSource = HikariDataSource(DatabaseTestConfig().hikariConfig())
+    val dataSource = HikariDataSource(DatabaseTestConfig.hikariConfig())
     val lopeNummerRepository = LopenummerRepository(dataSource)
     val innTransaksjonRepository = InnTransaksjonRepository(dataSource)
     val filInfoRepository = FilInfoRepository(dataSource)

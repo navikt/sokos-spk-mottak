@@ -24,13 +24,14 @@ import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE
 import no.nav.sokos.spk.mottak.SPK_FILE_FEIL
 import no.nav.sokos.spk.mottak.SPK_FILE_OK
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
+import no.nav.sokos.spk.mottak.TestHelper.verifyFilInfo
+import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpConfig
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_NEI
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_SKATTEPLIKTIG_UTBETALING
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_AVV
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
-import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.LopeNummer
@@ -43,7 +44,6 @@ import no.nav.sokos.spk.mottak.listener.SftpListener
 import java.io.IOException
 import java.time.LocalDate
 
-private const val SYSTEM_ID = "sokos-spk-mottak"
 private const val MAX_LOPENUMMER = 33
 
 class ReadParseFileServiceTest : BehaviorSpec({
@@ -354,9 +354,9 @@ private fun verifyInntransaksjon(
     innTransaksjon.belop shouldBe 346900
     innTransaksjon.behandlet shouldBe BEHANDLET_NEI
     innTransaksjon.datoOpprettet.toLocalDate() shouldBe LocalDate.now()
-    innTransaksjon.opprettetAv shouldBe SYSTEM_ID
+    innTransaksjon.opprettetAv shouldBe PropertiesConfig.Configuration().naisAppName
     innTransaksjon.datoEndret.toLocalDate() shouldBe LocalDate.now()
-    innTransaksjon.endretAv shouldBe SYSTEM_ID
+    innTransaksjon.endretAv shouldBe PropertiesConfig.Configuration().naisAppName
     innTransaksjon.versjon shouldBe 1
     innTransaksjon.grad shouldBe null
     innTransaksjon.gradStr shouldBe null
@@ -369,33 +369,6 @@ private fun verifyLopenummer(lopeNummer: LopeNummer?) {
         it.filType shouldBe FILTYPE_ANVISER
         it.anviser shouldBe SPK
         it.datoEndret.toLocalDate() shouldBe LocalDate.now()
-        it.endretAv shouldBe SYSTEM_ID
-    }
-}
-
-private fun verifyFilInfo(
-    filInfo: FilInfo?,
-    filStatus: FilStatus,
-    filTilstandType: String,
-    feilTekst: String? = null,
-    fileType: String = FILTYPE_ANVISER,
-    anviser: String = SPK,
-) {
-    filInfo shouldNotBe null
-    filInfo?.let {
-        it.filInfoId shouldNotBe null
-        it.filStatus shouldBe filStatus.code
-        it.anviser shouldBe anviser
-        it.filType shouldBe fileType
-        it.filTilstandType shouldBe filTilstandType
-        it.filNavn shouldNotBe null
-        it.lopeNr shouldNotBe null
-        it.feilTekst shouldBe feilTekst
-        it.datoOpprettet.toLocalDate() shouldBe LocalDate.now()
-        it.opprettetAv shouldBe SYSTEM_ID
-        it.datoSendt shouldBe null
-        it.datoEndret.toLocalDate() shouldBe LocalDate.now()
-        it.endretAv shouldBe SYSTEM_ID
-        it.versjon shouldBe 1
+        it.endretAv shouldBe PropertiesConfig.Configuration().naisAppName
     }
 }

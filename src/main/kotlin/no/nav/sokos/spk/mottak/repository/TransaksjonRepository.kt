@@ -7,7 +7,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.domain.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.util.Util.asMap
 import no.nav.sokos.spk.mottak.util.Util.toChar
@@ -58,7 +58,7 @@ class TransaksjonRepository(
         )
     }
 
-    fun getLastTransaksjonByPersonId(personIdListe: List<Int>): List<Transaksjon> {
+    fun findLastTransaksjonByPersonId(personIdListe: List<Int>): List<Transaksjon> {
         return using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
@@ -74,56 +74,36 @@ class TransaksjonRepository(
                         (SELECT MAX(t2.DATO_TOM) FROM T_TRANSAKSJON t2 
                         WHERE t2.PERSON_ID = p.PERSON_ID 
                         AND t2.K_BELOP_T IN ('01', '02')
-                        AND t2.K_ANVISER = 'SPK');
+                        AND t2.K_ANVISER = 'SPK')
                     """.trimIndent(),
                 ),
-                toTransaksjon,
+                mapToTransaksjon,
             )
         }
     }
 
-    fun getTransaksjonerForNyArtForPerson(innTransaksjon: InnTransaksjon): Int? {
-        return using(sessionOf(dataSource)) { session ->
-            session.single(
-                queryOf(
-                    """ 
-                    SELECT COUNT(*) FROM T_TRANSAKSJON t1 
-                    WHERE t1.person_id = ${innTransaksjon.personId}
-                    AND t1.k_anviser = 'SPK' 
-                    AND t1.k_art != '${innTransaksjon.art}' 
-                    AND (t1.dato_tom >= '${innTransaksjon.datoTom}'
-                        OR t1.dato_tom IN 
-                            (SELECT max(t2.dato_tom) FROM T_TRANSAKSJON t2 
-                            WHERE t2.person_id = ${innTransaksjon.personId}
-                            AND t2.k_anviser = 'SPK'
-                            AND t2.dato_tom < '${innTransaksjon.datoTom}'))
-                    """.trimIndent(),
-                ),
-            ) { it.int(1) }
-        }
-    }
-
-    fun getTransaksjonerForNyArtINyttFagomraadeForPerson(innTransaksjon: InnTransaksjon): Int? {
-        return using(sessionOf(dataSource)) { session ->
-            session.single(
+    fun findLastFagomraadeByPersonId(personIdListe: List<Int>): Map<Int, String> {
+        val fagomradeMap = mutableMapOf<Int, String>()
+        using(sessionOf(dataSource)) { session ->
+            session.list(
                 queryOf(
                     """
-                    SELECT count(*)
-                        FROM T_TRANSAKSJON t, T_K_GYLDIG_KOMBIN g
-                        WHERE t.person_Id = ${innTransaksjon.personId}
-                        AND g.k_art = t.k_art
-                        AND g.k_anviser = 'SPK'
-                        AND g.k_belop_t = t.k_belop_t
-                        AND g.k_fagomrade IN (
-                            SELECT g2.k_fagomrade 
-                            FROM T_K_GYLDIG_KOMBIN g2 
-                            WHERE g2.k_art = '${innTransaksjon.art}'
-                            AND g2.k_anviser = 'SPK'
-                            AND g2.k_belop_t = '${innTransaksjon.belopstype}')
+                    SELECT DISTINCT inn.INN_TRANSAKSJON_ID, g.K_FAGOMRADE
+                    FROM T_INN_TRANSAKSJON inn
+                        INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK
+                        INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = inn.ART AND g.K_BELOP_T = inn.BELOPSTYPE AND g.K_ANVISER = '$SPK'
+                    WHERE p.person_Id IN (${personIdListe.joinToString()})
+                    AND g.K_FAGOMRADE IN 
+                        (SELECT DISTINCT g.K_FAGOMRADE
+                        FROM T_TRANSAKSJON t
+                            INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = t.K_ART AND g.K_BELOP_T = t.K_BELOP_T
+                        WHERE t.person_Id = p.PERSON_ID
+                        AND t.K_ANVISER = '$SPK')
                     """.trimIndent(),
                 ),
-            ) { row -> row.int(1) }
+            ) { row -> fagomradeMap[row.int("INN_TRANSAKSJON_ID")] = row.string("K_FAGOMRADE") }
         }
+        return fagomradeMap
     }
 
     fun getByTransaksjonId(transaksjonId: Int): Transaksjon? {
@@ -134,12 +114,12 @@ class TransaksjonRepository(
                     SELECT * FROM T_TRANSAKSJON WHERE TRANSAKSJON_ID = $transaksjonId
                     """.trimIndent(),
                 ),
-                toTransaksjon,
+                mapToTransaksjon,
             )
         }
     }
 
-    private val toTransaksjon: (Row) -> Transaksjon = { row ->
+    private val mapToTransaksjon: (Row) -> Transaksjon = { row ->
         Transaksjon(
             transaksjonId = row.int("TRANSAKSJON_ID"),
             filInfoId = row.int("FIL_INFO_ID"),

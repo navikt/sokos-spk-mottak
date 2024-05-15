@@ -11,6 +11,7 @@ import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
+import no.nav.sokos.spk.mottak.service.WriteToFileService
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -39,6 +40,7 @@ object JobTaskConfig {
 
     internal fun recurringValidateTransaksjonTask(
         validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService(),
+        writeToFileService: WriteToFileService = WriteToFileService(),
         schedulerConfig: PropertiesConfig.SchedulerConfig = PropertiesConfig.SchedulerConfig(),
     ): RecurringTask<Void> {
         var showLogLocalTime = LocalDateTime.now()
@@ -47,6 +49,7 @@ object JobTaskConfig {
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
                 validateTransaksjonService.validateInnTransaksjon()
+                writeToFileService.writeReturnFile()
             }
     }
 

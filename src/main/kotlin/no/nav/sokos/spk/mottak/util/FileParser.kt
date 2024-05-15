@@ -1,13 +1,19 @@
 package no.nav.sokos.spk.mottak.util
 
+import no.nav.sokos.spk.mottak.domain.ANVISER_FIL_BESKRIVELSE
+import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
+import no.nav.sokos.spk.mottak.domain.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.NAV
 import no.nav.sokos.spk.mottak.domain.RECTYPE_SLUTTRECORD
 import no.nav.sokos.spk.mottak.domain.RECTYPE_STARTRECORD
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus
 import no.nav.sokos.spk.mottak.domain.record.SluttRecord
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.util.Util.toLocalDate
+import no.nav.sokos.spk.mottak.util.Util.toLocalDateString
 
 object FileParser {
     fun parseStartRecord(record: String): StartRecord {
@@ -46,7 +52,7 @@ object FileParser {
         }
         return SluttRecord(
             antallRecord = record.getString(2, 11).toIntOrNull() ?: 0,
-            totalBelop = record.getString(11, 25).toLongOrNull() ?: 0,
+            totalBelop = record.getString(11, 26).toLongOrNull() ?: 0,
             filStatus = filStatus,
         )
     }
@@ -75,6 +81,59 @@ object FileParser {
             grad = record.getString(142, 146),
             filStatus = filStatus,
         )
+    }
+
+    fun createStartRecord(filInfo: FilInfo): String {
+        val stringBuilder = StringBuilder()
+        stringBuilder
+            .append(RECTYPE_STARTRECORD)
+            .append(NAV.padEnd(11, ' '))
+            .append(filInfo.anviser.padEnd(11, ' '))
+            .append(filInfo.lopeNr.toString().padEnd(6, ' '))
+            .append(filInfo.filType.padEnd(3, ' '))
+            .append(filInfo.datoMottatt!!.toLocalDateString().padEnd(6, ' '))
+            .append(ANVISER_FIL_BESKRIVELSE.padEnd(35, ' '))
+            .append(FilStatus.OK.code)
+            .appendLine()
+
+        return stringBuilder.toString()
+    }
+
+    fun createTransaksjonRecord(innTransaksjon: InnTransaksjon): String {
+        val stringBuilder = StringBuilder()
+        val transaksjonStatus = TransaksjonStatus.getByCode(innTransaksjon.transaksjonStatus!!)!!
+        stringBuilder
+            .append(RECTYPE_TRANSAKSJONSRECORD)
+            .append(innTransaksjon.transId.padEnd(12, ' '))
+            .append(innTransaksjon.fnr.padEnd(11, ' '))
+            .append(innTransaksjon.utbetalesTil.orEmpty().padEnd(11, ' '))
+            .append(innTransaksjon.datoAnviserStr.padEnd(8, ' '))
+            .append(innTransaksjon.datoFomStr.padEnd(8, ' '))
+            .append(innTransaksjon.datoTomStr.padEnd(8, ' '))
+            .append(innTransaksjon.belopstype.padEnd(2, ' '))
+            .append(innTransaksjon.belopStr.padStart(11, '0'))
+            .append(innTransaksjon.art.padEnd(4, ' '))
+            .append(innTransaksjon.refTransId.orEmpty().padEnd(12, ' '))
+            .append(innTransaksjon.tekstkode.orEmpty().padEnd(4, ' '))
+            .append(' ')
+            .append(transaksjonStatus.code.padEnd(2, ' '))
+            .append(transaksjonStatus.message.padEnd(35, ' '))
+            .appendLine()
+
+        return stringBuilder.toString()
+    }
+
+    fun createEndRecord(
+        antallTransaksjon: Int,
+        sumBelop: Int,
+    ): String {
+        val stringBuilder = StringBuilder()
+        stringBuilder
+            .append(RECTYPE_SLUTTRECORD)
+            .append(antallTransaksjon.toString().padStart(9, '0'))
+            .append(sumBelop.toString().padStart(14, '0'))
+
+        return stringBuilder.toString()
     }
 
     private fun String.getString(

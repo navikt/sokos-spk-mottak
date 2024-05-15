@@ -14,7 +14,7 @@ object FileValidation {
     fun validateStartAndSluttRecord(recordData: RecordData) {
         when {
             recordData.startRecord.avsender != SPK -> throw FilValidationException(FilStatus.UGYLDIG_ANVISER)
-            recordData.startRecord.mottaker != NAV -> throw FilValidationException(FilStatus.UGYLDIG_MOTTAKER)
+            recordData.startRecord.mottager != NAV -> throw FilValidationException(FilStatus.UGYLDIG_MOTTAKER)
             recordData.startRecord.filType != FILTYPE_ANVISER -> throw FilValidationException(FilStatus.UGYLDIG_FILTYPE)
             recordData.maxLopenummer?.let { max -> max >= recordData.startRecord.filLopenummer } ?: false ->
                 throw FilValidationException(FilStatus.FILLOPENUMMER_I_BRUK.code, String.format(FilStatus.FILLOPENUMMER_I_BRUK.message, "${recordData.startRecord.filLopenummer}"))
