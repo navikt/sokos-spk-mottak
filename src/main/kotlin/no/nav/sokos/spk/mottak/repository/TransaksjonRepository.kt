@@ -67,6 +67,7 @@ class TransaksjonRepository(
                     FROM T_TRANSAKSJON
                     WHERE k_trans_tilst_t = 'OPR'
                     AND k_trans_tolkning = 'NY'
+                    AND k_anviser = 'SPK'
                     GROUP BY fnr_fk, k_trans_tolkning
                     HAVING COUNT(*) > 1
                     """.trimIndent(),
@@ -106,6 +107,8 @@ class TransaksjonRepository(
                     SET k_trans_tolkning = 'NY_EKSIST'
                     WHERE fnr_fk = $fnr
                     AND k_art = '$art'
+                    AND k_anviser = 'SPK'
+                    AND k_trans_tilst_t = 'OPR'
                     """.trimIndent(),
                 ),
             )

@@ -582,7 +582,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
                         "SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_TREKKANSVAR, K_TRANS_TILST_T, GRAD) " +
                         "values (98000000, null, 20000816, '00', " + personId + ", '02', 'UFE', 'OK', '66043800214', null, null, null, '2023-05-01', '2023-05-31', '2023-04-25', '1900-01-01', " +
                         "'1900-01-01', 51700, null, null, '02', '999999999', 'NY', '0', null, '0', '1', null, '2024-04-24 08:45:08.998930','sokos-spk-mottak', '2024-04-24 08:45:08.999190', " +
-                        "'sokos-spk-mottak', 1, '4819', 'OPR', null)",
+                        "'sokos-spk-mottak', 1, '4819', 'ORO', null)",
                 ),
             )
             session.update(
@@ -592,7 +592,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
                         "SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_TREKKANSVAR, K_TRANS_TILST_T, GRAD) " +
                         "values (99000000, null, 20000816, '00', " + personId + ", '01', 'UFT', 'OK', '66043800214', null, null, null, '2023-07-01', '2023-07-31', '2023-04-25', '1900-01-01', " +
                         "'1900-01-01', 51700, null, null, '02', '6666666666', 'NY', '0', null, '0', '1', null, '2024-04-24 08:45:08.998930','sokos-spk-mottak', '2024-04-24 08:45:08.999190', " +
-                        "'sokos-spk-mottak', 1, '4819', 'OPR', null)",
+                        "'sokos-spk-mottak', 1, '4819', 'ORO', null)",
                 ),
             )
         }
@@ -646,7 +646,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
                         "SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_TREKKANSVAR, K_TRANS_TILST_T, GRAD) " +
                         "values (98000000, null, 20000816, '00', " + personId + ", '02', 'UFT', 'SPK', '66043800214', null, null, null, '2023-04-01', '2023-04-30', '2023-04-25', '1900-01-01', " +
                         "'1900-01-01', 51700, null, null, '02', '999999999', 'NY', '0', null, '0', '1', null, '2024-04-24 08:45:08.998930','sokos-spk-mottak', '2024-04-24 08:45:08.999190', " +
-                        "'sokos-spk-mottak', 1, '4819', 'OPR', null)",
+                        "'sokos-spk-mottak', 1, '4819', 'ORO', null)",
                 ),
             )
             session.update(
@@ -656,7 +656,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
                         "SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_TREKKANSVAR, K_TRANS_TILST_T, GRAD) " +
                         "values (99000000, null, 20000816, '00', " + personId + ", '01', 'RNT', 'SPK', '66043800214', null, null, null, '2023-05-01', '2023-05-31', '2023-04-25', '1900-01-01', " +
                         "'1900-01-01', 51700, null, null, '02', '6666666666', 'NY', '0', null, '0', '1', null, '2024-04-24 08:45:08.998930','sokos-spk-mottak', '2024-04-24 08:45:08.999190', " +
-                        "'sokos-spk-mottak', 1, '4819', 'OPR', null)",
+                        "'sokos-spk-mottak', 1, '4819', 'ORO', null)",
                 ),
             )
         }

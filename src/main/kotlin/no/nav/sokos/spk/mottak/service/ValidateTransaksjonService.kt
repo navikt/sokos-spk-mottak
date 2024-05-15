@@ -67,16 +67,16 @@ class ValidateTransaksjonService(
         }
     }
 
-    private fun checkTranstolkning(allFnrWhereTranstolkningIsNyForMoreThanOneInstance: List<String>) {
-        for (fnr in allFnrWhereTranstolkningIsNyForMoreThanOneInstance) {
+    private fun checkTranstolkning(fnrWithTranstolkningNew: List<String>) {
+        for (fnr in fnrWithTranstolkningNew) {
             val (fagomraadeList, artList) = transaksjonRepository.getAllFagomraadeAndArtForFnr(fnr).unzip()
+            val uniqueFagomraadeSet = mutableSetOf<String>()
             for (i in fagomraadeList.indices) {
-                if (i > 0) {
-                    if (fagomraadeList[i] in fagomraadeList.subList(0, i)) {
-                        transaksjonRepository.updateTransTolkningForFnr(fnr, artList[i])
-                    } else {
-                        logger.info { "Fagomraade endret for fnr: $fnr" }
-                    }
+                if (fagomraadeList[i] in uniqueFagomraadeSet) {
+                    transaksjonRepository.updateTransTolkningForFnr(fnr, artList[i])
+                } else {
+                    uniqueFagomraadeSet.add(fagomraadeList[i])
+                    logger.info { "Fagomraade endret for fnr: $fnr" }
                 }
             }
         }
