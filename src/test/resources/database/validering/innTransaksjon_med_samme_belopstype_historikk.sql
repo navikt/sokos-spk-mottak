@@ -10,4 +10,4 @@ insert into T_TRANSAKSJON (TRANSAKSJON_ID, TRANS_TILSTAND_ID, FIL_INFO_ID, K_TRA
                            DATO_ANVISER, DATO_PERSON_FOM, DATO_REAK_FOM, BELOP, REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_EKS_ID_FK, K_TRANS_TOLKNING, SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET,
                            MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_TREKKANSVAR, K_TRANS_TILST_T, GRAD)
 values (99, null, 20000816, '00', 1, '02', 'ETT', 'SPK', '66043800214', null, null, null, '2023-05-01', '2023-05-31', '2023-04-25', '1900-01-01', '1900-01-01', 51700, null, null, '02', '999999999',
-        'NY', '0', null, '0', '1', null, '2024-04-24 08:45:08.998930', 'sokos-spk-mottak', '2024-04-24 08:45:08.999190', 'sokos-spk-mottak', 1, '4819', 'OPR', null);
+        'NY', '0', null, '0', '1', null, '2024-04-24 08:45:08.998930', 'sokos-spk-mottak', '2024-04-24 08:45:08.999190', 'sokos-spk-mottak', 1, '4819', 'ORO', null);

@@ -71,9 +71,9 @@ class ValidateTransaksjonService(
             innTransaksjonMap[true]?.takeIf { it.isNotEmpty() }?.apply {
                 val personIdList = this.map { it.personId!! }
                 val forrigeTransaksjonMap = transaksjonRepository.findForrigeTransaksjonByPersonId(personIdList).associateBy { it.personId }
-                val forrigeFagomradeMap = transaksjonRepository.findForrigeFagomradeByPersonId(personIdList)
+                val tidligereFagomradeMap = transaksjonRepository.findForrigeFagomradeByPersonId(personIdList)
 
-                transaksjonRepository.insertBatch(this.map { it.toTransaksjon(forrigeTransaksjonMap[it.personId], forrigeFagomradeMap) }, session)
+                transaksjonRepository.insertBatch(this.map { it.toTransaksjon(forrigeTransaksjonMap[it.personId], tidligereFagomradeMap) }, session)
 
                 val transaksjonIdList = this.map { innTransaksjon -> innTransaksjon.innTransaksjonId!! }
                 transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
@@ -83,7 +83,7 @@ class ValidateTransaksjonService(
 
             innTransaksjonMap[false]?.takeIf { it.isNotEmpty() }?.apply {
                 val avvikTransaksjonIdList = avvikTransaksjonRepository.insertBatch(this, session)
-                logger.debug { "${avvikTransaksjonIdList.size} avvik transaksjoner opprettet: " }
+                logger.debug { "${avvikTransaksjonIdList.size} avvikstransaksjoner opprettet: " }
             }
 
             innTransaksjonRepository.updateBehandletStatusBatch(innTransaksjonList.map { it.innTransaksjonId!! }, session)

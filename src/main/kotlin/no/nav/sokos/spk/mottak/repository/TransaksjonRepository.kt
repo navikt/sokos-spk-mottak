@@ -73,7 +73,7 @@ class TransaksjonRepository(
                         (SELECT MAX(t2.DATO_TOM) FROM T_TRANSAKSJON t2 
                         WHERE t2.PERSON_ID = p.PERSON_ID 
                         AND t2.K_BELOP_T IN ('01', '02')
-                        AND t2.K_ANVISER = 'SPK');
+                        AND t2.K_ANVISER = 'SPK')
                     """.trimIndent(),
                 ),
                 mapToTransaksjon,
@@ -89,14 +89,15 @@ class TransaksjonRepository(
                     """
                     SELECT DISTINCT inn.INN_TRANSAKSJON_ID, g.K_FAGOMRADE
                     FROM T_INN_TRANSAKSJON inn
-                             INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK
-                             INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = inn.ART AND g.K_BELOP_T = inn.BELOPSTYPE AND g.K_ANVISER = inn.AVSENDER
+                        INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK
+                        INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = inn.ART AND g.K_BELOP_T = inn.BELOPSTYPE AND g.K_ANVISER = 'SPK'
                     WHERE p.person_Id IN (${personIdListe.joinToString()})
-                      AND g.K_FAGOMRADE IN (SELECT DISTINCT g.K_FAGOMRADE
-                                            FROM T_TRANSAKSJON t
-                                                     INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = t.K_ART AND g.K_BELOP_T = t.K_BELOP_T
-                                            WHERE t.person_Id = p.PERSON_ID
-                                              AND t.K_ANVISER = inn.AVSENDER);
+                    AND g.K_FAGOMRADE IN 
+                        (SELECT DISTINCT g.K_FAGOMRADE
+                        FROM T_TRANSAKSJON t
+                            INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = t.K_ART AND g.K_BELOP_T = t.K_BELOP_T
+                        WHERE t.person_Id = p.PERSON_ID
+                        AND t.K_ANVISER = 'SPK')
                     """.trimIndent(),
                 ),
             ) { row -> fagomradeMap[row.int("INN_TRANSAKSJON_ID")] = row.string("K_FAGOMRADE") }
