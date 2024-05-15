@@ -582,9 +582,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         }
     }
 
-    Given(
-        "det finnes en innTransaksjon med eksisterende fnr og en art som er ulik en historisk art som tilhører et annet fagområde for personen i T_TRANSAKSJON",
-    ) {
+    Given("det finnes en innTransaksjon med eksisterende fnr og en art som er ulik en historisk art som tilhører et annet fagområde for personen i T_TRANSAKSJON") {
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_samme_fagomrade_til_eksisterende_transaskjon.sql")))
         }
@@ -610,6 +608,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
             }
         }
     }
+
     Given("det finnes 2 innTransaksjoner med samme fnr hvor art tilhører ulike fagområder og personen eksisterer ikke i T_TRANSAKSJON") {
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ny_person_med_2_art_i_ulike_fagomraader.sql")))
@@ -636,6 +635,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
             }
         }
     }
+
     Given("det finnes 2 innTransaksjoner med samme fnr hvor art tilhører samme fagområde og personen eksisterer ikke i T_TRANSAKSJON") {
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ny_person_med_2_art_i_like_fagomraader.sql")))
@@ -650,22 +650,23 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
                 innTransaksjonMap[true]!!.size shouldBe 2
                 innTransaksjonMap[false] shouldBe null
 
-                for (i in innTransaksjonMap[true]!!.indices) {
-                    val innTransaksjon = innTransaksjonMap[true]!![i]
-                    val transaksjon =
-                        Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                    if (i == 0) {
-                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
-                    } else {
-                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY_EKSIST, FNR_IKKE_ENDRET)
-                    }
-                    val transaksjonTilstand =
-                        Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                val validInnTransaksjonList = innTransaksjonMap[true]!!
+                validInnTransaksjonList.forEachIndexed { index, innTransaksjon ->
+                    val transaksjon = Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    val tolkning =
+                        when (index) {
+                            0 -> TRANS_TOLKNING_NY
+                            else -> TRANS_TOLKNING_NY_EKSIST
+                        }
+                    verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_IKKE_ENDRET)
+
+                    val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
                     verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                 }
             }
         }
     }
+
     Given("det finnes 4 innTransaksjoner med samme fnr hvor det er 2 ulike art i hvert fagområde og personen eksisterer ikke i T_TRANSAKSJON") {
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ny_person_med_4_art_i_2_ulike_fagomraader.sql")))
@@ -679,22 +680,24 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
                 val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
                 innTransaksjonMap[true]!!.size shouldBe 4
                 innTransaksjonMap[false] shouldBe null
-                for (i in innTransaksjonMap[true]!!.indices) {
-                    val innTransaksjon = innTransaksjonMap[true]!![i]
-                    val transaksjon =
-                        Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                    if (i == 0 || i == 2) {
-                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
-                    } else {
-                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY_EKSIST, FNR_IKKE_ENDRET)
-                    }
-                    val transaksjonTilstand =
-                        Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+
+                val validInnTransaksjonList = innTransaksjonMap[true]!!
+                validInnTransaksjonList.forEachIndexed { index, innTransaksjon ->
+                    val transaksjon = Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    val tolkning =
+                        when (index) {
+                            0, 2 -> TRANS_TOLKNING_NY
+                            else -> TRANS_TOLKNING_NY_EKSIST
+                        }
+                    verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_IKKE_ENDRET)
+
+                    val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
                     verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                 }
             }
         }
     }
+
     Given("det finnes 2 innTransaksjoner med samme fnr hvor 1 har art i ikke eksisterende fagområde og personen eksisterer i T_TRANSAKSJON") {
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_person_med_2_art_og_1_nytt_fagomraade.sql")))
@@ -708,17 +711,91 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
                 val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
                 innTransaksjonMap[true]!!.size shouldBe 2
                 innTransaksjonMap[false] shouldBe null
-                for (i in innTransaksjonMap[true]!!.indices) {
-                    val innTransaksjon = innTransaksjonMap[true]!![i]
-                    val transaksjon =
-                        Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                    if (i == 0) {
-                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
-                    } else {
-                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY_EKSIST, FNR_IKKE_ENDRET)
-                    }
-                    val transaksjonTilstand =
-                        Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+
+                val validInnTransaksjonList = innTransaksjonMap[true]!!
+                validInnTransaksjonList.forEachIndexed { index, innTransaksjon ->
+                    val transaksjon = Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    val tolkning =
+                        when (index) {
+                            0 -> TRANS_TOLKNING_NY
+                            else -> TRANS_TOLKNING_NY_EKSIST
+                        }
+                    verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_IKKE_ENDRET)
+
+                    val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
+                }
+            }
+        }
+    }
+
+    Given(
+        "det finnes 4 innTransaksjoner med 3 ulike fnr hvor en har en ny art tilhørende et nytt fagområde, en har en ny art tilhørende et eksisterende fagområde, " +
+            "en har en eksisterende art, og en har ingen tidligere art i T_TRANSAKSJON",
+    ) {
+        Db2Listener.dataSource.transaction { session ->
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_4_ulike_personer_med_1nyArtNyttFagomraade_1nyArtEksisterendeFagomraade_1eksisterendeArt_1nyPerson.sql")))
+        }
+        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 4
+        When("det valideres ") {
+            validateTransaksjonService.validateInnTransaksjon()
+            Then("skal det opprettes 2 transaksjoner med tolkning NY_EKSIST og 2 transaksjoner med tolkning TRANS_TOLKNING_NY_EKSIST") {
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                innTransaksjonMap[true]!!.size shouldBe 4
+                innTransaksjonMap[false] shouldBe null
+
+                val validInnTransaksjonList = innTransaksjonMap[true]!!
+                validInnTransaksjonList.forEachIndexed { index, innTransaksjon ->
+                    val transaksjon = Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    val tolkning =
+                        when (index) {
+                            0 -> TRANS_TOLKNING_NY
+                            1, 2 -> TRANS_TOLKNING_NY_EKSIST
+                            else -> TRANS_TOLKNING_NY
+                        }
+                    verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_IKKE_ENDRET)
+
+                    val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
+                }
+            }
+        }
+    }
+
+    Given(
+        "det finnes 3 innTransaksjoner med 3 ulike fnr hvor en har en ny art tilhørende et nytt fagområde og endret fnr, en har en ny art tilhørende et eksisterende fagområde og endret fnr, " +
+            "og en har en eksisterende art og endret fnr ",
+    ) {
+        Db2Listener.dataSource.transaction { session ->
+            session.update(
+                queryOf(
+                    readFromResource("/database/validering/innTransaksjon_med_3_ulike_personer_med_1nyArtNyttFagomraadeFnrEndret_1nyArtEksisterendeFagomraadeFnrEndret_1eksisterendeArtFnrEndret.sql"),
+                ),
+            )
+        }
+        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 3
+        When("det valideres ") {
+            validateTransaksjonService.validateInnTransaksjon()
+            Then("skal det opprettes en transaksjon med tolkning NY_EKSIST og FNR_ENDRET satt og 2 transaksjoner med tolkning TRANS_TOLKNING_NY_EKSIST og FNR_ENDRET satt") {
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                innTransaksjonMap[true]!!.size shouldBe 3
+                innTransaksjonMap[false] shouldBe null
+
+                val validInnTransaksjonList = innTransaksjonMap[true]!!
+                validInnTransaksjonList.forEachIndexed { index, innTransaksjon ->
+                    val transaksjon = Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    val tolkning =
+                        when (index) {
+                            0 -> TRANS_TOLKNING_NY
+                            else -> TRANS_TOLKNING_NY_EKSIST
+                        }
+                    verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_ENDRET)
+
+                    val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
                     verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                 }
             }

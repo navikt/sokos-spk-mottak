@@ -99,7 +99,7 @@ class TransaksjonRepository(
         art: String,
     ) {
         return using(sessionOf(dataSource)) { session ->
-            session.update(
+            session.run(
                 queryOf(
                     """
                     UPDATE T_TRANSAKSJON 
@@ -109,9 +109,23 @@ class TransaksjonRepository(
                     AND k_anviser = 'SPK'
                     AND k_trans_tilst_t = 'OPR'
                     """.trimIndent(),
-                ),
+                ).asUpdate,
             )
         }
+    }
+
+    fun updateTransaksjonWithTransTilstand(
+        transaksjonList: List<Pair<Int, Int>>,
+        session: Session,
+    ) {
+        session.batchPreparedNamedStatement(
+            """
+            UPDATE T_TRANSAKSJON
+            SET TRANS_TILSTAND_ID = :transaksjonTilstandId
+            WHERE TRANSAKSJON_ID = :transaksjonId
+            """.trimIndent(),
+            transaksjonList.map { mapOf("transaksjonId" to it.first, "transaksjonTilstandId" to it.second) },
+        )
     }
 
     fun findForrigeTransaksjonByPersonId(personIdListe: List<Int>): List<Transaksjon> {

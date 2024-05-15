@@ -94,7 +94,10 @@ class ValidateTransaksjonService(
                 transaksjonRepository.insertBatch(this.map { it.toTransaksjon(forrigeTransaksjonMap[it.personId], tidligereFagomradeMap) }, session)
 
                 val transaksjonIdList = this.map { innTransaksjon -> innTransaksjon.innTransaksjonId!! }
-                transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
+                val transaksjonTilstandIdList = transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
+                val transaksjonList = transaksjonIdList.zip(transaksjonTilstandIdList)
+
+                transaksjonRepository.updateTransaksjonWithTransTilstand(transaksjonList, session)
 
                 logger.debug { "${transaksjonIdList.size} transaksjoner opprettet" }
             }
