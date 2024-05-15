@@ -22,7 +22,7 @@ import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_SUMBELOP
 import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP
 import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE
 import no.nav.sokos.spk.mottak.SPK_FILE_FEIL
-import no.nav.sokos.spk.mottak.SPK_FILE_OK
+import no.nav.sokos.spk.mottak.SPK_OK
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.SftpConfig
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_NEI
@@ -59,14 +59,14 @@ class ReadParseFileServiceTest : BehaviorSpec({
 
     afterEach {
         SftpListener.deleteFile(
-            Directories.INBOUND.value + "/SPK_NAV_*",
-            Directories.FERDIG.value + "/SPK_NAV_*",
+            Directories.INBOUND.value + "/P611*",
+            Directories.FERDIG.value + "/P611*",
             Directories.ANVISNINGSRETUR.value + "/SPK_NAV_*",
         )
     }
 
     Given("det finnes en ubehandlet fil i \"inbound\" på FTP-serveren ") {
-        ftpService.createFile(SPK_FILE_OK, Directories.INBOUND, readFromResource("/spk/$SPK_FILE_OK"))
+        ftpService.createFile(SPK_OK, Directories.INBOUND, readFromResource("/spk/$SPK_OK"))
 
         When("leser filen og parser") {
             readAndParseFileService.readAndParseFile()
@@ -89,7 +89,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
     }
 
     Given("det finnes to ubehandlede filer i \"inbound\" på FTP-serveren ") {
-        ftpService.createFile(SPK_FILE_OK, Directories.INBOUND, readFromResource("/spk/$SPK_FILE_OK"))
+        ftpService.createFile(SPK_OK, Directories.INBOUND, readFromResource("/spk/$SPK_OK"))
         ftpService.createFile(SPK_FILE_FEIL, Directories.INBOUND, readFromResource("/spk/$SPK_FILE_FEIL"))
 
         When("leser begge filene og parser") {
@@ -121,7 +121,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
         }
 
         When("leser ok format filen og parser") {
-            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FILE_OK to readFromResource("/spk/$SPK_FILE_OK").lines())
+            every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_OK to readFromResource("/spk/$SPK_OK").lines())
 
             Then("skal det kastet en MottakException med uforventet feil") {
                 every { ftpServiceMock.moveFile(any(), any(), any()) } throws IOException("Ftp server is down!")
@@ -129,7 +129,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
                     shouldThrow<MottakException> {
                         readAndParseFileService.readAndParseFile()
                     }
-                exception.message shouldBe "Ukjent feil ved innlesing av fil: SPK_NAV_20242503_070026814_ANV_OK.txt. Feilmelding: Ftp server is down!"
+                exception.message shouldBe "Ukjent feil ved innlesing av fil: P611.ANV.NAV.HUB.SPK.L000034.D240104.T003017_OK.txt. Feilmelding: Ftp server is down!"
             }
         }
 
@@ -142,7 +142,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
                     shouldThrow<MottakException> {
                         readAndParseFileService.readAndParseFile()
                     }
-                exception.message shouldBe "Feil ved opprettelse av avviksfil: SPK_NAV_20242503_080026814_ANV_FEIL.txt. Feilmelding: Ftp server can not move file!"
+                exception.message shouldBe "Feil ved opprettelse av avviksfil: P611.ANV.NAV.HUB.SPK.L000035.D240104.T003017_FEIL.txt. Feilmelding: Ftp server can not move file!"
             }
         }
 
