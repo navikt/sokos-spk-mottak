@@ -38,7 +38,7 @@ class LopenummerRepository(
                     """.trimIndent(),
                     mapOf("sisteLopeNummer" to sisteLopeNummer),
                 ),
-                toLopeNummer,
+                mapToLopeNummer,
             )
         }
     }
@@ -64,7 +64,7 @@ class LopenummerRepository(
         )
     }
 
-    private val toLopeNummer: (Row) -> LopeNummer = { row ->
+    private val mapToLopeNummer: (Row) -> LopeNummer = { row ->
         LopeNummer(
             row.int("LOPENR_ID"),
             row.int("SISTE_LOPENR"),

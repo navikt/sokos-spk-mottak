@@ -7,6 +7,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.util.Util.asMap
 import no.nav.sokos.spk.mottak.util.Util.toChar
@@ -57,7 +58,7 @@ class TransaksjonRepository(
         )
     }
 
-    fun findForrigeTransaksjonByPersonId(personIdListe: List<Int>): List<Transaksjon> {
+    fun findLastTransaksjonByPersonId(personIdListe: List<Int>): List<Transaksjon> {
         return using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
@@ -81,7 +82,7 @@ class TransaksjonRepository(
         }
     }
 
-    fun findForrigeFagomradeByPersonId(personIdListe: List<Int>): Map<Int, String> {
+    fun findLastFagomraadeByPersonId(personIdListe: List<Int>): Map<Int, String> {
         val fagomradeMap = mutableMapOf<Int, String>()
         using(sessionOf(dataSource)) { session ->
             session.list(
@@ -90,14 +91,14 @@ class TransaksjonRepository(
                     SELECT DISTINCT inn.INN_TRANSAKSJON_ID, g.K_FAGOMRADE
                     FROM T_INN_TRANSAKSJON inn
                         INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK
-                        INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = inn.ART AND g.K_BELOP_T = inn.BELOPSTYPE AND g.K_ANVISER = 'SPK'
+                        INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = inn.ART AND g.K_BELOP_T = inn.BELOPSTYPE AND g.K_ANVISER = '$SPK'
                     WHERE p.person_Id IN (${personIdListe.joinToString()})
                     AND g.K_FAGOMRADE IN 
                         (SELECT DISTINCT g.K_FAGOMRADE
                         FROM T_TRANSAKSJON t
                             INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = t.K_ART AND g.K_BELOP_T = t.K_BELOP_T
                         WHERE t.person_Id = p.PERSON_ID
-                        AND t.K_ANVISER = 'SPK')
+                        AND t.K_ANVISER = '$SPK')
                     """.trimIndent(),
                 ),
             ) { row -> fagomradeMap[row.int("INN_TRANSAKSJON_ID")] = row.string("K_FAGOMRADE") }

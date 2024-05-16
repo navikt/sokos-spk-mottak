@@ -20,7 +20,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.TransaksjonTilstand
-import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOK
+import no.nav.sokos.spk.mottak.domain.isValideringStatusIsOK
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import java.time.LocalDate
 
@@ -35,13 +35,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
             session.update(queryOf(readFromResource("/database/innTransaksjon.sql")))
             session.update(queryOf(readFromResource("/database/innTransaksjon_avvik.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 15
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 15
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en ok-transaksjon og en avvikstransaksjon") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true]!!.size shouldBe 10
                 innTransaksjonMap[false]!!.size shouldBe 5
 
@@ -67,13 +67,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/duplikat_innTransaksjoner.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 2
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 2
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 01") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 2
 
@@ -90,13 +90,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/duplikat_innTransaksjon_med_avvist_transaksjon.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 01") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -113,13 +113,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/duplikat_innTransaksjon_med_transaksjon.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 01") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -136,13 +136,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ugyldig_fnr.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 02") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -159,14 +159,14 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_belopstype_01_ugyldig_datofom.sql")))
         }
-        val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId()
+        val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet()
         innTransaksjonList.size shouldBe 1
         innTransaksjonList.first().belopstype shouldBe BELOPTYPE_SKATTEPLIKTIG_UTBETALING
 
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 03") {
-                val innTransaksjonMap = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA).groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA).groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -183,14 +183,14 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_belopstype_01_ugyldig_datotom.sql")))
         }
-        val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId()
+        val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet()
         innTransaksjonList.size shouldBe 1
         innTransaksjonList.first().belopstype shouldBe BELOPTYPE_SKATTEPLIKTIG_UTBETALING
 
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 03") {
-                val innTransaksjonMap = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA).groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA).groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -207,14 +207,14 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_belopstype_03_ugyldig_datofom.sql")))
         }
-        val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId()
+        val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet()
         innTransaksjonList.size shouldBe 1
         innTransaksjonList.first().belopstype shouldBe BELOPTYPE_TREKK
 
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 03") {
-                val innTransaksjonMap = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA).groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA).groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -231,14 +231,14 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_belopstype_03_ugyldig_datotom.sql")))
         }
-        val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId()
+        val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet()
         innTransaksjonList.size shouldBe 1
         innTransaksjonList.first().belopstype shouldBe BELOPTYPE_TREKK
 
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 03") {
-                val innTransaksjonMap = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA).groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA).groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -255,13 +255,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ugyldig_belopstype.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 04") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -278,13 +278,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ugyldig_art.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 05") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -301,13 +301,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ugyldig_anviser_dato.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 09") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -324,13 +324,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ugyldig_belop.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 10") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -347,13 +347,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_ugyldig_kombinasjon_av_art_og_belopstype.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en avvikstransaksjon med valideringsfeil 11") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true] shouldBe null
                 innTransaksjonMap[false]!!.size shouldBe 1
 
@@ -370,13 +370,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ny_fnr.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en transaksjon med tolkning NY") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true]!!.size shouldBe 1
                 innTransaksjonMap[false] shouldBe null
 
@@ -397,13 +397,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_fnr_endret.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en transaksjon med tolkning NY_EKSIST og FNR_ENDRET satt") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true]!!.size shouldBe 1
                 innTransaksjonMap[false] shouldBe null
 
@@ -424,13 +424,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_fnr_eksist_med_annen_verdi.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en transaksjon med tolkning NY_EKSIST og FNR_ENDRET ikke satt") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true]!!.size shouldBe 1
                 innTransaksjonMap[false] shouldBe null
 
@@ -451,13 +451,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ulik_belopstype_historikk.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en transaksjon med tolkning NY") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true]!!.size shouldBe 1
                 innTransaksjonMap[false] shouldBe null
 
@@ -478,13 +478,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_samme_belopstype_historikk.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en transaksjon med tolkning NY_EKSIST") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true]!!.size shouldBe 1
                 innTransaksjonMap[false] shouldBe null
 
@@ -505,13 +505,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ulik_anviser_historikk.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en transaksjon med tolkning NY") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true]!!.size shouldBe 1
                 innTransaksjonMap[false] shouldBe null
 
@@ -532,13 +532,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_samme_anviser_historikk.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en transaksjon med tolkning NY_EKSIST") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true]!!.size shouldBe 1
                 innTransaksjonMap[false] shouldBe null
 
@@ -559,13 +559,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ulik_fagomrade_til_eksisterende_transaskjon.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en transaksjon med tolkning NY") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true]!!.size shouldBe 1
                 innTransaksjonMap[false] shouldBe null
 
@@ -588,13 +588,13 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_samme_fagomrade_til_eksisterende_transaskjon.sql")))
         }
-        Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId().size shouldBe 1
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
         When("det valideres ") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en transaksjon med tolkning NY_EKSIST") {
-                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandletWithPersonId(BEHANDLET_JA)
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
-                val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOK() }
+                val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
                 innTransaksjonMap[true]!!.size shouldBe 1
                 innTransaksjonMap[false] shouldBe null
 

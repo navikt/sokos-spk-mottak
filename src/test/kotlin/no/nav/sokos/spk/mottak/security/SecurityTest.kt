@@ -28,10 +28,9 @@ import no.nav.sokos.spk.mottak.config.configureTestApplication
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 
-private val readAndParseFileService: ReadAndParseFileService = mockk()
-private val validateTransaksjonService: ValidateTransaksjonService = mockk()
-
 class SecurityTest : FunSpec({
+    val readAndParseFileService: ReadAndParseFileService = mockk()
+    val validateTransaksjonService: ValidateTransaksjonService = mockk()
 
     test("http GET endepunkt uten token bør returnere 401 - Unauthorized") {
         withMockOAuth2Server {

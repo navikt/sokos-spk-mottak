@@ -8,35 +8,54 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FilInfo
+import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.util.Util.asMap
 
 class FilInfoRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
-    fun getFilInfo(
+    fun getByLopenummerAndFilTilstand(
         lopeNummer: Int,
         filTilstandType: String,
-        anviser: String = "SPK",
     ): FilInfo? {
         return using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
-                    SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopeNummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = :anviser
+                    SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopeNummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = 'SPK'
                     """.trimIndent(),
                     mapOf(
                         "lopeNummer" to lopeNummer,
                         "filTilstandType" to filTilstandType,
-                        "anviser" to anviser,
                     ),
                 ),
-                toFileInfo,
+                mapToFileInfo,
             )
         }
     }
 
-    fun updateFilInfoTilstandType(
+    fun getByFilTilstandAndAllInnTransaksjonIsBehandlet(filTilstandType: String = FILTILSTANDTYPE_GOD): List<FilInfo> {
+        return using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    SELECT * FROM T_FIL_INFO
+                    WHERE K_FIL_TILSTAND_T = '$filTilstandType'
+                    AND K_FIL_S = '${FilStatus.OK.code}'
+                    AND FIL_INFO_ID IN (select FIL_INFO_ID
+                    FROM T_INN_TRANSAKSJON
+                    GROUP BY FIL_INFO_ID
+                    HAVING SUM(CASE WHEN BEHANDLET = 'J' THEN 0 ELSE 1 END) = 0)
+                    """.trimIndent(),
+                ),
+                mapToFileInfo,
+            )
+        }
+    }
+
+    fun updateTilstandType(
         filInfoId: Int,
         filTilstandType: String,
         filType: String,
@@ -87,7 +106,7 @@ class FilInfoRepository(
         )
     }
 
-    private val toFileInfo: (Row) -> FilInfo = { row ->
+    private val mapToFileInfo: (Row) -> FilInfo = { row ->
         FilInfo(
             row.int("FIL_INFO_ID"),
             row.string("K_FIL_S"),

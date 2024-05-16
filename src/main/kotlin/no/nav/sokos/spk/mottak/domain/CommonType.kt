@@ -5,6 +5,7 @@ const val NAV = "NAV"
 
 // FILETYPE
 const val FILTYPE_ANVISER = "ANV"
+const val FILTYPE_INNLEST = "INL"
 
 // FILTILSTANDTYPE
 const val FILTILSTANDTYPE_AVV = "AVV"
@@ -43,3 +44,6 @@ const val TRANS_TILSTAND_OPR = "OPR"
 
 // TREKK ANSVAR
 const val TREKKANSVAR_4819 = "4819"
+
+// ANVISER FIL BESKRIVELSE
+const val ANVISER_FIL_BESKRIVELSE = "Innlesingsretur"

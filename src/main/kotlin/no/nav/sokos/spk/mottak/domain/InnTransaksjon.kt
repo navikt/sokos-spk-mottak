@@ -37,9 +37,9 @@ data class InnTransaksjon(
     val personId: Int? = null,
 )
 
-fun InnTransaksjon.toTransaksjon(
+fun InnTransaksjon.mapToTransaksjon(
     transaksjon: Transaksjon?,
-    forrigeFagOmradeMap: Map<Int, String>,
+    lastFagOmraadeMap: Map<Int, String>,
 ): Transaksjon {
     val systemId = PropertiesConfig.Configuration().naisAppName
     return Transaksjon(
@@ -62,7 +62,7 @@ fun InnTransaksjon.toTransaksjon(
         tekstkode = this.tekstkode,
         rectype = this.rectype,
         transEksId = this.transId,
-        transTolkning = forrigeFagOmradeMap[this.innTransaksjonId]?.let { TRANS_TOLKNING_NY_EKSIST } ?: TRANS_TOLKNING_NY,
+        transTolkning = lastFagOmraadeMap[this.innTransaksjonId]?.let { TRANS_TOLKNING_NY_EKSIST } ?: TRANS_TOLKNING_NY,
         sendtTilOppdrag = "0",
         fnrEndret = (transaksjon?.let { it.fnr != this.fnr } ?: false).toChar(),
         motId = this.innTransaksjonId.toString(),
@@ -76,4 +76,4 @@ fun InnTransaksjon.toTransaksjon(
     )
 }
 
-fun InnTransaksjon.isTransaksjonStatusOK(): Boolean = this.transaksjonStatus == TRANSAKSJONSTATUS_OK
+fun InnTransaksjon.isValideringStatusIsOK(): Boolean = this.transaksjonStatus == TRANSAKSJONSTATUS_OK

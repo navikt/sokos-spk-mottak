@@ -36,15 +36,17 @@ class InnTransaksjonRepository(
             session.list(
                 queryOf(
                     """
-                    SELECT * FROM T_INN_TRANSAKSJON WHERE FIL_INFO_ID = $filInfoId
+                    SELECT * FROM T_INN_TRANSAKSJON 
+                    WHERE FIL_INFO_ID = $filInfoId AND AVSENDER = '$SPK'
+                    ORDER BY INN_TRANSAKSJON_ID;
                     """.trimIndent(),
                 ),
-                toInntransaksjon,
+                mapToInntransaksjon,
             )
         }
     }
 
-    fun getByBehandletWithPersonId(
+    fun getByBehandlet(
         behandlet: String = BEHANDLET_NEI,
         rows: Int = READ_ROWS,
     ): List<InnTransaksjon> {
@@ -53,12 +55,12 @@ class InnTransaksjonRepository(
                 queryOf(
                     """
                     SELECT t.*, p.PERSON_ID FROM T_INN_TRANSAKSJON t LEFT OUTER JOIN T_PERSON p ON t.FNR_FK = p.FNR_FK
-                    WHERE t.BEHANDLET = '$behandlet'
+                    WHERE t.BEHANDLET = '$behandlet' AND AVSENDER = '$SPK'
                     ORDER BY t.FIL_INFO_ID, t.INN_TRANSAKSJON_ID
                     FETCH FIRST $rows ROWS ONLY;
                     """.trimIndent(),
                 ),
-                toInntransaksjon,
+                mapToInntransaksjon,
             )
         }
     }
@@ -125,13 +127,27 @@ class InnTransaksjonRepository(
 
     fun updateBehandletStatusBatch(
         innTransaksjonIdList: List<Int>,
+        behandlet: String = BEHANDLET_JA,
         session: Session,
     ) {
         session.batchPreparedNamedStatement(
             """
-            UPDATE T_INN_TRANSAKSJON SET BEHANDLET = '$BEHANDLET_JA' WHERE INN_TRANSAKSJON_ID = :innTransaksjonId
+            UPDATE T_INN_TRANSAKSJON SET BEHANDLET = '$behandlet' WHERE INN_TRANSAKSJON_ID = :innTransaksjonId
             """.trimIndent(),
             innTransaksjonIdList.map { mapOf("innTransaksjonId" to it) },
+        )
+    }
+
+    fun deleteByFilInfoId(
+        filInfoId: Int,
+        session: Session,
+    ) {
+        session.execute(
+            queryOf(
+                """
+                DELETE FROM T_INN_TRANSAKSJON WHERE FIL_INFO_ID = $filInfoId
+                """.trimIndent(),
+            ),
         )
     }
 
@@ -170,7 +186,7 @@ class InnTransaksjonRepository(
         }
     }
 
-    private val toInntransaksjon: (Row) -> InnTransaksjon = { row ->
+    private val mapToInntransaksjon: (Row) -> InnTransaksjon = { row ->
         InnTransaksjon(
             row.int("INN_TRANSAKSJON_ID"),
             row.int("FIL_INFO_ID"),

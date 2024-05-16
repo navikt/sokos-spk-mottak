@@ -59,12 +59,12 @@ class AvvikTransaksjonRepository(
                     SELECT * FROM T_AVV_TRANSAKSJON WHERE AVV_TRANSAKSJON_ID = $avvikTransaksjonId
                     """.trimIndent(),
                 ),
-                toAvvikTransaksjon,
+                mapToAvvikTransaksjon,
             )
         }
     }
 
-    private val toAvvikTransaksjon: (Row) -> AvvikTransaksjon = { row ->
+    private val mapToAvvikTransaksjon: (Row) -> AvvikTransaksjon = { row ->
         AvvikTransaksjon(
             avvikTransaksjonId = row.int("AVV_TRANSAKSJON_ID"),
             filInfoId = row.int("FIL_INFO_ID"),
