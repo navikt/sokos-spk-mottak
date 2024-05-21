@@ -40,21 +40,45 @@ class ValidateTransaksjonService(
                     totalInnTransaksjoner += innTransaksjonList.size
                     totalAvvikTransaksjoner += innTransaksjonList.filter { !it.isValideringStatusIsOK() }.size
                     logger.debug { "Henter inn ${innTransaksjonList.size} innTransaksjoner fra databasen" }
-
                     when {
                         innTransaksjonList.isNotEmpty() -> saveTransaksjonAndAvvikTransaksjon(innTransaksjonList)
                         else -> break
                     }
                 }
+                if (transaksjonRepository.getAllFnrWhereTranstolkningIsNyForMoreThanOneInstance().isNotEmpty()) {
+                    logger.info { "Det finnes flere inn-transaksjoner med samme fnr og transTolkning = 'NY'" }
+                    checkTranstolkning(transaksjonRepository.getAllFnrWhereTranstolkningIsNyForMoreThanOneInstance())
+                }
+                when {
+                    totalInnTransaksjoner > 0 ->
+                        logger.info {
+                            "$totalInnTransaksjoner innTransaksjoner validert på ${
+                                Duration.between(timer, Instant.now()).toSeconds()
+                            } sekunder. " +
+                                "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
+                        }
 
-                logger.info {
-                    "$totalInnTransaksjoner innTransaksjoner validert på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " +
-                        "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
+                    else -> logger.info { "Finner ingen innTransaksjoner som er ubehandlet" }
                 }
             }
         }.onFailure { exception ->
             logger.error(exception) { "Feil under behandling av innTransaksjoner" }
             throw MottakException("Feil under behandling av innTransaksjoner")
+        }
+    }
+
+    private fun checkTranstolkning(fnrWithTranstolkningNew: List<String>) {
+        for (fnr in fnrWithTranstolkningNew) {
+            val (fagomraadeList, artList) = transaksjonRepository.getAllFagomraadeAndArtForFnr(fnr).unzip()
+            val uniqueFagomraadeSet = mutableSetOf<String>()
+            for (i in fagomraadeList.indices) {
+                if (fagomraadeList[i] in uniqueFagomraadeSet) {
+                    transaksjonRepository.updateTransTolkningForFnr(fnr, artList[i])
+                } else {
+                    uniqueFagomraadeSet.add(fagomraadeList[i])
+                    logger.info { "Fagomraade endret for fnr: $fnr" }
+                }
+            }
         }
     }
 
@@ -70,7 +94,10 @@ class ValidateTransaksjonService(
                 transaksjonRepository.insertBatch(this.map { it.mapToTransaksjon(lastTransaksjonMap[it.personId], lastFagomraadeMap) }, session)
 
                 val transaksjonIdList = this.map { innTransaksjon -> innTransaksjon.innTransaksjonId!! }
-                transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
+                val transaksjonTilstandIdList = transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
+                val transaksjonList = transaksjonIdList.zip(transaksjonTilstandIdList)
+
+                transaksjonRepository.updateTransaksjonWithTransTilstand(transaksjonList, session)
 
                 logger.debug { "${transaksjonIdList.size} transaksjoner opprettet" }
             }

@@ -58,6 +58,77 @@ class TransaksjonRepository(
         )
     }
 
+    fun getAllFnrWhereTranstolkningIsNyForMoreThanOneInstance(): List<String> {
+        return using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    SELECT fnr_fk
+                    FROM T_TRANSAKSJON
+                    WHERE k_trans_tilst_t = 'OPR'
+                    AND k_trans_tolkning = 'NY'
+                    AND k_anviser = 'SPK'
+                    GROUP BY fnr_fk, k_trans_tolkning
+                    HAVING COUNT(*) > 1
+                    """.trimIndent(),
+                ),
+            ) { row -> row.string("FNR_FK") }
+        }
+    }
+
+    fun getAllFagomraadeAndArtForFnr(fnr: String): List<Pair<String, String>> {
+        return using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    SELECT g.k_fagomrade, t.art
+                    FROM T_INN_TRANSAKSJON t, T_K_GYLDIG_KOMBIN g
+                    WHERE t.fnr_fk = $fnr
+                    AND g.k_art = t.art
+                    AND g.k_anviser = 'SPK'
+                    AND g.k_belop_t = t.belopstype
+                    ORDER BY t.inn_transaksjon_id
+                    """.trimIndent(),
+                ),
+                toFagomraadeAndArt,
+            )
+        }
+    }
+
+    fun updateTransTolkningForFnr(
+        fnr: String,
+        art: String,
+    ) {
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    """
+                    UPDATE T_TRANSAKSJON 
+                    SET k_trans_tolkning = 'NY_EKSIST'
+                    WHERE fnr_fk = $fnr
+                    AND k_art = '$art'
+                    AND k_anviser = 'SPK'
+                    AND k_trans_tilst_t = 'OPR'
+                    """.trimIndent(),
+                ).asUpdate,
+            )
+        }
+    }
+
+    fun updateTransaksjonWithTransTilstand(
+        transaksjonList: List<Pair<Int, Int>>,
+        session: Session,
+    ) {
+        session.batchPreparedNamedStatement(
+            """
+            UPDATE T_TRANSAKSJON
+            SET TRANS_TILSTAND_ID = :transaksjonTilstandId
+            WHERE TRANSAKSJON_ID = :transaksjonId
+            """.trimIndent(),
+            transaksjonList.map { mapOf("transaksjonId" to it.first, "transaksjonTilstandId" to it.second) },
+        )
+    }
+
     fun findLastTransaksjonByPersonId(personIdListe: List<Int>): List<Transaksjon> {
         return using(sessionOf(dataSource)) { session ->
             session.list(
@@ -117,6 +188,13 @@ class TransaksjonRepository(
                 mapToTransaksjon,
             )
         }
+    }
+
+    private val toFagomraadeAndArt: (Row) -> Pair<String, String> = { row ->
+        Pair(
+            row.string("K_FAGOMRADE"),
+            row.string("ART"),
+        )
     }
 
     private val mapToTransaksjon: (Row) -> Transaksjon = { row ->
