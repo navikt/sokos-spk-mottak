@@ -15,6 +15,24 @@ group = "no.nav.sokos"
 
 repositories {
     mavenCentral()
+
+    val githubToken = System.getenv("GITHUB_TOKEN")
+    if (githubToken.isNullOrEmpty()) {
+        maven {
+            name = "external-mirror-github-navikt"
+            url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
+        }
+    } else {
+        maven {
+            name = "github-package-registry-navikt"
+            url = uri("https://maven.pkg.github.com/navikt/maven-release")
+            credentials {
+                username = "token"
+                password = githubToken
+            }
+        }
+    }
+
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
@@ -41,6 +59,7 @@ val flywayVersion = "10.12.0"
 val postgresVersion = "42.7.3"
 val dbSchedulerVersion = "14.0.0"
 val vaultVersion = "1.3.10"
+val tjenestespesifikasjonVersion = "2633.1685ed5"
 
 dependencies {
 
@@ -89,6 +108,9 @@ dependencies {
 
     // Scheduler
     implementation("com.github.kagkarlsson:db-scheduler:$dbSchedulerVersion")
+
+    // Oppdrag
+    implementation("no.nav.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
 
     // Test
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
