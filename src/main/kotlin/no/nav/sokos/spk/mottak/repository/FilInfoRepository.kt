@@ -61,7 +61,7 @@ class FilInfoRepository(
         filType: String,
         session: Session,
     ) {
-        session.run(
+        session.update(
             queryOf(
                 """
                 UPDATE T_FIL_INFO
@@ -75,7 +75,7 @@ class FilInfoRepository(
                     "filTilstandType" to filTilstandType,
                     "filType" to filType,
                 ),
-            ).asUpdate,
+            ),
         )
     }
 
@@ -83,7 +83,7 @@ class FilInfoRepository(
         filInfo: FilInfo,
         session: Session,
     ): Long? {
-        return session.run(
+        return session.updateAndReturnGeneratedKey(
             queryOf(
                 """
                 INSERT INTO T_FIL_INFO (
@@ -102,7 +102,7 @@ class FilInfoRepository(
                 FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopeNr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feilTekst)
                 """.trimIndent(),
                 filInfo.asMap(),
-            ).asUpdateAndReturnGeneratedKey,
+            ),
         )
     }
 

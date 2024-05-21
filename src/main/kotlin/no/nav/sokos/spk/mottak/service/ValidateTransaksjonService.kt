@@ -5,7 +5,7 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
-import no.nav.sokos.spk.mottak.domain.isValideringStatusIsOK
+import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.domain.mapToTransaksjon
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.repository.AvvikTransaksjonRepository
@@ -38,25 +38,29 @@ class ValidateTransaksjonService(
                 while (true) {
                     val innTransaksjonList = innTransaksjonRepository.getByBehandlet()
                     totalInnTransaksjoner += innTransaksjonList.size
-                    totalAvvikTransaksjoner += innTransaksjonList.filter { !it.isValideringStatusIsOK() }.size
+                    totalAvvikTransaksjoner += innTransaksjonList.filter { !it.isTransaksjonStatusOk() }.size
                     logger.debug { "Henter inn ${innTransaksjonList.size} innTransaksjoner fra databasen" }
                     when {
                         innTransaksjonList.isNotEmpty() -> saveTransaksjonAndAvvikTransaksjon(innTransaksjonList)
                         else -> break
                     }
                 }
-                if (transaksjonRepository.getAllFnrWhereTranstolkningIsNyForMoreThanOneInstance().isNotEmpty()) {
-                    logger.info { "Det finnes flere inn-transaksjoner med samme fnr og transTolkning = 'NY'" }
-                    checkTranstolkning(transaksjonRepository.getAllFnrWhereTranstolkningIsNyForMoreThanOneInstance())
-                }
+
                 when {
-                    totalInnTransaksjoner > 0 ->
+                    totalInnTransaksjoner > 0 -> {
+                        val transTolkningIsNyMap = transaksjonRepository.getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance()
+                        if (transTolkningIsNyMap.isNotEmpty()) {
+                            dataSource.transaction { session -> transaksjonRepository.updateAllWhereTranstolkningIsNyForMoreThanOneInstance(transTolkningIsNyMap.keys.toList(), session) }
+                            logger.info { "Oppdatert personIder: $transTolkningIsNyMap som har inn-transaksjoner med samme personId og transTolkning = 'NY'" }
+                        }
+
                         logger.info {
                             "$totalInnTransaksjoner innTransaksjoner validert på ${
                                 Duration.between(timer, Instant.now()).toSeconds()
                             } sekunder. " +
                                 "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
                         }
+                    }
 
                     else -> logger.info { "Finner ingen innTransaksjoner som er ubehandlet" }
                 }
@@ -67,37 +71,20 @@ class ValidateTransaksjonService(
         }
     }
 
-    private fun checkTranstolkning(fnrWithTranstolkningNew: List<String>) {
-        for (fnr in fnrWithTranstolkningNew) {
-            val (fagomraadeList, artList) = transaksjonRepository.getAllFagomraadeAndArtForFnr(fnr).unzip()
-            val uniqueFagomraadeSet = mutableSetOf<String>()
-            for (i in fagomraadeList.indices) {
-                if (fagomraadeList[i] in uniqueFagomraadeSet) {
-                    transaksjonRepository.updateTransTolkningForFnr(fnr, artList[i])
-                } else {
-                    uniqueFagomraadeSet.add(fagomraadeList[i])
-                    logger.info { "Fagomraade endret for fnr: $fnr" }
-                }
-            }
-        }
-    }
-
     private fun saveTransaksjonAndAvvikTransaksjon(innTransaksjonList: List<InnTransaksjon>) {
-        val innTransaksjonMap = innTransaksjonList.groupBy { it.isValideringStatusIsOK() }
+        val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOk() }
 
         dataSource.transaction { session ->
             innTransaksjonMap[true]?.takeIf { it.isNotEmpty() }?.apply {
                 val personIdList = this.map { it.personId!! }
+                val lastFagomraadeMap = innTransaksjonRepository.findLastFagomraadeByPersonId(personIdList)
                 val lastTransaksjonMap = transaksjonRepository.findLastTransaksjonByPersonId(personIdList).associateBy { it.personId }
-                val lastFagomraadeMap = transaksjonRepository.findLastFagomraadeByPersonId(personIdList)
 
                 transaksjonRepository.insertBatch(this.map { it.mapToTransaksjon(lastTransaksjonMap[it.personId], lastFagomraadeMap) }, session)
 
                 val transaksjonIdList = this.map { innTransaksjon -> innTransaksjon.innTransaksjonId!! }
-                val transaksjonTilstandIdList = transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
-                val transaksjonList = transaksjonIdList.zip(transaksjonTilstandIdList)
-
-                transaksjonRepository.updateTransaksjonWithTransTilstand(transaksjonList, session)
+                transaksjonTilstandRepository.insertBatch(transaksjonIdList, session)
+                transaksjonRepository.updateTransTilstandId(session)
 
                 logger.debug { "${transaksjonIdList.size} transaksjoner opprettet" }
             }

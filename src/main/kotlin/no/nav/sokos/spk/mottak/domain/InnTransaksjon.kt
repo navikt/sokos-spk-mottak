@@ -76,4 +76,4 @@ fun InnTransaksjon.mapToTransaksjon(
     )
 }
 
-fun InnTransaksjon.isValideringStatusIsOK(): Boolean = this.transaksjonStatus == TRANSAKSJONSTATUS_OK
+fun InnTransaksjon.isTransaksjonStatusOk(): Boolean = this.transaksjonStatus == TRANSAKSJONSTATUS_OK

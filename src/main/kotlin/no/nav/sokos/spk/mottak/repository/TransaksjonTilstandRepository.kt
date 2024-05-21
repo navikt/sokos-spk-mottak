@@ -22,7 +22,7 @@ class TransaksjonTilstandRepository(
         return session.batchPreparedNamedStatement(
             """
             INSERT INTO T_TRANS_TILSTAND (
-                TRANSAKSJON_ID, 
+                TRANSAKSJON_ID,
                 K_TRANS_TILST_T, 
                 DATO_OPPRETTET, 
                 OPPRETTET_AV, 

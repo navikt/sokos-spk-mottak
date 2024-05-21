@@ -48,7 +48,7 @@ class LopenummerRepository(
         filType: String,
         session: Session,
     ) {
-        session.run(
+        session.update(
             queryOf(
                 """
                 UPDATE T_LOPENR 
@@ -60,7 +60,7 @@ class LopenummerRepository(
                     "lopeNummer" to lopeNummer,
                     "filType" to filType,
                 ),
-            ).asUpdate,
+            ),
         )
     }
 

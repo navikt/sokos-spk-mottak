@@ -66,22 +66,21 @@ class InnTransaksjonRepository(
     }
 
     fun validateTransaksjon(session: Session) {
-        session.run(queryOf(VALIDATOR_01_UNIK_ID).asUpdate)
-        session.run(queryOf(VALIDATOR_02_GYLDIG_FODSELSNUMMER).asUpdate)
-        session.run(queryOf(VALIDATOR_03_GYLDIG_PERIODE).asUpdate)
-        session.run(queryOf(VALIDATOR_09_GYLDIG_ANVISER_DATO).asUpdate)
-        session.run(queryOf(VALIDATOR_10_GYLDIG_BELOP).asUpdate)
-        session.run(queryOf(VALIDATOR_04_GYDLIG_BELOPSTYPE).asUpdate)
-        session.run(queryOf(VALIDATOR_05_UGYLDIG_ART).asUpdate)
-        session.run(queryOf(VALIDATOR_11_GYLDIG_KOMBINASJON_ART_OG_BELOPSTYPE).asUpdate)
-
-        session.run(
+        session.update(queryOf(VALIDATOR_01_UNIK_ID))
+        session.update(queryOf(VALIDATOR_02_GYLDIG_FODSELSNUMMER))
+        session.update(queryOf(VALIDATOR_03_GYLDIG_PERIODE))
+        session.update(queryOf(VALIDATOR_09_GYLDIG_ANVISER_DATO))
+        session.update(queryOf(VALIDATOR_10_GYLDIG_BELOP))
+        session.update(queryOf(VALIDATOR_04_GYDLIG_BELOPSTYPE))
+        session.update(queryOf(VALIDATOR_05_UGYLDIG_ART))
+        session.update(queryOf(VALIDATOR_11_GYLDIG_KOMBINASJON_ART_OG_BELOPSTYPE))
+        session.update(
             queryOf(
                 """
                 UPDATE T_INN_TRANSAKSJON SET K_TRANSAKSJON_S='$TRANSAKSJONSTATUS_OK'
                 WHERE K_TRANSAKSJON_S IS NULL                
                 """.trimIndent(),
-            ).asUpdate,
+            ),
         )
     }
 
@@ -149,6 +148,30 @@ class InnTransaksjonRepository(
                 """.trimIndent(),
             ),
         )
+    }
+
+    fun findLastFagomraadeByPersonId(personIdListe: List<Int>): Map<Int, String> {
+        val fagomradeMap = mutableMapOf<Int, String>()
+        using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    SELECT DISTINCT inn.INN_TRANSAKSJON_ID, g.K_FAGOMRADE
+                    FROM T_INN_TRANSAKSJON inn
+                        INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK
+                        INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = inn.ART AND g.K_BELOP_T = inn.BELOPSTYPE AND g.K_ANVISER = '$SPK'
+                    WHERE p.person_Id IN (${personIdListe.joinToString()})
+                    AND g.K_FAGOMRADE IN 
+                        (SELECT DISTINCT g.K_FAGOMRADE
+                        FROM T_TRANSAKSJON t
+                            INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = t.K_ART AND g.K_BELOP_T = t.K_BELOP_T
+                        WHERE t.person_Id = p.PERSON_ID
+                        AND t.K_ANVISER = '$SPK')
+                    """.trimIndent(),
+                ),
+            ) { row -> fagomradeMap[row.int("INN_TRANSAKSJON_ID")] = row.string("K_FAGOMRADE") }
+        }
+        return fagomradeMap
     }
 
     private fun List<TransaksjonRecord>.convertToListMap(filInfoId: Long): List<Map<String, Any?>> {

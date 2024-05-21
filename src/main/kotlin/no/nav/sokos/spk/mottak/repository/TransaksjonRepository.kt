@@ -8,6 +8,9 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.domain.SPK
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPR
+import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY
+import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.util.Util.asMap
 import no.nav.sokos.spk.mottak.util.Util.toChar
@@ -58,74 +61,64 @@ class TransaksjonRepository(
         )
     }
 
-    fun getAllFnrWhereTranstolkningIsNyForMoreThanOneInstance(): List<String> {
+    fun updateAllWhereTranstolkningIsNyForMoreThanOneInstance(
+        personIdListe: List<Int>,
+        session: Session,
+    ) {
+        session.update(
+            queryOf(
+                """
+                UPDATE T_TRANSAKSJON
+                SET K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY_EKSIST'
+                WHERE TRANSAKSJON_ID IN (SELECT DISTINCT t1.TRANSAKSJON_ID
+                                         FROM T_TRANSAKSJON t1
+                                                  INNER JOIN T_K_GYLDIG_KOMBIN k1 on (t1.K_ART = k1.K_ART AND t1.K_BELOP_T = k1.K_BELOP_T)
+                                                  INNER JOIN T_TRANSAKSJON t2 ON (t1.PERSON_ID = t2.PERSON_ID AND t1.FIL_INFO_ID = t2.FIL_INFO_ID)
+                                                  INNER JOIN T_K_GYLDIG_KOMBIN k2 on (t2.K_ART = k2.K_ART AND t2.K_BELOP_T = k2.K_BELOP_T)
+                                         WHERE t1.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
+                                           AND t1.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPR'
+                                           AND t1.K_ANVISER = '$SPK'
+                                           AND t1.TRANSAKSJON_ID > t2.TRANSAKSJON_ID
+                                           AND k1.K_FAGOMRADE = k2.K_FAGOMRADE
+                                           AND t1.PERSON_ID IN (${personIdListe.joinToString()})
+                                         ORDER BY t1.TRANSAKSJON_ID);
+                """.trimIndent(),
+            ),
+        )
+    }
+
+    fun getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance(): Map<Int, List<String>> {
         return using(sessionOf(dataSource)) { session ->
+            val personIdMap = mutableMapOf<Int, MutableList<String>>()
+
             session.list(
                 queryOf(
                     """
-                    SELECT fnr_fk
-                    FROM T_TRANSAKSJON
-                    WHERE k_trans_tilst_t = 'OPR'
-                    AND k_trans_tolkning = 'NY'
-                    AND k_anviser = 'SPK'
-                    GROUP BY fnr_fk, k_trans_tolkning
+                    SELECT DISTINCT t.PERSON_ID, k.K_FAGOMRADE
+                    FROM T_TRANSAKSJON t
+                             INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER)
+                    WHERE t.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
+                      AND t.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPR'
+                      AND t.K_ANVISER = '$SPK'
+                    GROUP BY t.PERSON_ID, t.K_TRANS_TOLKNING, k.K_FAGOMRADE
                     HAVING COUNT(*) > 1
                     """.trimIndent(),
                 ),
-            ) { row -> row.string("FNR_FK") }
+            ) { row -> personIdMap.computeIfAbsent(row.int("PERSON_ID")) { mutableListOf() }.add(row.string("K_FAGOMRADE")) }
+            personIdMap
         }
     }
 
-    fun getAllFagomraadeAndArtForFnr(fnr: String): List<Pair<String, String>> {
-        return using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    SELECT g.k_fagomrade, t.art
-                    FROM T_INN_TRANSAKSJON t, T_K_GYLDIG_KOMBIN g
-                    WHERE t.fnr_fk = $fnr
-                    AND g.k_art = t.art
-                    AND g.k_anviser = 'SPK'
-                    AND g.k_belop_t = t.belopstype
-                    ORDER BY t.inn_transaksjon_id
-                    """.trimIndent(),
-                ),
-                toFagomraadeAndArt,
-            )
-        }
-    }
-
-    fun updateTransTolkningForFnr(
-        fnr: String,
-        art: String,
-    ) {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    """
-                    UPDATE T_TRANSAKSJON 
-                    SET k_trans_tolkning = 'NY_EKSIST'
-                    WHERE fnr_fk = $fnr
-                    AND k_art = '$art'
-                    AND k_anviser = 'SPK'
-                    AND k_trans_tilst_t = 'OPR'
-                    """.trimIndent(),
-                ).asUpdate,
-            )
-        }
-    }
-
-    fun updateTransaksjonWithTransTilstand(
-        transaksjonList: List<Pair<Int, Int>>,
-        session: Session,
-    ) {
-        session.batchPreparedNamedStatement(
-            """
-            UPDATE T_TRANSAKSJON
-            SET TRANS_TILSTAND_ID = :transaksjonTilstandId
-            WHERE TRANSAKSJON_ID = :transaksjonId
-            """.trimIndent(),
-            transaksjonList.map { mapOf("transaksjonId" to it.first, "transaksjonTilstandId" to it.second) },
+    fun updateTransTilstandId(session: Session) {
+        session.update(
+            queryOf(
+                """
+                UPDATE T_TRANSAKSJON t
+                    SET TRANS_TILSTAND_ID = (SELECT tt.TRANS_TILSTAND_ID
+                                             FROM T_TRANS_TILSTAND tt WHERE t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID)
+                    WHERE t.TRANS_TILSTAND_ID IS NULL AND t.K_ANVISER = '$SPK';
+                """.trimIndent(),
+            ),
         )
     }
 
@@ -153,30 +146,6 @@ class TransaksjonRepository(
         }
     }
 
-    fun findLastFagomraadeByPersonId(personIdListe: List<Int>): Map<Int, String> {
-        val fagomradeMap = mutableMapOf<Int, String>()
-        using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    SELECT DISTINCT inn.INN_TRANSAKSJON_ID, g.K_FAGOMRADE
-                    FROM T_INN_TRANSAKSJON inn
-                        INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK
-                        INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = inn.ART AND g.K_BELOP_T = inn.BELOPSTYPE AND g.K_ANVISER = '$SPK'
-                    WHERE p.person_Id IN (${personIdListe.joinToString()})
-                    AND g.K_FAGOMRADE IN 
-                        (SELECT DISTINCT g.K_FAGOMRADE
-                        FROM T_TRANSAKSJON t
-                            INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = t.K_ART AND g.K_BELOP_T = t.K_BELOP_T
-                        WHERE t.person_Id = p.PERSON_ID
-                        AND t.K_ANVISER = '$SPK')
-                    """.trimIndent(),
-                ),
-            ) { row -> fagomradeMap[row.int("INN_TRANSAKSJON_ID")] = row.string("K_FAGOMRADE") }
-        }
-        return fagomradeMap
-    }
-
     fun getByTransaksjonId(transaksjonId: Int): Transaksjon? {
         return using(sessionOf(dataSource)) { session ->
             session.single(
@@ -188,13 +157,6 @@ class TransaksjonRepository(
                 mapToTransaksjon,
             )
         }
-    }
-
-    private val toFagomraadeAndArt: (Row) -> Pair<String, String> = { row ->
-        Pair(
-            row.string("K_FAGOMRADE"),
-            row.string("ART"),
-        )
     }
 
     private val mapToTransaksjon: (Row) -> Transaksjon = { row ->
