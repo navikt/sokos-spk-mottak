@@ -1,8 +1,12 @@
 package no.nav.sokos.spk.mottak.service
 
+import com.zaxxer.hikari.HikariDataSource
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.every
+import io.mockk.mockk
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
@@ -21,7 +25,9 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.TransaksjonTilstand
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
+import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
+import java.sql.SQLException
 import java.time.LocalDate
 
 class ValidateTransaksjonServiceTest : BehaviorSpec({
@@ -36,7 +42,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
             session.update(queryOf(readFromResource("/database/innTransaksjon_avvik.sql")))
         }
         Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 15
-        When("det valideres ") {
+        When("det valideres") {
             validateTransaksjonService.validateInnTransaksjon()
             Then("skal det opprettes en ok-transaksjon og en avvikstransaksjon") {
                 val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
@@ -689,6 +695,26 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
                     val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
                     verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                 }
+            }
+        }
+    }
+
+    Given("det finnes innTransaksjoner som trenger å behandle") {
+        Db2Listener.dataSource.transaction { session ->
+            session.update(queryOf(readFromResource("/database/person.sql")))
+            session.update(queryOf(readFromResource("/database/innTransaksjon.sql")))
+        }
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 10
+
+        When("det valideres") {
+            val dataSourceMock = mockk<HikariDataSource>()
+            every { dataSourceMock.connection } throws SQLException("No database connection!")
+
+            val validateTransaksjonService = ValidateTransaksjonService(dataSource = dataSourceMock)
+            val exception = shouldThrow<MottakException> { validateTransaksjonService.validateInnTransaksjon() }
+
+            Then("skal det kastet en MottakException med database feil") {
+                exception.message shouldBe "Feil under behandling av innTransaksjoner. Feilmelding: No database connection!"
             }
         }
     }

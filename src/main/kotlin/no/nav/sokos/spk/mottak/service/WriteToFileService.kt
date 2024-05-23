@@ -33,7 +33,7 @@ class WriteToFileService(
                 logger.info { "Filene er opprettet og lastes opp til FTP server" }
             }
         }.onFailure { exception ->
-            val errorMessage = "Feil under skriving returfil til SPK"
+            val errorMessage = "Feil under skriving returfil til SPK. Feilmelding: ${exception.message}"
             logger.error(exception) { errorMessage }
             throw MottakException(errorMessage)
         }

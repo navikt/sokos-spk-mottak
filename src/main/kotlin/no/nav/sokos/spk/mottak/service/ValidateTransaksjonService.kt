@@ -66,8 +66,9 @@ class ValidateTransaksjonService(
                 }
             }
         }.onFailure { exception ->
-            logger.error(exception) { "Feil under behandling av innTransaksjoner" }
-            throw MottakException("Feil under behandling av innTransaksjoner")
+            val errorMessage = "Feil under behandling av innTransaksjoner. Feilmelding: ${exception.message}"
+            logger.error(exception) { errorMessage }
+            throw MottakException(errorMessage)
         }
     }
 
