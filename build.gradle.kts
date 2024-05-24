@@ -1,14 +1,15 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import kotlinx.kover.gradle.plugin.dsl.tasks.KoverReport
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.9.24"
-    kotlin("plugin.serialization") version "1.9.24"
+    kotlin("jvm") version "2.0.0"
+    kotlin("plugin.serialization") version "2.0.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
-    jacoco
+    id("org.jetbrains.kotlinx.kover") version "0.8.0"
 }
 
 group = "no.nav.sokos"
@@ -48,14 +49,14 @@ val natpryceVersion = "1.6.10.0"
 val kotestVersion = "5.9.0"
 val kotlinxSerializationVersion = "1.6.3"
 val mockOAuth2ServerVersion = "2.1.5"
-val mockkVersion = "1.13.10"
+val mockkVersion = "1.13.11"
 val hikariVersion = "5.1.0"
 val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.19.8"
 val h2Version = "2.2.224"
 val kotestWiremockVersion = "3.0.1"
-val flywayVersion = "10.12.0"
+val flywayVersion = "10.13.0"
 val postgresVersion = "42.7.3"
 val dbSchedulerVersion = "14.0.0"
 val vaultVersion = "1.3.10"
@@ -150,17 +151,23 @@ tasks {
             attributes["Main-Class"] = "no.nav.sokos.spk.mottak.ApplicationKt"
             attributes["Class-Path"] = "/var/run/secrets/db2license/db2jcc_license_cisuz.jar"
         }
-        finalizedBy(jacocoTestReport)
+        finalizedBy(koverHtmlReport)
     }
 
     ("jar") {
         enabled = false
     }
 
-    withType<JacocoReport>().configureEach {
+    withType<KoverReport>().configureEach {
         dependsOn(test)
-        reports {
-            html.required.set(true)
+        kover {
+            reports {
+                total {
+                    html {
+                        enabled = true
+                    }
+                }
+            }
         }
     }
 
