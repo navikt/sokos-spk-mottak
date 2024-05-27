@@ -27,14 +27,14 @@ class SchedulerTest : ShouldSpec({
         every { validateTransaksjonService.validateInnTransaksjon() } returns Unit
         every { writeToFileService.writeReturnFile() } returns Unit
 
-        val schedulerConfig =
-            PropertiesConfig.SchedulerConfig()
+        val schedulerProperties =
+            PropertiesConfig.SchedulerProperties()
                 .copy(
                     readAndParseFileCronPattern = "* * * * * *",
                     validateTransaksjonCronPattern = "* * * * * *",
                 )
-        val readAndParseFileTask = JobTaskConfig.recurringReadAndParseFileTask(readAndParseFileService, schedulerConfig)
-        val validateTransaksjonTask = JobTaskConfig.recurringValidateTransaksjonTask(validateTransaksjonService, writeToFileService, schedulerConfig)
+        val readAndParseFileTask = JobTaskConfig.recurringReadAndParseFileTask(readAndParseFileService, schedulerProperties)
+        val validateTransaksjonTask = JobTaskConfig.recurringValidateTransaksjonTask(validateTransaksjonService, writeToFileService, schedulerProperties)
 
         val scheduler =
             Scheduler.create(PostgresListener.dataSource)

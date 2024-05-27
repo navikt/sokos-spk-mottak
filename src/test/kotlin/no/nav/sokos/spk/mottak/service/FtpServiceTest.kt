@@ -9,7 +9,7 @@ internal class FtpServiceTest : FunSpec({
     extensions(SftpListener)
 
     val ftpService: FtpService by lazy {
-        FtpService(SftpConfig(SftpListener.sftpConfig).createSftpConnection())
+        FtpService(SftpConfig(SftpListener.sftpProperties).createSftpConnection())
     }
 
     test("opprett fil i INBOUND, flytt til FERDIG og last ned fil fra FERDIG") {

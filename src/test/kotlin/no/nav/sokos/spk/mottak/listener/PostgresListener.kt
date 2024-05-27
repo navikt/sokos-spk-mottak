@@ -17,8 +17,8 @@ object PostgresListener : TestListener {
     private val container =
         GenericContainer("postgres:16-alpine")
             .withExposedPorts(5432)
-            .withEnv("POSTGRES_DB", PropertiesConfig.PostgresConfig().databaseName)
-            .withEnv("POSTGRES_USER", PropertiesConfig.PostgresConfig().adminUser)
+            .withEnv("POSTGRES_DB", PropertiesConfig.PostgresProperties().databaseName)
+            .withEnv("POSTGRES_USER", PropertiesConfig.PostgresProperties().adminUser)
             .withEnv("POSTGRES_PASSWORD", "postgres")
             .withCreateContainerCmdModifier { cmd ->
                 cmd.hostConfig!!.withPortBindings(PortBinding(Ports.Binding.bindPort(5432), ExposedPort(5432)))

@@ -24,10 +24,12 @@ object PropertiesConfig {
             mapOf(
                 "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
                 "USE_AUTHENTICATION" to "false",
-                // Postgres
                 "POSTGRES_HOST" to "dev-pg.intern.nav.no",
                 "POSTGRES_PORT" to "5432",
                 "POSTGRES_NAME" to "sokos-spk-mottak",
+                "MQ_QUEUE_MANAGER" to "",
+                "MQ_HOSTNAME" to "",
+                "MQ_PORT" to "",
             ),
         )
 
@@ -53,10 +55,10 @@ object PropertiesConfig {
         val naisAppName: String = get("NAIS_APP_NAME"),
         val profile: Profile = Profile.valueOf(get("APPLICATION_PROFILE")),
         val useAuthentication: Boolean = get("USE_AUTHENTICATION").toBoolean(),
-        val azureAdConfig: AzureAdConfig = AzureAdConfig(),
+        val azureAdProperties: AzureAdProperties = AzureAdProperties(),
     )
 
-    data class Db2DatabaseConfig(
+    data class Db2Properties(
         val host: String = getOrEmpty("DATABASE_HOST"),
         val port: String = getOrEmpty("DATABASE_PORT"),
         val name: String = getOrEmpty("DATABASE_NAME"),
@@ -65,7 +67,7 @@ object PropertiesConfig {
         val password: String = getOrEmpty("DATABASE_PASSWORD"),
     )
 
-    data class SftpConfig(
+    data class SftpProperties(
         val host: String = getOrEmpty("SFTP_SERVER"),
         val username: String = getOrEmpty("SPK_SFTP_USERNAME"),
         val privateKey: String = getOrEmpty("SFTP_PRIVATE_KEY_FILE_PATH"),
@@ -73,7 +75,7 @@ object PropertiesConfig {
         val port: Int = getOrEmpty("SFTP_PORT").toInt(),
     )
 
-    data class AzureAdConfig(
+    data class AzureAdProperties(
         val clientId: String = getOrEmpty("AZURE_APP_CLIENT_ID"),
         val wellKnownUrl: String = getOrEmpty("AZURE_APP_WELL_KNOWN_URL"),
         val tenantId: String = getOrEmpty("AZURE_APP_TENANT_ID"),
@@ -85,23 +87,33 @@ object PropertiesConfig {
         val fullmaktScope: String = getOrEmpty("PENSJON_REPRESENTASJON_SCOPE"),
     )
 
-    data class PostgresConfig(
+    data class PostgresProperties(
         val host: String = get("POSTGRES_HOST"),
         val port: String = get("POSTGRES_PORT"),
         val databaseName: String = get("POSTGRES_NAME"),
-        val username: String? = getOrEmpty("POSTGRES_USER_USERNAME"),
-        val password: String? = getOrEmpty("POSTGRES_USER_PASSWORD"),
-        val adminUsername: String? = getOrEmpty("POSTGRES_ADMIN_USERNAME"),
-        val adminPassword: String? = getOrEmpty("POSTGRES_ADMIN_PASSWORD"),
+        val username: String = getOrEmpty("POSTGRES_USER_USERNAME"),
+        val password: String = getOrEmpty("POSTGRES_USER_PASSWORD"),
+        val adminUsername: String = getOrEmpty("POSTGRES_ADMIN_USERNAME"),
+        val adminPassword: String = getOrEmpty("POSTGRES_ADMIN_PASSWORD"),
         val vaultMountPath: String = getOrEmpty("VAULT_MOUNTPATH"),
     ) {
         val adminUser = "${get("POSTGRES_NAME")}-admin"
         val user = "${get("POSTGRES_NAME")}-user"
     }
 
-    data class SchedulerConfig(
+    data class SchedulerProperties(
         val readAndParseFileCronPattern: String = getOrEmpty("READ_AND_PARSEFILE_CRON_PATTERN"),
         val validateTransaksjonCronPattern: String = getOrEmpty("VALIDATE_TRANSAKSJON_CRON_PATTERN"),
+    )
+
+    data class MQProperties(
+        val mqQueueManager: String = get("MQ_QUEUE_MANAGER"),
+        val mqHostname: String = get("MQ_HOSTNAME"),
+        val mqPort: Int = get("MQ_PORT").toInt(),
+        val mqChannelName: String = getOrEmpty("MQ_CHANNELNAME"),
+        val mqQueueName: String = getOrEmpty("MQ_QUEUE_MANAGER"),
+        val serviceuserUsername: String = getOrEmpty("SERVICE_USERNAME"),
+        val serviceuserPassword: String = getOrEmpty("SERVICE_USERPASSWORD"),
     )
 
     enum class Profile {

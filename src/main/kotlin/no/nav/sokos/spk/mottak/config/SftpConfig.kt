@@ -9,19 +9,19 @@ import org.slf4j.LoggerFactory
 private val logger = KotlinLogging.logger {}
 
 class SftpConfig(
-    private val sftpConfig: PropertiesConfig.SftpConfig = PropertiesConfig.SftpConfig(),
+    private val sftpProperties: PropertiesConfig.SftpProperties = PropertiesConfig.SftpProperties(),
 ) {
     fun createSftpConnection(): Session {
         return JSch().apply {
             JSch.setLogger(JSchLogger())
-            addIdentity(sftpConfig.privateKey, sftpConfig.privateKeyPassword)
+            addIdentity(sftpProperties.privateKey, sftpProperties.privateKeyPassword)
         }.run {
-            logger.debug { "Oppretter connection med privat nøkkel på host: ${sftpConfig.host}:${sftpConfig.port}" }
-            getSession(sftpConfig.username, sftpConfig.host, sftpConfig.port)
+            logger.debug { "Oppretter connection med privat nøkkel på host: ${sftpProperties.host}:${sftpProperties.port}" }
+            getSession(sftpProperties.username, sftpProperties.host, sftpProperties.port)
         }.also {
             it.setConfig("StrictHostKeyChecking", "no")
             it.connect()
-            logger.debug { "Åpner session på host: ${sftpConfig.host}:${sftpConfig.port}" }
+            logger.debug { "Åpner session på host: ${sftpProperties.host}:${sftpProperties.port}" }
         }
     }
 }

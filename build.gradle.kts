@@ -61,6 +61,7 @@ val postgresVersion = "42.7.3"
 val dbSchedulerVersion = "14.0.0"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "2633.1685ed5"
+val ibmMqVersion = "9.3.5.1"
 
 dependencies {
 
@@ -109,6 +110,9 @@ dependencies {
 
     // Scheduler
     implementation("com.github.kagkarlsson:db-scheduler:$dbSchedulerVersion")
+
+    // MQ
+    implementation("com.ibm.mq:com.ibm.mq.allclient:$ibmMqVersion")
 
     // Oppdrag
     implementation("no.nav.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")

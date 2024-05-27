@@ -17,7 +17,7 @@ enum class Directories(var value: String) {
 }
 
 class FtpService(
-    private val sftpSession: Session = SftpConfig(PropertiesConfig.SftpConfig()).createSftpConnection(),
+    private val sftpSession: Session = SftpConfig(PropertiesConfig.SftpProperties()).createSftpConnection(),
 ) {
     fun createFile(
         fileName: String,

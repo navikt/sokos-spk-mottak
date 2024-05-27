@@ -35,8 +35,8 @@ object SftpListener : TestListener {
     private val privateKeyFile = createPrivateKeyFile(keyPair.private)
     private val genericContainer = setupSftpTestContainer(keyPair.public)
 
-    val sftpConfig =
-        PropertiesConfig.SftpConfig(
+    val sftpProperties =
+        PropertiesConfig.SftpProperties(
             host = "localhost",
             username = "foo",
             privateKey = privateKeyFile.absolutePath,
@@ -100,7 +100,7 @@ object SftpListener : TestListener {
 
     fun deleteFile(vararg fileName: String) {
         val deleteFilename = fileName.joinToString(separator = " ")
-        val sftpSession: Session = SftpConfig(SftpListener.sftpConfig).createSftpConnection()
+        val sftpSession: Session = SftpConfig(SftpListener.sftpProperties).createSftpConnection()
         val channelSftp = sftpSession.openChannel("sftp") as ChannelSftp
 
         channelSftp.apply {

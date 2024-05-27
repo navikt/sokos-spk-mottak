@@ -18,13 +18,13 @@ object DatabaseTestConfig {
             poolName = "HikariPool-SOKOS-SPK-MOTTAK-POSTGRES"
             maximumPoolSize = 5
             minimumIdle = 1
-            username = PropertiesConfig.PostgresConfig().adminUser
+            username = PropertiesConfig.PostgresProperties().adminUser
             password = "postgres"
             dataSource =
                 PGSimpleDataSource().apply {
                     serverNames = arrayOf(host)
-                    databaseName = PropertiesConfig.PostgresConfig().databaseName
-                    portNumbers = intArrayOf(PropertiesConfig.PostgresConfig().port.toInt())
+                    databaseName = PropertiesConfig.PostgresProperties().databaseName
+                    portNumbers = intArrayOf(PropertiesConfig.PostgresProperties().port.toInt())
                     connectionTimeout = Duration.ofSeconds(10).toMillis()
                     maxLifetime = Duration.ofMinutes(30).toMillis()
                     initializationFailTimeout = Duration.ofMinutes(30).toMillis()

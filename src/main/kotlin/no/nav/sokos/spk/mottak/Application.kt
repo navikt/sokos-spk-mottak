@@ -61,6 +61,6 @@ fun Application.applicationModule(
     applicationState: ApplicationState,
 ) {
     commonConfig()
-    configureSecurity(applicationConfiguration.azureAdConfig, applicationConfiguration.useAuthentication)
+    configureSecurity(applicationConfiguration.azureAdProperties, applicationConfiguration.useAuthentication)
     routingConfig(applicationState, applicationConfiguration.useAuthentication)
 }

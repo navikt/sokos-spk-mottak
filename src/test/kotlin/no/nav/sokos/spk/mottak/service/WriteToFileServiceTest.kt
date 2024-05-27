@@ -26,7 +26,7 @@ class WriteToFileServiceTest : BehaviorSpec({
     extensions(listOf(Db2Listener, SftpListener))
 
     val ftpService: FtpService by lazy {
-        FtpService(SftpConfig(SftpListener.sftpConfig).createSftpConnection())
+        FtpService(SftpConfig(SftpListener.sftpProperties).createSftpConnection())
     }
 
     val writeToFileService: WriteToFileService by lazy {
@@ -67,7 +67,7 @@ class WriteToFileServiceTest : BehaviorSpec({
         When("skriv retur filen prosess starter") {
             val dataSourceMock = mockk<HikariDataSource>()
             every { dataSourceMock.connection } throws SQLException("No database connection!")
-            val writeToFileService = WriteToFileService(dataSource = dataSourceMock)
+            val writeToFileService = WriteToFileService(dataSource = dataSourceMock, ftpService = ftpService)
 
             Then("skal det kastet en MottakException med database feil") {
                 val exception = shouldThrow<MottakException> { writeToFileService.writeReturnFile() }

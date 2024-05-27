@@ -17,7 +17,7 @@ private val logger = KotlinLogging.logger {}
 
 object DatabaseConfig {
     private fun db2HikariConfig(): HikariConfig {
-        val db2DatabaseConfig: PropertiesConfig.Db2DatabaseConfig = PropertiesConfig.Db2DatabaseConfig()
+        val db2Properties: PropertiesConfig.Db2Properties = PropertiesConfig.Db2Properties()
         return HikariConfig().apply {
             minimumIdle = 1
             maximumPoolSize = 10
@@ -27,20 +27,20 @@ object DatabaseConfig {
                 DB2SimpleDataSource().apply {
                     driverType = 4
                     enableNamedParameterMarkers = DB2BaseDataSource.YES
-                    databaseName = db2DatabaseConfig.name
-                    serverName = db2DatabaseConfig.host
-                    portNumber = db2DatabaseConfig.port.toInt()
-                    currentSchema = db2DatabaseConfig.schema
+                    databaseName = db2Properties.name
+                    serverName = db2Properties.host
+                    portNumber = db2Properties.port.toInt()
+                    currentSchema = db2Properties.schema
                     connectionTimeout = 1000
                     commandTimeout = 10000
-                    user = db2DatabaseConfig.username
-                    setPassword(db2DatabaseConfig.password)
+                    user = db2Properties.username
+                    setPassword(db2Properties.password)
                 }
         }
     }
 
     private fun postgresHikariConfig(): HikariConfig {
-        val postgresConfig: PropertiesConfig.PostgresConfig = PropertiesConfig.PostgresConfig()
+        val postgresProperties: PropertiesConfig.PostgresProperties = PropertiesConfig.PostgresProperties()
         return HikariConfig().apply {
             poolName = "HikariPool-SOKOS-SPK-MOTTAK-POSTGRES"
             maximumPoolSize = 5
@@ -48,12 +48,12 @@ object DatabaseConfig {
             dataSource =
                 PGSimpleDataSource().apply {
                     if (PropertiesConfig.isLocal()) {
-                        user = postgresConfig.adminUsername
-                        password = postgresConfig.adminPassword
+                        user = postgresProperties.adminUsername
+                        password = postgresProperties.adminPassword
                     }
-                    serverNames = arrayOf(postgresConfig.host)
-                    databaseName = postgresConfig.databaseName
-                    portNumbers = intArrayOf(postgresConfig.port.toInt())
+                    serverNames = arrayOf(postgresProperties.host)
+                    databaseName = postgresProperties.databaseName
+                    portNumbers = intArrayOf(postgresProperties.port.toInt())
                     connectionTimeout = Duration.ofSeconds(10).toMillis()
                     maxLifetime = Duration.ofMinutes(30).toMillis()
                     initializationFailTimeout = Duration.ofMinutes(30).toMillis()
@@ -65,23 +65,23 @@ object DatabaseConfig {
 
     fun postgresDataSource(
         hikariConfig: HikariConfig = postgresHikariConfig(),
-        role: String = PropertiesConfig.PostgresConfig().user,
+        role: String = PropertiesConfig.PostgresProperties().user,
     ): HikariDataSource {
         return when {
             PropertiesConfig.isLocal() -> HikariDataSource(hikariConfig)
             else ->
                 HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
                     hikariConfig,
-                    PropertiesConfig.PostgresConfig().vaultMountPath,
+                    PropertiesConfig.PostgresProperties().vaultMountPath,
                     role,
                 )
         }
     }
 
-    fun postgresMigrate(dataSource: HikariDataSource = postgresDataSource(role = PropertiesConfig.PostgresConfig().adminUser)) {
+    fun postgresMigrate(dataSource: HikariDataSource = postgresDataSource(role = PropertiesConfig.PostgresProperties().adminUser)) {
         Flyway.configure()
             .dataSource(dataSource)
-            .initSql("""SET ROLE "${PropertiesConfig.PostgresConfig().adminUser}"""")
+            .initSql("""SET ROLE "${PropertiesConfig.PostgresProperties().adminUser}"""")
             .lockRetryCount(-1)
             .load()
             .migrate()

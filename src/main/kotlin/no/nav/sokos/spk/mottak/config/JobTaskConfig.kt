@@ -27,11 +27,11 @@ object JobTaskConfig {
 
     internal fun recurringReadAndParseFileTask(
         readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
-        schedulerConfig: PropertiesConfig.SchedulerConfig = PropertiesConfig.SchedulerConfig(),
+        schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<Void> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("readAndParseFile", cron(schedulerConfig.readAndParseFileCronPattern))
+            .recurring("readAndParseFile", cron(schedulerProperties.readAndParseFileCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
                 readAndParseFileService.readAndParseFile()
@@ -41,11 +41,11 @@ object JobTaskConfig {
     internal fun recurringValidateTransaksjonTask(
         validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService(),
         writeToFileService: WriteToFileService = WriteToFileService(),
-        schedulerConfig: PropertiesConfig.SchedulerConfig = PropertiesConfig.SchedulerConfig(),
+        schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<Void> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("validateTransaksjon", cron(schedulerConfig.validateTransaksjonCronPattern))
+            .recurring("validateTransaksjon", cron(schedulerProperties.validateTransaksjonCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
                 validateTransaksjonService.validateInnTransaksjon()

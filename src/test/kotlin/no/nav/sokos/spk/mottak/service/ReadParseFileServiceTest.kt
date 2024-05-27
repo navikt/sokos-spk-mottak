@@ -50,7 +50,7 @@ class ReadParseFileServiceTest : BehaviorSpec({
     extensions(listOf(Db2Listener, SftpListener))
 
     val ftpService: FtpService by lazy {
-        FtpService(SftpConfig(SftpListener.sftpConfig).createSftpConnection())
+        FtpService(SftpConfig(SftpListener.sftpProperties).createSftpConnection())
     }
 
     val readAndParseFileService: ReadAndParseFileService by lazy {
