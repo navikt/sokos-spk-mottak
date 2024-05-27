@@ -13,7 +13,7 @@ fun Application.routingConfig(
     useAuthentication: Boolean,
 ) {
     routing {
-        naisApi({ applicationState.initialized }, { applicationState.running })
+        naisApi(applicationState)
         authenticate(useAuthentication, AUTHENTICATION_NAME) {
             mottakApi()
         }

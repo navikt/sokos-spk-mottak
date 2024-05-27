@@ -10,9 +10,7 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.configureSecurity
 import no.nav.sokos.spk.mottak.config.routingConfig
-import no.nav.sokos.spk.mottak.metrics.Metrics
 import java.util.concurrent.TimeUnit
-import kotlin.properties.Delegates
 
 fun main() {
     val applicationState = ApplicationState()
@@ -28,9 +26,18 @@ class HttpServer(
     private val applicationConfiguration: PropertiesConfig.Configuration,
     port: Int = 8080,
 ) {
+    init {
+        Runtime.getRuntime().addShutdownHook(
+            Thread {
+                this.stop()
+            },
+        )
+    }
+
     private val embeddedServer =
         embeddedServer(Netty, port, module = {
             applicationModule(applicationConfiguration, applicationState)
+            applicationState.initialized = true
         })
 
     fun start() {
@@ -45,16 +52,9 @@ class HttpServer(
 }
 
 class ApplicationState(
-    alive: Boolean = true,
-    ready: Boolean = false,
-) {
-    var initialized: Boolean by Delegates.observable(alive) { _, _, newValue ->
-        if (!newValue) Metrics.appStateReadyFalse.inc()
-    }
-    var running: Boolean by Delegates.observable(ready) { _, _, newValue ->
-        if (!newValue) Metrics.appStateRunningFalse.inc()
-    }
-}
+    var running: Boolean = false,
+    var initialized: Boolean = false,
+)
 
 fun Application.applicationModule(
     applicationConfiguration: PropertiesConfig.Configuration,
