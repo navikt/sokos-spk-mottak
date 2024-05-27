@@ -67,10 +67,10 @@ class WriteToFileServiceTest : BehaviorSpec({
         When("skriv retur filen prosess starter") {
             val dataSourceMock = mockk<HikariDataSource>()
             every { dataSourceMock.connection } throws SQLException("No database connection!")
-            val writeToFileService = WriteToFileService(dataSource = dataSourceMock, ftpService = ftpService)
+            val writeToFileServiceMock = WriteToFileService(dataSource = dataSourceMock, ftpService = ftpService)
 
             Then("skal det kastet en MottakException med database feil") {
-                val exception = shouldThrow<MottakException> { writeToFileService.writeReturnFile() }
+                val exception = shouldThrow<MottakException> { writeToFileServiceMock.writeReturnFile() }
                 exception.message shouldBe "Feil under skriving returfil til SPK. Feilmelding: No database connection!"
             }
         }
@@ -85,10 +85,10 @@ class WriteToFileServiceTest : BehaviorSpec({
         When("skriv retur filen prosess starter") {
             val ftpServiceMock = mockk<FtpService>()
             every { ftpServiceMock.createFile(any(), any(), any()) } throws IOException("Ftp server can not move file!")
-            val writeToFileService = WriteToFileService(dataSource = Db2Listener.dataSource, ftpService = ftpServiceMock)
+            val writeToFileServiceMock = WriteToFileService(dataSource = Db2Listener.dataSource, ftpService = ftpServiceMock)
 
             Then("skal det kastet en MottakException med ftp feil") {
-                val exception = shouldThrow<MottakException> { writeToFileService.writeReturnFile() }
+                val exception = shouldThrow<MottakException> { writeToFileServiceMock.writeReturnFile() }
                 exception.message shouldBe "Feil under skriving returfil til SPK. Feilmelding: Ftp server can not move file!"
             }
         }
