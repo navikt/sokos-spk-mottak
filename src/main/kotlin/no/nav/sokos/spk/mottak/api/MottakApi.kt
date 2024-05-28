@@ -8,11 +8,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
-
-private val logger = KotlinLogging.logger {}
 
 fun Route.mottakApi(
     readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),

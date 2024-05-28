@@ -14,10 +14,10 @@ import no.nav.sokos.spk.mottak.config.routingConfig
 import java.util.concurrent.TimeUnit
 
 fun main() {
-    HttpServer().start()
+    HttpServer(8080).start()
 }
 
-fun Application.serverModule() {
+private fun Application.serverModule() {
     val applicationState = ApplicationState()
     val applicationConfiguration = PropertiesConfig.Configuration()
     DatabaseConfig.postgresMigrate()
@@ -29,7 +29,14 @@ fun Application.serverModule() {
     routingConfig(applicationState, applicationConfiguration.useAuthentication)
 }
 
-private class HttpServer(port: Int = 8080) {
+class ApplicationState(
+    var ready: Boolean = true,
+    var alive: Boolean = true,
+)
+
+private class HttpServer(
+    port: Int = 8080,
+) {
     init {
         Runtime.getRuntime().addShutdownHook(
             Thread {
@@ -51,8 +58,3 @@ private class HttpServer(port: Int = 8080) {
         embeddedServer.stop(5, 5, TimeUnit.SECONDS)
     }
 }
-
-class ApplicationState(
-    var ready: Boolean = true,
-    var alive: Boolean = true,
-)
