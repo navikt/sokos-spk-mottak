@@ -756,6 +756,7 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         }
     }
 
+    @Suppress("NAME_SHADOWING")
     Given("det finnes innTransaksjoner som trenger å behandle") {
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/person.sql")))
