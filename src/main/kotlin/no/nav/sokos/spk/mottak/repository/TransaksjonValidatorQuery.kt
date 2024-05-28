@@ -125,10 +125,7 @@ object TransaksjonValidatorQuery {
         UPDATE T_INN_TRANSAKSJON
         SET K_TRANSAKSJON_S = '16'
         WHERE K_TRANSAKSJON_S IS NULL
-        AND ((ART = 'UFO' 
-            OR ART = 'U67' 
-            OR ART = 'AFP')
-            AND GRAD is null)
+        AND (ART IN ('UFO', 'U67', 'AFP') AND GRAD IS NULL)
         OR GRAD < 0 
         OR GRAD > 100
         """.trimIndent()
