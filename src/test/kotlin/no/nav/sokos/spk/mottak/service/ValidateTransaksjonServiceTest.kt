@@ -328,6 +328,63 @@ class ValidateTransaksjonServiceTest : BehaviorSpec({
         }
     }
 
+    Given("det finnes en innTransaksjon som har art hvor påkrevd grad mangler ") {
+        Db2Listener.dataSource.transaction { session ->
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_art_og_manglende_grad.sql")))
+        }
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
+        When("det valideres ") {
+            validateTransaksjonService.validateInnTransaksjon()
+            Then("skal det opprettes en avvikstransaksjon med valideringsfeil 16") {
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
+                innTransaksjonList.filter { !it.isTransaksjonStatusOk() }.size shouldBe 1
+                innTransaksjonList.forEach { innTransaksjon ->
+                    val avvikTransaksjon =
+                        Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "16")
+                }
+            }
+        }
+    }
+
+    Given("det finnes en innTransaksjon som har negativ grad ") {
+        Db2Listener.dataSource.transaction { session ->
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_negativ_grad.sql")))
+        }
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
+        When("det valideres ") {
+            validateTransaksjonService.validateInnTransaksjon()
+            Then("skal det opprettes en avvikstransaksjon med valideringsfeil 16") {
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
+                innTransaksjonList.filter { !it.isTransaksjonStatusOk() }.size shouldBe 1
+                innTransaksjonList.forEach { innTransaksjon ->
+                    val avvikTransaksjon =
+                        Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "16")
+                }
+            }
+        }
+    }
+
+    Given("det finnes en innTransaksjon som har grad større enn 100") {
+        Db2Listener.dataSource.transaction { session ->
+            session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_grad_over_hundre.sql")))
+        }
+        Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
+        When("det valideres ") {
+            validateTransaksjonService.validateInnTransaksjon()
+            Then("skal det opprettes en avvikstransaksjon med valideringsfeil 16") {
+                val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
+                innTransaksjonList.filter { !it.isTransaksjonStatusOk() }.size shouldBe 1
+                innTransaksjonList.forEach { innTransaksjon ->
+                    val avvikTransaksjon =
+                        Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                    verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "16")
+                }
+            }
+        }
+    }
+
     Given("det finnes en innTransaksjon med et fnr som ikke eksisterer i T_TRANSAKSJON") {
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ny_fnr.sql")))
