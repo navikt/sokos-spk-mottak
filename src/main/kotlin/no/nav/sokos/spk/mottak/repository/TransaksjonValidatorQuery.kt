@@ -119,4 +119,17 @@ object TransaksjonValidatorQuery {
                                          AND t2.ER_GYLDIG != '0'
                                      WHERE t2.K_BELOP_T is NULL)
         """.trimIndent()
+
+    val VALIDATOR_16_GYLDIG_GRAD =
+        """
+        UPDATE T_INN_TRANSAKSJON
+        SET K_TRANSAKSJON_S = '16'
+        WHERE K_TRANSAKSJON_S IS NULL
+        AND ((ART = 'UFO' 
+            OR ART = 'U67' 
+            OR ART = 'AFP')
+            AND GRAD is null)
+        OR GRAD < 0 
+        OR GRAD > 100
+        """.trimIndent()
 }

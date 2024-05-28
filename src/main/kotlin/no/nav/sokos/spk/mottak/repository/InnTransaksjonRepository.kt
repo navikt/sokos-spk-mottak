@@ -23,6 +23,7 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_05
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_09_GYLDIG_ANVISER_DATO
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_10_GYLDIG_BELOP
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_11_GYLDIG_KOMBINASJON_ART_OG_BELOPSTYPE
+import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_16_GYLDIG_GRAD
 import no.nav.sokos.spk.mottak.util.Util.toLocalDate
 import java.time.LocalDateTime
 
@@ -74,6 +75,7 @@ class InnTransaksjonRepository(
         session.update(queryOf(VALIDATOR_04_GYDLIG_BELOPSTYPE))
         session.update(queryOf(VALIDATOR_05_UGYLDIG_ART))
         session.update(queryOf(VALIDATOR_11_GYLDIG_KOMBINASJON_ART_OG_BELOPSTYPE))
+        session.update(queryOf(VALIDATOR_16_GYLDIG_GRAD))
         session.update(
             queryOf(
                 """
