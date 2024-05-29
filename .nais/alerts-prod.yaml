@@ -18,7 +18,7 @@ spec:
           labels:
             namespace: okonomi
             severity: danger
-            sokos_ktor_template_type: sokos-spk-mottak
+            sokos_spk_mottak_type: sokos-spk-mottak
             alert_type: custom
 
         - alert: sokos-spk-mottak har restartet flere ganger de siste 5 minuttene!
@@ -30,7 +30,7 @@ spec:
           labels:
             namespace: okonomi
             severity: danger
-            sokos_ktor_template_type: sokos-spk-mottak
+            sokos_spk_mottak_type: sokos-spk-mottak
             alert_type: custom
 
         - alert: Applikasjonen logger høy andel errors
@@ -46,7 +46,7 @@ spec:
           labels:
             namespace: okonomi
             severity: danger
-            sokos_ktor_template_type: sokos-spk-mottak
+            sokos_spk_mottak_type: sokos-spk-mottak
             alert_type: custom
 
         - alert: Applikasjonen logger høy andel warnings
@@ -62,7 +62,7 @@ spec:
           labels:
             namespace: okonomi
             severity: warning
-            sokos_ktor_template_type: sokos-spk-mottak
+            sokos_spk_mottak_type: sokos-spk-mottak
             alert_type: custom
 
 ---
@@ -81,7 +81,7 @@ spec:
         - apiURL:
             key: apiUrl
             name: slack-webhook
-          channel: '#team-mob-alerts-prod'
+          channel: '#team-moby-alerts-prod'
           iconEmoji: ':alert:'
           username: 'Alert prod-gcp'
           sendResolved: true
@@ -101,7 +101,7 @@ spec:
     groupBy:
       - alertname
     matchers:
-      - name: "sokos_ktor_template_type"
+      - name: "sokos_spk_mottak_type"
         matchType: "="
         value: "sokos-spk-mottak"
     groupInterval: 10s

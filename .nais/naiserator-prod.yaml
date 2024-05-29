@@ -38,6 +38,3 @@ spec:
     application:
       enabled: true
   webproxy: true
-  env:
-    - name: USE_AUTHENTICATION
-      value: "true"
