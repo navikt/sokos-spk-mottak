@@ -3,9 +3,8 @@ package no.nav.sokos.spk.mottak.config
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopped
-import no.nav.sokos.spk.mottak.ApplicationState
 
-fun Application.configureLifecycleConfig(applicationState: ApplicationState) {
+fun Application.applicationLifecycleConfig(applicationState: ApplicationState) {
     environment.monitor.subscribe(ApplicationStarted) {
         applicationState.ready = true
     }
@@ -14,3 +13,8 @@ fun Application.configureLifecycleConfig(applicationState: ApplicationState) {
         applicationState.ready = false
     }
 }
+
+class ApplicationState(
+    var ready: Boolean = true,
+    var alive: Boolean = true,
+)

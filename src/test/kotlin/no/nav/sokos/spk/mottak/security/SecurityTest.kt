@@ -23,8 +23,8 @@ import no.nav.sokos.spk.mottak.config.API_BASE_PATH
 import no.nav.sokos.spk.mottak.config.AUTHENTICATION_NAME
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.authenticate
-import no.nav.sokos.spk.mottak.config.configureSecurity
 import no.nav.sokos.spk.mottak.config.configureTestApplication
+import no.nav.sokos.spk.mottak.config.securityConfig
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 
@@ -37,7 +37,7 @@ class SecurityTest : FunSpec({
             testApplication {
                 configureTestApplication()
                 this.application {
-                    configureSecurity(authConfig())
+                    securityConfig(true, authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
                             mottakApi(readAndParseFileService, validateTransaksjonService)
@@ -71,7 +71,7 @@ class SecurityTest : FunSpec({
                     }
                 configureTestApplication()
                 this.application {
-                    configureSecurity(authConfig())
+                    securityConfig(true, authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
                             mottakApi(readAndParseFileService, validateTransaksjonService)

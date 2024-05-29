@@ -4,13 +4,14 @@ import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.engine.stop
 import io.ktor.server.netty.Netty
+import no.nav.sokos.spk.mottak.config.ApplicationState
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.config.applicationLifecycleConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
-import no.nav.sokos.spk.mottak.config.configureLifecycleConfig
-import no.nav.sokos.spk.mottak.config.configureSecurity
 import no.nav.sokos.spk.mottak.config.routingConfig
+import no.nav.sokos.spk.mottak.config.securityConfig
 import java.util.concurrent.TimeUnit
 
 fun main() {
@@ -18,24 +19,19 @@ fun main() {
 }
 
 private fun Application.serverModule() {
+    val useAuthentication = PropertiesConfig.Configuration().useAuthentication
     val applicationState = ApplicationState()
-    val applicationConfiguration = PropertiesConfig.Configuration()
     DatabaseConfig.postgresMigrate()
     JobTaskConfig.scheduler().start()
 
     commonConfig()
-    configureLifecycleConfig(applicationState)
-    configureSecurity(applicationConfiguration.azureAdProperties, applicationConfiguration.useAuthentication)
-    routingConfig(applicationState, applicationConfiguration.useAuthentication)
+    applicationLifecycleConfig(applicationState)
+    securityConfig(useAuthentication)
+    routingConfig(useAuthentication, applicationState)
 }
 
-class ApplicationState(
-    var ready: Boolean = true,
-    var alive: Boolean = true,
-)
-
 private class HttpServer(
-    port: Int = 8080,
+    port: Int,
 ) {
     init {
         Runtime.getRuntime().addShutdownHook(

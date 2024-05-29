@@ -18,9 +18,9 @@ import java.util.concurrent.TimeUnit
 private val logger = KotlinLogging.logger {}
 const val AUTHENTICATION_NAME = "azureAd"
 
-fun Application.configureSecurity(
-    azureAdProperties: PropertiesConfig.AzureAdProperties,
-    useAuthentication: Boolean = true,
+fun Application.securityConfig(
+    useAuthentication: Boolean,
+    azureAdProperties: PropertiesConfig.AzureAdProperties = PropertiesConfig.AzureAdProperties(),
 ) {
     logger.info { "Use authentication: $useAuthentication" }
     if (useAuthentication) {
