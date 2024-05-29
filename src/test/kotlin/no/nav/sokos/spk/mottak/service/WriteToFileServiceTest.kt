@@ -39,14 +39,14 @@ class WriteToFileServiceTest : BehaviorSpec({
         )
     }
 
-    Given("det fins innTransaksjoner som er ferdig behandlet") {
+    Given("det finnes innTransaksjoner som er ferdig behandlet") {
         Db2Listener.dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/skrivreturfil/inntTransaksjon_ferdig_behandlet.sql")))
         }
         Db2Listener.innTransaksjonRepository.getByBehandlet(behandlet = BEHANDLET_JA).size shouldBe 9
-        When("skriv retur filen prosess starter") {
+        When("skriving av returfil starter") {
             writeToFileService.writeReturnFile()
-            Then("skal det opprettes retur filen til SPK og laste opp til Ftp outbound/anvisningsretur") {
+            Then("skal det opprettes en returfil til SPK som lastes opp til Ftp outbound/anvisningsretur") {
                 Db2Listener.innTransaksjonRepository.getByBehandlet().shouldBeEmpty()
                 val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(34, FILTILSTANDTYPE_RET)!!
                 verifyFilInfo(
@@ -64,12 +64,12 @@ class WriteToFileServiceTest : BehaviorSpec({
             }
         }
 
-        When("skriv retur filen prosess starter") {
+        When("skriving av returfil starter") {
             val dataSourceMock = mockk<HikariDataSource>()
             every { dataSourceMock.connection } throws SQLException("No database connection!")
             val writeToFileServiceMock = WriteToFileService(dataSource = dataSourceMock, ftpService = ftpService)
 
-            Then("skal det kastet en MottakException med database feil") {
+            Then("skal det kastes en MottakException med databasefeil") {
                 val exception = shouldThrow<MottakException> { writeToFileServiceMock.writeReturnFile() }
                 exception.message shouldBe "Feil under skriving returfil til SPK. Feilmelding: No database connection!"
             }
