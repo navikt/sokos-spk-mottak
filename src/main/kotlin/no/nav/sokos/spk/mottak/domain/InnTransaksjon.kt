@@ -71,7 +71,7 @@ fun InnTransaksjon.mapToTransaksjon(
         datoEndret = LocalDateTime.now(),
         endretAv = systemId,
         versjon = 1,
-        transTilstandType = TRANS_TILSTAND_OPR,
+        transTilstandType = TRANS_TILSTAND_OPPRETTET,
         grad = this.grad,
     )
 }

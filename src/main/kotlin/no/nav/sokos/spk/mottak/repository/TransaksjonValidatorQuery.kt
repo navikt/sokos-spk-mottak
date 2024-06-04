@@ -1,8 +1,8 @@
 package no.nav.sokos.spk.mottak.repository
 
-import no.nav.sokos.spk.mottak.domain.BELOPTYPE_IKKE_SKATTEPLIKTIG_UTBETALING
-import no.nav.sokos.spk.mottak.domain.BELOPTYPE_SKATTEPLIKTIG_UTBETALING
-import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TREKK
+import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_IKKE_SKATTEPLIKTIG_UTBETALING
+import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
+import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_TREKK
 
 object TransaksjonValidatorQuery {
     val VALIDATOR_01_UNIK_ID =
@@ -57,7 +57,7 @@ object TransaksjonValidatorQuery {
         """
         UPDATE T_INN_TRANSAKSJON
         SET K_TRANSAKSJON_S = '04'
-        WHERE K_TRANSAKSJON_S IS NULL AND BELOPSTYPE NOT IN ('$BELOPTYPE_SKATTEPLIKTIG_UTBETALING', '$BELOPTYPE_IKKE_SKATTEPLIKTIG_UTBETALING', '$BELOPTYPE_TREKK')
+        WHERE K_TRANSAKSJON_S IS NULL AND BELOPSTYPE NOT IN ('$BELOPSTYPE_SKATTEPLIKTIG_UTBETALING', '$BELOPSTYPE_IKKE_SKATTEPLIKTIG_UTBETALING', '$BELOPSTYPE_TREKK')
         """.trimIndent()
 
     val VALIDATOR_05_UGYLDIG_ART =
@@ -70,25 +70,6 @@ object TransaksjonValidatorQuery {
                                               LEFT JOIN T_K_ART t2 ON t1.ART = t2.K_ART AND t2.ER_GYLDIG != '0'
                                      WHERE t2.K_ART IS NULL)
         """.trimIndent()
-
-    /* TODO: dette knyttet til vergeregister
-    val VALIDATOR_08_GYLDIG_UTBETALES_TIL =
-        """
-            UPDATE T_INN_TRANSAKSJON
-            SET K_TRANSAKSJON_S = '08'
-            WHERE K_TRANSAKSJON_S IS NULL
-              AND UTBETALES_TIL is not null
-              AND (
-                (LENGTH(UTBETALES_TIL) != 11 AND LENGTH(UTBETALES_TIL) != 6) OR
-                (LENGTH(UTBETALES_TIL) = 6 AND SUBSTR(UTBETALES_TIL, 1, 1) NOT IN ('8', '9')) OR
-                (LENGTH(UTBETALES_TIL) = 11 AND
-                 UTBETALES_TIL IN (SELECT t1.UTBETALES_TIL
-                                   FROM T_INN_TRANSAKSJON t1
-                                            LEFT JOIN T_PERSON t2 ON t1.UTBETALES_TIL = t2.FNR_FK
-                                   WHERE t1.UTBETALES_TIL IS NOT NULL
-                                     AND t2.FNR_FK IS NULL)))
-        """.trimIndent()
-     */
 
     val VALIDATOR_09_GYLDIG_ANVISER_DATO =
         """

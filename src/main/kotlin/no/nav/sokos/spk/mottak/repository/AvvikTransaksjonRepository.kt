@@ -51,13 +51,20 @@ class AvvikTransaksjonRepository(
         )
     }
 
+    /**
+     * Bruker kun for testing
+     */
     fun getByAvvTransaksjonId(avvikTransaksjonId: Int): AvvikTransaksjon? {
         return using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
-                    SELECT * FROM T_AVV_TRANSAKSJON WHERE AVV_TRANSAKSJON_ID = $avvikTransaksjonId
+                    SELECT AVV_TRANSAKSJON_ID, FIL_INFO_ID, K_TRANSAKSJON_S, FNR_FK, BELOPSTYPE, ART, AVSENDER, UTBETALES_TIL, DATO_FOM, DATO_TOM, DATO_ANVISER, BELOP, REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_EKS_ID_FK, DATO_OPPRETTET, OPPRETTET_AV,
+                               DATO_ENDRET, ENDRET_AV, VERSJON, PRIORITET, SALDO, TREKKANSVAR, KID, GRAD
+                    FROM T_AVV_TRANSAKSJON 
+                    WHERE AVV_TRANSAKSJON_ID = :avvikTransaksjonId
                     """.trimIndent(),
+                    mapOf("avvikTransaksjonId" to avvikTransaksjonId),
                 ),
                 mapToAvvikTransaksjon,
             )

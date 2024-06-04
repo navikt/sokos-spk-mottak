@@ -37,7 +37,9 @@ class InnTransaksjonRepository(
             session.list(
                 queryOf(
                     """
-                    SELECT * FROM T_INN_TRANSAKSJON 
+                    SELECT INN_TRANSAKSJON_ID, FIL_INFO_ID, K_TRANSAKSJON_S, FNR_FK, BELOPSTYPE, ART, AVSENDER, UTBETALES_TIL, DATO_FOM_STR, DATO_TOM_STR, DATO_ANVISER_STR, BELOP_STR, REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_ID_FK, DATO_FOM, DATO_TOM,
+                        DATO_ANVISER, BELOP, BEHANDLET, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, PRIORITET_STR, TREKKANSVAR, SALDO_STR, KID, PRIORITET, SALDO, GRAD, GRAD_STR
+                    FROM T_INN_TRANSAKSJON 
                     WHERE FIL_INFO_ID = $filInfoId AND AVSENDER = '$SPK'
                     ORDER BY INN_TRANSAKSJON_ID;
                     """.trimIndent(),
@@ -55,7 +57,9 @@ class InnTransaksjonRepository(
             session.list(
                 queryOf(
                     """
-                    SELECT t.*, p.PERSON_ID FROM T_INN_TRANSAKSJON t LEFT OUTER JOIN T_PERSON p ON t.FNR_FK = p.FNR_FK
+                    SELECT t.INN_TRANSAKSJON_ID, t.FIL_INFO_ID, t.K_TRANSAKSJON_S, t.FNR_FK, t.BELOPSTYPE, ART, t.AVSENDER, t.UTBETALES_TIL, t.DATO_FOM_STR, t.DATO_TOM_STR, t.DATO_ANVISER_STR, t.BELOP_STR, t.REF_TRANS_ID, t.TEKSTKODE, t.RECTYPE, t.TRANS_ID_FK, t.DATO_FOM, t.DATO_TOM,
+                        t.DATO_ANVISER, t.BELOP, BEHANDLET, t.DATO_OPPRETTET, t.OPPRETTET_AV, t.DATO_ENDRET, t.ENDRET_AV, t.VERSJON, t.PRIORITET_STR, t.TREKKANSVAR, t.SALDO_STR, t.KID, t.PRIORITET, t.SALDO, t.GRAD, t.GRAD_STR, p.PERSON_ID 
+                    FROM T_INN_TRANSAKSJON t LEFT OUTER JOIN T_PERSON p ON t.FNR_FK = p.FNR_FK
                     WHERE t.BEHANDLET = '$behandlet' AND AVSENDER = '$SPK'
                     ORDER BY t.FIL_INFO_ID, t.INN_TRANSAKSJON_ID
                     FETCH FIRST $rows ROWS ONLY;
@@ -146,8 +150,9 @@ class InnTransaksjonRepository(
         session.execute(
             queryOf(
                 """
-                DELETE FROM T_INN_TRANSAKSJON WHERE FIL_INFO_ID = $filInfoId
+                DELETE FROM T_INN_TRANSAKSJON WHERE FIL_INFO_ID = :filInfoId
                 """.trimIndent(),
+                mapOf("filInfoId" to filInfoId),
             ),
         )
     }

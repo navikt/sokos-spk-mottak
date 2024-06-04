@@ -6,15 +6,20 @@ import io.prometheus.metrics.core.metrics.Counter
 
 private const val METRICS_NAMESPACE = "sokos_spk_mottak"
 
-private const val EXAMPLE_COUNTER = "${METRICS_NAMESPACE}_example_counter"
-
 object Metrics {
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-    val exampleCounter: Counter =
+    val mqProducerMetricsCounter: Counter =
         Counter.builder()
-            .name(EXAMPLE_COUNTER)
-            .help("Example counter")
+            .name("${METRICS_NAMESPACE}_mq_producer")
+            .help("Counts the number of messages sent to OppdragZ via MQ")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val mqConsumerMetricsCounter: Counter =
+        Counter.builder()
+            .name("${METRICS_NAMESPACE}_mq_consumer")
+            .help("Counts the number of messages receive from OppdragZ via MQ")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 }

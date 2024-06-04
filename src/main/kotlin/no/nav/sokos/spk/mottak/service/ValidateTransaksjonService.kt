@@ -55,9 +55,7 @@ class ValidateTransaksjonService(
                         }
 
                         logger.info {
-                            "$totalInnTransaksjoner innTransaksjoner validert på ${
-                                Duration.between(timer, Instant.now()).toSeconds()
-                            } sekunder. " +
+                            "$totalInnTransaksjoner innTransaksjoner validert på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " +
                                 "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
                         }
                     }

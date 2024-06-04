@@ -29,20 +29,6 @@ class LopenummerRepository(
         }
     }
 
-    fun getLopeNummer(sisteLopeNummer: Int): LopeNummer? {
-        return using(sessionOf(dataSource)) { session ->
-            session.single(
-                queryOf(
-                    """
-                    SELECT * FROM T_LOPENR WHERE SISTE_LOPENR = :sisteLopeNummer
-                    """.trimIndent(),
-                    mapOf("sisteLopeNummer" to sisteLopeNummer),
-                ),
-                mapToLopeNummer,
-            )
-        }
-    }
-
     fun updateLopeNummer(
         lopeNummer: Int,
         filType: String,
@@ -62,6 +48,25 @@ class LopenummerRepository(
                 ),
             ),
         )
+    }
+
+    /**
+     * Bruker kun for testing
+     */
+    fun getLopeNummer(sisteLopeNummer: Int): LopeNummer? {
+        return using(sessionOf(dataSource)) { session ->
+            session.single(
+                queryOf(
+                    """
+                    SELECT LOPENR_ID, SISTE_LOPENR, K_FIL_T, K_ANVISER, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
+                    FROM T_LOPENR 
+                    WHERE SISTE_LOPENR = :sisteLopeNummer
+                    """.trimIndent(),
+                    mapOf("sisteLopeNummer" to sisteLopeNummer),
+                ),
+                mapToLopeNummer,
+            )
+        }
     }
 
     private val mapToLopeNummer: (Row) -> LopeNummer = { row ->

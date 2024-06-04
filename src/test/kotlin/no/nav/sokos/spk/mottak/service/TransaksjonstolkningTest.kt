@@ -2,24 +2,18 @@ package no.nav.sokos.spk.mottak.service
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.TestHelper.verifyTransaksjon
+import no.nav.sokos.spk.mottak.TestHelper.verifyTransaksjonTilstand
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_JA
 import no.nav.sokos.spk.mottak.domain.FNR_ENDRET
 import no.nav.sokos.spk.mottak.domain.FNR_IKKE_ENDRET
-import no.nav.sokos.spk.mottak.domain.InnTransaksjon
-import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
-import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPR
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
-import no.nav.sokos.spk.mottak.domain.Transaksjon
-import no.nav.sokos.spk.mottak.domain.TransaksjonTilstand
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.listener.Db2Listener
-import java.time.LocalDate
 
 class TransaksjonstolkningTest : BehaviorSpec({
     extensions(listOf(Db2Listener))
@@ -401,60 +395,3 @@ class TransaksjonstolkningTest : BehaviorSpec({
         }
     }
 })
-
-private fun verifyTransaksjonTilstand(
-    transaksjonTilstand: TransaksjonTilstand,
-    innTransaksjon: InnTransaksjon,
-) {
-    val systemId = PropertiesConfig.Configuration().naisAppName
-
-    transaksjonTilstand.transaksjonId shouldBe innTransaksjon.innTransaksjonId
-    transaksjonTilstand.transaksjonTilstandId shouldNotBe null
-    transaksjonTilstand.transaksjonTilstandType shouldBe TRANS_TILSTAND_OPR
-    transaksjonTilstand.datoOpprettet.toLocalDate() shouldBe LocalDate.now()
-    transaksjonTilstand.opprettetAv shouldBe systemId
-    transaksjonTilstand.datoEndret.toLocalDate() shouldBe LocalDate.now()
-    transaksjonTilstand.endretAv shouldBe systemId
-    transaksjonTilstand.versjon shouldBe 1
-}
-
-private fun verifyTransaksjon(
-    transaksjon: Transaksjon,
-    innTransaksjon: InnTransaksjon,
-    tolkning: String,
-    fnrEndret: Char,
-    transaksjonType: String = TRANSAKSJONSTATUS_OK,
-) {
-    val systemId = PropertiesConfig.Configuration().naisAppName
-
-    transaksjon.transaksjonId shouldBe innTransaksjon.innTransaksjonId
-    transaksjon.filInfoId shouldBe innTransaksjon.filInfoId
-    transaksjon.transaksjonStatus shouldBe transaksjonType
-    transaksjon.personId shouldBe innTransaksjon.personId
-    transaksjon.belopstype shouldBe innTransaksjon.belopstype
-    transaksjon.art shouldBe innTransaksjon.art
-    transaksjon.anviser shouldBe innTransaksjon.avsender
-    transaksjon.fnr shouldBe innTransaksjon.fnr
-    transaksjon.utbetalesTil shouldBe innTransaksjon.utbetalesTil
-    transaksjon.datoFom shouldBe innTransaksjon.datoFom
-    transaksjon.datoTom shouldBe innTransaksjon.datoTom
-    transaksjon.datoAnviser shouldBe innTransaksjon.datoAnviser
-    transaksjon.datoPersonFom shouldBe LocalDate.of(1900, 1, 1)
-    transaksjon.datoReakFom shouldBe LocalDate.of(1900, 1, 1)
-    transaksjon.belop shouldBe innTransaksjon.belop
-    transaksjon.refTransId shouldBe innTransaksjon.refTransId
-    transaksjon.tekstkode shouldBe innTransaksjon.tekstkode
-    transaksjon.rectype shouldBe innTransaksjon.rectype
-    transaksjon.transEksId shouldBe innTransaksjon.transId
-    transaksjon.transTolkning shouldBe tolkning
-    transaksjon.sendtTilOppdrag shouldBe "0"
-    transaksjon.fnrEndret shouldBe fnrEndret
-    transaksjon.motId shouldBe innTransaksjon.innTransaksjonId.toString()
-    transaksjon.datoOpprettet.toLocalDate() shouldBe LocalDate.now()
-    transaksjon.opprettetAv shouldBe systemId
-    transaksjon.datoEndret.toLocalDate() shouldBe LocalDate.now()
-    transaksjon.endretAv shouldBe systemId
-    transaksjon.versjon shouldBe 1
-    transaksjon.transTilstandType shouldBe TRANS_TILSTAND_OPR
-    transaksjon.grad shouldBe innTransaksjon.grad
-}

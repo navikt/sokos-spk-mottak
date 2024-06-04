@@ -28,7 +28,7 @@ import no.nav.sokos.spk.mottak.TestHelper.verifyFilInfo
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpConfig
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_NEI
-import no.nav.sokos.spk.mottak.domain.BELOPTYPE_SKATTEPLIKTIG_UTBETALING
+import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_AVV
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
@@ -337,7 +337,7 @@ private fun verifyInntransaksjon(
     innTransaksjon.filInfoId shouldBe filInfoId
     innTransaksjon.transaksjonStatus shouldBe null
     innTransaksjon.fnr shouldNotBe null
-    innTransaksjon.belopstype shouldBe BELOPTYPE_SKATTEPLIKTIG_UTBETALING
+    innTransaksjon.belopstype shouldBe BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
     innTransaksjon.art shouldNotBe null
     innTransaksjon.avsender shouldBe SPK
     innTransaksjon.utbetalesTil shouldBe null

@@ -8,7 +8,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPR
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
 import no.nav.sokos.spk.mottak.domain.TransaksjonTilstand
 
 class TransaksjonTilstandRepository(
@@ -29,18 +29,23 @@ class TransaksjonTilstandRepository(
                 DATO_ENDRET, 
                 ENDRET_AV, 
                 VERSJON
-            ) VALUES (:transaksjonId, '$TRANS_TILSTAND_OPR', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)
+            ) VALUES (:transaksjonId, '$TRANS_TILSTAND_OPPRETTET', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)
             """.trimIndent(),
             transaksjonIdList.map { mapOf("transaksjonId" to it) },
         )
     }
 
+    /**
+     * Bruker kun for testing
+     */
     fun getByTransaksjonId(transaksjonId: Int): TransaksjonTilstand? {
         return using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
-                    SELECT * FROM T_TRANS_TILSTAND WHERE TRANSAKSJON_ID = $transaksjonId;
+                    SELECT TRANS_TILSTAND_ID, TRANSAKSJON_ID, K_TRANS_TILST_T, FEILKODE, FEILKODEMELDING, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
+                    FROM T_TRANS_TILSTAND 
+                    WHERE TRANSAKSJON_ID = $transaksjonId;
                     """.trimIndent(),
                 ),
                 mapToTransaksjonTilstand,

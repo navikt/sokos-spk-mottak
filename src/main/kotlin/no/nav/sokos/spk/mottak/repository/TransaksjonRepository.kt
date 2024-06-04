@@ -8,7 +8,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.domain.SPK
-import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPR
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.Transaksjon
@@ -76,7 +76,7 @@ class TransaksjonRepository(
                                                   INNER JOIN T_TRANSAKSJON t2 ON (t1.PERSON_ID = t2.PERSON_ID AND t1.FIL_INFO_ID = t2.FIL_INFO_ID)
                                                   INNER JOIN T_K_GYLDIG_KOMBIN k2 on (t2.K_ART = k2.K_ART AND t2.K_BELOP_T = k2.K_BELOP_T)
                                          WHERE t1.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
-                                           AND t1.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPR'
+                                           AND t1.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPPRETTET'
                                            AND t1.K_ANVISER = '$SPK'
                                            AND t1.TRANSAKSJON_ID > t2.TRANSAKSJON_ID
                                            AND k1.K_FAGOMRADE = k2.K_FAGOMRADE
@@ -98,7 +98,7 @@ class TransaksjonRepository(
                     FROM T_TRANSAKSJON t
                              INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER)
                     WHERE t.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
-                      AND t.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPR'
+                      AND t.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPPRETTET'
                       AND t.K_ANVISER = '$SPK'
                     GROUP BY t.PERSON_ID, t.K_TRANS_TOLKNING, k.K_FAGOMRADE
                     HAVING COUNT(*) > 1
@@ -146,12 +146,44 @@ class TransaksjonRepository(
         }
     }
 
+    fun findAllByBelopstypeAndByTransaksjonTilstand(
+        belopstype: List<String>,
+        transaksjonTilstand: List<String>,
+    ): List<Transaksjon> {
+        return using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    SELECT t.TRANSAKSJON_ID, t.TRANS_TILSTAND_ID, t.FIL_INFO_ID, t.K_TRANSAKSJON_S, t.PERSON_ID, t.K_BELOP_T, t.K_ART, t.K_ANVISER, t.FNR_FK, t.UTBETALES_TIL, t.OS_ID_FK, t.OS_LINJE_ID_FK, t.DATO_FOM, t.DATO_TOM, t.DATO_ANVISER, t.DATO_PERSON_FOM, t.DATO_t.REAK_FOM, t.BELOP,
+                           t.REF_TRANS_ID, t.TEKSTKODE, RECTYPE, t.TRANS_EKS_ID_FK, t.K_TRANS_TOLKNING, t.SENDT_TIL_OPPDRAG, t.TREKKVEDTAK_ID_FK, t.FNR_ENDRET, t.MOT_ID, t.OS_STATUS, t.DATO_OPPRETTET, t.OPPRETTET_AV, t.DATO_ENDRET, t.ENDRET_AV, t.VERSJON, t.SALDO, t.KID, t.PRIORITET,
+                           t.K_TREKKANSVAR, t.K_TRANS_TILST_T, t.GRAD
+                    FROM T_TRANSAKSJON t
+                        INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER)
+                    WHERE t.K_ANVISER = '$SPK' 
+                    AND g.ER_GYLDIG = 1
+                    AND t.K_BELOP_T IN (${belopstype.joinToString()}) 
+                    AND t.K_TRANS_TILSTNAD IN (${transaksjonTilstand.joinToString()})
+                    ORDER BY t.PERSON_ID, t.DATO_FOM, t.DATO_TOM, t.K_ART, t.K_BELOP_T, t.K_TRANS_TOLKNING
+                    """.trimIndent(),
+                ),
+                mapToTransaksjon,
+            )
+        }
+    }
+
+    /**
+     * Bruker kun for testing
+     */
     fun getByTransaksjonId(transaksjonId: Int): Transaksjon? {
         return using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
-                    SELECT * FROM T_TRANSAKSJON WHERE TRANSAKSJON_ID = $transaksjonId
+                    SELECT TRANSAKSJON_ID, TRANS_TILSTAND_ID, FIL_INFO_ID, K_TRANSAKSJON_S, PERSON_ID, K_BELOP_T, K_ART, K_ANVISER, FNR_FK, UTBETALES_TIL, OS_ID_FK, OS_LINJE_ID_FK, DATO_FOM, DATO_TOM, DATO_ANVISER, DATO_PERSON_FOM, DATO_REAK_FOM, BELOP,
+                           REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_EKS_ID_FK, K_TRANS_TOLKNING, SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, SALDO, KID, PRIORITET,
+                           K_TREKKANSVAR, K_TRANS_TILST_T, GRAD
+                    FROM T_TRANSAKSJON 
+                    WHERE TRANSAKSJON_ID = $transaksjonId
                     """.trimIndent(),
                 ),
                 mapToTransaksjon,

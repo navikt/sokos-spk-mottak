@@ -1,11 +1,10 @@
 package no.nav.sokos.spk.mottak
 
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.domain.BELOPTYPE_SKATTEPLIKTIG_UTBETALING
+import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
-import no.nav.sokos.spk.mottak.integration.models.FullmaktDTO
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -26,25 +25,6 @@ const val SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP = "P611.ANV.NAV.HUB.SPK.L003919.D2
 const val SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE = "P611.ANV.NAV.HUB.SPK.L003919.D240104.T003017_UGYLDIG_TRANSAKSJON_RECTYPE.txt"
 
 object TestData {
-    fun fullmakterMock(): List<FullmaktDTO> {
-        return listOf(
-            FullmaktDTO(
-                aktorIdentGirFullmakt = "22031366171",
-                aktorIdentMottarFullmakt = "07846497913",
-                kodeAktorTypeGirFullmakt = "PERSON",
-                kodeAktorTypeMottarFullmakt = "PERSON",
-                kodeFullmaktType = "VERGE_PENGEMOT",
-            ),
-            FullmaktDTO(
-                aktorIdentGirFullmakt = "02500260109",
-                aktorIdentMottarFullmakt = "08049011297",
-                kodeAktorTypeGirFullmakt = "PERSON",
-                kodeAktorTypeMottarFullmakt = "PERSON",
-                kodeFullmaktType = "VERGE_PENGEMOT",
-            ),
-        )
-    }
-
     fun innTransaksjonMock(): InnTransaksjon {
         val systemId = PropertiesConfig.Configuration().naisAppName
         return InnTransaksjon(
@@ -52,7 +32,7 @@ object TestData {
             filInfoId = 123,
             transaksjonStatus = null,
             fnr = "22031366171",
-            belopstype = BELOPTYPE_SKATTEPLIKTIG_UTBETALING,
+            belopstype = BELOPSTYPE_SKATTEPLIKTIG_UTBETALING,
             art = "UFT",
             avsender = SPK,
             utbetalesTil = null,

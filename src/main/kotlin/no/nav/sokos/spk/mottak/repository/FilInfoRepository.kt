@@ -7,76 +7,34 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
+import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.util.Util.asMap
 
 class FilInfoRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
-    fun getByLopenummerAndFilTilstand(
-        lopeNummer: Int,
-        filTilstandType: String,
-    ): FilInfo? {
-        return using(sessionOf(dataSource)) { session ->
-            session.single(
-                queryOf(
-                    """
-                    SELECT * FROM T_FIL_INFO WHERE LOPENR = :lopeNummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = 'SPK'
-                    """.trimIndent(),
-                    mapOf(
-                        "lopeNummer" to lopeNummer,
-                        "filTilstandType" to filTilstandType,
-                    ),
-                ),
-                mapToFileInfo,
-            )
-        }
-    }
-
     fun getByFilTilstandAndAllInnTransaksjonIsBehandlet(filTilstandType: String = FILTILSTANDTYPE_GOD): List<FilInfo> {
         return using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
                     """
-                    SELECT * FROM T_FIL_INFO
-                    WHERE K_FIL_TILSTAND_T = '$filTilstandType'
+                    SELECT FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
+                    FROM T_FIL_INFO
+                    WHERE K_FIL_TILSTAND_T = :filTilstandType
                     AND K_FIL_S = '${FilStatus.OK.code}'
                     AND FIL_INFO_ID IN (select FIL_INFO_ID
                     FROM T_INN_TRANSAKSJON
                     GROUP BY FIL_INFO_ID
                     HAVING SUM(CASE WHEN BEHANDLET = 'J' THEN 0 ELSE 1 END) = 0)
                     """.trimIndent(),
+                    mapOf("filTilstandType" to filTilstandType),
                 ),
                 mapToFileInfo,
             )
         }
-    }
-
-    fun updateTilstandType(
-        filInfoId: Int,
-        filTilstandType: String,
-        filType: String,
-        session: Session,
-    ) {
-        session.update(
-            queryOf(
-                """
-                UPDATE T_FIL_INFO
-                SET K_FIL_TILSTAND_T = (:filTilstandType), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP
-                WHERE K_ANVISER = 'SPK'
-                AND K_FIL_T = (:filType)
-                AND FIL_INFO_ID = (:filInfoId)
-                """.trimIndent(),
-                mapOf(
-                    "filInfoId" to filInfoId,
-                    "filTilstandType" to filTilstandType,
-                    "filType" to filType,
-                ),
-            ),
-        )
     }
 
     fun insert(
@@ -104,6 +62,31 @@ class FilInfoRepository(
                 filInfo.asMap(),
             ),
         )
+    }
+
+    /**
+     * Bruker kun for testing
+     */
+    fun getByLopenummerAndFilTilstand(
+        lopeNummer: Int,
+        filTilstandType: String,
+    ): FilInfo? {
+        return using(sessionOf(dataSource)) { session ->
+            session.single(
+                queryOf(
+                    """
+                    SELECT FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
+                    FROM T_FIL_INFO 
+                    WHERE LOPENR = :lopeNummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = '$SPK'
+                    """.trimIndent(),
+                    mapOf(
+                        "lopeNummer" to lopeNummer,
+                        "filTilstandType" to filTilstandType,
+                    ),
+                ),
+                mapToFileInfo,
+            )
+        }
     }
 
     private val mapToFileInfo: (Row) -> FilInfo = { row ->

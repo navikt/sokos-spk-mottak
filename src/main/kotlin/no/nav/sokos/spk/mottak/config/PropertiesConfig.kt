@@ -83,11 +83,6 @@ object PropertiesConfig {
         val clientSecret: String = getOrEmpty("AZURE_APP_CLIENT_SECRET"),
     )
 
-    data class PensjonFullmaktConfig(
-        val fullmaktUrl: String = getOrEmpty("PENSJON_REPRESENTASJON_URL"),
-        val fullmaktScope: String = getOrEmpty("PENSJON_REPRESENTASJON_SCOPE"),
-    )
-
     data class PostgresProperties(
         val host: String = get("POSTGRES_HOST"),
         val port: String = get("POSTGRES_PORT"),
@@ -108,13 +103,14 @@ object PropertiesConfig {
     )
 
     data class MQProperties(
-        val mqQueueManager: String = get("MQ_QUEUE_MANAGER"),
-        val mqHostname: String = get("MQ_HOSTNAME"),
-        val mqPort: Int = get("MQ_PORT").toInt(),
-        val mqChannelName: String = getOrEmpty("MQ_CHANNELNAME"),
-        val mqQueueName: String = getOrEmpty("MQ_QUEUE_MANAGER"),
-        val serviceuserUsername: String = getOrEmpty("SERVICE_USERNAME"),
-        val serviceuserPassword: String = getOrEmpty("SERVICE_USERPASSWORD"),
+        // val mqQueueManager: String = get("MQ_QUEUE_MANAGER"),
+        val queueManagerName: String = getOrEmpty("MQ_QUEUE_MANAGER_NAME"),
+        val hostname: String = get("MQ_HOSTNAME"),
+        val port: Int = get("MQ_PORT").toInt(),
+        val queueName: String = getOrEmpty("MQ_QUEUE_NAME"),
+        // val mqChannelName: String = getOrEmpty("MQ_CHANNEL_NAME"),
+        val serviceUsername: String = getOrEmpty("MQ_SERVICE_USERNAME"),
+        val servicePassword: String = getOrEmpty("MQ_SERVICE_PASSWORD"),
     )
 
     enum class Profile {
