@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.sokos.spk.mottak.util.Util.toLocalDate
 import java.time.LocalDate
 
-class UtilTest : ExpectSpec({
+internal class UtilTest : ExpectSpec({
 
     context("string konverteres til LocalDate") {
 

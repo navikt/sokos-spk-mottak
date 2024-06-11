@@ -15,7 +15,7 @@ import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 import no.nav.sokos.spk.mottak.service.WriteToFileService
 
-class SchedulerTest : ShouldSpec({
+internal class SchedulerTest : ShouldSpec({
     extensions(PostgresListener)
 
     val readAndParseFileService = mockk<ReadAndParseFileService>()

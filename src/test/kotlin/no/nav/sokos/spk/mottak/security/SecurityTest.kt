@@ -19,24 +19,24 @@ import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.mock.oauth2.withMockOAuth2Server
 import no.nav.sokos.spk.mottak.api.mottakApi
-import no.nav.sokos.spk.mottak.config.API_BASE_PATH
 import no.nav.sokos.spk.mottak.config.AUTHENTICATION_NAME
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.authenticate
-import no.nav.sokos.spk.mottak.config.configureTestApplication
+import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.securityConfig
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 
-class SecurityTest : FunSpec({
+private const val API_BASE_PATH = "/api/v1"
+
+internal class SecurityTest : FunSpec({
     val readAndParseFileService: ReadAndParseFileService = mockk()
     val validateTransaksjonService: ValidateTransaksjonService = mockk()
 
     test("http GET endepunkt uten token bør returnere 401 - Unauthorized") {
         withMockOAuth2Server {
             testApplication {
-                configureTestApplication()
-                this.application {
+                application {
                     securityConfig(true, authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
@@ -69,8 +69,8 @@ class SecurityTest : FunSpec({
                             )
                         }
                     }
-                configureTestApplication()
-                this.application {
+                application {
+                    commonConfig()
                     securityConfig(true, authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {

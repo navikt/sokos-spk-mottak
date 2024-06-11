@@ -25,7 +25,7 @@ import no.nav.sokos.spk.mottak.listener.Db2Listener
 import java.sql.SQLException
 import java.time.LocalDate
 
-class ValidateTransaksjonServiceTest : BehaviorSpec({
+internal class ValidateTransaksjonServiceTest : BehaviorSpec({
     extensions(listOf(Db2Listener))
 
     val validateTransaksjonService = ValidateTransaksjonService(Db2Listener.dataSource)
