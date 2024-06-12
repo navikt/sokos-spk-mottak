@@ -24,7 +24,8 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_09
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_10_GYLDIG_BELOP
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_11_GYLDIG_KOMBINASJON_ART_OG_BELOPSTYPE
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_16_GYLDIG_GRAD
-import no.nav.sokos.spk.mottak.util.Util.toLocalDate
+import no.nav.sokos.spk.mottak.util.SQLUtils.optionalOrNull
+import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 import java.time.LocalDateTime
 
 private const val READ_ROWS: Int = 10000
@@ -246,13 +247,7 @@ class InnTransaksjonRepository(
             row.int("VERSJON"),
             row.intOrNull("GRAD"),
             row.stringOrNull("GRAD_STR"),
-            row.optionalIntOrNull("PERSON_ID"),
+            row.optionalOrNull("PERSON_ID"),
         )
-    }
-
-    private fun Row.optionalIntOrNull(columnLable: String): Int? {
-        return runCatching {
-            this.intOrNull(columnLable)
-        }.getOrNull()
     }
 }

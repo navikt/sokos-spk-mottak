@@ -60,7 +60,7 @@ val flywayVersion = "10.14.0"
 val postgresVersion = "42.7.3"
 val dbSchedulerVersion = "14.0.1"
 val vaultVersion = "1.3.10"
-val tjenestespesifikasjonVersion = "2633.1685ed5"
+val tjenestespesifikasjonVersion = "1.0_20240528104756_019ab12"
 val ibmMqVersion = "9.3.5.1"
 
 dependencies {
@@ -82,6 +82,7 @@ dependencies {
     // Serialization
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion")
+    implementation("org.glassfish.jaxb:jaxb-runtime:4.0.5")
 
     // Monitorering
     implementation("io.ktor:ktor-server-metrics-micrometer-jvm:$ktorVersion")
@@ -115,7 +116,7 @@ dependencies {
     implementation("com.ibm.mq:com.ibm.mq.allclient:$ibmMqVersion")
 
     // Oppdrag
-    implementation("no.nav.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
+    implementation("no.nav.familie.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
 
     // Test
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")

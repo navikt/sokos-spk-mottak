@@ -49,6 +49,9 @@ spec:
   webproxy: true
   vault:
     enabled: true
+    paths:
+      - kvPath: /serviceuser/data/dev/srvmotmq
+        mountPath: /var/run/secrets/nais.io/srvmotmq
   filesFrom:
     - secret: db2license
       mountPath: /var/run/secrets/db2license
@@ -80,6 +83,20 @@ spec:
       value: sokos-spk-mottak
     - name: VAULT_MOUNTPATH
       value: postgresql/preprod-fss/
+
+    # MQ
+    - name: MQ_HOSTNAME
+      value: mqls02.preprod.local
+    - name: MQ_PORT
+      value: "1413"
+    - name: MQ_QUEUE_MANAGER_NAME
+      value: MQLS02
+    - name: MQ_CHANNEL_NAME
+      value: Q1_MOT
+    - name: MQ_UTBETALING_QUEUE_NAME
+      value: QA.Q1_231.OB04_OPPDRAG_MOT_XML
+    - name: MQ_UTBETALING_REPLY_QUEUE_NAME
+      value: QA.Q1_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY
 
     # SFTP
     - name: SFTP_SERVER

@@ -10,6 +10,7 @@ import com.github.kagkarlsson.scheduler.task.schedule.Schedules.cron
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
+import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 import no.nav.sokos.spk.mottak.service.WriteToFileService
 import java.time.Duration
@@ -50,6 +51,19 @@ object JobTaskConfig {
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
                 validateTransaksjonService.validateInnTransaksjon()
                 writeToFileService.writeReturnFile()
+            }
+    }
+
+    internal fun recurringSendTransaksjonTilOppdragTask(
+        sendUtbetalingTransaksjonService: SendUtbetalingTransaksjonService = SendUtbetalingTransaksjonService(),
+        schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
+    ): RecurringTask<Void> {
+        var showLogLocalTime = LocalDateTime.now()
+        return Tasks
+            .recurring("sendUtbetalingTransaksjonTilOppdrag", cron(schedulerProperties.validateTransaksjonCronPattern))
+            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
+                showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                sendUtbetalingTransaksjonService.hentUtbetalingTransaksjonOgSendTilOppdrag()
             }
     }
 

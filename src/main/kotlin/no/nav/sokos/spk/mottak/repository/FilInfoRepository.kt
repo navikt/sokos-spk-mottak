@@ -11,7 +11,7 @@ import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.SPK
-import no.nav.sokos.spk.mottak.util.Util.asMap
+import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
 
 class FilInfoRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
