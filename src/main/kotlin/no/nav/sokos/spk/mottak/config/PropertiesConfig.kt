@@ -103,12 +103,11 @@ object PropertiesConfig {
     )
 
     data class MQProperties(
-        // val mqQueueManager: String = get("MQ_QUEUE_MANAGER"),
-        val queueManagerName: String = getOrEmpty("MQ_QUEUE_MANAGER_NAME"),
+        val mqQueueManager: String = get("MQ_QUEUE_MANAGER"),
         val hostname: String = get("MQ_HOSTNAME"),
         val port: Int = get("MQ_PORT").toInt(),
         val queueName: String = getOrEmpty("MQ_QUEUE_NAME"),
-        // val mqChannelName: String = getOrEmpty("MQ_CHANNEL_NAME"),
+        val mqChannelName: String = getOrEmpty("MQ_CHANNEL_NAME"),
         val serviceUsername: String = getOrEmpty("MQ_SERVICE_USERNAME"),
         val servicePassword: String = getOrEmpty("MQ_SERVICE_PASSWORD"),
     )

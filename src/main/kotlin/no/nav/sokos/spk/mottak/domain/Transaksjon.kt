@@ -19,7 +19,7 @@ data class Transaksjon(
     val datoTom: LocalDate?,
     val datoAnviser: LocalDate?,
     val datoPersonFom: LocalDate,
-    val datoReakFom: LocalDate,
+    val datoReakFom: LocalDate? = null,
     val belop: Int,
     val refTransId: String?,
     val tekstkode: String?,
@@ -38,4 +38,16 @@ data class Transaksjon(
     val versjon: Int,
     val transTilstandType: String? = null,
     val grad: Int?,
+    val trekkType: String? = null,
+    val trekkAlternativ: String? = null,
+    val trekkGruppe: String? = null,
+    val gyldigKombinasjon: GyldigKombinasjon = GyldigKombinasjon(),
 )
+
+fun Transaksjon.getTransTolkningOppdragKode(): String {
+    return when (transTolkning) {
+        TRANS_TOLKNING_NY -> "NY"
+        TRANS_TOLKNING_NY_EKSIST -> "ENDR"
+        else -> "UEND"
+    }
+}

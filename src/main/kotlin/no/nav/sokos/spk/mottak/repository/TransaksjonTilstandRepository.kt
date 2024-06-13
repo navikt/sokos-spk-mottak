@@ -16,6 +16,7 @@ class TransaksjonTilstandRepository(
 ) {
     fun insertBatch(
         transaksjonIdList: List<Int>,
+        transaksjonTilstandType: String = TRANS_TILSTAND_OPPRETTET,
         session: Session,
     ): List<Int> {
         val systemId = PropertiesConfig.Configuration().naisAppName
@@ -29,7 +30,7 @@ class TransaksjonTilstandRepository(
                 DATO_ENDRET, 
                 ENDRET_AV, 
                 VERSJON
-            ) VALUES (:transaksjonId, '$TRANS_TILSTAND_OPPRETTET', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)
+            ) VALUES (:transaksjonId, '$transaksjonTilstandType', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)
             """.trimIndent(),
             transaksjonIdList.map { mapOf("transaksjonId" to it) },
         )

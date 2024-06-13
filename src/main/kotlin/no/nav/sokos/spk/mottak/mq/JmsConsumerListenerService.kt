@@ -11,7 +11,7 @@ private val logger = KotlinLogging.logger {}
 
 class JmsConsumerListenerService(private val connectionFactory: ConnectionFactory = MQConfig.connectionFactory()) {
     private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)
-    private val utbetalingConsumer = jmsContext.createConsumer(jmsContext.createQueue(PropertiesConfig.MQProperties().queueManagerName))
+    private val utbetalingConsumer = jmsContext.createConsumer(jmsContext.createQueue(PropertiesConfig.MQProperties().mqQueueManager))
 
     init {
         utbetalingConsumer.setMessageListener { message ->
@@ -22,11 +22,11 @@ class JmsConsumerListenerService(private val connectionFactory: ConnectionFactor
                 Metrics.mqConsumerMetricsCounter.inc()
             }.onFailure { exception ->
                 logger.error(exception) {
-                    "Feil ved prosessering av melding fra: ${PropertiesConfig.MQProperties().queueManagerName}"
+                    "Feil ved prosessering av melding fra: ${PropertiesConfig.MQProperties().mqQueueManager}"
                 }
             }
         }
-        jmsContext.setExceptionListener { exception -> logger.error("Feil mot ${PropertiesConfig.MQProperties().queueManagerName}", exception) }
+        jmsContext.setExceptionListener { exception -> logger.error("Feil mot ${PropertiesConfig.MQProperties().mqQueueManager}", exception) }
         jmsContext.start()
     }
 }

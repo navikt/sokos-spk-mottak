@@ -41,7 +41,7 @@ val ktorVersion = "2.3.11"
 val jschVersion = "0.2.17"
 val logbackVersion = "1.5.6"
 val logstashVersion = "7.4"
-val jacksonVersion = "2.15.3"
+val jacksonVersion = "2.17.1"
 val micrometerVersion = "1.13.0"
 val kotlinLoggingVersion = "3.0.5"
 val janionVersion = "3.1.12"
@@ -82,6 +82,9 @@ dependencies {
     // Serialization
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
 
     // Monitorering
     implementation("io.ktor:ktor-server-metrics-micrometer-jvm:$ktorVersion")
