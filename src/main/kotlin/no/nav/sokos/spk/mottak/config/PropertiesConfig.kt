@@ -19,6 +19,8 @@ object PropertiesConfig {
                 "READ_AND_PARSEFILE_CRON_PATTERN" to "0 10 * * * *",
                 "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 * * * * *",
                 "SEND_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "* * * * * *",
+                "MQ_TREKK_SEND_QUEUE_NAME" to "",
+                "MQ_TREKK_REPLY_QUEUE_NAME" to "",
             ),
         )
 
