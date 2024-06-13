@@ -1,5 +1,12 @@
-FROM bellsoft/liberica-openjdk-alpine:21@sha256:c5781987118dcfe21d3b5c4ba9f7ddf572d5fc56da3b1e02842e0b7740c1233d
+FROM ghcr.io/navikt/baseimages/temurin:21
+LABEL org.opencontainers.image.source=https://github.com/navikt/sokos-spk-mottak
+
 COPY build/libs/*.jar app.jar
 CMD ["dumb-init", "--"]
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
+
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:ActiveProcessorCount=2 -XX:+UseParallelGC"
+
+# Export vault properties to env
+COPY .nais/export-vault.sh /init-scripts/export-vault.sh
+
 ENTRYPOINT ["java","-jar", "app.jar"]

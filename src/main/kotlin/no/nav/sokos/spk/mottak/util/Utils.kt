@@ -2,9 +2,10 @@ package no.nav.sokos.spk.mottak.util
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import kotlin.reflect.full.memberProperties
+import javax.xml.datatype.DatatypeFactory
+import javax.xml.datatype.XMLGregorianCalendar
 
-object Util {
+object Utils {
     fun String.toLocalDate(): LocalDate? {
         return runCatching {
             this.ifBlank { null }.let { LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd")) }
@@ -15,12 +16,11 @@ object Util {
         return this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
     }
 
-    fun Boolean.toChar(): Char {
-        return if (this) '1' else '0'
+    fun LocalDate.toXMLGregorianCalendar(): XMLGregorianCalendar {
+        return DatatypeFactory.newInstance().newXMLGregorianCalendar(this.toString())
     }
 
-    inline fun <reified T : Any> T.asMap(): Map<String, Any?> {
-        val props = T::class.memberProperties.associateBy { it.name }
-        return props.keys.associateWith { props[it]?.get(this) }
+    fun Boolean.toChar(): Char {
+        return if (this) '1' else '0'
     }
 }

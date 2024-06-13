@@ -15,7 +15,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 
-class TransaksjonstolkningTest : BehaviorSpec({
+internal class TransaksjonstolkningTest : BehaviorSpec({
     extensions(listOf(Db2Listener))
 
     val validateTransaksjonService = ValidateTransaksjonService(Db2Listener.dataSource)

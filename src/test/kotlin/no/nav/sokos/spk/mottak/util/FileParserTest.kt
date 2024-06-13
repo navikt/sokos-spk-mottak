@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.sokos.spk.mottak.SPK_OK
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 
-class FileParserTest : BehaviorSpec({
+internal class FileParserTest : BehaviorSpec({
 
     Given("SPK innlesingsfil") {
         val spkFil = readFromResource("/spk/$SPK_OK")

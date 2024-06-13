@@ -1,7 +1,7 @@
 package no.nav.sokos.spk.mottak.domain
 
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.util.Util.toChar
+import no.nav.sokos.spk.mottak.util.Utils.toChar
 import java.time.LocalDate
 import java.time.LocalDateTime
 

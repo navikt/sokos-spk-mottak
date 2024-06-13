@@ -2,10 +2,10 @@ package no.nav.sokos.spk.mottak.util
 
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
-import no.nav.sokos.spk.mottak.util.Util.toLocalDate
+import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 import java.time.LocalDate
 
-class UtilTest : ExpectSpec({
+internal class UtilTest : ExpectSpec({
 
     context("string konverteres til LocalDate") {
 

@@ -7,13 +7,15 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.domain.GyldigKombinasjon
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.Transaksjon
-import no.nav.sokos.spk.mottak.util.Util.asMap
-import no.nav.sokos.spk.mottak.util.Util.toChar
+import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
+import no.nav.sokos.spk.mottak.util.SQLUtils.optionalOrNull
+import no.nav.sokos.spk.mottak.util.Utils.toChar
 
 class TransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
@@ -268,6 +270,11 @@ class TransaksjonRepository(
             trekkType = row.stringOrNull("K_TREKK_T"),
             trekkGruppe = row.stringOrNull("K_TREKKGRUPPE"),
             trekkAlternativ = row.stringOrNull("K_TREKKALT_T"),
+            gyldigKombinasjon =
+                GyldigKombinasjon(
+                    fagomrade = row.optionalOrNull("K_FAGOMRADE"),
+                    osKlassifikasjon = row.optionalOrNull("OS_KLASSIFIKASJON"),
+                ),
         )
     }
 }

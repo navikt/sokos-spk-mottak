@@ -22,7 +22,7 @@ import no.nav.sokos.spk.mottak.listener.SftpListener
 import java.io.IOException
 import java.sql.SQLException
 
-class WriteToFileServiceTest : BehaviorSpec({
+internal class WriteToFileServiceTest : BehaviorSpec({
     extensions(listOf(Db2Listener, SftpListener))
 
     val ftpService: FtpService by lazy {

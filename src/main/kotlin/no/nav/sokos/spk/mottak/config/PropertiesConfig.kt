@@ -14,9 +14,11 @@ object PropertiesConfig {
             mapOf(
                 "NAIS_APP_NAME" to "sokos-spk-mottak",
                 "NAIS_NAMESPACE" to "okonomi",
+                "MQ_SERVICE_USERNAME" to "srvmotmq",
                 "USE_AUTHENTICATION" to "true",
                 "READ_AND_PARSEFILE_CRON_PATTERN" to "0 10 * * * *",
                 "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 * * * * *",
+                "SEND_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "* * * * * *",
             ),
         )
 
@@ -28,9 +30,12 @@ object PropertiesConfig {
                 "POSTGRES_HOST" to "dev-pg.intern.nav.no",
                 "POSTGRES_PORT" to "5432",
                 "POSTGRES_NAME" to "sokos-spk-mottak",
-                "MQ_QUEUE_MANAGER" to "",
-                "MQ_HOSTNAME" to "",
-                "MQ_PORT" to "",
+                "MQ_HOSTNAME" to "mqls02.preprod.local",
+                "MQ_PORT" to "1413",
+                "MQ_QUEUE_MANAGER_NAME" to "MQLS02",
+                "MQ_CHANNEL_NAME" to "Q1_MOT",
+                "MQ_UTBETALING_QUEUE_NAME" to "QA.Q1_231.OB04_OPPDRAG_MOT_XML",
+                "MQ_UTBETALING_REPLY_QUEUE_NAME" to "QA.Q1_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY",
             ),
         )
 
@@ -100,16 +105,19 @@ object PropertiesConfig {
     data class SchedulerProperties(
         val readAndParseFileCronPattern: String = getOrEmpty("READ_AND_PARSEFILE_CRON_PATTERN"),
         val validateTransaksjonCronPattern: String = getOrEmpty("VALIDATE_TRANSAKSJON_CRON_PATTERN"),
+        val sendTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
     )
 
     data class MQProperties(
-        val mqQueueManager: String = get("MQ_QUEUE_MANAGER"),
+        val queueName: String = getOrEmpty("MQ_QUEUE_NAME"),
         val hostname: String = get("MQ_HOSTNAME"),
         val port: Int = get("MQ_PORT").toInt(),
-        val queueName: String = getOrEmpty("MQ_QUEUE_NAME"),
+        val mqQueueManagerName: String = get("MQ_QUEUE_MANAGER_NAME"),
         val mqChannelName: String = getOrEmpty("MQ_CHANNEL_NAME"),
         val serviceUsername: String = getOrEmpty("MQ_SERVICE_USERNAME"),
         val servicePassword: String = getOrEmpty("MQ_SERVICE_PASSWORD"),
+        val utbetalingQueueName: String = getOrEmpty("MQ_UTBETALING_QUEUE_NAME"),
+        val utbetalingReplyQueueName: String = getOrEmpty("MQ_UTBETALING_REPLY_QUEUE_NAME"),
     )
 
     enum class Profile {

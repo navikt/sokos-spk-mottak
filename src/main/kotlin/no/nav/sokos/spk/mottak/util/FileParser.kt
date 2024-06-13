@@ -12,8 +12,8 @@ import no.nav.sokos.spk.mottak.domain.TransaksjonStatus
 import no.nav.sokos.spk.mottak.domain.record.SluttRecord
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
-import no.nav.sokos.spk.mottak.util.Util.toLocalDate
-import no.nav.sokos.spk.mottak.util.Util.toLocalDateString
+import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
+import no.nav.sokos.spk.mottak.util.Utils.toLocalDateString
 
 object FileParser {
     fun parseStartRecord(record: String): StartRecord {

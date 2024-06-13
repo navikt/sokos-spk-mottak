@@ -25,7 +25,7 @@ import java.time.Instant
 private val logger = KotlinLogging.logger { }
 private const val BATCH_SIZE = 1000
 
-class SendTransaksjonService(
+class SendTrekkTransaksjonService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)

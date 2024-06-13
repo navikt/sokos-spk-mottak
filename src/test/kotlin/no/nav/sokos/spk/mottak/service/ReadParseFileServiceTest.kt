@@ -46,7 +46,7 @@ import java.time.LocalDate
 
 private const val MAX_LOPENUMMER = 33
 
-class ReadParseFileServiceTest : BehaviorSpec({
+internal class ReadParseFileServiceTest : BehaviorSpec({
     extensions(listOf(Db2Listener, SftpListener))
 
     val ftpService: FtpService by lazy {
