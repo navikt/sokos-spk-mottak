@@ -30,8 +30,8 @@ class SendTrekkTransaksjonService(
 ) {
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
-    private val trekkSender = MQSender(MQ(), MQQueue(PropertiesConfig.MQProperties().queueName))
-    private val replyQueueTrekk = MQQueue(PropertiesConfig.MQProperties().queueName)
+    private val trekkSender = MQSender(MQ(), MQQueue(PropertiesConfig.MQProperties().trekkSenderQueueName))
+    private val replyQueueTrekk = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName)
 
     fun sendTrekkTilOppdrag() {
         val timer = Instant.now()
@@ -42,11 +42,11 @@ class SendTrekkTransaksjonService(
             logger.info { "Starter sending av trekktransaksjoner til OppdragZ" }
             transaksjoner.chunked(BATCH_SIZE).forEach {
                 val transaksjonIdList = it.map { it.transaksjonId!! }
-                val trekkMeldinger: MutableList<AndreTrekk> = mutableListOf()
+                val trekkMeldinger: MutableList<String> = mutableListOf()
                 it.forEach { transaksjon ->
-                    trekkMeldinger.add(opprettAndreTrekk(transaksjon))
+                    trekkMeldinger.add(xmlMapper.writeValueAsString(opprettAndreTrekk(transaksjon)))
                 }
-                trekkSender.send(xmlMapper.writeValueAsString(trekkMeldinger)) {
+                trekkSender.send(trekkMeldinger.joinToString(separator = "")) {
                     jmsReplyTo = replyQueueTrekk
                 }
                 totalTransaksjoner += transaksjonIdList.size

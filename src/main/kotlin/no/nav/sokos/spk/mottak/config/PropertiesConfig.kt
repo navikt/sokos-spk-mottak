@@ -109,7 +109,8 @@ object PropertiesConfig {
     )
 
     data class MQProperties(
-        val queueName: String = getOrEmpty("MQ_QUEUE_NAME"),
+        val trekkSenderQueueName: String = getOrEmpty("MQ_TREKK_SEND_QUEUE_NAME"),
+        val trekkReplyQueueName: String = getOrEmpty("MQ_TREKK_REPLY_QUEUE_NAME"),
         val hostname: String = get("MQ_HOSTNAME"),
         val port: Int = get("MQ_PORT").toInt(),
         val mqQueueManagerName: String = get("MQ_QUEUE_MANAGER_NAME"),
