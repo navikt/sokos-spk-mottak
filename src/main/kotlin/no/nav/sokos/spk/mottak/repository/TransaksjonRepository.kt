@@ -268,9 +268,9 @@ class TransaksjonRepository(
             versjon = row.int("VERSJON"),
             transTilstandType = row.stringOrNull("K_TRANS_TILST_T"),
             grad = row.intOrNull("GRAD"),
-            trekkType = row.stringOrNull("K_TREKK_T"),
-            trekkGruppe = row.stringOrNull("K_TREKKGRUPPE"),
-            trekkAlternativ = row.stringOrNull("K_TREKKALT_T"),
+            trekkType = row.optionalOrNull("K_TREKK_T"),
+            trekkGruppe = row.optionalOrNull("K_TREKKGRUPPE"),
+            trekkAlternativ = row.optionalOrNull("K_TREKKALT_T"),
             gyldigKombinasjon =
                 GyldigKombinasjon(
                     fagomrade = row.optionalOrNull("K_FAGOMRADE"),
