@@ -205,7 +205,7 @@ class TransaksjonRepository(
             queryOf(
                 """
                 UPDATE T_TRANSAKSJON 
-                    SET K_TRANS_TILST_T = '$transaksjonTilstandType'
+                    SET K_TRANS_TILST_T = '$transaksjonTilstandType', DATO_ENDRET = CURRENT_TIMESTAMP 
                     WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()});
                 """.trimIndent(),
             ),
@@ -272,10 +272,12 @@ class TransaksjonRepository(
             trekkGruppe = row.optionalOrNull("K_TREKKGRUPPE"),
             trekkAlternativ = row.optionalOrNull("K_TREKKALT_T"),
             gyldigKombinasjon =
-                GyldigKombinasjon(
-                    fagomrade = row.optionalOrNull("K_FAGOMRADE"),
-                    osKlassifikasjon = row.optionalOrNull("OS_KLASSIFIKASJON"),
-                ),
+                row.optionalOrNull<String>("K_FAGOMRADE")?.let {
+                    GyldigKombinasjon(
+                        fagomrade = row.string("K_FAGOMRADE"),
+                        osKlassifikasjon = row.string("OS_KLASSIFIKASJON"),
+                    )
+                },
         )
     }
 }

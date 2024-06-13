@@ -41,7 +41,7 @@ data class Transaksjon(
     val trekkType: String? = null,
     val trekkAlternativ: String? = null,
     val trekkGruppe: String? = null,
-    val gyldigKombinasjon: GyldigKombinasjon = GyldigKombinasjon(),
+    val gyldigKombinasjon: GyldigKombinasjon? = null,
 )
 
 fun Transaksjon.getTransTolkningOppdragKode(): String {

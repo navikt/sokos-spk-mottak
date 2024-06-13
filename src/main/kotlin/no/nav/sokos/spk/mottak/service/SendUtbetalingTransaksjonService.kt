@@ -1,6 +1,9 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.zaxxer.hikari.HikariDataSource
+import kotliquery.Session
+import kotliquery.sessionOf
+import kotliquery.using
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
@@ -40,7 +43,7 @@ class SendUtbetalingTransaksjonService(
             if (transaksjonList.isNotEmpty()) {
                 logger.info { "Start å sende utbetaling melding til OppdragZ" }
 
-                val transaksjonMap = transaksjonList.groupBy { Pair(it.personId, it.gyldigKombinasjon.fagomrade!!) }
+                val transaksjonMap = transaksjonList.groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
                 transaksjonMap.forEach { (key, transaksjon) ->
                     sendTilOppdrag(key, transaksjon)
                     totalTransaksjoner += transaksjon.size
@@ -60,6 +63,10 @@ class SendUtbetalingTransaksjonService(
         transaksjonList: List<Transaksjon>,
     ) {
         val transaksjonIdList = transaksjonList.map { it.transaksjonId!! }
+        val transaksjonTilstandIdList =
+            using(sessionOf(dataSource)) { session ->
+                updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
+            }
         dataSource.transaction { session ->
             runCatching {
                 val transaksjon = transaksjonList.first()
@@ -72,14 +79,26 @@ class SendUtbetalingTransaksjonService(
                                 }
                         },
                     )
-                producer.send(JaxbUtils.marshall(oppdrag), PropertiesConfig.MQProperties().utbetalingQueueName)
-                transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
-                transaksjonTilstandRepository.insertBatch(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
+                using(sessionOf(dataSource)) { session ->
+                    updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
+                }
+                producer.send(JaxbUtils.marshall(oppdrag), PropertiesConfig.MQProperties().utbetalingQueueName, PropertiesConfig.MQProperties().utbetalingReplyQueueName)
+
+                logger.debug { "TransaksjonsId: ${transaksjonIdList.joinToString()} er sendt til OppdragZ." }
             }.onFailure { exception ->
-                transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
-                transaksjonTilstandRepository.insertBatch(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
-                logger.error(exception) { "TransaksjonsId: ${transaksjonList.joinToString()} sendt til OppdragZ får ikke sendt til OppdragZ. " }
+                transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, session)
+                updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
+                logger.error(exception) { "TransaksjonsId: ${transaksjonIdList.joinToString()} får ikke sendt til OppdragZ." }
             }
         }
+    }
+
+    private fun updateTransaksjonOgTransaksjonTilstand(
+        transaksjonIdList: List<Int>,
+        transTilstandStatus: String,
+        session: Session,
+    ): List<Int> {
+        transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session)
+        return transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session)
     }
 }

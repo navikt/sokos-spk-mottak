@@ -36,6 +36,20 @@ class TransaksjonTilstandRepository(
         )
     }
 
+    fun deleteTransaksjon(
+        transaksjonTilstandId: List<Int>,
+        session: Session,
+    ) {
+        session.update(
+            queryOf(
+                """
+                DELETE FROM T_TRANS_TILSTAND  
+                    WHERE TRANS_TILSTAND_ID IN (${transaksjonTilstandId.joinToString()});
+                """.trimIndent(),
+            ),
+        )
+    }
+
     /**
      * Bruker kun for testing
      */

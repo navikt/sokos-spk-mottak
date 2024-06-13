@@ -34,7 +34,7 @@ object OppdragConverter {
         return Oppdrag110().apply {
             kodeAksjon = DEFAULT_KODE_AKSJON
             kodeEndring = getTransTolkningOppdragKode()
-            kodeFagomraade = gyldigKombinasjon.fagomrade
+            kodeFagomraade = gyldigKombinasjon!!.fagomrade
             fagsystemId = personId.toString()
             utbetFrekvens = UTBETALING_FREKVENS
             stonadId = datoFom!!.withDayOfMonth(1).toLocalDateString()
@@ -59,7 +59,7 @@ object OppdragConverter {
         return OppdragsLinje150().apply {
             kodeEndringLinje = KODE_ENDRING
             delytelseId = motId
-            kodeKlassifik = gyldigKombinasjon.osKlassifikasjon
+            kodeKlassifik = gyldigKombinasjon!!.osKlassifikasjon
             datoKlassifikFom = LocalDate.of(1900, 1, 1).toXMLGregorianCalendar()
             datoVedtakFom = datoFom!!.toXMLGregorianCalendar()
             datoVedtakTom = datoTom!!.toXMLGregorianCalendar()
@@ -85,6 +85,7 @@ object OppdragConverter {
                                     "UFO" -> "UFOR"
                                     "UFT" -> "UFOR"
                                     "U67" -> "UFOR"
+                                    "UFE" -> "UFOR"
                                     else -> throw UnsupportedOperationException("Ukjent ART")
                                 }
                             grad.apply {
