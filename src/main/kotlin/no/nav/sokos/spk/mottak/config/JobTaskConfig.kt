@@ -19,12 +19,12 @@ import java.time.LocalDateTime
 private val logger = KotlinLogging.logger {}
 
 object JobTaskConfig {
-    fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource()): Scheduler {
-        return Scheduler.create(dataSource)
+    fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource()): Scheduler =
+        Scheduler
+            .create(dataSource)
             .startTasks(recurringReadAndParseFileTask(), recurringValidateTransaksjonTask())
             .failureLogging(LogLevel.ERROR, true)
             .build()
-    }
 
     internal fun recurringReadAndParseFileTask(
         readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
@@ -63,7 +63,7 @@ object JobTaskConfig {
             .recurring("sendUtbetalingTransaksjonTilOppdrag", cron(schedulerProperties.validateTransaksjonCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendUtbetalingTransaksjonService.hentUtbetalingTransaksjonOgSendTilOppdrag()
+                // sendUtbetalingTransaksjonService.hentUtbetalingTransaksjonOgSendTilOppdrag()
             }
     }
 

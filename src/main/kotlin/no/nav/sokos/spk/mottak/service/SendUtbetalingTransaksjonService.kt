@@ -44,8 +44,8 @@ class SendUtbetalingTransaksjonService(
                 logger.info { "Start å sende utbetaling melding til OppdragZ" }
 
                 val transaksjonMap = transaksjonList.groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
-                transaksjonMap.forEach { (key, transaksjon) ->
-                    sendTilOppdrag(key, transaksjon)
+                transaksjonMap.forEach { (_, transaksjon) ->
+                    sendTilOppdrag(transaksjon)
                     totalTransaksjoner += transaksjon.size
                 }
 
@@ -58,10 +58,7 @@ class SendUtbetalingTransaksjonService(
         }
     }
 
-    private fun sendTilOppdrag(
-        key: Pair<Int, String?>,
-        transaksjonList: List<Transaksjon>,
-    ) {
+    private fun sendTilOppdrag(transaksjonList: List<Transaksjon>) {
         val transaksjonIdList = transaksjonList.map { it.transaksjonId!! }
         val transaksjonTilstandIdList =
             using(sessionOf(dataSource)) { session ->
