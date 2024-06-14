@@ -24,6 +24,7 @@ private const val KODE_ENDRING = "NY"
 private const val BRUK_KJOREPLAN = "N"
 private const val ART_UFE = "UFE"
 private const val TYPE_SOKNAD = "EO"
+private const val SAKSBEHANDLER_ID = "MOT" // Oppdrag system tillater maks 8 bytes
 
 object OppdragConverter {
     /**
@@ -40,7 +41,7 @@ object OppdragConverter {
             stonadId = datoFom!!.withDayOfMonth(1).toLocalDateString()
             oppdragGjelderId = fnr
             datoOppdragGjelderFom = LocalDate.of(1900, 1, 1).toXMLGregorianCalendar()
-            saksbehId = PropertiesConfig.Configuration().naisAppName
+            saksbehId = SAKSBEHANDLER_ID
 
             if (transTolkning == TRANS_TOLKNING_NY) {
                 oppdragsEnhet120.add(
@@ -69,7 +70,7 @@ object OppdragConverter {
             skyldnerId = anviser
             brukKjoreplan = BRUK_KJOREPLAN
             saksbehId = systemId
-            utbetalesTilId = utbetalesTil ?: personId.toString()
+            utbetalesTilId = utbetalesTil ?: fnr.toString()
             if (art == ART_UFE) {
                 typeSoknad = TYPE_SOKNAD
             }
