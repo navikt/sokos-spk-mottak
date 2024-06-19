@@ -11,6 +11,7 @@ import no.nav.sokos.spk.mottak.config.applicationLifecycleConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.routingConfig
 import no.nav.sokos.spk.mottak.config.securityConfig
+import no.nav.sokos.spk.mottak.mq.JmsConsumerListenerService
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -19,12 +20,12 @@ fun main() {
 private fun Application.module() {
     val useAuthentication = PropertiesConfig.Configuration().useAuthentication
     val applicationState = ApplicationState()
-
-    DatabaseConfig.postgresMigrate()
-    JobTaskConfig.scheduler().start()
-
     commonConfig()
     applicationLifecycleConfig(applicationState)
     securityConfig(useAuthentication)
     routingConfig(useAuthentication, applicationState)
+
+    DatabaseConfig.postgresMigrate()
+    JmsConsumerListenerService()
+    JobTaskConfig.scheduler().start()
 }

@@ -1,6 +1,5 @@
 package no.nav.sokos.spk.mottak.domain.converter
 
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.getTransTolkningOppdragKode
@@ -31,8 +30,8 @@ object OppdragConverter {
      * datoOppdragGjelderFom - kan settes alltid tilbake til 1900 istedenfor datoEndret - 30 år
      * Tekstkode140 - brukes ikke lenger etter 2014, dermed blir ikke logikken implementert
      */
-    fun Transaksjon.oppdrag110(): Oppdrag110 {
-        return Oppdrag110().apply {
+    fun Transaksjon.oppdrag110(): Oppdrag110 =
+        Oppdrag110().apply {
             kodeAksjon = DEFAULT_KODE_AKSJON
             kodeEndring = getTransTolkningOppdragKode()
             kodeFagomraade = gyldigKombinasjon!!.fagomrade
@@ -53,11 +52,9 @@ object OppdragConverter {
                 )
             }
         }
-    }
 
-    fun Transaksjon.oppdragsLinje150(): OppdragsLinje150 {
-        val systemId = PropertiesConfig.Configuration().naisAppName
-        return OppdragsLinje150().apply {
+    fun Transaksjon.oppdragsLinje150(): OppdragsLinje150 =
+        OppdragsLinje150().apply {
             kodeEndringLinje = KODE_ENDRING
             delytelseId = motId
             kodeKlassifik = gyldigKombinasjon!!.osKlassifikasjon
@@ -67,14 +64,14 @@ object OppdragConverter {
             sats = (belop / 100).toBigDecimal()
             fradragTillegg = TfradragTillegg.T
             typeSats = SATSTYOE_MND
-            skyldnerId = anviser
+            skyldnerId = fnr
             brukKjoreplan = BRUK_KJOREPLAN
-            saksbehId = systemId
-            utbetalesTilId = utbetalesTil ?: fnr.toString()
+            saksbehId = SAKSBEHANDLER_ID
+            utbetalesTilId = utbetalesTil ?: fnr
             if (art == ART_UFE) {
                 typeSoknad = TYPE_SOKNAD
             }
-            attestant180.addAll(listOf(Attestant180().apply { attestantId = systemId }))
+            attestant180.addAll(listOf(Attestant180().apply { attestantId = SAKSBEHANDLER_ID }))
 
             grad?.let {
                 grad170.addAll(
@@ -97,5 +94,4 @@ object OppdragConverter {
                 )
             }
         }
-    }
 }

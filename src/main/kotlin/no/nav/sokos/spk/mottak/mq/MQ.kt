@@ -1,13 +1,13 @@
 package no.nav.sokos.spk.mottak.mq
 
-import com.ibm.mq.jms.MQQueue
+import com.ibm.mq.jakarta.jms.MQQueue
+import jakarta.jms.JMSContext
+import jakarta.jms.JMSProducer
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.MQConfig
 import java.util.UUID
-import javax.jms.JMSContext
-import javax.jms.JMSProducer
 
-class MQ() {
+class MQ {
     private val logger = KotlinLogging.logger {}
 
     private val context: JMSContext

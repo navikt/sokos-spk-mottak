@@ -1,6 +1,6 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.ibm.mq.jms.MQQueue
+import com.ibm.mq.jakarta.jms.MQQueue
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig

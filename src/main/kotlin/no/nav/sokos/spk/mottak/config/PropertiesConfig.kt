@@ -123,6 +123,7 @@ object PropertiesConfig {
         val servicePassword: String = getOrEmpty("MQ_SERVICE_PASSWORD"),
         val utbetalingQueueName: String = getOrEmpty("MQ_UTBETALING_QUEUE_NAME"),
         val utbetalingReplyQueueName: String = getOrEmpty("MQ_UTBETALING_REPLY_QUEUE_NAME"),
+        val userAuth: Boolean = true,
     )
 
     enum class Profile {

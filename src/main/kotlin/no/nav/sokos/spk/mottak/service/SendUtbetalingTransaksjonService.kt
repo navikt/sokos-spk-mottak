@@ -76,9 +76,6 @@ class SendUtbetalingTransaksjonService(
                                 }
                         },
                     )
-                using(sessionOf(dataSource)) { session ->
-                    updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
-                }
                 producer.send(JaxbUtils.marshall(oppdrag), PropertiesConfig.MQProperties().utbetalingQueueName, PropertiesConfig.MQProperties().utbetalingReplyQueueName)
 
                 logger.debug { "TransaksjonsId: ${transaksjonIdList.joinToString()} er sendt til OppdragZ." }
