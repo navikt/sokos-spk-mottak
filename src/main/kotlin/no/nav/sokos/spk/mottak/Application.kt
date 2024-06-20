@@ -19,12 +19,12 @@ fun main() {
 private fun Application.module() {
     val useAuthentication = PropertiesConfig.Configuration().useAuthentication
     val applicationState = ApplicationState()
-
-    DatabaseConfig.postgresMigrate()
-    JobTaskConfig.scheduler().start()
-
     commonConfig()
     applicationLifecycleConfig(applicationState)
     securityConfig(useAuthentication)
     routingConfig(useAuthentication, applicationState)
+
+    DatabaseConfig.postgresMigrate()
+    // JmsConsumerListenerService()
+    JobTaskConfig.scheduler().start()
 }

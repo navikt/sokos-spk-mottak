@@ -24,8 +24,8 @@ class TransaksjonRepository(
     fun insertBatch(
         transaksjonList: List<Transaksjon>,
         session: Session,
-    ): List<Int> {
-        return session.batchPreparedNamedStatement(
+    ): List<Int> =
+        session.batchPreparedNamedStatement(
             """
             INSERT INTO T_TRANSAKSJON  (
                 TRANSAKSJON_ID,
@@ -62,7 +62,6 @@ class TransaksjonRepository(
             """.trimIndent(),
             transaksjonList.map { it.asMap() },
         )
-    }
 
     fun updateAllWhereTranstolkningIsNyForMoreThanOneInstance(
         personIdListe: List<Int>,
@@ -90,8 +89,8 @@ class TransaksjonRepository(
         )
     }
 
-    fun getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance(): Map<Int, List<String>> {
-        return using(sessionOf(dataSource)) { session ->
+    fun getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance(): Map<Int, List<String>> =
+        using(sessionOf(dataSource)) { session ->
             val personIdMap = mutableMapOf<Int, MutableList<String>>()
 
             session.list(
@@ -110,7 +109,6 @@ class TransaksjonRepository(
             ) { row -> personIdMap.computeIfAbsent(row.int("PERSON_ID")) { mutableListOf() }.add(row.string("K_FAGOMRADE")) }
             personIdMap
         }
-    }
 
     fun updateTransTilstandId(session: Session) {
         session.update(
@@ -125,8 +123,8 @@ class TransaksjonRepository(
         )
     }
 
-    fun findLastTransaksjonByPersonId(personIdListe: List<Int>): List<Transaksjon> {
-        return using(sessionOf(dataSource)) { session ->
+    fun findLastTransaksjonByPersonId(personIdListe: List<Int>): List<Transaksjon> =
+        using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
                     """
@@ -147,13 +145,12 @@ class TransaksjonRepository(
                 mapToTransaksjon,
             )
         }
-    }
 
     fun findAllByBelopstypeAndByTransaksjonTilstand(
         belopstype: List<String>,
         transaksjonTilstand: List<String>,
-    ): List<Transaksjon> {
-        return using(sessionOf(dataSource)) { session ->
+    ): List<Transaksjon> =
+        using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
                     """
@@ -172,10 +169,9 @@ class TransaksjonRepository(
                 mapToTransaksjon,
             )
         }
-    }
 
-    fun findAllByTrekkBelopstypeAndByTransaksjonTilstand(transaksjonTilstand: List<String>): List<Transaksjon> {
-        return using(sessionOf(dataSource)) { session ->
+    fun findAllByTrekkBelopstypeAndByTransaksjonTilstand(transaksjonTilstand: List<String>): List<Transaksjon> =
+        using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
                     """
@@ -194,7 +190,6 @@ class TransaksjonRepository(
                 mapToTransaksjon,
             )
         }
-    }
 
     fun updateTransTilstandStatus(
         transaksjonIdList: List<Int>,
@@ -205,7 +200,7 @@ class TransaksjonRepository(
             queryOf(
                 """
                 UPDATE T_TRANSAKSJON 
-                    SET K_TRANS_TILST_T = '$transaksjonTilstandType'
+                    SET K_TRANS_TILST_T = '$transaksjonTilstandType', DATO_ENDRET = CURRENT_TIMESTAMP 
                     WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()});
                 """.trimIndent(),
             ),
@@ -215,8 +210,8 @@ class TransaksjonRepository(
     /**
      * Bruker kun for testing
      */
-    fun getByTransaksjonId(transaksjonId: Int): Transaksjon? {
-        return using(sessionOf(dataSource)) { session ->
+    fun getByTransaksjonId(transaksjonId: Int): Transaksjon? =
+        using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
@@ -230,7 +225,22 @@ class TransaksjonRepository(
                 mapToTransaksjon,
             )
         }
-    }
+
+    fun findAllByFilInfoId(filInfoId: Int): List<Transaksjon> =
+        using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    SELECT TRANSAKSJON_ID, TRANS_TILSTAND_ID, FIL_INFO_ID, K_TRANSAKSJON_S, PERSON_ID, K_BELOP_T, K_ART, K_ANVISER, FNR_FK, UTBETALES_TIL, OS_ID_FK, OS_LINJE_ID_FK, DATO_FOM, DATO_TOM, DATO_ANVISER, DATO_PERSON_FOM, DATO_REAK_FOM, BELOP,
+                           REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_EKS_ID_FK, K_TRANS_TOLKNING, SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, SALDO, KID, PRIORITET,
+                           K_TREKKANSVAR, K_TRANS_TILST_T, GRAD
+                    FROM T_TRANSAKSJON 
+                    WHERE FIL_INFO_ID = $filInfoId
+                    """.trimIndent(),
+                ),
+                mapToTransaksjon,
+            )
+        }
 
     private val mapToTransaksjon: (Row) -> Transaksjon = { row ->
         Transaksjon(
@@ -272,10 +282,12 @@ class TransaksjonRepository(
             trekkGruppe = row.optionalOrNull("K_TREKKGRUPPE"),
             trekkAlternativ = row.optionalOrNull("K_TREKKALT_T"),
             gyldigKombinasjon =
-                GyldigKombinasjon(
-                    fagomrade = row.optionalOrNull("K_FAGOMRADE"),
-                    osKlassifikasjon = row.optionalOrNull("OS_KLASSIFIKASJON"),
-                ),
+                row.optionalOrNull<String>("K_FAGOMRADE")?.let {
+                    GyldigKombinasjon(
+                        fagomrade = row.string("K_FAGOMRADE"),
+                        osKlassifikasjon = row.string("OS_KLASSIFIKASJON"),
+                    )
+                },
         )
     }
 }

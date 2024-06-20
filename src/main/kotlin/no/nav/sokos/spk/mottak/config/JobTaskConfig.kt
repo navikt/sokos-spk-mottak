@@ -19,12 +19,12 @@ import java.time.LocalDateTime
 private val logger = KotlinLogging.logger {}
 
 object JobTaskConfig {
-    fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource()): Scheduler {
-        return Scheduler.create(dataSource)
+    fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource()): Scheduler =
+        Scheduler
+            .create(dataSource)
             .startTasks(recurringReadAndParseFileTask(), recurringValidateTransaksjonTask())
             .failureLogging(LogLevel.ERROR, true)
             .build()
-    }
 
     internal fun recurringReadAndParseFileTask(
         readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),

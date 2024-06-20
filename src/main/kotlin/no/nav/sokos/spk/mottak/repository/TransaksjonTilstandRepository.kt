@@ -36,11 +36,25 @@ class TransaksjonTilstandRepository(
         )
     }
 
+    fun deleteTransaksjon(
+        transaksjonTilstandId: List<Int>,
+        session: Session,
+    ) {
+        session.update(
+            queryOf(
+                """
+                DELETE FROM T_TRANS_TILSTAND  
+                    WHERE TRANS_TILSTAND_ID IN (${transaksjonTilstandId.joinToString()});
+                """.trimIndent(),
+            ),
+        )
+    }
+
     /**
      * Bruker kun for testing
      */
-    fun getByTransaksjonId(transaksjonId: Int): TransaksjonTilstand? {
-        return using(sessionOf(dataSource)) { session ->
+    fun getByTransaksjonId(transaksjonId: Int): TransaksjonTilstand? =
+        using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
@@ -52,7 +66,20 @@ class TransaksjonTilstandRepository(
                 mapToTransaksjonTilstand,
             )
         }
-    }
+
+    fun findAllByTransaksjonId(transaksjonId: List<Int>): List<TransaksjonTilstand> =
+        using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    SELECT TRANS_TILSTAND_ID, TRANSAKSJON_ID, K_TRANS_TILST_T, FEILKODE, FEILKODEMELDING, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
+                    FROM T_TRANS_TILSTAND 
+                    WHERE TRANSAKSJON_ID IN (${transaksjonId.joinToString()});
+                    """.trimIndent(),
+                ),
+                mapToTransaksjonTilstand,
+            )
+        }
 
     private val mapToTransaksjonTilstand: (Row) -> TransaksjonTilstand = { row ->
         TransaksjonTilstand(

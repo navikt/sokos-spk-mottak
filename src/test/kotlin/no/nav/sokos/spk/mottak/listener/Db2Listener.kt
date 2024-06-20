@@ -34,7 +34,7 @@ object Db2Listener : TestListener {
         filInfoRepository shouldNotBe null
         transaksjonRepository shouldNotBe null
         avvikTransaksjonRepository shouldNotBe null
-        transaksjonRepository shouldNotBe null
+        transaksjonTilstandRepository shouldNotBe null
 
         dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/db2Script.sql")))

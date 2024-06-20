@@ -19,6 +19,8 @@ object PropertiesConfig {
                 "READ_AND_PARSEFILE_CRON_PATTERN" to "0 10 * * * *",
                 "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 * * * * *",
                 "SEND_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "* * * * * *",
+                "MQ_TREKK_SEND_QUEUE_NAME" to "",
+                "MQ_TREKK_REPLY_QUEUE_NAME" to "",
             ),
         )
 
@@ -36,6 +38,8 @@ object PropertiesConfig {
                 "MQ_CHANNEL_NAME" to "Q1_MOT",
                 "MQ_UTBETALING_QUEUE_NAME" to "QA.Q1_231.OB04_OPPDRAG_MOT_XML",
                 "MQ_UTBETALING_REPLY_QUEUE_NAME" to "QA.Q1_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY",
+                "MQ_TREKK_SEND_QUEUE_NAME" to "QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH",
+                "MQ_TREKK_REPLY_QUEUE_NAME" to "QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY",
             ),
         )
 
@@ -119,6 +123,7 @@ object PropertiesConfig {
         val servicePassword: String = getOrEmpty("MQ_SERVICE_PASSWORD"),
         val utbetalingQueueName: String = getOrEmpty("MQ_UTBETALING_QUEUE_NAME"),
         val utbetalingReplyQueueName: String = getOrEmpty("MQ_UTBETALING_REPLY_QUEUE_NAME"),
+        val userAuth: Boolean = true,
     )
 
     enum class Profile {
