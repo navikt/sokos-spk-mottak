@@ -11,7 +11,6 @@ import no.nav.sokos.spk.mottak.config.applicationLifecycleConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.routingConfig
 import no.nav.sokos.spk.mottak.config.securityConfig
-import no.nav.sokos.spk.mottak.mq.JmsConsumerListenerService
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -26,6 +25,6 @@ private fun Application.module() {
     routingConfig(useAuthentication, applicationState)
 
     DatabaseConfig.postgresMigrate()
-    JmsConsumerListenerService()
+    // JmsConsumerListenerService()
     JobTaskConfig.scheduler().start()
 }
