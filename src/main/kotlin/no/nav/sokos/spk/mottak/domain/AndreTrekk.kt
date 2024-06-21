@@ -1,9 +1,7 @@
 package no.nav.sokos.spk.mottak.domain
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import java.time.LocalDate
 
-@JacksonXmlRootElement(localName = "AndreTrekk")
 data class AndreTrekk(
     var trekkvedtakId: Long? = null,
     var debitorOffnr: String,

@@ -1,9 +1,7 @@
 package no.nav.sokos.spk.mottak.domain
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import java.time.LocalDate
 
-@JacksonXmlRootElement(localName = "EndringsInfo")
 data class EndringsInfo(
     var endretAvId: String? = null,
     var endretAvNavn: String? = null,

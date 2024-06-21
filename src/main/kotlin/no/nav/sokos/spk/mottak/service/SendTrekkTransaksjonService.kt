@@ -18,7 +18,7 @@ import no.nav.sokos.spk.mottak.mq.MQ
 import no.nav.sokos.spk.mottak.mq.MQSender
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
-import no.nav.sokos.spk.mottak.util.xmlMapper
+import no.nav.sokos.spk.mottak.util.JaxbUtils
 import java.time.Duration
 import java.time.Instant
 
@@ -44,7 +44,7 @@ class SendTrekkTransaksjonService(
                 val transaksjonIdList = it.map { it.transaksjonId!! }
                 val trekkMeldinger: MutableList<String> = mutableListOf()
                 it.forEach { transaksjon ->
-                    trekkMeldinger.add(xmlMapper.writeValueAsString(opprettAndreTrekk(transaksjon)))
+                    trekkMeldinger.add(JaxbUtils.marshall(opprettAndreTrekk(transaksjon)))
                 }
                 trekkSender.send(trekkMeldinger.joinToString(separator = "")) {
                     jmsReplyTo = replyQueueTrekk
