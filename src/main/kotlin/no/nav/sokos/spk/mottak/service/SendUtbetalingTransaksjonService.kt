@@ -41,7 +41,7 @@ class SendUtbetalingTransaksjonService(
         runCatching {
             val transaksjonList = transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
             if (transaksjonList.isNotEmpty()) {
-                logger.info { "Start å sende utbetaling melding til OppdragZ" }
+                logger.info { "Starter sending av utbetalingstransaksjoner til OppdragZ" }
 
                 val transaksjonMap = transaksjonList.groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
                 transaksjonMap.forEach { (_, transaksjon) ->
@@ -49,10 +49,10 @@ class SendUtbetalingTransaksjonService(
                     totalTransaksjoner += transaksjon.size
                 }
 
-                logger.info { "$totalTransaksjoner transaksjoner sendt til OppdragZ på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
+                logger.info { "$totalTransaksjoner utbetalingstransaksjoner sendt til OppdragZ på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
             }
         }.onFailure { exception ->
-            val errorMessage = "Feil under sending returfil til SPK. Feilmelding: ${exception.message}"
+            val errorMessage = "Feil under sending av utbetalingstransaksjoner til OppdragZ. Feilmelding: ${exception.message}"
             logger.error(exception) { errorMessage }
             throw MottakException(errorMessage)
         }
@@ -76,13 +76,13 @@ class SendUtbetalingTransaksjonService(
                                 }
                         },
                     )
-                producer.send(JaxbUtils.marshall(oppdrag), PropertiesConfig.MQProperties().utbetalingQueueName, PropertiesConfig.MQProperties().utbetalingReplyQueueName)
+                producer.send(JaxbUtils.marshallOppdrag(oppdrag), PropertiesConfig.MQProperties().utbetalingQueueName, PropertiesConfig.MQProperties().utbetalingReplyQueueName)
 
                 logger.debug { "TransaksjonsId: ${transaksjonIdList.joinToString()} er sendt til OppdragZ." }
             }.onFailure { exception ->
                 transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, session)
                 updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
-                logger.error(exception) { "TransaksjonsId: ${transaksjonIdList.joinToString()} får ikke sendt til OppdragZ." }
+                logger.error(exception) { "TransaksjonsId: ${transaksjonIdList.joinToString()} blir ikke sendt til OppdragZ." }
             }
         }
     }
