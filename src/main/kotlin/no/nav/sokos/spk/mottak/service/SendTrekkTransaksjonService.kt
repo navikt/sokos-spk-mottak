@@ -38,7 +38,6 @@ class SendTrekkTransaksjonService(
     fun sendTrekkTilOppdrag() {
         val timer = Instant.now()
         var totalTransaksjoner = 0
-
         val transaksjoner =
             runCatching {
                 transaksjonRepository.findAllByTrekkBelopstypeAndByTransaksjonTilstand(TRANS_TILSTAND_TIL_TREKK)
