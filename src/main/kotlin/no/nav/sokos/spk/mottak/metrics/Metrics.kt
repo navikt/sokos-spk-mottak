@@ -9,13 +9,6 @@ private const val METRICS_NAMESPACE = "sokos_spk_mottak"
 object Metrics {
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-    val testMetricCounter: Counter =
-        Counter.builder()
-            .name("${METRICS_NAMESPACE}_test_counter")
-            .help("Test counter")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-
     val mqProducerMetricCounter: Counter =
         Counter.builder()
             .name("${METRICS_NAMESPACE}_mq_producer")

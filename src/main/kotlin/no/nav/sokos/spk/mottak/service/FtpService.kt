@@ -6,7 +6,6 @@ import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpConfig
-import no.nav.sokos.spk.mottak.metrics.Metrics
 import java.io.ByteArrayOutputStream
 
 private val logger = KotlinLogging.logger {}
@@ -63,7 +62,6 @@ class FtpService(
     }
 
     fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> {
-        Metrics.testMetricCounter.inc()
         var fileName = ""
         getSftpChannel().apply {
             try {
