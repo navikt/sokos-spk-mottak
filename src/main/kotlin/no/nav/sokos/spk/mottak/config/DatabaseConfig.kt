@@ -21,7 +21,7 @@ object DatabaseConfig {
         return HikariConfig().apply {
             minimumIdle = 1
             maximumPoolSize = 10
-            poolName = "HikariPool-SOKOS-SPK-MOTTAK"
+            poolName = "HikariPool-${PropertiesConfig.Configuration().naisAppName}"
             connectionTestQuery = "select 1 from sysibm.sysdummy1"
             dataSource =
                 DB2SimpleDataSource().apply {
