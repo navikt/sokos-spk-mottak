@@ -58,6 +58,6 @@ export JAVA_OPTS="${JAVA_OPTS} ${JAVA_PROXY_OPTIONS}"
 
 # Opentelemetry
 if [ ! -z "${OTEL_EXPORTER_OTLP_ENDPOINT}" ]; then
-    JAVA_TOOL_OPTIONS="-javaagent:/opentelemetry-javaagent.jar"
+    JAVA_OPTS="${JAVA_OPTS} -javaagent:/opentelemetry-javaagent.jar"
 fi
 
