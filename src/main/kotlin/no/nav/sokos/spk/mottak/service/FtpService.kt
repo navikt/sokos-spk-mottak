@@ -6,8 +6,8 @@ import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpConfig
-import java.io.ByteArrayOutputStream
 import no.nav.sokos.spk.mottak.metrics.Metrics
+import java.io.ByteArrayOutputStream
 
 private val logger = KotlinLogging.logger {}
 
