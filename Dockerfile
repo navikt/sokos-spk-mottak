@@ -15,4 +15,4 @@ ENV TZ="Europe/Oslo"
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", ". /java-opts.sh && exec java -jar app.jar"]
+CMD ["sh", "-c", ". /java-opts.sh && exec java ${JAVA_OPTS} -jar app.jar"]
