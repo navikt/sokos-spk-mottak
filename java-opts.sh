@@ -1,6 +1,6 @@
 #!/bin/env sh
 
-# Henter ut env variabler fra vault
+# Vault env variables
 if test -d /var/run/secrets/nais.io/vault;
 then
     for FILE in $(find /var/run/secrets/nais.io/vault -maxdepth 1 -name "*.env")
@@ -25,7 +25,7 @@ then
     done
 fi
 
-# Henter ut env variabler fra azuread
+# AureAD env variables
 DIR=/var/run/secrets/nais.io/azuread
 echo "Attempting to export Azure AD from $DIR if it exists"
 
@@ -39,7 +39,7 @@ then
     done
 fi
 
-# For å kunne kommunisere med .local tjenester
+# Communicate with the .local hosts
 if test -r "${NAV_TRUSTSTORE_PATH}";
 then
     if ! keytool -list -keystore ${NAV_TRUSTSTORE_PATH} -storepass "${NAV_TRUSTSTORE_PASSWORD}" > /dev/null;
@@ -53,10 +53,10 @@ then
     export JAVA_OPTS
 fi
 
-# Injecter proxy settings satt av nais platform
+# Inject proxy settings set by the NAIS platform
 export JAVA_OPTS="${JAVA_OPTS} ${JAVA_PROXY_OPTIONS}"
 
-# Opentelemetry
+# OpenTelemetry
 if [ ! -z "${OTEL_EXPORTER_OTLP_ENDPOINT}" ]; then
     JAVA_OPTS="${JAVA_OPTS} -javaagent:/opentelemetry-javaagent.jar"
 fi

@@ -5,7 +5,7 @@ RUN apk add --no-cache curl
 RUN apk add --no-cache dumb-init
 
 COPY build/libs/*.jar app.jar
-COPY .nais/java-opts.sh /
+COPY java-opts.sh /
 
 RUN chmod +x /java-opts.sh
 RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
