@@ -75,6 +75,8 @@ spec:
       value: "service.name=sokos-spk-mottak,service.version=sokos-spk-mottak,deployment.environment=q"
     - name: OTEL_TRACES_EXPORTER
       value: "otlp"
+    - name: OTEL_JAVAAGENT_DEBUG
+      value: "true"
 
     # DB2
     - name: DATABASE_HOST
