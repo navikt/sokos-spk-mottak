@@ -64,6 +64,18 @@ spec:
     - name: USE_AUTHENTICATION
       value: "true"
 
+    # OpenTelemetry
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "https://elastic-apm.adeo.no"
+    - name: OTEL_METRICS_EXPORTER
+      value: "otlp"
+    - name: OTEL_LOGS_EXPORTER
+      value: "none"
+    - name: OTEL_RESOURCE_ATTRIBUTES
+      value: "service.name=sokos-spk-mottak-qx,service.version=sokos-spk-mottak-qx,deployment.environment=qx"
+    - name: OTEL_TRACES_EXPORTER
+      value: "otlp"
+
     # DB2
     - name: DATABASE_HOST
       value: "155.55.1.82"
@@ -109,12 +121,6 @@ spec:
       value: "22"
     - name: SFTP_PRIVATE_KEY_FILE_PATH
       value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
-
-    # Pensjon-fullmakt-q2
-    - name: PENSJON_REPRESENTASJON_URL
-      value: https://pensjon-representasjon-q2.intern.dev.nav.no
-    - name: PENSJON_REPRESENTASJON_SCOPE
-      value: dev-fss.pensjon-person.pensjon-representasjon-q2
 
     # DB-SCHEDULER
     - name: READ_AND_PARSEFILE_CRON_PATTERN
