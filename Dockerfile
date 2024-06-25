@@ -9,7 +9,10 @@ RUN chmod +x /java-opts.sh
 RUN apk add --no-cache curl
 RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
 
+RUN  apk add --no-cache dumb-init
+
 ENV TZ="Europe/Oslo"
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
 
+ENTRYPOINT ["dumb-init", "--"]
 CMD ["sh", "-c", ". /java-opts.sh && exec java -jar app.jar"]
