@@ -27,7 +27,7 @@ class JmsConsumerListenerService(
                 val oppdrag = JaxbUtils.unmarshall(jmsMessage)
                 // TODO: skal oppdatere DB med ORO (OPPDRAG RETUR OK)
                 println(oppdrag)
-                Metrics.mqConsumerMetricsCounter.inc()
+                Metrics.mqConsumerMetricCounter.inc()
             }.onFailure { exception ->
                 logger.error(exception) {
                     "Feil ved prosessering av melding fra: $utbetalingReplyQueueName"

@@ -7,6 +7,7 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpConfig
 import java.io.ByteArrayOutputStream
+import no.nav.sokos.spk.mottak.metrics.Metrics
 
 private val logger = KotlinLogging.logger {}
 
@@ -62,6 +63,7 @@ class FtpService(
     }
 
     fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> {
+        Metrics.testMetricCounter.inc()
         var fileName = ""
         getSftpChannel().apply {
             try {
