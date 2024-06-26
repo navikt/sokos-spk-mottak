@@ -7,14 +7,32 @@ import kotliquery.using
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.domain.AndreTrekk
-import no.nav.sokos.spk.mottak.domain.EndringsInfo
-import no.nav.sokos.spk.mottak.domain.Fagomrade
+import no.nav.sokos.spk.mottak.domain.Aksjonskode
+import no.nav.sokos.spk.mottak.domain.Content
+import no.nav.sokos.spk.mottak.domain.DebitorId
+import no.nav.sokos.spk.mottak.domain.Document
+import no.nav.sokos.spk.mottak.domain.Identifisering
+import no.nav.sokos.spk.mottak.domain.KodeTrekkAlternativ
+import no.nav.sokos.spk.mottak.domain.KodeTrekktype
+import no.nav.sokos.spk.mottak.domain.Kreditor
+import no.nav.sokos.spk.mottak.domain.MsgInfo
+import no.nav.sokos.spk.mottak.domain.MsgType
+import no.nav.sokos.spk.mottak.domain.Organisation
+import no.nav.sokos.spk.mottak.domain.Periode
+import no.nav.sokos.spk.mottak.domain.Receiver
+import no.nav.sokos.spk.mottak.domain.RefDoc
 import no.nav.sokos.spk.mottak.domain.SPK_TSS
+import no.nav.sokos.spk.mottak.domain.Sats
+import no.nav.sokos.spk.mottak.domain.Sender
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.Transaksjon
+import no.nav.sokos.spk.mottak.domain.Trekk
+import no.nav.sokos.spk.mottak.domain.TrekkInfo
+import no.nav.sokos.spk.mottak.domain.TrekkMelding
+import no.nav.sokos.spk.mottak.domain.Type
+import no.nav.sokos.spk.mottak.domain.TypeId
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.mq.MQ
 import no.nav.sokos.spk.mottak.mq.MQSender
@@ -23,9 +41,11 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
 import java.time.Duration
 import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 private val logger = KotlinLogging.logger { }
-private const val BATCH_SIZE = 1000
+private const val BATCH_SIZE = 100
+private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd X")
 
 class SendTrekkTransaksjonService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
@@ -52,7 +72,7 @@ class SendTrekkTransaksjonService(
         transaksjoner.chunked(BATCH_SIZE).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
             val transaksjonTilstandIdList = updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK)
-            val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(opprettAndreTrekk(it)) }
+            val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(opprettTrekkMelding(it)) }
             runCatching {
                 trekkSender.send(trekkMeldinger.joinToString(separator = "")) {
                     jmsReplyTo = replyQueueTrekk
@@ -77,17 +97,59 @@ class SendTrekkTransaksjonService(
         }
     }
 
-    private fun opprettAndreTrekk(transaksjon: Transaksjon) =
-        AndreTrekk(
-            debitorOffnr = transaksjon.fnr,
-            trekktypeKode = transaksjon.trekkType!!,
-            trekkperiodeFom = transaksjon.datoFom!!,
-            trekkperiodeTom = transaksjon.datoTom!!,
-            kreditorRef = transaksjon.transEksId,
-            tssEksternId = SPK_TSS,
-            trekkAlternativKode = transaksjon.trekkAlternativ!!,
-            sats = transaksjon.belop / 100.0,
-            endringsInfo = EndringsInfo(opprettetAvId = transaksjon.opprettetAv, kildeId = SPK_TSS),
-            fagomradeListe = listOf(Fagomrade(trekkgruppeKode = transaksjon.trekkGruppe!!)),
+    private fun opprettTrekkMelding(it: Transaksjon) =
+        TrekkMelding(
+            msgInfo =
+                MsgInfo(
+                    type = Type(),
+                    sender =
+                        Sender(
+                            organisation = Organisation(),
+                        ),
+                    receiver =
+                        Receiver(
+                            organisation = Organisation(),
+                        ),
+                ),
+            document =
+                Document(
+                    refDoc =
+                        RefDoc(
+                            msgType = MsgType(),
+                            content =
+                                Content(
+                                    innrapporteringTrekk = opprettTrekk(it),
+                                ),
+                        ),
+                ),
+        )
+
+    private fun opprettTrekk(transaksjon: Transaksjon) =
+        TrekkInfo(
+            aksjonskode = Aksjonskode(),
+            identifisering =
+                Identifisering(
+                    kreditorTrekkId = transaksjon.transEksId,
+                    debitorId =
+                        DebitorId(
+                            id = transaksjon.fnr,
+                            typeId = TypeId(),
+                        ),
+                ),
+            trekk =
+                Trekk(
+                    kodeTrekktype = KodeTrekktype(v = transaksjon.trekkType!!),
+                    kodeTrekkAlternativ = KodeTrekkAlternativ(v = transaksjon.trekkAlternativ!!),
+                    sats = Sats((transaksjon.belop / 100.0).toString()),
+                ),
+            periode =
+                Periode(
+                    periodeFomDato = transaksjon.datoFom!!.format(formatter),
+                    periodeTomDato = transaksjon.datoTom!!.format(formatter),
+                ),
+            kreditor =
+                Kreditor(
+                    tssId = SPK_TSS,
+                ),
         )
 }
