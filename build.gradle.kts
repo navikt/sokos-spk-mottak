@@ -55,7 +55,6 @@ val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.19.8"
 val h2Version = "2.2.224"
-val kotestWiremockVersion = "3.1.0"
 val flywayVersion = "10.15.0"
 val postgresVersion = "42.7.3"
 val dbSchedulerVersion = "14.0.1"
@@ -127,7 +126,6 @@ dependencies {
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("com.h2database:h2:$h2Version")
-    testImplementation("io.kotest.extensions:kotest-extensions-wiremock:$kotestWiremockVersion")
     testImplementation("org.apache.activemq:artemis-jakarta-server:$activemqVersion")
 }
 
