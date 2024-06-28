@@ -34,6 +34,6 @@ open class JmsProducerService(
             context.createProducer().send(destination, message)
             logger.debug { "Sent melding til OppdragZ, messageId: ${message.jmsMessageID}, payload: $payload" }
         }
-        Metrics.mqProducerMetricsCounter.inc()
+        Metrics.mqProducerMetricCounter.inc()
     }
 }

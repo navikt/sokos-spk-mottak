@@ -80,6 +80,7 @@ jobs:
           CLUSTER: dev-fss
           RESOURCE: .nais/naiserator-dev-qx.yaml
           IMAGE: ${{ needs.build.outputs.image }}
+          TIMEOUT: 10m
           PRINT_PAYLOAD: true
 
 #  deploy-prod:
@@ -93,4 +94,5 @@ jobs:
 #          CLUSTER: prod-fss
 #          RESOURCE: .nais/naiserator-prod.yaml
 #          IMAGE: ${{ needs.build.outputs.image }}
+#          TIMEOUT: 10m
 #          PRINT_PAYLOAD: true
