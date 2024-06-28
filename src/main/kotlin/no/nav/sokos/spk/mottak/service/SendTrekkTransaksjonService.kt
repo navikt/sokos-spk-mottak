@@ -24,9 +24,9 @@ import no.nav.sokos.spk.mottak.domain.RefDoc
 import no.nav.sokos.spk.mottak.domain.SPK_TSS
 import no.nav.sokos.spk.mottak.domain.Sats
 import no.nav.sokos.spk.mottak.domain.Sender
-import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.Trekk
 import no.nav.sokos.spk.mottak.domain.TrekkInfo
@@ -35,7 +35,6 @@ import no.nav.sokos.spk.mottak.domain.Type
 import no.nav.sokos.spk.mottak.domain.TypeId
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.mq.MQ
-import no.nav.sokos.spk.mottak.mq.MQSender
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
@@ -45,15 +44,14 @@ import java.time.format.DateTimeFormatter
 
 private val logger = KotlinLogging.logger { }
 private const val BATCH_SIZE = 100
-private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd X")
+private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
 class SendTrekkTransaksjonService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val trekkSender: MQ = MQ(MQQueue(PropertiesConfig.MQProperties().trekkSenderQueueName), MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName)),
 ) {
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
-    private val trekkSender = MQSender(MQ(), MQQueue(PropertiesConfig.MQProperties().trekkSenderQueueName))
-    private val replyQueueTrekk = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName)
 
     fun sendTrekkTilOppdrag() {
         val timer = Instant.now()
@@ -71,12 +69,10 @@ class SendTrekkTransaksjonService(
         logger.info { "Starter sending av trekktransaksjoner til OppdragZ" }
         transaksjoner.chunked(BATCH_SIZE).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
-            val transaksjonTilstandIdList = updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK)
+            val transaksjonTilstandIdList = updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK)
             val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(opprettTrekkMelding(it)) }
             runCatching {
-                trekkSender.send(trekkMeldinger.joinToString(separator = "")) {
-                    jmsReplyTo = replyQueueTrekk
-                }
+                trekkSender.send(trekkMeldinger.joinToString(separator = ""))
                 totalTransaksjoner += transaksjonIdList.size
                 logger.info { "$totalTransaksjoner trekktransaksjoner sendt til OppdragZ brukte ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
             }.onFailure { exception ->

@@ -184,7 +184,6 @@ class TransaksjonRepository(
                     AND k.ER_GYLDIG = 1
                     AND t.K_BELOP_T = '$BELOPSTYPE_TREKK'
                     AND t.K_TRANS_TILST_T IN (${transaksjonTilstand.joinToString(separator = "','", prefix = "'", postfix = "'")})
-                    FETCH FIRST 10 ROWS ONLY
                     ORDER BY t.PERSON_ID
                     """.trimIndent(),
                 ),

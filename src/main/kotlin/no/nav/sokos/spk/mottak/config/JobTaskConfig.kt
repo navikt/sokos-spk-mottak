@@ -65,7 +65,7 @@ object JobTaskConfig {
             .recurring("sendUtbetalingTransaksjonTilOppdrag", cron(schedulerProperties.validateTransaksjonCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
-//                sendUtbetalingTransaksjonService.hentUtbetalingTransaksjonOgSendTilOppdrag()
+                sendUtbetalingTransaksjonService.hentUtbetalingTransaksjonOgSendTilOppdrag()
                 sendTrekkTransaksjonService.sendTrekkTilOppdrag()
             }
     }
