@@ -3,7 +3,6 @@ package no.nav.sokos.spk.mottak.config
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Logger
 import com.jcraft.jsch.Session
-import java.util.Properties
 import mu.KotlinLogging
 import org.slf4j.LoggerFactory
 
@@ -13,7 +12,6 @@ class SftpConfig(
     private val sftpProperties: PropertiesConfig.SftpProperties = PropertiesConfig.SftpProperties(),
 ) {
     fun createSftpConnection(): Session {
-
         return JSch().apply {
             JSch.setLogger(JSchLogger())
             addIdentity(sftpProperties.privateKey, sftpProperties.privateKeyPassword)
