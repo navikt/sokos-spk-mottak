@@ -22,7 +22,6 @@ class SftpConfig(
             getSession(sftpProperties.username, sftpProperties.host, sftpProperties.port)
         }.also {
             it.setConfig("StrictHostKeyChecking", "no")
-            it.setConfig("PreferredAuthentications", "password")
             it.connect()
             logger.debug { "Åpner session på host: ${sftpProperties.host}:${sftpProperties.port}" }
         }

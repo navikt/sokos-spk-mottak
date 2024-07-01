@@ -1,8 +1,10 @@
-FROM bellsoft/liberica-openjdk-alpine:21@sha256:b4f3b3f5c31e2935f5e941664e45156284ec14fc5745486291a7c45fbccd253d
+FROM eclipse-temurin:21-jre
 LABEL org.opencontainers.image.source=https://github.com/navikt/sokos-spk-mottak
 
-RUN apk add --no-cache curl
-RUN apk add --no-cache dumb-init
+RUN apt-get update && apt-get install -y \
+  curl \
+  dumb-init \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY build/libs/*.jar app.jar
 COPY java-opts.sh /
