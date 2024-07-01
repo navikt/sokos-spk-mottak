@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre
+FROM bellsoft/liberica-openjdk-debian:21@sha256:b6711b4a0291fed9371d85415ccd2370c2f10465c7488f46446938321dc019dd
 LABEL org.opencontainers.image.source=https://github.com/navikt/sokos-spk-mottak
 
 RUN apt-get update && apt-get install -y \
