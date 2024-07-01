@@ -1,12 +1,17 @@
-FROM ghcr.io/navikt/baseimages/temurin:21
+FROM bellsoft/liberica-openjdk-alpine:21@sha256:b4f3b3f5c31e2935f5e941664e45156284ec14fc5745486291a7c45fbccd253d
 LABEL org.opencontainers.image.source=https://github.com/navikt/sokos-spk-mottak
 
+RUN apk add --no-cache curl
+RUN apk add --no-cache dumb-init
+
 COPY build/libs/*.jar app.jar
-CMD ["dumb-init", "--"]
+COPY java-opts.sh /
 
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:ActiveProcessorCount=2 -XX:+UseParallelGC"
+RUN chmod +x /java-opts.sh
+RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
 
-# Export vault properties to env
-COPY .nais/export-vault.sh /init-scripts/export-vault.sh
+ENV TZ="Europe/Oslo"
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
 
-ENTRYPOINT ["java","-jar", "app.jar"]
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["sh", "-c", ". /java-opts.sh && exec java ${JAVA_OPTS} -jar app.jar"]
