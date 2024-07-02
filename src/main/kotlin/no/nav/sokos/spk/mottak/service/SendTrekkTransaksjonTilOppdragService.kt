@@ -48,7 +48,7 @@ private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
 class SendTrekkTransaksjonTilOppdragService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
-    private val trekkSender: MQ = MQ(MQQueue(PropertiesConfig.MQProperties().trekkSenderQueueName), MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName)),
+    private val trekkSender: MQ = MQ(MQQueue(PropertiesConfig.MQProperties().trekkQueueName), MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName)),
 ) {
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
