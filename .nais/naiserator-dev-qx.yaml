@@ -49,9 +49,6 @@ spec:
   webproxy: true
   vault:
     enabled: true
-    paths:
-      - kvPath: /serviceuser/data/dev/srvmotmq
-        mountPath: /var/run/secrets/nais.io/srvmotmq
   filesFrom:
     - secret: db2license
       mountPath: /var/run/secrets/db2license

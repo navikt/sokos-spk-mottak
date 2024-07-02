@@ -21,7 +21,6 @@ object MQConfig {
             setIntProperty(WMQConstants.JMS_IBM_ENCODING, MQConstants.MQENC_NATIVE)
             setIntProperty(WMQConstants.JMS_IBM_CHARACTER_SET, UTF_8_WITH_PUA)
             setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, properties.userAuth)
-            println("HVA ER BRUKERNAVN OG PASSORD:::::::::::::::::: ? ${properties.serviceUsername} ${properties.servicePassword}")
             setStringProperty(WMQConstants.USERID, properties.serviceUsername)
             setStringProperty(WMQConstants.PASSWORD, properties.servicePassword)
         }
