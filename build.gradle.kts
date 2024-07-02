@@ -1,5 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import kotlinx.kover.gradle.plugin.dsl.tasks.KoverReport
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -161,19 +160,6 @@ tasks {
 
     ("jar") {
         enabled = false
-    }
-
-    withType<KoverReport>().configureEach {
-        dependsOn(test)
-        kover {
-            reports {
-                total {
-                    html {
-                        enabled = true
-                    }
-                }
-            }
-        }
     }
 
     withType<Test>().configureEach {
