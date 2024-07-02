@@ -14,7 +14,6 @@ object PropertiesConfig {
             mapOf(
                 "NAIS_APP_NAME" to "sokos-spk-mottak",
                 "NAIS_NAMESPACE" to "okonomi",
-                "MQ_SERVICE_USERNAME" to "srvmotmq",
                 "USE_AUTHENTICATION" to "true",
                 "READ_AND_PARSEFILE_CRON_PATTERN" to "0 10 * * * *",
                 "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 * * * * *",

@@ -49,9 +49,6 @@ spec:
   webproxy: true
   vault:
     enabled: true
-    paths:
-      - kvPath: /serviceuser/data/dev/srvmotmq
-        mountPath: /var/run/secrets/nais.io/srvmotmq
   filesFrom:
     - secret: db2license
       mountPath: /var/run/secrets/db2license
@@ -60,6 +57,7 @@ spec:
   envFrom:
     - secret: spk-sftp-creds
     - secret: oppdrag-q1-credentials
+    - secret: sokos-spk-mottak-mq-credentials
   env:
     - name: USE_AUTHENTICATION
       value: "true"
