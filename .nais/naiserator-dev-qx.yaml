@@ -126,4 +126,4 @@ spec:
     - name: READ_AND_PARSEFILE_CRON_PATTERN
       value: "5 * * * * *"
     - name: VALIDATE_TRANSAKSJON_CRON_PATTERN
-      value: "0 * * * * *"
+      value: "5 * * * * *"

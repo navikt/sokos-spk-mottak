@@ -21,7 +21,7 @@ internal class SendTrekkTransaksjonServiceTest :
             SendTrekkTransaksjonTilOppdragService(
                 Db2Listener.dataSource,
                 MQTest(
-                    MQQueue(PropertiesConfig.MQProperties().trekkSenderQueueName),
+                    MQQueue(PropertiesConfig.MQProperties().trekkQueueName),
                     MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
                 ),
             )
