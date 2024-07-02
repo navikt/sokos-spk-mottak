@@ -27,7 +27,7 @@ import java.time.Instant
 
 private val logger = KotlinLogging.logger { }
 
-class SendUtbetalingTransaksjonService(
+class SendUtbetalingTransaksjonTilOppdragService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
     private val producer: JmsProducerService = JmsProducerService(),
 ) {

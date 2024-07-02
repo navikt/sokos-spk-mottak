@@ -107,18 +107,19 @@ object PropertiesConfig {
     data class SchedulerProperties(
         val readAndParseFileCronPattern: String = getOrEmpty("READ_AND_PARSEFILE_CRON_PATTERN"),
         val validateTransaksjonCronPattern: String = getOrEmpty("VALIDATE_TRANSAKSJON_CRON_PATTERN"),
-        val sendTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
+        val sendUtbetalingTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
+        val sendTrekkTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
     )
 
     data class MQProperties(
-        val trekkSenderQueueName: String = getOrEmpty("MQ_TREKK_SEND_QUEUE_NAME"),
-        val trekkReplyQueueName: String = getOrEmpty("MQ_TREKK_REPLY_QUEUE_NAME"),
         val hostname: String = get("MQ_HOSTNAME"),
         val port: Int = get("MQ_PORT").toInt(),
         val mqQueueManagerName: String = get("MQ_QUEUE_MANAGER_NAME"),
         val mqChannelName: String = getOrEmpty("MQ_CHANNEL_NAME"),
         val serviceUsername: String = getOrEmpty("MQ_SERVICE_USERNAME"),
         val servicePassword: String = getOrEmpty("MQ_SERVICE_PASSWORD"),
+        val trekkSenderQueueName: String = getOrEmpty("MQ_TREKK_SEND_QUEUE_NAME"),
+        val trekkReplyQueueName: String = getOrEmpty("MQ_TREKK_REPLY_QUEUE_NAME"),
         val utbetalingQueueName: String = getOrEmpty("MQ_UTBETALING_QUEUE_NAME"),
         val utbetalingReplyQueueName: String = getOrEmpty("MQ_UTBETALING_REPLY_QUEUE_NAME"),
         val userAuth: Boolean = true,

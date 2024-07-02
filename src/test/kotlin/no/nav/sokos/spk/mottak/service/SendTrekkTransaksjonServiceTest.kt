@@ -17,8 +17,8 @@ internal class SendTrekkTransaksjonServiceTest :
     BehaviorSpec({
         extensions(listOf(Db2Listener, MQListener))
 
-        val sendTrekkTransaksjonService: SendTrekkTransaksjonService by lazy {
-            SendTrekkTransaksjonService(
+        val sendTrekkTransaksjonTilOppdragService: SendTrekkTransaksjonTilOppdragService by lazy {
+            SendTrekkTransaksjonTilOppdragService(
                 Db2Listener.dataSource,
                 MQTest(
                     MQQueue(PropertiesConfig.MQProperties().trekkSenderQueueName),
@@ -33,7 +33,7 @@ internal class SendTrekkTransaksjonServiceTest :
             }
             Db2Listener.transaksjonRepository.findAllByTrekkBelopstypeAndByTransaksjonTilstand(TRANS_TILSTAND_TIL_TREKK).size shouldBe 10
             When("hent trekk og send til OppdragZ") {
-                sendTrekkTransaksjonService.sendTrekkTilOppdrag()
+                sendTrekkTransaksjonTilOppdragService.hentTrekkTransaksjonOgSendTilOppdrag()
                 Then("skal alle transaksjoner blir oppdatert med status TSO (Trekk Send OK)") {
                     val transaksjonList = Db2Listener.transaksjonRepository.findAllByFilInfoId(filInfoId = 20000402)
                     transaksjonList.map { it.transTilstandType shouldBe TRANS_TILSTAND_TREKK_SENDT_OK }

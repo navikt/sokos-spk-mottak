@@ -46,14 +46,14 @@ private val logger = KotlinLogging.logger { }
 private const val BATCH_SIZE = 100
 private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-class SendTrekkTransaksjonService(
+class SendTrekkTransaksjonTilOppdragService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
     private val trekkSender: MQ = MQ(MQQueue(PropertiesConfig.MQProperties().trekkSenderQueueName), MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName)),
 ) {
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
 
-    fun sendTrekkTilOppdrag() {
+    fun hentTrekkTransaksjonOgSendTilOppdrag() {
         val timer = Instant.now()
         var totalTransaksjoner = 0
         val transaksjoner =

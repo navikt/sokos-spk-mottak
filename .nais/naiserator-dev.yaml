@@ -127,3 +127,5 @@ spec:
       value: "0 0 10 * * *"
     - name: VALIDATE_TRANSAKSJON_CRON_PATTERN
       value: "* 30 * * * *"
+    - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN
+      value: "* * * * * *"
