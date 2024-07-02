@@ -7,8 +7,8 @@ import no.nav.sokos.spk.mottak.config.MQConfig
 import java.util.UUID
 
 open class MQ(
-    private val senderQueue: MQQueue,
-    private val replyQueue: MQQueue,
+    val senderQueue: MQQueue,
+    val replyQueue: MQQueue,
     val context: JMSContext = MQConfig.connectionFactory().createContext(JMSContext.SESSION_TRANSACTED),
 ) {
     private val logger = KotlinLogging.logger {}

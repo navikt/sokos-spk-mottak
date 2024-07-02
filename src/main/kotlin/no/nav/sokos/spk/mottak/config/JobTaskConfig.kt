@@ -23,7 +23,7 @@ object JobTaskConfig {
     fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource()): Scheduler =
         Scheduler
             .create(dataSource)
-            .startTasks(recurringReadAndParseFileTask(), recurringValidateTransaksjonTask())
+            .startTasks(recurringReadAndParseFileTask(), recurringValidateTransaksjonTask(), recurringSendUtbetalingTransaksjonTilOppdragTask())
             .failureLogging(LogLevel.ERROR, true)
             .build()
 
