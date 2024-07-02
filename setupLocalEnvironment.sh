@@ -20,8 +20,6 @@ PRIVATE_KEY=$(kubectl get secret spk-sftp-private-key -o jsonpath='{.data.spk-sf
 POSTGRES_USER=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-spk-mottak-user)
 POSTGRES_ADMIN=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-spk-mottak-admin)
 
-MQ_SERVICE_PASSWORD=$(vault kv get -field=password serviceuser/dev/srvmotmq)
-
 # Set AZURE as local environment variables
 rm -f defaults.properties
 echo "$envValue" > defaults.properties
