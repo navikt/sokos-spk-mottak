@@ -24,7 +24,7 @@ class JmsConsumerListenerService(
                     message.getBody(String::class.java).also {
                         logger.info { "Mottatt melding fra OppdragZ, mesageId: ${message.jmsMessageID}, message: $it" }
                     }
-                val oppdrag = JaxbUtils.unmarshall(jmsMessage)
+                val oppdrag = JaxbUtils.unmarshallOppdrag(jmsMessage)
                 // TODO: skal oppdatere DB med ORO (OPPDRAG RETUR OK)
                 println(oppdrag)
                 Metrics.mqConsumerMetricCounter.inc()

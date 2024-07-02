@@ -110,7 +110,7 @@ spec:
     - name: MQ_UTBETALING_REPLY_QUEUE_NAME
       value: QA.Q1_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY
     - name: MQ_TREKK_SEND_QUEUE_NAME
-      value: QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH
+      value: QA.Q1_231.OB04_TREKK_MOT_XML
     - name: MQ_TREKK_REPLY_QUEUE_NAME
       value: QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY
 
@@ -127,3 +127,5 @@ spec:
       value: "0 0 10 * * *"
     - name: VALIDATE_TRANSAKSJON_CRON_PATTERN
       value: "* 30 * * * *"
+    - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN
+      value: "* * * * * *"

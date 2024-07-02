@@ -16,8 +16,8 @@ internal class SendUtbetalingTransaksjonServiceTest :
     BehaviorSpec({
         extensions(listOf(Db2Listener, MQListener))
 
-        val sendUtbetalingTransaksjonService: SendUtbetalingTransaksjonService by lazy {
-            SendUtbetalingTransaksjonService(Db2Listener.dataSource, JmsProducerTestService(MQListener.connectionFactory))
+        val sendUtbetalingTransaksjonTilOppdragService: SendUtbetalingTransaksjonTilOppdragService by lazy {
+            SendUtbetalingTransaksjonTilOppdragService(Db2Listener.dataSource, JmsProducerTestService(MQListener.connectionFactory))
         }
 
         Given("det finnes utbetalinger som skal sendes til oppdragZ") {
@@ -26,7 +26,7 @@ internal class SendUtbetalingTransaksjonServiceTest :
             }
             Db2Listener.transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG).size shouldBe 10
             When("hent utbetalinger og send til OppdragZ") {
-                sendUtbetalingTransaksjonService.hentUtbetalingTransaksjonOgSendTilOppdrag()
+                sendUtbetalingTransaksjonTilOppdragService.hentUtbetalingTransaksjonOgSendTilOppdrag()
                 Then("skal alle transaksjoner blir oppdatert med status OSO (Oppdrag Send OK)") {
                     val transaksjonList = Db2Listener.transaksjonRepository.findAllByFilInfoId(filInfoId = 20000002)
                     transaksjonList.map { it.transTilstandType shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_OK }
