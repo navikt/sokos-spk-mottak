@@ -12,7 +12,7 @@ fun Application.routingConfig(
 ) {
     routing {
         internalNaisRoutes(applicationState)
-        authenticate(useAuthentication) {
+        authenticate(useAuthentication, AUTHENTICATION_NAME) {
             mottakApi()
         }
     }
@@ -20,7 +20,8 @@ fun Application.routingConfig(
 
 fun Route.authenticate(
     useAuthentication: Boolean,
+    authenticationProviderId: String? = null,
     block: Route.() -> Unit,
 ) {
-    if (useAuthentication) authenticate { block() } else block()
+    if (useAuthentication) authenticate(authenticationProviderId) { block() } else block()
 }

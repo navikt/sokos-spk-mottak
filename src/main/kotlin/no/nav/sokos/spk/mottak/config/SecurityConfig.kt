@@ -16,6 +16,7 @@ import java.net.URI
 import java.util.concurrent.TimeUnit
 
 private val logger = KotlinLogging.logger {}
+const val AUTHENTICATION_NAME = "azureAd"
 
 fun Application.securityConfig(
     useAuthentication: Boolean,
@@ -27,7 +28,7 @@ fun Application.securityConfig(
         val jwkProvider = cachedJwkProvider(openIdMetadata.jwksUri)
 
         authentication {
-            jwt {
+            jwt(AUTHENTICATION_NAME) {
                 realm = PropertiesConfig.Configuration().naisAppName
                 verifier(
                     jwkProvider = jwkProvider,
