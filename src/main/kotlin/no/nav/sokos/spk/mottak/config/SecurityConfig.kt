@@ -28,7 +28,7 @@ fun Application.securityConfig(
         val jwkProvider = cachedJwkProvider(openIdMetadata.jwksUri)
 
         authentication {
-            jwt(AUTHENTICATION_NAME) {
+            jwt {
                 realm = PropertiesConfig.Configuration().naisAppName
                 verifier(
                     jwkProvider = jwkProvider,
