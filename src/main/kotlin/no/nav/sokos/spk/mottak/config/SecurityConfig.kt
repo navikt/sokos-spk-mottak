@@ -16,7 +16,6 @@ import java.net.URI
 import java.util.concurrent.TimeUnit
 
 private val logger = KotlinLogging.logger {}
-const val AUTHENTICATION_NAME = "azureAd"
 
 fun Application.securityConfig(
     useAuthentication: Boolean,
