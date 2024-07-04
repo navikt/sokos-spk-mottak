@@ -35,9 +35,6 @@ password=$(echo "$POSTGRES_ADMIN" | awk -F 'password:' '{print $2}' | awk '{prin
 echo "POSTGRES_ADMIN_USERNAME=$username" >> defaults.properties
 echo "POSTGRES_ADMIN_PASSWORD=$password" >> defaults.properties
 
-echo "MQ_SERVICE_PASSWORD=$MQ_SERVICE_PASSWORD" >> defaults.properties
-
-
 rm -f privateKey
 echo "$PRIVATE_KEY" > privateKey
 
