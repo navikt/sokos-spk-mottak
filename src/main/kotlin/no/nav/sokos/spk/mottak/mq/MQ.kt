@@ -4,7 +4,6 @@ import com.ibm.mq.jakarta.jms.MQQueue
 import jakarta.jms.JMSContext
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.MQConfig
-import java.util.UUID
 
 open class MQ(
     val senderQueue: MQQueue,
@@ -15,10 +14,8 @@ open class MQ(
 
     open fun send(message: String) {
         logger.debug("Sender melding til ${senderQueue.baseQueueName}")
-        context.clientID = UUID.randomUUID().toString()
         val producer = context.createProducer().apply { jmsReplyTo = replyQueue }
         context.use { ctx ->
-            logger.debug("MQ-transaksjon opprettet {}", ctx)
             runCatching {
                 producer.send(senderQueue, message)
             }.onSuccess {
