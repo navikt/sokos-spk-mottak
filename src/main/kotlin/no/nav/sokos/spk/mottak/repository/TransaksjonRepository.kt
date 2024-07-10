@@ -7,7 +7,6 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_TREKK
 import no.nav.sokos.spk.mottak.domain.GyldigKombinasjon
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
@@ -156,7 +155,7 @@ class TransaksjonRepository(
                     """
                     SELECT t.TRANSAKSJON_ID, t.TRANS_TILSTAND_ID, t.FIL_INFO_ID, t.K_TRANSAKSJON_S, t.PERSON_ID, t.K_BELOP_T, t.K_ART, t.K_ANVISER, t.FNR_FK, t.UTBETALES_TIL, t.OS_ID_FK, t.OS_LINJE_ID_FK, t.DATO_FOM, t.DATO_TOM, t.DATO_ANVISER, t.DATO_PERSON_FOM, t.DATO_REAK_FOM, t.BELOP,
                            t.REF_TRANS_ID, t.TEKSTKODE, RECTYPE, t.TRANS_EKS_ID_FK, t.K_TRANS_TOLKNING, t.SENDT_TIL_OPPDRAG, t.TREKKVEDTAK_ID_FK, t.FNR_ENDRET, t.MOT_ID, t.OS_STATUS, t.DATO_OPPRETTET, t.OPPRETTET_AV, t.DATO_ENDRET, t.ENDRET_AV, t.VERSJON, t.SALDO, t.KID, t.PRIORITET,
-                           t.K_TREKKANSVAR, t.K_TRANS_TILST_T, t.GRAD, k.K_FAGOMRADE, k.OS_KLASSIFIKASJON
+                           t.K_TREKKANSVAR, t.K_TRANS_TILST_T, t.GRAD, k.K_FAGOMRADE, k.OS_KLASSIFIKASJON, k.K_TREKKGRUPPE, k.K_TREKK_T, k.K_TREKKALT_T
                     FROM T_TRANSAKSJON t
                         INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER)
                     WHERE t.K_ANVISER = '$SPK' 
@@ -164,27 +163,6 @@ class TransaksjonRepository(
                     AND t.K_BELOP_T IN (${belopstype.joinToString(separator = "','", prefix = "'", postfix = "'")}) 
                     AND t.K_TRANS_TILST_T IN (${transaksjonTilstand.joinToString(separator = "','", prefix = "'", postfix = "'")})
                     ORDER BY t.PERSON_ID, t.DATO_FOM, t.DATO_TOM, t.K_ART, t.K_BELOP_T, t.K_TRANS_TOLKNING
-                    """.trimIndent(),
-                ),
-                mapToTransaksjon,
-            )
-        }
-
-    fun findAllByTrekkBelopstypeAndByTransaksjonTilstand(transaksjonTilstand: List<String>): List<Transaksjon> =
-        using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    SELECT t.TRANSAKSJON_ID, t.TRANS_TILSTAND_ID, t.FIL_INFO_ID, t.K_TRANSAKSJON_S, t.PERSON_ID, t.K_BELOP_T, t.K_ART, t.K_ANVISER, t.FNR_FK, t.UTBETALES_TIL, t.OS_ID_FK, t.OS_LINJE_ID_FK, t.DATO_FOM, t.DATO_TOM, t.DATO_ANVISER, t.DATO_PERSON_FOM, t.DATO_REAK_FOM, t.BELOP,
-                           t.REF_TRANS_ID, t.TEKSTKODE, RECTYPE, t.TRANS_EKS_ID_FK, t.K_TRANS_TOLKNING, t.SENDT_TIL_OPPDRAG, t.TREKKVEDTAK_ID_FK, t.FNR_ENDRET, t.MOT_ID, t.OS_STATUS, t.DATO_OPPRETTET, t.OPPRETTET_AV, t.DATO_ENDRET, t.ENDRET_AV, t.VERSJON, t.SALDO, t.KID, t.PRIORITET,
-                           t.K_TREKKANSVAR, t.K_TRANS_TILST_T, t.GRAD, k.K_TREKKGRUPPE, k.K_TREKK_T, k.K_TREKKALT_T
-                    FROM T_TRANSAKSJON t
-                        INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER)
-                    WHERE t.K_ANVISER = '$SPK' 
-                    AND k.ER_GYLDIG = 1
-                    AND t.K_BELOP_T = '$BELOPSTYPE_TREKK'
-                    AND t.K_TRANS_TILST_T IN (${transaksjonTilstand.joinToString(separator = "','", prefix = "'", postfix = "'")})
-                    ORDER BY t.PERSON_ID
                     """.trimIndent(),
                 ),
                 mapToTransaksjon,

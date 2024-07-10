@@ -5,7 +5,6 @@ import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import jakarta.jms.ConnectionFactory
 import jakarta.jms.JMSContext
-import jakarta.jms.JMSContext.AUTO_ACKNOWLEDGE
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.metrics.Metrics
@@ -21,8 +20,9 @@ open class JmsProducerService(
         payload: String,
         queueName: String,
         replyQueueName: String,
+        jmsContextMode: Int,
     ) {
-        jmsContext.createContext(AUTO_ACKNOWLEDGE).use { context ->
+        jmsContext.createContext(jmsContextMode).use { context ->
             val destination = context.createQueue(MQQueue(queueName).queueURI)
             (destination as MQDestination).targetClient = WMQConstants.WMQ_TARGET_DEST_MQ
             (destination as MQDestination).messageBodyStyle = WMQConstants.WMQ_MESSAGE_BODY_MQ

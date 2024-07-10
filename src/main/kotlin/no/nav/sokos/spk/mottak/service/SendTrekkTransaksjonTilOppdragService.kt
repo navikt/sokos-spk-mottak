@@ -7,10 +7,11 @@ import kotliquery.using
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
-import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter
+import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.innrapporteringTrekk
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.mq.MQ
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
@@ -34,7 +35,7 @@ class SendTrekkTransaksjonTilOppdragService(
         var totalTransaksjoner = 0
         val transaksjoner =
             runCatching {
-                transaksjonRepository.findAllByTrekkBelopstypeAndByTransaksjonTilstand(TRANS_TILSTAND_TIL_TREKK)
+                transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_TREKK, TRANS_TILSTAND_TIL_TREKK)
             }.getOrElse { exception ->
                 val errorMessage = "Feil under henting av trekktransaksjoner. Feilmelding: ${exception.message}"
                 logger.error(exception) { errorMessage }
@@ -46,7 +47,7 @@ class SendTrekkTransaksjonTilOppdragService(
         transaksjoner.chunked(BATCH_SIZE).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
             val transaksjonTilstandIdList = updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK)
-            val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(TrekkConverter.opprettTrekkMelding(it)) }
+            val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
             runCatching {
                 trekkSender.send(trekkMeldinger.joinToString(separator = ""))
                 totalTransaksjoner += transaksjonIdList.size
@@ -62,10 +63,9 @@ class SendTrekkTransaksjonTilOppdragService(
     private fun updateTransaksjonOgTransaksjonTilstand(
         transaksjonIdList: List<Int>,
         transTilstandStatus: String,
-    ): List<Int> {
-        return using(sessionOf(dataSource)) { session ->
+    ): List<Int> =
+        using(sessionOf(dataSource)) { session ->
             transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session)
             transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session)
         }
-    }
 }

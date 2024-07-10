@@ -7,11 +7,7 @@ import io.kotest.core.test.TestResult
 import jakarta.jms.Connection
 import jakarta.jms.ConnectionFactory
 import jakarta.jms.JMSContext
-import jakarta.jms.JMSContext.AUTO_ACKNOWLEDGE
-import jakarta.jms.JMSContext.SESSION_TRANSACTED
-import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
-import no.nav.sokos.spk.mottak.mq.MQ
 import org.apache.activemq.artemis.api.core.TransportConfiguration
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl
 import org.apache.activemq.artemis.core.remoting.impl.invm.InVMAcceptorFactory
@@ -54,36 +50,15 @@ class JmsProducerTestService(
         payload: String,
         queueName: String,
         replyQueueName: String,
+        jmsContextMode: Int,
     ) {
-        jmsContext.createContext(AUTO_ACKNOWLEDGE).use { context ->
+        jmsContext.createContext(jmsContextMode).use { context ->
             val destination = context.createQueue(MQQueue(queueName).queueURI)
             val message =
                 context.createTextMessage(payload).apply {
                     jmsReplyTo = ActiveMQQueue(replyQueueName)
                 }
             context.createProducer().send(destination, message)
-        }
-    }
-}
-
-class MQTest(
-    senderQueue: MQQueue,
-    replyQueue: MQQueue,
-) : MQ(senderQueue, replyQueue, connectionFactory.createContext(SESSION_TRANSACTED)) {
-    val ctx: JMSContext = connectionFactory.createContext(SESSION_TRANSACTED)
-    val destination = context.createQueue(MQQueue(senderQueue.queueName).queueURI)
-    val reply = context.createQueue(MQQueue(replyQueue.queueName).queueURI)
-
-    override fun send(message: String) {
-        val producer = context.createProducer().apply { jmsReplyTo = reply }
-        ctx.use { ctx ->
-            runCatching {
-                producer.send(destination, message)
-            }.onSuccess {
-                ctx.commit()
-            }.onFailure {
-                ctx.rollback()
-            }
         }
     }
 }

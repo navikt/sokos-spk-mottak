@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.zaxxer.hikari.HikariDataSource
+import jakarta.jms.JMSContext.AUTO_ACKNOWLEDGE
 import kotliquery.Session
 import kotliquery.sessionOf
 import kotliquery.using
@@ -76,7 +77,12 @@ class SendUtbetalingTransaksjonTilOppdragService(
                                 }
                         },
                     )
-                producer.send(JaxbUtils.marshallOppdrag(oppdrag), PropertiesConfig.MQProperties().utbetalingQueueName, PropertiesConfig.MQProperties().utbetalingReplyQueueName)
+                producer.send(
+                    JaxbUtils.marshallOppdrag(oppdrag),
+                    PropertiesConfig.MQProperties().utbetalingQueueName,
+                    PropertiesConfig.MQProperties().utbetalingReplyQueueName,
+                    AUTO_ACKNOWLEDGE,
+                )
 
                 logger.debug { "TransaksjonsId: ${transaksjonIdList.joinToString()} er sendt til OppdragZ." }
             }.onFailure { exception ->

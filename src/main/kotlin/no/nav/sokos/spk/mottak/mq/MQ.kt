@@ -1,21 +1,24 @@
 package no.nav.sokos.spk.mottak.mq
 
 import com.ibm.mq.jakarta.jms.MQQueue
+import jakarta.jms.ConnectionFactory
 import jakarta.jms.JMSContext
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.MQConfig
 
-open class MQ(
-    val senderQueue: MQQueue,
-    val replyQueue: MQQueue,
-    val context: JMSContext = MQConfig.connectionFactory().createContext(JMSContext.SESSION_TRANSACTED),
-) {
-    private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
-    open fun send(message: String) {
+class MQ(
+    private val senderQueue: MQQueue,
+    private val replyQueue: MQQueue,
+    private val connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
+) {
+    private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.SESSION_TRANSACTED)
+
+    fun send(message: String) {
         logger.debug("Sender melding til ${senderQueue.baseQueueName}")
-        val producer = context.createProducer().apply { jmsReplyTo = replyQueue }
-        context.use { ctx ->
+        val producer = jmsContext.createProducer().apply { jmsReplyTo = replyQueue }
+        jmsContext.use { ctx ->
             runCatching {
                 producer.send(senderQueue, message)
             }.onSuccess {

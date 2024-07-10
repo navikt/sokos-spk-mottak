@@ -7,11 +7,12 @@ import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.transaction
+import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.MQListener
-import no.nav.sokos.spk.mottak.listener.MQTest
+import no.nav.sokos.spk.mottak.mq.MQ
 
 internal class SendTrekkTransaksjonServiceTest :
     BehaviorSpec({
@@ -20,9 +21,10 @@ internal class SendTrekkTransaksjonServiceTest :
         val sendTrekkTransaksjonTilOppdragService: SendTrekkTransaksjonTilOppdragService by lazy {
             SendTrekkTransaksjonTilOppdragService(
                 Db2Listener.dataSource,
-                MQTest(
+                MQ(
                     MQQueue(PropertiesConfig.MQProperties().trekkQueueName),
                     MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                    MQListener.connectionFactory,
                 ),
             )
         }
@@ -31,7 +33,7 @@ internal class SendTrekkTransaksjonServiceTest :
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(TestHelper.readFromResource("/database/trekk_transaksjon.sql")))
             }
-            Db2Listener.transaksjonRepository.findAllByTrekkBelopstypeAndByTransaksjonTilstand(TRANS_TILSTAND_TIL_TREKK).size shouldBe 10
+            Db2Listener.transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_TREKK, TRANS_TILSTAND_TIL_TREKK).size shouldBe 10
             When("hent trekk og send til OppdragZ") {
                 sendTrekkTransaksjonTilOppdragService.hentTrekkTransaksjonOgSendTilOppdrag()
                 Then("skal alle transaksjoner blir oppdatert med status TSO (Trekk Send OK)") {

@@ -2,7 +2,7 @@ package no.nav.sokos.spk.mottak.util
 
 import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.Marshaller
-import no.nav.sokos.spk.mottak.domain.converter.Dokument
+import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.trygdeetaten.skjema.oppdrag.Oppdrag
 import java.io.StringReader
 import java.io.StringWriter
@@ -25,12 +25,13 @@ object JaxbUtils {
         }
     }
 
-    fun unmarshallOppdrag(oppdragXml: String): Oppdrag {
-        return jaxbContextOppdrag.createUnmarshaller().unmarshal(
-            XMLInputFactory.newInstance().createXMLStreamReader(StreamSource(oppdragXml.toValidOppdragXml())),
-            Oppdrag::class.java,
-        ).value
-    }
+    fun unmarshallOppdrag(oppdragXml: String): Oppdrag =
+        jaxbContextOppdrag
+            .createUnmarshaller()
+            .unmarshal(
+                XMLInputFactory.newInstance().createXMLStreamReader(StreamSource(oppdragXml.toValidOppdragXml())),
+                Oppdrag::class.java,
+            ).value
 
     fun marshallTrekk(trekk: Dokument): String {
         val marshaller =
@@ -44,9 +45,7 @@ object JaxbUtils {
         }
     }
 
-    fun unmarshallTrekk(trekkXml: String): Dokument {
-        return jaxbContextTrekk.createUnmarshaller().unmarshal(StringReader(trekkXml)) as Dokument
-    }
+    fun unmarshallTrekk(trekkXml: String): Dokument = jaxbContextTrekk.createUnmarshaller().unmarshal(StringReader(trekkXml)) as Dokument
 
     private fun String.toValidOppdragXml() =
         this

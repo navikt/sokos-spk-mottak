@@ -6,21 +6,16 @@ import javax.xml.datatype.DatatypeFactory
 import javax.xml.datatype.XMLGregorianCalendar
 
 object Utils {
-    fun String.toLocalDate(): LocalDate? {
-        return runCatching {
+    fun String.toLocalDate(): LocalDate? =
+        runCatching {
             this.ifBlank { null }.let { LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd")) }
         }.getOrNull()
-    }
 
-    fun LocalDate.toLocalDateString(): String {
-        return this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-    }
+    fun LocalDate.toLocalDateString(): String = this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
-    fun LocalDate.toXMLGregorianCalendar(): XMLGregorianCalendar {
-        return DatatypeFactory.newInstance().newXMLGregorianCalendar(this.toString())
-    }
+    fun LocalDate.toISOString(): String = this.format(DateTimeFormatter.ISO_DATE)
 
-    fun Boolean.toChar(): Char {
-        return if (this) '1' else '0'
-    }
+    fun LocalDate.toXMLGregorianCalendar(): XMLGregorianCalendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(this.toString())
+
+    fun Boolean.toChar(): Char = if (this) '1' else '0'
 }
