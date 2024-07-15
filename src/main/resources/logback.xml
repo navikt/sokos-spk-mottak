@@ -32,7 +32,7 @@
             </logger>
         </then>
     </if>
-    
+
     <if condition='isDefined("NAIS_CLUSTER_NAME")'>
         <then>
             <root level="INFO">
