@@ -41,7 +41,7 @@ val jschVersion = "0.2.18"
 val logbackVersion = "1.5.6"
 val logstashVersion = "7.4"
 val jacksonVersion = "2.15.3"
-val micrometerVersion = "1.13.1"
+val micrometerVersion = "1.13.2"
 val kotlinLoggingVersion = "3.0.5"
 val janionVersion = "3.1.12"
 val natpryceVersion = "1.6.10.0"
@@ -54,9 +54,9 @@ val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.19.8"
 val h2Version = "2.2.224"
-val flywayVersion = "10.15.0"
+val flywayVersion = "10.15.2"
 val postgresVersion = "42.7.3"
-val dbSchedulerVersion = "14.0.1"
+val dbSchedulerVersion = "14.0.2"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20240610135831_de4c522"
 val ibmmqVersion = "9.4.0.0"
@@ -176,6 +176,6 @@ tasks {
     }
 
     withType<Wrapper> {
-        gradleVersion = "8.7"
+        gradleVersion = "8.9"
     }
 }

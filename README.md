@@ -21,7 +21,7 @@ sokos-spk-mottak er en applikasjon som mottar utbetalings- og trekktransaksjoner
 ### Forutsetninger
 
 * Java 21
-* Gradle 8.7
+* Gradle
 * [Kotest](https://plugins.jetbrains.com/plugin/14080-kotest) plugin for å kjøre tester
 * [Docker](https://www.docker.com/) for å kjøre testcontainers
 
@@ -65,10 +65,10 @@ Applikasjonen bruker [AzureAD](https://docs.nais.io/security/auth/azure-ad/) for
 
 ### Logging
 
-Vi logger til https://logs.adeo.no.
+https://logs.adeo.no.
 
-Feilmeldinger og infomeldinger som ikke innheholder sensitive data logges til indeksen `logstash-apps`, mens meldinger
-som inneholder sensitive data logges til indeksen `tjenestekall`.
+Feilmeldinger og infomeldinger som ikke innheholder sensitive data logges til data view `Applikasjonslogger`.  
+Sensetive meldinger logges til data view `Securelogs` [sikker-utvikling/logging](https://sikkerhet.nav.no/docs/sikker-utvikling/logging)).
 
 - Filter for Produksjon
     * application:sokos-spk-mottak AND envclass:p
@@ -76,11 +76,10 @@ som inneholder sensitive data logges til indeksen `tjenestekall`.
 - Filter for Dev
     * application:sokos-spk-mottak AND envclass:q
 
-[sikker-utvikling/logging](https://sikkerhet.nav.no/docs/sikker-utvikling/logging) - Anbefales å lese
+### Observability
 
-- Filter for sikkerhet logs på https://logs.adeo.no
-    * Bytte Change index pattern fra: logstash-* til: tjenestekall-*
-    * Bruk samme filter for dev og prod som er vist over
+- Applikasjonen er konfigurert med Observability
+[sokos-spk-mottak](https://logs.adeo.no/app/apm/services/sokos-spk-mottak/overview?comparisonEnabled=true&environment=ENVIRONMENT_ALL&kuery=&latencyAggregationType=avg&offset=1d&rangeFrom=now-15m&rangeTo=now&serviceGroup=&transactionType=request)
 
 ### Kubectl
 
@@ -107,7 +106,7 @@ Disse finner man konfigurert i [.nais/alerts-dev.yaml](.nais/alerts-dev.yaml) fi
 
 ### Grafana
 
-- [appavn](url)
+- [sokos-spk-mottak](https://grafana.nav.cloud.nais.io/d/fdrtp6qv623ggf/sokos-spk-mottak?orgId=1&refresh=30s)
 
 ---
 
