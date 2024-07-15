@@ -32,9 +32,7 @@
             </logger>
         </then>
     </if>
-
-    <logger name="io.opentelemetry.sdk.metrics.internal.state.AsynchronousMetricStorage" level="ERROR"/>
-
+    
     <if condition='isDefined("NAIS_CLUSTER_NAME")'>
         <then>
             <root level="INFO">
