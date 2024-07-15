@@ -21,7 +21,7 @@ sokos-spk-mottak er en applikasjon som mottar utbetalings- og trekktransaksjoner
 ### Forutsetninger
 
 * Java 21
-* Gradle 8.7
+* Gradle
 * [Kotest](https://plugins.jetbrains.com/plugin/14080-kotest) plugin for å kjøre tester
 * [Docker](https://www.docker.com/) for å kjøre testcontainers
 
@@ -82,6 +82,11 @@ som inneholder sensitive data logges til indeksen `tjenestekall`.
     * Bytte Change index pattern fra: logstash-* til: tjenestekall-*
     * Bruk samme filter for dev og prod som er vist over
 
+### Observability
+
+- Applikasjonen er konfigurert med Observability
+[sokos-spk-mottak](https://logs.adeo.no/app/apm/services/sokos-spk-mottak/overview?comparisonEnabled=true&environment=ENVIRONMENT_ALL&kuery=&latencyAggregationType=avg&offset=1d&rangeFrom=now-15m&rangeTo=now&serviceGroup=&transactionType=request)
+
 ### Kubectl
 
 For dev-fss:
@@ -107,7 +112,7 @@ Disse finner man konfigurert i [.nais/alerts-dev.yaml](.nais/alerts-dev.yaml) fi
 
 ### Grafana
 
-- [appavn](url)
+- [sokos-spk-mottak](https://grafana.nav.cloud.nais.io/d/fdrtp6qv623ggf/sokos-spk-mottak?orgId=1&refresh=30s)
 
 ---
 
