@@ -1,7 +1,8 @@
 package no.nav.sokos.spk.mottak.service
 
+import com.ibm.mq.jakarta.jms.MQQueue
 import com.zaxxer.hikari.HikariDataSource
-import jakarta.jms.JMSContext.AUTO_ACKNOWLEDGE
+import jakarta.xml.bind.JAXBElement
 import kotliquery.Session
 import kotliquery.sessionOf
 import kotliquery.using
@@ -27,6 +28,7 @@ import java.time.Duration
 import java.time.Instant
 
 private val logger = KotlinLogging.logger { }
+private const val BATCH_SIZE = 100
 
 class SendUtbetalingTransaksjonTilOppdragService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
@@ -44,12 +46,18 @@ class SendUtbetalingTransaksjonTilOppdragService(
             if (transaksjonList.isNotEmpty()) {
                 logger.info { "Starter sending av utbetalingstransaksjoner til OppdragZ" }
 
-                val transaksjonMap = transaksjonList.groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
-                transaksjonMap.forEach { (_, transaksjon) ->
-                    sendTilOppdrag(transaksjon)
-                    totalTransaksjoner += transaksjon.size
-                }
+                transaksjonList.chunked(BATCH_SIZE).forEach { items ->
+                    val oppdragList =
+                        transaksjonList
+                            .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
+                            .map { it.value.toOppdrag() }
+                            .map { JaxbUtils.marshallOppdrag(it) }
 
+                    val transaksjonIdList = items.map { it.transaksjonId!! }
+
+                    sendTilOppdrag(oppdragList, transaksjonIdList)
+                    totalTransaksjoner += oppdragList.size
+                }
                 logger.info { "$totalTransaksjoner utbetalingstransaksjoner sendt til OppdragZ på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
             }
         }.onFailure { exception ->
@@ -59,29 +67,30 @@ class SendUtbetalingTransaksjonTilOppdragService(
         }
     }
 
-    private fun sendTilOppdrag(transaksjonList: List<Transaksjon>) {
-        val transaksjonIdList = transaksjonList.map { it.transaksjonId!! }
+    private fun List<Transaksjon>.toOppdrag(): JAXBElement<Oppdrag> =
+        ObjectFactory().createOppdrag(
+            Oppdrag().apply {
+                oppdrag110 =
+                    first().oppdrag110().apply {
+                        oppdragsLinje150.addAll(map { it.oppdragsLinje150() })
+                    }
+            },
+        )
+
+    private fun sendTilOppdrag(
+        oppdragList: List<String>,
+        transaksjonIdList: List<Int>,
+    ) {
         val transaksjonTilstandIdList =
             using(sessionOf(dataSource)) { session ->
                 updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
             }
         dataSource.transaction { session ->
             runCatching {
-                val transaksjon = transaksjonList.first()
-                val oppdrag =
-                    ObjectFactory().createOppdrag(
-                        Oppdrag().apply {
-                            oppdrag110 =
-                                transaksjon.oppdrag110().apply {
-                                    oppdragsLinje150.addAll(transaksjonList.map { it.oppdragsLinje150() })
-                                }
-                        },
-                    )
                 producer.send(
-                    JaxbUtils.marshallOppdrag(oppdrag),
-                    PropertiesConfig.MQProperties().utbetalingQueueName,
-                    PropertiesConfig.MQProperties().utbetalingReplyQueueName,
-                    AUTO_ACKNOWLEDGE,
+                    oppdragList,
+                    MQQueue(PropertiesConfig.MQProperties().utbetalingQueueName),
+                    MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
                 )
 
                 logger.debug { "TransaksjonsId: ${transaksjonIdList.joinToString()} er sendt til OppdragZ." }
@@ -97,7 +106,7 @@ class SendUtbetalingTransaksjonTilOppdragService(
         transaksjonIdList: List<Int>,
         transTilstandStatus: String,
         session: Session,
-    ): List<Int> {
+    ): List<Long> {
         transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session)
         return transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session)
     }

@@ -1,12 +1,13 @@
 package no.nav.sokos.spk.mottak.listener
 
-import com.ibm.mq.jakarta.jms.MQQueue
+import com.ibm.msg.client.jakarta.jms.JmsContext
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
-import jakarta.jms.Connection
+import io.mockk.every
+import io.mockk.mockk
 import jakarta.jms.ConnectionFactory
-import jakarta.jms.JMSContext
+import jakarta.jms.Queue
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import org.apache.activemq.artemis.api.core.TransportConfiguration
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl
@@ -26,11 +27,15 @@ object MQListener : TestListener {
             )
 
     lateinit var connectionFactory: ConnectionFactory
-    private lateinit var connection: Connection
+
+    val connectionFactoryMock: ConnectionFactory = mockk<ConnectionFactory>()
+    val jmsContext: JmsContext = mockk<JmsContext>()
 
     override suspend fun beforeTest(testCase: TestCase) {
         server.start()
-        connectionFactory = ActiveMQConnectionFactory("vm://localhost?create=false")
+        connectionFactory = ActiveMQConnectionFactory("vm:localhost?create=false")
+
+        every { connectionFactoryMock.createContext() } returns jmsContext
     }
 
     override suspend fun afterTest(
@@ -44,21 +49,11 @@ object MQListener : TestListener {
 class JmsProducerTestService(
     connectionFactory: ConnectionFactory,
 ) : JmsProducerService(connectionFactory) {
-    private val jmsContext: JMSContext = connectionFactory.createContext()
-
     override fun send(
-        payload: String,
-        queueName: String,
-        replyQueueName: String,
-        jmsContextMode: Int,
+        payload: List<String>,
+        queue: Queue,
+        replyQueue: Queue,
     ) {
-        jmsContext.createContext(jmsContextMode).use { context ->
-            val destination = context.createQueue(MQQueue(queueName).queueURI)
-            val message =
-                context.createTextMessage(payload).apply {
-                    jmsReplyTo = ActiveMQQueue(replyQueueName)
-                }
-            context.createProducer().send(destination, message)
-        }
+        super.send(payload, ActiveMQQueue(queue.queueName), ActiveMQQueue(replyQueue.queueName))
     }
 }

@@ -1,18 +1,16 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.ibm.mq.jakarta.jms.MQQueue
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
 import no.nav.sokos.spk.mottak.listener.Db2Listener
+import no.nav.sokos.spk.mottak.listener.JmsProducerTestService
 import no.nav.sokos.spk.mottak.listener.MQListener
-import no.nav.sokos.spk.mottak.mq.MQ
 
 internal class SendTrekkTransaksjonServiceTest :
     BehaviorSpec({
@@ -21,11 +19,7 @@ internal class SendTrekkTransaksjonServiceTest :
         val sendTrekkTransaksjonTilOppdragService: SendTrekkTransaksjonTilOppdragService by lazy {
             SendTrekkTransaksjonTilOppdragService(
                 Db2Listener.dataSource,
-                MQ(
-                    MQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                    MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                    MQListener.connectionFactory,
-                ),
+                JmsProducerTestService(MQListener.connectionFactory),
             )
         }
 

@@ -10,7 +10,7 @@ import no.nav.sokos.spk.mottak.util.JaxbUtils
 
 private val logger = KotlinLogging.logger {}
 
-class JmsConsumerListenerService(
+class JmsListenerService(
     private val connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
 ) {
     private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)

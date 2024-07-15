@@ -13,7 +13,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.innrapporteringTrekk
 import no.nav.sokos.spk.mottak.exception.MottakException
-import no.nav.sokos.spk.mottak.mq.MQ
+import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
@@ -25,7 +25,7 @@ private const val BATCH_SIZE = 100
 
 class SendTrekkTransaksjonTilOppdragService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
-    private val trekkSender: MQ = MQ(MQQueue(PropertiesConfig.MQProperties().trekkQueueName), MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName)),
+    private val producer: JmsProducerService = JmsProducerService(),
 ) {
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
@@ -46,10 +46,18 @@ class SendTrekkTransaksjonTilOppdragService(
         logger.info { "Starter sending av trekktransaksjoner til OppdragZ" }
         transaksjoner.chunked(BATCH_SIZE).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
-            val transaksjonTilstandIdList = updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK)
+            val transaksjonTilstandIdList =
+                using(sessionOf(dataSource)) { session ->
+                    updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK)
+                }
+
             val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
             runCatching {
-                trekkSender.send(trekkMeldinger.joinToString(separator = ""))
+                producer.send(
+                    trekkMeldinger,
+                    MQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+                    MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                )
                 totalTransaksjoner += transaksjonIdList.size
                 logger.info { "$totalTransaksjoner trekktransaksjoner sendt til OppdragZ brukte ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
             }.onFailure { exception ->
@@ -63,7 +71,7 @@ class SendTrekkTransaksjonTilOppdragService(
     private fun updateTransaksjonOgTransaksjonTilstand(
         transaksjonIdList: List<Int>,
         transTilstandStatus: String,
-    ): List<Int> =
+    ): List<Long> =
         using(sessionOf(dataSource)) { session ->
             transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session)
             transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session)

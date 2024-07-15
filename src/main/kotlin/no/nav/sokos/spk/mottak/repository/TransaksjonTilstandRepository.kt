@@ -18,9 +18,9 @@ class TransaksjonTilstandRepository(
         transaksjonIdList: List<Int>,
         transaksjonTilstandType: String = TRANS_TILSTAND_OPPRETTET,
         session: Session,
-    ): List<Int> {
+    ): List<Long> {
         val systemId = PropertiesConfig.Configuration().naisAppName
-        return session.batchPreparedNamedStatement(
+        return session.batchPreparedNamedStatementAndReturnGeneratedKeys(
             """
             INSERT INTO T_TRANS_TILSTAND (
                 TRANSAKSJON_ID,
@@ -37,7 +37,7 @@ class TransaksjonTilstandRepository(
     }
 
     fun deleteTransaksjon(
-        transaksjonTilstandId: List<Int>,
+        transaksjonTilstandId: List<Long>,
         session: Session,
     ) {
         session.update(

@@ -55,12 +55,11 @@ fun Application.securityConfig(
     }
 }
 
-private fun cachedJwkProvider(jwksUri: String): JwkProvider {
-    return JwkProviderBuilder(URI(jwksUri).toURL())
+private fun cachedJwkProvider(jwksUri: String): JwkProvider =
+    JwkProviderBuilder(URI(jwksUri).toURL())
         .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
         .rateLimited(10, 1, TimeUnit.MINUTES) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
         .build()
-}
 
 @Serializable
 data class OpenIdMetadata(
