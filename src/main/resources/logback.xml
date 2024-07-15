@@ -47,6 +47,7 @@
     </if>
 
     <logger name="no.nav.sokos.spk.mottak" level="INFO"/>
+    <logger name="io.opentelemetry.sdk.metrics.internal.state.AsynchronousMetricStorage" level="ERROR"/>
     <!-- <logger name="com.jcraft.jsch.JSch" level="DEBUG"/> -->
     <!--     <logger name="com.zaxxer.hikari" level="TRACE" />-->
     <!--     <logger name="com.zaxxer.hikari.HikariConfig" level="DEBUG" />-->
