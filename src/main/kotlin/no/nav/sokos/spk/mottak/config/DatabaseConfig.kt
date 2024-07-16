@@ -21,7 +21,6 @@ object DatabaseConfig {
         return HikariConfig().apply {
             minimumIdle = 1
             maximumPoolSize = 10
-            poolName = "HikariPool-${PropertiesConfig.Configuration().naisAppName}-DB2"
             connectionTestQuery = "select 1 from sysibm.sysdummy1"
             dataSource =
                 DB2SimpleDataSource().apply {
@@ -42,7 +41,6 @@ object DatabaseConfig {
     private fun postgresHikariConfig(): HikariConfig {
         val postgresProperties: PropertiesConfig.PostgresProperties = PropertiesConfig.PostgresProperties()
         return HikariConfig().apply {
-            poolName = "HikariPool-${PropertiesConfig.Configuration().naisAppName}-POSTGRES"
             maximumPoolSize = 5
             minimumIdle = 1
             dataSource =
