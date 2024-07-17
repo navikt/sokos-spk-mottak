@@ -9,6 +9,20 @@ private const val METRICS_NAMESPACE = "sokos_spk_mottak"
 object Metrics {
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
+    val countFileProcessed: Counter =
+        Counter.builder()
+            .name("${METRICS_NAMESPACE}_file_processed")
+            .help("Counts the number of file processed from SPK")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val countInnTransaksjon: Counter =
+        Counter.builder()
+            .name("${METRICS_NAMESPACE}_innTransaksjoner")
+            .help("Counts the number of innTransaksjoner saved to T_INNTRANSAKSJON table")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
     val mqProducerMetricCounter: Counter =
         Counter.builder()
             .name("${METRICS_NAMESPACE}_mq_producer")

@@ -16,6 +16,7 @@ import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.domain.record.toFileInfo
 import no.nav.sokos.spk.mottak.exception.FilValidationException
 import no.nav.sokos.spk.mottak.exception.MottakException
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.LopenummerRepository
@@ -98,6 +99,9 @@ class ReadAndParseFileService(
         }
         recordData.transaksjonRecordList.clear()
         ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.FERDIG)
+
+        Metrics.countFileProcessed.inc()
+        Metrics.countInnTransaksjon.inc(antallInnTransaksjon.toDouble())
         logger.info { "${recordData.filNavn} med løpenummer: ${recordData.startRecord.filLopenummer} er ferdigbehandlet. $antallInnTransaksjon inntransaksjoner har blitt lagt inn fra fil" }
     }
 
