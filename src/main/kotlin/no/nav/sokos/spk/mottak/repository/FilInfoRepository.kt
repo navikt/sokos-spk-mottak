@@ -16,8 +16,8 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
 class FilInfoRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
-    fun getByFilTilstandAndAllInnTransaksjonIsBehandlet(filTilstandType: String = FILTILSTANDTYPE_GOD): List<FilInfo> {
-        return using(sessionOf(dataSource)) { session ->
+    fun getByFilTilstandAndAllInnTransaksjonIsBehandlet(filTilstandType: String = FILTILSTANDTYPE_GOD): List<FilInfo> =
+        using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
                     """
@@ -35,13 +35,12 @@ class FilInfoRepository(
                 mapToFileInfo,
             )
         }
-    }
 
     fun insert(
         filInfo: FilInfo,
         session: Session,
-    ): Long? {
-        return session.updateAndReturnGeneratedKey(
+    ): Long? =
+        session.updateAndReturnGeneratedKey(
             queryOf(
                 """
                 INSERT INTO T_FIL_INFO (
@@ -62,7 +61,6 @@ class FilInfoRepository(
                 filInfo.asMap(),
             ),
         )
-    }
 
     /**
      * Bruker kun for testing
@@ -70,8 +68,8 @@ class FilInfoRepository(
     fun getByLopenummerAndFilTilstand(
         lopeNummer: Int,
         filTilstandType: String,
-    ): FilInfo? {
-        return using(sessionOf(dataSource)) { session ->
+    ): FilInfo? =
+        using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
@@ -87,7 +85,6 @@ class FilInfoRepository(
                 mapToFileInfo,
             )
         }
-    }
 
     private val mapToFileInfo: (Row) -> FilInfo = { row ->
         FilInfo(

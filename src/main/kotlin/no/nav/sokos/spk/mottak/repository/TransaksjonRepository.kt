@@ -23,7 +23,7 @@ class TransaksjonRepository(
     fun insertBatch(
         transaksjonList: List<Transaksjon>,
         session: Session,
-    ): List<Int> =
+    ) {
         session.batchPreparedNamedStatement(
             """
             INSERT INTO T_TRANSAKSJON  (
@@ -61,6 +61,7 @@ class TransaksjonRepository(
             """.trimIndent(),
             transaksjonList.map { it.asMap() },
         )
+    }
 
     fun updateAllWhereTranstolkningIsNyForMoreThanOneInstance(
         personIdListe: List<Int>,

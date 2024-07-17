@@ -18,9 +18,9 @@ class AvvikTransaksjonRepository(
     fun insertBatch(
         innTransaksjonList: List<InnTransaksjon>,
         session: Session,
-    ): List<Int> {
+    ): List<Long> {
         val systemId = PropertiesConfig.Configuration().naisAppName
-        return session.batchPreparedNamedStatement(
+        return session.batchPreparedNamedStatementAndReturnGeneratedKeys(
             """
             INSERT INTO T_AVV_TRANSAKSJON (
                 AVV_TRANSAKSJON_ID,
@@ -54,8 +54,8 @@ class AvvikTransaksjonRepository(
     /**
      * Bruker kun for testing
      */
-    fun getByAvvTransaksjonId(avvikTransaksjonId: Int): AvvikTransaksjon? {
-        return using(sessionOf(dataSource)) { session ->
+    fun getByAvvTransaksjonId(avvikTransaksjonId: Int): AvvikTransaksjon? =
+        using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
@@ -69,7 +69,6 @@ class AvvikTransaksjonRepository(
                 mapToAvvikTransaksjon,
             )
         }
-    }
 
     private val mapToAvvikTransaksjon: (Row) -> AvvikTransaksjon = { row ->
         AvvikTransaksjon(

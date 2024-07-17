@@ -33,8 +33,8 @@ private const val READ_ROWS: Int = 10000
 class InnTransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
-    fun getByFilInfoId(filInfoId: Int): List<InnTransaksjon> {
-        return using(sessionOf(dataSource)) { session ->
+    fun getByFilInfoId(filInfoId: Int): List<InnTransaksjon> =
+        using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
                     """
@@ -48,13 +48,12 @@ class InnTransaksjonRepository(
                 mapToInntransaksjon,
             )
         }
-    }
 
     fun getByBehandlet(
         behandlet: String = BEHANDLET_NEI,
         rows: Int = READ_ROWS,
-    ): List<InnTransaksjon> {
-        return using(sessionOf(dataSource)) { session ->
+    ): List<InnTransaksjon> =
+        using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
                     """
@@ -69,7 +68,6 @@ class InnTransaksjonRepository(
                 mapToInntransaksjon,
             )
         }
-    }
 
     fun validateTransaksjon(session: Session) {
         session.update(queryOf(VALIDATOR_01_UNIK_ID))
@@ -95,8 +93,8 @@ class InnTransaksjonRepository(
         transaksjonRecordList: List<TransaksjonRecord>,
         filInfoId: Long,
         session: Session,
-    ) {
-        session.batchPreparedNamedStatement(
+    ): List<Long> =
+        session.batchPreparedNamedStatementAndReturnGeneratedKeys(
             """
             INSERT INTO T_INN_TRANSAKSJON (
             FIL_INFO_ID, 
@@ -129,7 +127,6 @@ class InnTransaksjonRepository(
             """.trimIndent(),
             transaksjonRecordList.convertToListMap(filInfoId),
         )
-    }
 
     fun updateBehandletStatusBatch(
         innTransaksjonIdList: List<Int>,

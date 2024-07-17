@@ -1,7 +1,11 @@
 package no.nav.sokos.spk.mottak.service
 
+import com.zaxxer.hikari.HikariDataSource
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.transaction
@@ -9,10 +13,12 @@ import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_OPPDRAG
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_OPPDRAG
+import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.JmsProducerTestService
 import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactoryMock
+import java.sql.SQLException
 
 internal class SendUtbetalingTransaksjonServiceTest :
     BehaviorSpec({
@@ -40,7 +46,7 @@ internal class SendUtbetalingTransaksjonServiceTest :
             }
         }
 
-        Given("det finnes utbetalinger som skal sendes til oppdragZ med MQ server kaster feil") {
+        Given("det finnes utbetalinger som skal sendes til oppdragZ med MQ server som er nede") {
             val utbetalingTransaksjonTilOppdragService = SendUtbetalingTransaksjonTilOppdragService(Db2Listener.dataSource, JmsProducerTestService(connectionFactoryMock))
 
             Db2Listener.dataSource.transaction { session ->
@@ -56,6 +62,21 @@ internal class SendUtbetalingTransaksjonServiceTest :
                     val transaksjonTilstandList = Db2Listener.transaksjonTilstandRepository.findAllByTransaksjonId(transaksjonList.map { it.transaksjonId!! })
                     transaksjonTilstandList.size shouldBe 10
                     transaksjonTilstandList.map { it.transaksjonTilstandType shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_FEIL }
+                }
+            }
+        }
+
+        Given("det finnes utbetalinger som skal sendes til oppdragZ med database som er nede") {
+            val dataSourceMock = mockk<HikariDataSource>()
+            every { dataSourceMock.connection } throws SQLException("No database connection!")
+
+            val utbetalingTransaksjonTilOppdragService = SendUtbetalingTransaksjonTilOppdragService(dataSourceMock, JmsProducerTestService(connectionFactoryMock))
+
+            When("hent utbetalinger og send til OppdragZ") {
+                val exception = shouldThrow<MottakException> { utbetalingTransaksjonTilOppdragService.hentUtbetalingTransaksjonOgSendTilOppdrag() }
+
+                Then("skal det kaste en feilmelding og SendUtbetalingTransaksjonTilOppdragService stoppet") {
+                    exception.message shouldBe "Feil under sending av utbetalingstransaksjoner til OppdragZ. Feilmelding: No database connection!"
                 }
             }
         }
