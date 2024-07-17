@@ -18,9 +18,9 @@ class AvvikTransaksjonRepository(
     fun insertBatch(
         innTransaksjonList: List<InnTransaksjon>,
         session: Session,
-    ): List<Long> {
+    ): List<Int> {
         val systemId = PropertiesConfig.Configuration().naisAppName
-        return session.batchPreparedNamedStatementAndReturnGeneratedKeys(
+        return session.batchPreparedNamedStatement(
             """
             INSERT INTO T_AVV_TRANSAKSJON (
                 AVV_TRANSAKSJON_ID,

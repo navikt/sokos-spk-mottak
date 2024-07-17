@@ -93,8 +93,8 @@ class InnTransaksjonRepository(
         transaksjonRecordList: List<TransaksjonRecord>,
         filInfoId: Long,
         session: Session,
-    ): List<Long> =
-        session.batchPreparedNamedStatementAndReturnGeneratedKeys(
+    ): List<Int> =
+        session.batchPreparedNamedStatement(
             """
             INSERT INTO T_INN_TRANSAKSJON (
             FIL_INFO_ID, 
