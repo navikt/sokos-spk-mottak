@@ -39,6 +39,7 @@ out/
 .DS_Store
 
 ### Custom ###
+mqjms.log.0
 defaults.properties
 privateKey
 src/test/resources/privateKey
