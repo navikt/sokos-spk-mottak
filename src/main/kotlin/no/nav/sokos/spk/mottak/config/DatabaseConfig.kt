@@ -79,6 +79,8 @@ object DatabaseConfig {
         Flyway
             .configure()
             .dataSource(dataSource)
+            .initSql("""SET ROLE "${PropertiesConfig.PostgresProperties().adminUser}"""")
+            .lockRetryCount(-1)
             .load()
             .migrate()
         logger.info { "Migration finished" }
