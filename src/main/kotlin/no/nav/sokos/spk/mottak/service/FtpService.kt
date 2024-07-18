@@ -10,7 +10,9 @@ import java.io.ByteArrayOutputStream
 
 private val logger = KotlinLogging.logger {}
 
-enum class Directories(var value: String) {
+enum class Directories(
+    var value: String,
+) {
     INBOUND("/inbound"),
     FERDIG("/inbound/ferdig"),
     ANVISNINGSRETUR("/outbound/anvisningsretur"),
@@ -33,7 +35,7 @@ class FtpService(
                 logger.error { "$fileName ble ikke opprettet i mappen $path: ${e.message}" }
                 throw e
             } finally {
-                exit()
+                // exit()
             }
         }
     }
@@ -56,7 +58,7 @@ class FtpService(
                 }
                 throw e
             } finally {
-                exit()
+                // exit()
             }
         }
     }
@@ -65,7 +67,8 @@ class FtpService(
         var fileName = ""
         getSftpChannel().apply {
             try {
-                return this.ls("${directory.value}/*")
+                return this
+                    .ls("${directory.value}/*")
                     .filter { !it.attrs.isDir }
                     .map { it.filename }
                     .sorted()
@@ -80,7 +83,7 @@ class FtpService(
                 logger.error { "$fileName ble ikke hentet. Feilmelding: ${e.message}" }
                 throw e
             } finally {
-                exit()
+                // exit()
             }
         }
     }
