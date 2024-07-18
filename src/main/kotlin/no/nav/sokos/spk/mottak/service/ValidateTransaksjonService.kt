@@ -8,6 +8,7 @@ import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.domain.mapToTransaksjon
 import no.nav.sokos.spk.mottak.exception.MottakException
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.AvvikTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
@@ -94,6 +95,8 @@ class ValidateTransaksjonService(
             }
 
             innTransaksjonRepository.updateBehandletStatusBatch(innTransaksjonList.map { it.innTransaksjonId!! }, session = session)
+            innTransaksjonMap[true]?.let { Metrics.countTransaksjonGodkjent.inc(it.size.toLong()) }
+            innTransaksjonMap[false]?.let { Metrics.countTransaksjonAvvist.inc(it.size.toLong()) }
         }
     }
 

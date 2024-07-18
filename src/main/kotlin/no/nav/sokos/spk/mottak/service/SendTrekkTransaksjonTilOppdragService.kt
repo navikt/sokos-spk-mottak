@@ -13,6 +13,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.innrapporteringTrekk
 import no.nav.sokos.spk.mottak.exception.MottakException
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
@@ -60,6 +61,7 @@ class SendTrekkTransaksjonTilOppdragService(
                 )
                 totalTransaksjoner += transaksjonIdList.size
                 logger.info { "$totalTransaksjoner trekktransaksjoner sendt til OppdragZ brukte ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
+                Metrics.countTrekkTransaksjonerTilOppdrag.inc(totalTransaksjoner.toLong())
             }.onFailure { exception ->
                 transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, sessionOf(dataSource))
                 updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)

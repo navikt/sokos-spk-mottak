@@ -100,9 +100,9 @@ class ReadAndParseFileService(
         recordData.transaksjonRecordList.clear()
         ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.FERDIG)
 
-        Metrics.countFileProcessed.inc()
-        Metrics.countInnTransaksjon.inc(antallInnTransaksjon.toDouble())
         logger.info { "${recordData.filNavn} med løpenummer: ${recordData.startRecord.filLopenummer} er ferdigbehandlet. $antallInnTransaksjon inntransaksjoner har blitt lagt inn fra fil" }
+        Metrics.countFileProcessed.inc()
+        Metrics.countInnTransaksjon.inc(antallInnTransaksjon.toLong())
     }
 
     private fun updateFileStatusAndUploadAvviksFil(
