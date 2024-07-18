@@ -3,9 +3,6 @@ package no.nav.sokos.spk.mottak.listener
 import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.api.model.PortBinding
 import com.github.dockerjava.api.model.Ports
-import com.jcraft.jsch.ChannelSftp
-import com.jcraft.jsch.Session
-import com.jcraft.jsch.SftpException
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
 import mu.KotlinLogging
@@ -58,8 +55,7 @@ object SftpListener : TestListener {
             .withCopyToContainer(
                 Transferable.of(publicKeyAsBytes),
                 "/home/foo/.ssh/keys/id_rsa.pub",
-            )
-            .withExposedPorts(22)
+            ).withExposedPorts(22)
             .withCreateContainerCmdModifier { cmd -> cmd.hostConfig!!.withPortBindings(PortBinding(Ports.Binding.bindPort(5678), ExposedPort(22))) }
             .withCommand("foo::::inbound,inbound/ferdig,outbound,outbound/anvisningsretur")
     }
@@ -100,19 +96,15 @@ object SftpListener : TestListener {
 
     fun deleteFile(vararg fileName: String) {
         val deleteFilename = fileName.joinToString(separator = " ")
-        val sftpSession: Session = SftpConfig(SftpListener.sftpProperties).createSftpConnection()
-        val channelSftp = sftpSession.openChannel("sftp") as ChannelSftp
+        val sftpConfig = SftpConfig(SftpListener.sftpProperties)
 
-        channelSftp.apply {
-            connect()
-            try {
+        sftpConfig.channel { connector ->
+            runCatching {
                 logger.info { "Fjerner fil: $deleteFilename" }
-                fileName.forEach { rm(it) }
-            } catch (e: SftpException) {
-                logger.error { "Feil i fjerning av filer $deleteFilename: ${e.message}" }
-                throw e
-            } finally {
-                exit()
+                fileName.forEach { connector.rm(it) }
+            }.onFailure { exception ->
+                logger.error { "Feil i fjerning av filer $deleteFilename: ${exception.message}" }
+                throw exception
             }
         }
     }

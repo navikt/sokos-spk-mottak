@@ -1,10 +1,7 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.jcraft.jsch.ChannelSftp
-import com.jcraft.jsch.Session
 import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpConfig
 import java.io.ByteArrayOutputStream
 
@@ -19,23 +16,21 @@ enum class Directories(
 }
 
 class FtpService(
-    private val sftpSession: Session = SftpConfig(PropertiesConfig.SftpProperties()).createSftpConnection(),
+    private val sftpConfig: SftpConfig = SftpConfig(),
 ) {
     fun createFile(
         fileName: String,
         directory: Directories,
         content: String,
     ) {
-        getSftpChannel().apply {
+        sftpConfig.channel { connector ->
             val path = "${directory.value}/$fileName"
-            try {
-                put(content.toByteArray().inputStream(), path)
+            runCatching {
+                connector.put(content.toByteArray().inputStream(), path)
                 logger.debug { "$fileName ble opprettet i mappen $path" }
-            } catch (e: SftpException) {
-                logger.error { "$fileName ble ikke opprettet i mappen $path: ${e.message}" }
-                throw e
-            } finally {
-                // exit()
+            }.onFailure { exception ->
+                logger.error { "$fileName ble ikke opprettet i mappen $path: ${exception.message}" }
+                throw exception
             }
         }
     }
@@ -45,29 +40,25 @@ class FtpService(
         from: Directories,
         to: Directories,
     ) {
-        getSftpChannel().apply {
+        sftpConfig.channel { connector ->
             val oldpath = "${from.value}/$fileName"
             val newpath = "${to.value}/$fileName"
 
-            try {
-                rename(oldpath, newpath)
+            runCatching {
+                connector.rename(oldpath, newpath)
                 logger.debug { "$fileName ble flyttet fra mappen ${from.value} til mappen ${to.value}" }
-            } catch (e: SftpException) {
-                logger.error {
-                    "$fileName ble ikke flyttet fra mappe $oldpath til mappe $newpath: ${e.message}"
-                }
-                throw e
-            } finally {
-                // exit()
+            }.onFailure { exception ->
+                logger.error { "$fileName ble ikke flyttet fra mappe $oldpath til mappe $newpath: ${exception.message}" }
+                throw exception
             }
         }
     }
 
     fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> {
         var fileName = ""
-        getSftpChannel().apply {
+        return sftpConfig.channel { connector ->
             try {
-                return this
+                connector
                     .ls("${directory.value}/*")
                     .filter { !it.attrs.isDir }
                     .map { it.filename }
@@ -76,22 +67,13 @@ class FtpService(
                         fileName = "${directory.value}/$it"
                         val outputStream = ByteArrayOutputStream()
                         logger.debug { "$fileName ble lastet ned fra mappen $directory" }
-                        get(fileName, outputStream)
+                        connector.get(fileName, outputStream)
                         String(outputStream.toByteArray()).split("\r?\n|\r".toRegex()).filter { file -> file.isNotEmpty() }
                     }
             } catch (e: SftpException) {
                 logger.error { "$fileName ble ikke hentet. Feilmelding: ${e.message}" }
                 throw e
-            } finally {
-                // exit()
             }
-        }
-    }
-
-    private fun getSftpChannel(): ChannelSftp {
-        val channelSftp = sftpSession.openChannel("sftp") as ChannelSftp
-        return channelSftp.apply {
-            connect()
         }
     }
 }
