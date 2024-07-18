@@ -101,7 +101,6 @@ dependencies {
     implementation("com.ibm.db2:jcc:$db2JccVersion")
     implementation("org.postgresql:postgresql:$postgresVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
-    runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
     // Config
