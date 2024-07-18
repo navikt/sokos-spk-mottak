@@ -64,8 +64,8 @@ object DatabaseConfig {
     fun postgresDataSource(
         hikariConfig: HikariConfig = postgresHikariConfig(),
         role: String = PropertiesConfig.PostgresProperties().user,
-    ): HikariDataSource {
-        return when {
+    ): HikariDataSource =
+        when {
             PropertiesConfig.isLocal() -> HikariDataSource(hikariConfig)
             else ->
                 HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
@@ -74,24 +74,22 @@ object DatabaseConfig {
                     role,
                 )
         }
-    }
 
     fun postgresMigrate(dataSource: HikariDataSource = postgresDataSource(role = PropertiesConfig.PostgresProperties().adminUser)) {
-        Flyway.configure()
+        Flyway
+            .configure()
             .dataSource(dataSource)
             .initSql("""SET ROLE "${PropertiesConfig.PostgresProperties().adminUser}"""")
             .lockRetryCount(-1)
             .load()
             .migrate()
-            .migrationsExecuted
         logger.info { "Migration finished" }
     }
 }
 
-fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A {
-    return using(sessionOf(this, returnGeneratedKey = true)) { session ->
+fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A =
+    using(sessionOf(this, returnGeneratedKey = true)) { session ->
         session.transaction { tx ->
             operation(tx)
         }
     }
-}
