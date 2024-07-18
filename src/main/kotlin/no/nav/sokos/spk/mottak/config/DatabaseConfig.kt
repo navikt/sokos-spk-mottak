@@ -81,8 +81,10 @@ object DatabaseConfig {
             .dataSource(dataSource)
             .initSql("""SET ROLE "${PropertiesConfig.PostgresProperties().adminUser}"""")
             .lockRetryCount(-1)
+            .validateMigrationNaming(true)
             .load()
             .migrate()
+            .migrationsExecuted
         logger.info { "Migration finished" }
     }
 }
