@@ -54,7 +54,7 @@ val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.19.8"
 val h2Version = "2.2.224"
-val flywayVersion = "9.16.1"
+val flywayVersion = "10.15.2"
 val postgresVersion = "42.7.3"
 val dbSchedulerVersion = "14.0.2"
 val vaultVersion = "1.3.10"
@@ -100,8 +100,10 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("com.ibm.db2:jcc:$db2JccVersion")
     implementation("org.postgresql:postgresql:$postgresVersion")
-    implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
+
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
     // Config
     implementation("com.natpryce:konfig:$natpryceVersion")
