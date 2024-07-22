@@ -19,6 +19,7 @@ import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdrag110
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdragsLinje150
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
+import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
@@ -42,30 +43,32 @@ class SendUtbetalingTransaksjonTilOppdragService(
         val timer = Instant.now()
         var totalTransaksjoner = 0
 
-        runCatching {
-            val transaksjonList = transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
-            if (transaksjonList.isNotEmpty()) {
-                logger.info { "Starter sending av utbetalingstransaksjoner til OppdragZ" }
+        Metrics.timer(SERVICE_CALL, "SendUtbetalingTransaksjonTilOppdragService", "hentUtbetalingTransaksjonOgSendTilOppdrag").recordCallable {
+            runCatching {
+                val transaksjonList = transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
+                if (transaksjonList.isNotEmpty()) {
+                    logger.info { "Starter sending av utbetalingstransaksjoner til OppdragZ" }
 
-                transaksjonList.chunked(BATCH_SIZE).forEach { items ->
-                    val oppdragList =
-                        transaksjonList
-                            .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
-                            .map { it.value.toOppdrag() }
-                            .map { JaxbUtils.marshallOppdrag(it) }
+                    transaksjonList.chunked(BATCH_SIZE).forEach { items ->
+                        val oppdragList =
+                            transaksjonList
+                                .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
+                                .map { it.value.toOppdrag() }
+                                .map { JaxbUtils.marshallOppdrag(it) }
 
-                    val transaksjonIdList = items.map { it.transaksjonId!! }
+                        val transaksjonIdList = items.map { it.transaksjonId!! }
 
-                    sendTilOppdrag(oppdragList, transaksjonIdList)
-                    totalTransaksjoner += oppdragList.size
+                        sendTilOppdrag(oppdragList, transaksjonIdList)
+                        totalTransaksjoner += oppdragList.size
+                    }
+                    logger.info { "$totalTransaksjoner utbetalingstransaksjoner sendt til OppdragZ på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
+                    Metrics.countUtbetalingTransaksjonerTilOppdrag.inc(totalTransaksjoner.toLong())
                 }
-                logger.info { "$totalTransaksjoner utbetalingstransaksjoner sendt til OppdragZ på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
-                Metrics.countUtbetalingTransaksjonerTilOppdrag.inc(totalTransaksjoner.toLong())
+            }.onFailure { exception ->
+                val errorMessage = "Feil under sending av utbetalingstransaksjoner til OppdragZ. Feilmelding: ${exception.message}"
+                logger.error(exception) { errorMessage }
+                throw MottakException(errorMessage)
             }
-        }.onFailure { exception ->
-            val errorMessage = "Feil under sending av utbetalingstransaksjoner til OppdragZ. Feilmelding: ${exception.message}"
-            logger.error(exception) { errorMessage }
-            throw MottakException(errorMessage)
         }
     }
 

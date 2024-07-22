@@ -1,13 +1,25 @@
 package no.nav.sokos.spk.mottak.metrics
 
+import io.micrometer.core.instrument.Timer
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.prometheus.metrics.core.metrics.Counter
 
 private const val METRICS_NAMESPACE = "sokos_spk_mottak"
+const val DATABASE_CALL = "database_call"
+const val SERVICE_CALL = "service_call"
 
 object Metrics {
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+
+    val timer: (metricName: String, className: String, method: String) -> Timer = { metricName, className, method ->
+        Timer
+            .builder("${METRICS_NAMESPACE}_$metricName")
+            .tag("className", className)
+            .tag("method", method)
+            .description("Timer for database operations")
+            .register(prometheusMeterRegistry)
+    }
 
     val countTrekkTransaksjonerTilOppdrag: Counter =
         Counter
