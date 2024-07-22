@@ -11,6 +11,8 @@ import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.SPK
+import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
 
 class FilInfoRepository(
@@ -18,49 +20,53 @@ class FilInfoRepository(
 ) {
     fun getByFilTilstandAndAllInnTransaksjonIsBehandlet(filTilstandType: String = FILTILSTANDTYPE_GOD): List<FilInfo> =
         using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    SELECT FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
-                    FROM T_FIL_INFO
-                    WHERE K_FIL_TILSTAND_T = :filTilstandType
-                    AND K_FIL_S = '${FilStatus.OK.code}'
-                    AND FIL_INFO_ID IN (select FIL_INFO_ID
-                    FROM T_INN_TRANSAKSJON
-                    GROUP BY FIL_INFO_ID
-                    HAVING SUM(CASE WHEN BEHANDLET = 'J' THEN 0 ELSE 1 END) = 0)
-                    """.trimIndent(),
-                    mapOf("filTilstandType" to filTilstandType),
-                ),
-                mapToFileInfo,
-            )
+            Metrics.timer(DATABASE_CALL, "FilInfoRepository", "getByFilTilstandAndAllInnTransaksjonIsBehandlet").recordCallable {
+                session.list(
+                    queryOf(
+                        """
+                        SELECT FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
+                        FROM T_FIL_INFO
+                        WHERE K_FIL_TILSTAND_T = :filTilstandType
+                        AND K_FIL_S = '${FilStatus.OK.code}'
+                        AND FIL_INFO_ID IN (select FIL_INFO_ID
+                        FROM T_INN_TRANSAKSJON
+                        GROUP BY FIL_INFO_ID
+                        HAVING SUM(CASE WHEN BEHANDLET = 'J' THEN 0 ELSE 1 END) = 0)
+                        """.trimIndent(),
+                        mapOf("filTilstandType" to filTilstandType),
+                    ),
+                    mapToFileInfo,
+                )
+            }
         }
 
     fun insert(
         filInfo: FilInfo,
         session: Session,
     ): Long? =
-        session.updateAndReturnGeneratedKey(
-            queryOf(
-                """
-                INSERT INTO T_FIL_INFO (
-                K_FIL_S,
-                K_FIL_TILSTAND_T,
-                K_ANVISER,
-                FIL_NAVN,
-                LOPENR,
-                DATO_MOTTATT,
-                DATO_OPPRETTET,
-                OPPRETTET_AV,
-                DATO_ENDRET,
-                ENDRET_AV,
-                VERSJON,
-                K_FIL_T,
-                FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopeNr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feilTekst)
-                """.trimIndent(),
-                filInfo.asMap(),
-            ),
-        )
+        Metrics.timer(DATABASE_CALL, "FilInfoRepository", "insert").recordCallable {
+            session.updateAndReturnGeneratedKey(
+                queryOf(
+                    """
+                    INSERT INTO T_FIL_INFO (
+                    K_FIL_S,
+                    K_FIL_TILSTAND_T,
+                    K_ANVISER,
+                    FIL_NAVN,
+                    LOPENR,
+                    DATO_MOTTATT,
+                    DATO_OPPRETTET,
+                    OPPRETTET_AV,
+                    DATO_ENDRET,
+                    ENDRET_AV,
+                    VERSJON,
+                    K_FIL_T,
+                    FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopeNr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feilTekst)
+                    """.trimIndent(),
+                    filInfo.asMap(),
+                ),
+            )
+        }
 
     /**
      * Bruker kun for testing

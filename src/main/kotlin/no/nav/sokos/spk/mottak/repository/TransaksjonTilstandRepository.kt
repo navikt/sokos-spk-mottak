@@ -10,6 +10,8 @@ import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
 import no.nav.sokos.spk.mottak.domain.TransaksjonTilstand
+import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
+import no.nav.sokos.spk.mottak.metrics.Metrics
 
 class TransaksjonTilstandRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
@@ -20,34 +22,40 @@ class TransaksjonTilstandRepository(
         session: Session,
     ): List<Long> {
         val systemId = PropertiesConfig.Configuration().naisAppName
-        return session.batchPreparedNamedStatementAndReturnGeneratedKeys(
-            """
-            INSERT INTO T_TRANS_TILSTAND (
-                TRANSAKSJON_ID,
-                K_TRANS_TILST_T, 
-                DATO_OPPRETTET, 
-                OPPRETTET_AV, 
-                DATO_ENDRET, 
-                ENDRET_AV, 
-                VERSJON
-            ) VALUES (:transaksjonId, '$transaksjonTilstandType', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)
-            """.trimIndent(),
-            transaksjonIdList.map { mapOf("transaksjonId" to it) },
-        )
+        return Metrics
+            .timer(DATABASE_CALL, "TransaksjonTilstandRepository", "insertBatch")
+            .recordCallable {
+                session.batchPreparedNamedStatementAndReturnGeneratedKeys(
+                    """
+                    INSERT INTO T_TRANS_TILSTAND (
+                        TRANSAKSJON_ID,
+                        K_TRANS_TILST_T, 
+                        DATO_OPPRETTET, 
+                        OPPRETTET_AV, 
+                        DATO_ENDRET, 
+                        ENDRET_AV, 
+                        VERSJON
+                    ) VALUES (:transaksjonId, '$transaksjonTilstandType', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)
+                    """.trimIndent(),
+                    transaksjonIdList.map { mapOf("transaksjonId" to it) },
+                )
+            }.orEmpty()
     }
 
     fun deleteTransaksjon(
         transaksjonTilstandId: List<Long>,
         session: Session,
     ) {
-        session.update(
-            queryOf(
-                """
-                DELETE FROM T_TRANS_TILSTAND  
-                    WHERE TRANS_TILSTAND_ID IN (${transaksjonTilstandId.joinToString()});
-                """.trimIndent(),
-            ),
-        )
+        Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "deleteTransaksjon").recordCallable {
+            session.update(
+                queryOf(
+                    """
+                    DELETE FROM T_TRANS_TILSTAND  
+                        WHERE TRANS_TILSTAND_ID IN (${transaksjonTilstandId.joinToString()});
+                    """.trimIndent(),
+                ),
+            )
+        }
     }
 
     /**
@@ -55,30 +63,34 @@ class TransaksjonTilstandRepository(
      */
     fun getByTransaksjonId(transaksjonId: Int): TransaksjonTilstand? =
         using(sessionOf(dataSource)) { session ->
-            session.single(
-                queryOf(
-                    """
-                    SELECT TRANS_TILSTAND_ID, TRANSAKSJON_ID, K_TRANS_TILST_T, FEILKODE, FEILKODEMELDING, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
-                    FROM T_TRANS_TILSTAND 
-                    WHERE TRANSAKSJON_ID = $transaksjonId;
-                    """.trimIndent(),
-                ),
-                mapToTransaksjonTilstand,
-            )
+            Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "getByTransaksjonId").recordCallable {
+                session.single(
+                    queryOf(
+                        """
+                        SELECT TRANS_TILSTAND_ID, TRANSAKSJON_ID, K_TRANS_TILST_T, FEILKODE, FEILKODEMELDING, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
+                        FROM T_TRANS_TILSTAND 
+                        WHERE TRANSAKSJON_ID = $transaksjonId;
+                        """.trimIndent(),
+                    ),
+                    mapToTransaksjonTilstand,
+                )
+            }
         }
 
     fun findAllByTransaksjonId(transaksjonId: List<Int>): List<TransaksjonTilstand> =
         using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    SELECT TRANS_TILSTAND_ID, TRANSAKSJON_ID, K_TRANS_TILST_T, FEILKODE, FEILKODEMELDING, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
-                    FROM T_TRANS_TILSTAND 
-                    WHERE TRANSAKSJON_ID IN (${transaksjonId.joinToString()});
-                    """.trimIndent(),
-                ),
-                mapToTransaksjonTilstand,
-            )
+            Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "findAllByTransaksjonId").recordCallable {
+                session.list(
+                    queryOf(
+                        """
+                        SELECT TRANS_TILSTAND_ID, TRANSAKSJON_ID, K_TRANS_TILST_T, FEILKODE, FEILKODEMELDING, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
+                        FROM T_TRANS_TILSTAND 
+                        WHERE TRANSAKSJON_ID IN (${transaksjonId.joinToString()});
+                        """.trimIndent(),
+                    ),
+                    mapToTransaksjonTilstand,
+                )
+            }
         }
 
     private val mapToTransaksjonTilstand: (Row) -> TransaksjonTilstand = { row ->

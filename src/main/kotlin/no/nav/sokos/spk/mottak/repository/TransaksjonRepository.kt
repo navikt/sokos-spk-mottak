@@ -26,126 +26,136 @@ class TransaksjonRepository(
         transaksjonList: List<Transaksjon>,
         session: Session,
     ) {
-        session.batchPreparedNamedStatement(
-            """
-            INSERT INTO T_TRANSAKSJON  (
-                TRANSAKSJON_ID,
-                FIL_INFO_ID, 
-                K_TRANSAKSJON_S, 
-                PERSON_ID, 
-                K_BELOP_T, 
-                K_ART, 
-                K_ANVISER, 
-                FNR_FK, 
-                UTBETALES_TIL, 
-                DATO_FOM, 
-                DATO_TOM, 
-                DATO_ANVISER, 
-                DATO_PERSON_FOM, 
-                DATO_REAK_FOM, 
-                BELOP, 
-                REF_TRANS_ID, 
-                TEKSTKODE, 
-                RECTYPE, 
-                TRANS_EKS_ID_FK, 
-                K_TRANS_TOLKNING, 
-                SENDT_TIL_OPPDRAG,
-                FNR_ENDRET, 
-                MOT_ID, 
-                DATO_OPPRETTET, 
-                OPPRETTET_AV, 
-                DATO_ENDRET, 
-                ENDRET_AV, 
-                VERSJON, 
-                K_TRANS_TILST_T,
-                GRAD
-            ) VALUES (:transaksjonId, :filInfoId, :transaksjonStatus, :personId, :belopstype, :art, :anviser, :fnr, :utbetalesTil, :datoFom, :datoTom, :datoAnviser, :datoPersonFom, :datoReakFom, :belop, :refTransId, :tekstkode, :rectype, :transEksId, :transTolkning, :sendtTilOppdrag, :fnrEndret, :motId, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :transTilstandType, :grad)
-            """.trimIndent(),
-            transaksjonList.map { it.asMap() },
-        )
+        Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "insertBatch").recordCallable {
+            session.batchPreparedNamedStatement(
+                """
+                INSERT INTO T_TRANSAKSJON  (
+                    TRANSAKSJON_ID,
+                    FIL_INFO_ID, 
+                    K_TRANSAKSJON_S, 
+                    PERSON_ID, 
+                    K_BELOP_T, 
+                    K_ART, 
+                    K_ANVISER, 
+                    FNR_FK, 
+                    UTBETALES_TIL, 
+                    DATO_FOM, 
+                    DATO_TOM, 
+                    DATO_ANVISER, 
+                    DATO_PERSON_FOM, 
+                    DATO_REAK_FOM, 
+                    BELOP, 
+                    REF_TRANS_ID, 
+                    TEKSTKODE, 
+                    RECTYPE, 
+                    TRANS_EKS_ID_FK, 
+                    K_TRANS_TOLKNING, 
+                    SENDT_TIL_OPPDRAG,
+                    FNR_ENDRET, 
+                    MOT_ID, 
+                    DATO_OPPRETTET, 
+                    OPPRETTET_AV, 
+                    DATO_ENDRET, 
+                    ENDRET_AV, 
+                    VERSJON, 
+                    K_TRANS_TILST_T,
+                    GRAD
+                ) VALUES (:transaksjonId, :filInfoId, :transaksjonStatus, :personId, :belopstype, :art, :anviser, :fnr, :utbetalesTil, :datoFom, :datoTom, :datoAnviser, :datoPersonFom, :datoReakFom, :belop, :refTransId, :tekstkode, :rectype, :transEksId, :transTolkning, :sendtTilOppdrag, :fnrEndret, :motId, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :transTilstandType, :grad)
+                """.trimIndent(),
+                transaksjonList.map { it.asMap() },
+            )
+        }
     }
 
     fun updateAllWhereTranstolkningIsNyForMoreThanOneInstance(
         personIdListe: List<Int>,
         session: Session,
     ) {
-        session.update(
-            queryOf(
-                """
-                UPDATE T_TRANSAKSJON
-                SET K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY_EKSIST'
-                WHERE TRANSAKSJON_ID IN (SELECT DISTINCT t1.TRANSAKSJON_ID
-                                         FROM T_TRANSAKSJON t1
-                                                  INNER JOIN T_K_GYLDIG_KOMBIN k1 on (t1.K_ART = k1.K_ART AND t1.K_BELOP_T = k1.K_BELOP_T)
-                                                  INNER JOIN T_TRANSAKSJON t2 ON (t1.PERSON_ID = t2.PERSON_ID AND t1.FIL_INFO_ID = t2.FIL_INFO_ID)
-                                                  INNER JOIN T_K_GYLDIG_KOMBIN k2 on (t2.K_ART = k2.K_ART AND t2.K_BELOP_T = k2.K_BELOP_T)
-                                         WHERE t1.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
-                                           AND t1.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPPRETTET'
-                                           AND t1.K_ANVISER = '$SPK'
-                                           AND t1.TRANSAKSJON_ID > t2.TRANSAKSJON_ID
-                                           AND k1.K_FAGOMRADE = k2.K_FAGOMRADE
-                                           AND t1.PERSON_ID IN (${personIdListe.joinToString()})
-                                         ORDER BY t1.TRANSAKSJON_ID);
-                """.trimIndent(),
-            ),
-        )
+        Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateAllWhereTranstolkningIsNyForMoreThanOneInstance").recordCallable {
+            session.update(
+                queryOf(
+                    """
+                    UPDATE T_TRANSAKSJON
+                    SET K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY_EKSIST'
+                    WHERE TRANSAKSJON_ID IN (SELECT DISTINCT t1.TRANSAKSJON_ID
+                                             FROM T_TRANSAKSJON t1
+                                                      INNER JOIN T_K_GYLDIG_KOMBIN k1 on (t1.K_ART = k1.K_ART AND t1.K_BELOP_T = k1.K_BELOP_T)
+                                                      INNER JOIN T_TRANSAKSJON t2 ON (t1.PERSON_ID = t2.PERSON_ID AND t1.FIL_INFO_ID = t2.FIL_INFO_ID)
+                                                      INNER JOIN T_K_GYLDIG_KOMBIN k2 on (t2.K_ART = k2.K_ART AND t2.K_BELOP_T = k2.K_BELOP_T)
+                                             WHERE t1.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
+                                               AND t1.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPPRETTET'
+                                               AND t1.K_ANVISER = '$SPK'
+                                               AND t1.TRANSAKSJON_ID > t2.TRANSAKSJON_ID
+                                               AND k1.K_FAGOMRADE = k2.K_FAGOMRADE
+                                               AND t1.PERSON_ID IN (${personIdListe.joinToString()})
+                                             ORDER BY t1.TRANSAKSJON_ID);
+                    """.trimIndent(),
+                ),
+            )
+        }
     }
 
     fun getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance(): Map<Int, List<String>> =
         using(sessionOf(dataSource)) { session ->
-            val personIdMap = mutableMapOf<Int, MutableList<String>>()
+            Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance").recordCallable {
+                val personIdMap = mutableMapOf<Int, MutableList<String>>()
 
-            session.list(
-                queryOf(
-                    """
-                    SELECT DISTINCT t.PERSON_ID, k.K_FAGOMRADE
-                    FROM T_TRANSAKSJON t
-                             INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER)
-                    WHERE t.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
-                      AND t.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPPRETTET'
-                      AND t.K_ANVISER = '$SPK'
-                    GROUP BY t.PERSON_ID, t.K_TRANS_TOLKNING, k.K_FAGOMRADE
-                    HAVING COUNT(*) > 1
-                    """.trimIndent(),
-                ),
-            ) { row -> personIdMap.computeIfAbsent(row.int("PERSON_ID")) { mutableListOf() }.add(row.string("K_FAGOMRADE")) }
-            personIdMap
+                session.list(
+                    queryOf(
+                        """
+                        SELECT DISTINCT t.PERSON_ID, k.K_FAGOMRADE
+                        FROM T_TRANSAKSJON t
+                                 INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER)
+                        WHERE t.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
+                          AND t.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPPRETTET'
+                          AND t.K_ANVISER = '$SPK'
+                        GROUP BY t.PERSON_ID, t.K_TRANS_TOLKNING, k.K_FAGOMRADE
+                        HAVING COUNT(*) > 1
+                        """.trimIndent(),
+                    ),
+                ) { row -> personIdMap.computeIfAbsent(row.int("PERSON_ID")) { mutableListOf() }.add(row.string("K_FAGOMRADE")) }
+                personIdMap
+            }
         }
 
     fun updateTransTilstandId(session: Session) {
-        session.update(
-            queryOf(
-                """
-                UPDATE T_TRANSAKSJON t
-                    SET TRANS_TILSTAND_ID = (SELECT tt.TRANS_TILSTAND_ID
-                                             FROM T_TRANS_TILSTAND tt WHERE t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID)
-                    WHERE t.TRANS_TILSTAND_ID IS NULL AND t.K_ANVISER = '$SPK';
-                """.trimIndent(),
-            ),
-        )
+        Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandId").recordCallable {
+            session.update(
+                queryOf(
+                    """
+                    UPDATE T_TRANSAKSJON t
+                        SET TRANS_TILSTAND_ID = (SELECT tt.TRANS_TILSTAND_ID
+                                                 FROM T_TRANS_TILSTAND tt WHERE t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID)
+                        WHERE t.TRANS_TILSTAND_ID IS NULL AND t.K_ANVISER = '$SPK';
+                    """.trimIndent(),
+                ),
+            )
+        }
     }
 
     fun findLastTransaksjonByPersonId(personIdListe: List<Int>): List<Transaksjon> =
         using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    SELECT t.*
-                    FROM T_INN_TRANSAKSJON inn 
-                    INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK 
-                    INNER JOIN T_TRANSAKSJON t ON t.PERSON_ID = p.PERSON_ID
-                    WHERE p.PERSON_ID IN (${personIdListe.joinToString()}) 
-                    AND inn.BELOPSTYPE IN ('01' ,'02') 
-                    AND t.K_ANVISER = 'SPK' 
-                    AND t.DATO_TOM IN 
-                        (SELECT MAX(t2.DATO_TOM) FROM T_TRANSAKSJON t2 
-                        WHERE t2.PERSON_ID = p.PERSON_ID 
-                        AND t2.K_BELOP_T IN ('01', '02')
-                        AND t2.K_ANVISER = 'SPK')
-                    """.trimIndent(),
-                ),
-                mapToTransaksjon,
-            )
+            Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findLastTransaksjonByPersonId").recordCallable {
+                session.list(
+                    queryOf(
+                        """
+                        SELECT t.*
+                        FROM T_INN_TRANSAKSJON inn 
+                        INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK 
+                        INNER JOIN T_TRANSAKSJON t ON t.PERSON_ID = p.PERSON_ID
+                        WHERE p.PERSON_ID IN (${personIdListe.joinToString()}) 
+                        AND inn.BELOPSTYPE IN ('01' ,'02') 
+                        AND t.K_ANVISER = 'SPK' 
+                        AND t.DATO_TOM IN 
+                            (SELECT MAX(t2.DATO_TOM) FROM T_TRANSAKSJON t2 
+                            WHERE t2.PERSON_ID = p.PERSON_ID 
+                            AND t2.K_BELOP_T IN ('01', '02')
+                            AND t2.K_ANVISER = 'SPK')
+                        """.trimIndent(),
+                    ),
+                    mapToTransaksjon,
+                )
+            }
         }
 
     fun findAllByBelopstypeAndByTransaksjonTilstand(
@@ -179,15 +189,17 @@ class TransaksjonRepository(
         transaksjonTilstandType: String,
         session: Session,
     ) {
-        session.update(
-            queryOf(
-                """
-                UPDATE T_TRANSAKSJON 
-                    SET K_TRANS_TILST_T = '$transaksjonTilstandType', DATO_ENDRET = CURRENT_TIMESTAMP 
-                    WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()});
-                """.trimIndent(),
-            ),
-        )
+        Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandStatus").recordCallable {
+            session.update(
+                queryOf(
+                    """
+                    UPDATE T_TRANSAKSJON 
+                        SET K_TRANS_TILST_T = '$transaksjonTilstandType', DATO_ENDRET = CURRENT_TIMESTAMP 
+                        WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()});
+                    """.trimIndent(),
+                ),
+            )
+        }
     }
 
     /**

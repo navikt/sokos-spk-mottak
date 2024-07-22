@@ -4,12 +4,14 @@ import io.micrometer.core.instrument.Timer
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.prometheus.metrics.core.metrics.Counter
+import java.util.concurrent.ConcurrentHashMap
 
 private const val METRICS_NAMESPACE = "sokos_spk_mottak"
 const val DATABASE_CALL = "database_call"
 const val SERVICE_CALL = "service_call"
 
 object Metrics {
+    private val counterCache = ConcurrentHashMap<String, Counter>()
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
     val timer: (metricName: String, className: String, method: String) -> Timer = { metricName, className, method ->
@@ -21,53 +23,17 @@ object Metrics {
             .register(prometheusMeterRegistry)
     }
 
-    val countTrekkTransaksjonerTilOppdrag: Counter =
+    fun counter(
+        metricName: String,
+        helpText: String,
+    ) = counterCache.computeIfAbsent("${METRICS_NAMESPACE}_$metricName") {
         Counter
             .builder()
-            .name("${METRICS_NAMESPACE}_trekkTransaksjonerTilOppdrag")
-            .help("Counts the number of trekk transactions sent to OppdragZ")
+            .name("${METRICS_NAMESPACE}_$metricName")
+            .help(helpText)
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
-
-    val countUtbetalingTransaksjonerTilOppdrag: Counter =
-        Counter
-            .builder()
-            .name("${METRICS_NAMESPACE}_utbetalingTransaksjonerTilOppdrag")
-            .help("Counts the number of transactions sent to OppdragZ")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-
-    val countTransaksjonGodkjent: Counter =
-        Counter
-            .builder()
-            .name("${METRICS_NAMESPACE}_transaksjonGodkjent")
-            .help("Counts the number of file processed from SPK")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-
-    val countTransaksjonAvvist: Counter =
-        Counter
-            .builder()
-            .name("${METRICS_NAMESPACE}_transaksjonAvvist")
-            .help("Counts the number of file processed from SPK")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-
-    val countFileProcessed: Counter =
-        Counter
-            .builder()
-            .name("${METRICS_NAMESPACE}_fileProcessed")
-            .help("Counts the number of file processed from SPK")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-
-    val countInnTransaksjon: Counter =
-        Counter
-            .builder()
-            .name("${METRICS_NAMESPACE}_innTransaksjoner")
-            .help("Counts the number of transactions received from SPK")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
+    }
 
     val mqProducerMetricCounter: Counter =
         Counter

@@ -9,52 +9,57 @@ import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.LopeNummer
+import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
+import no.nav.sokos.spk.mottak.metrics.Metrics
 
 class LopenummerRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
-    fun findMaxLopeNummer(filType: String): Int? {
-        return using(sessionOf(dataSource)) { session ->
-            session.single(
-                queryOf(
-                    """
-                    SELECT MAX(SISTE_LOPENR)
-                    FROM  T_LOPENR
-                    WHERE K_ANVISER = 'SPK'
-                    AND K_FIL_T = (:filType)
-                    """.trimIndent(),
-                    mapOf("filType" to filType),
-                ),
-            ) { row -> row.int(1) }
+    fun findMaxLopeNummer(filType: String): Int? =
+        using(sessionOf(dataSource)) { session ->
+            Metrics.timer(DATABASE_CALL, "LopenummerRepository", "findMaxLopeNummer").recordCallable {
+                session.single(
+                    queryOf(
+                        """
+                        SELECT MAX(SISTE_LOPENR)
+                        FROM  T_LOPENR
+                        WHERE K_ANVISER = 'SPK'
+                        AND K_FIL_T = (:filType)
+                        """.trimIndent(),
+                        mapOf("filType" to filType),
+                    ),
+                ) { row -> row.int(1) }
+            }
         }
-    }
 
     fun updateLopeNummer(
         lopeNummer: Int,
         filType: String,
         session: Session,
     ) {
-        session.update(
-            queryOf(
-                """
-                UPDATE T_LOPENR 
-                SET SISTE_LOPENR = (:lopeNummer), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP 
-                WHERE K_ANVISER = 'SPK'
-                AND K_FIL_T = (:filType)
-                """.trimIndent(),
-                mapOf(
-                    "lopeNummer" to lopeNummer,
-                    "filType" to filType,
+        Metrics.timer(DATABASE_CALL, "LopenummerRepository", "updateLopeNummer").recordCallable {
+            session.update(
+                queryOf(
+                    """
+                    UPDATE T_LOPENR 
+                    SET SISTE_LOPENR = (:lopeNummer), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP 
+                    WHERE K_ANVISER = 'SPK'
+                    AND K_FIL_T = (:filType)
+                    """.trimIndent(),
+                    mapOf(
+                        "lopeNummer" to lopeNummer,
+                        "filType" to filType,
+                    ),
                 ),
-            ),
-        )
+            )
+        }
     }
 
     /**
      * Bruker kun for testing
      */
-    fun getLopeNummer(sisteLopeNummer: Int): LopeNummer? {
-        return using(sessionOf(dataSource)) { session ->
+    fun getLopeNummer(sisteLopeNummer: Int): LopeNummer? =
+        using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
@@ -67,7 +72,6 @@ class LopenummerRepository(
                 mapToLopeNummer,
             )
         }
-    }
 
     private val mapToLopeNummer: (Row) -> LopeNummer = { row ->
         LopeNummer(
