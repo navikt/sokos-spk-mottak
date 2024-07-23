@@ -17,13 +17,14 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
 class AvvikTransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
+    private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "AvvikTransaksjonRepository", "insertBatch")
+
     fun insertBatch(
         innTransaksjonList: List<InnTransaksjon>,
         session: Session,
     ): List<Int> {
         val systemId = PropertiesConfig.Configuration().naisAppName
-        return Metrics
-            .timer(DATABASE_CALL, "AvvikTransaksjonRepository", "insertBatch")
+        return insertBatchTimer
             .recordCallable {
                 session.batchPreparedNamedStatement(
                     """

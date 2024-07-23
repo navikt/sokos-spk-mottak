@@ -15,9 +15,12 @@ import no.nav.sokos.spk.mottak.metrics.Metrics
 class LopenummerRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
+    private val findMaxLopeNummerTimer = Metrics.timer(DATABASE_CALL, "LopenummerRepository", "findMaxLopeNummer")
+    private val updateLopeNummerTimer = Metrics.timer(DATABASE_CALL, "LopenummerRepository", "updateLopeNummer")
+
     fun findMaxLopeNummer(filType: String): Int? =
         using(sessionOf(dataSource)) { session ->
-            Metrics.timer(DATABASE_CALL, "LopenummerRepository", "findMaxLopeNummer").recordCallable {
+            findMaxLopeNummerTimer.recordCallable {
                 session.single(
                     queryOf(
                         """
@@ -37,7 +40,7 @@ class LopenummerRepository(
         filType: String,
         session: Session,
     ) {
-        Metrics.timer(DATABASE_CALL, "LopenummerRepository", "updateLopeNummer").recordCallable {
+        updateLopeNummerTimer.recordCallable {
             session.update(
                 queryOf(
                     """

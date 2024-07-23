@@ -62,7 +62,7 @@ class SendUtbetalingTransaksjonTilOppdragService(
                         totalTransaksjoner += oppdragList.size
                     }
                     logger.info { "$totalTransaksjoner utbetalingstransaksjoner sendt til OppdragZ på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
-                    Metrics.counter("utbetaling_transaksjoner_til_oppdrag", "Counts the number of transactions sent to OppdragZ").inc(totalTransaksjoner.toLong())
+                    Metrics.utbetalingTransaksjonerTilOppdragCounter.inc(totalTransaksjoner.toLong())
                 }
             }.onFailure { exception ->
                 val errorMessage = "Feil under sending av utbetalingstransaksjoner til OppdragZ. Feilmelding: ${exception.message}"

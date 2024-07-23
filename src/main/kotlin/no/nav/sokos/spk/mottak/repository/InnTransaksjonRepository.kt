@@ -35,24 +35,30 @@ private const val READ_ROWS: Int = 10000
 class InnTransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
+    private val getByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "getByFilInfoId")
+    private val getByBehandletTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "getByBehandlet")
+    private val validateTransaksjonTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "validateTransaksjon")
+    private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "insertBatch")
+    private val updateBehandletStatusBatchTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "updateBehandletStatusBatch")
+    private val deleteByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "deleteByFilInfoId")
+    private val findLastFagomraadeByPersonIdTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "findLastFagomraadeByPersonId")
+
     fun getByFilInfoId(filInfoId: Int): List<InnTransaksjon> =
         using(sessionOf(dataSource)) { session ->
-            Metrics
-                .timer(DATABASE_CALL, "InnTransaksjonRepository", "getByFilInfoId")
-                .recordCallable {
-                    session.list(
-                        queryOf(
-                            """
-                            SELECT INN_TRANSAKSJON_ID, FIL_INFO_ID, K_TRANSAKSJON_S, FNR_FK, BELOPSTYPE, ART, AVSENDER, UTBETALES_TIL, DATO_FOM_STR, DATO_TOM_STR, DATO_ANVISER_STR, BELOP_STR, REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_ID_FK, DATO_FOM, DATO_TOM,
-                                DATO_ANVISER, BELOP, BEHANDLET, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, PRIORITET_STR, TREKKANSVAR, SALDO_STR, KID, PRIORITET, SALDO, GRAD, GRAD_STR
-                            FROM T_INN_TRANSAKSJON 
-                            WHERE FIL_INFO_ID = $filInfoId AND AVSENDER = '$SPK'
-                            ORDER BY INN_TRANSAKSJON_ID;
-                            """.trimIndent(),
-                        ),
-                        mapToInntransaksjon,
-                    )
-                }
+            getByFilInfoIdTimer.recordCallable {
+                session.list(
+                    queryOf(
+                        """
+                        SELECT INN_TRANSAKSJON_ID, FIL_INFO_ID, K_TRANSAKSJON_S, FNR_FK, BELOPSTYPE, ART, AVSENDER, UTBETALES_TIL, DATO_FOM_STR, DATO_TOM_STR, DATO_ANVISER_STR, BELOP_STR, REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_ID_FK, DATO_FOM, DATO_TOM,
+                            DATO_ANVISER, BELOP, BEHANDLET, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, PRIORITET_STR, TREKKANSVAR, SALDO_STR, KID, PRIORITET, SALDO, GRAD, GRAD_STR
+                        FROM T_INN_TRANSAKSJON 
+                        WHERE FIL_INFO_ID = $filInfoId AND AVSENDER = '$SPK'
+                        ORDER BY INN_TRANSAKSJON_ID;
+                        """.trimIndent(),
+                    ),
+                    mapToInntransaksjon,
+                )
+            }
         }
 
     fun getByBehandlet(
@@ -60,27 +66,25 @@ class InnTransaksjonRepository(
         rows: Int = READ_ROWS,
     ): List<InnTransaksjon> =
         using(sessionOf(dataSource)) { session ->
-            Metrics
-                .timer(DATABASE_CALL, "InnTransaksjonRepository", "getByBehandlet")
-                .recordCallable {
-                    session.list(
-                        queryOf(
-                            """
-                            SELECT t.INN_TRANSAKSJON_ID, t.FIL_INFO_ID, t.K_TRANSAKSJON_S, t.FNR_FK, t.BELOPSTYPE, ART, t.AVSENDER, t.UTBETALES_TIL, t.DATO_FOM_STR, t.DATO_TOM_STR, t.DATO_ANVISER_STR, t.BELOP_STR, t.REF_TRANS_ID, t.TEKSTKODE, t.RECTYPE, t.TRANS_ID_FK, t.DATO_FOM, t.DATO_TOM,
-                                t.DATO_ANVISER, t.BELOP, BEHANDLET, t.DATO_OPPRETTET, t.OPPRETTET_AV, t.DATO_ENDRET, t.ENDRET_AV, t.VERSJON, t.PRIORITET_STR, t.TREKKANSVAR, t.SALDO_STR, t.KID, t.PRIORITET, t.SALDO, t.GRAD, t.GRAD_STR, p.PERSON_ID 
-                            FROM T_INN_TRANSAKSJON t LEFT OUTER JOIN T_PERSON p ON t.FNR_FK = p.FNR_FK
-                            WHERE t.BEHANDLET = '$behandlet' AND AVSENDER = '$SPK'
-                            ORDER BY t.FIL_INFO_ID, t.INN_TRANSAKSJON_ID
-                            FETCH FIRST $rows ROWS ONLY;
-                            """.trimIndent(),
-                        ),
-                        mapToInntransaksjon,
-                    )
-                }
+            getByBehandletTimer.recordCallable {
+                session.list(
+                    queryOf(
+                        """
+                        SELECT t.INN_TRANSAKSJON_ID, t.FIL_INFO_ID, t.K_TRANSAKSJON_S, t.FNR_FK, t.BELOPSTYPE, ART, t.AVSENDER, t.UTBETALES_TIL, t.DATO_FOM_STR, t.DATO_TOM_STR, t.DATO_ANVISER_STR, t.BELOP_STR, t.REF_TRANS_ID, t.TEKSTKODE, t.RECTYPE, t.TRANS_ID_FK, t.DATO_FOM, t.DATO_TOM,
+                            t.DATO_ANVISER, t.BELOP, BEHANDLET, t.DATO_OPPRETTET, t.OPPRETTET_AV, t.DATO_ENDRET, t.ENDRET_AV, t.VERSJON, t.PRIORITET_STR, t.TREKKANSVAR, t.SALDO_STR, t.KID, t.PRIORITET, t.SALDO, t.GRAD, t.GRAD_STR, p.PERSON_ID 
+                        FROM T_INN_TRANSAKSJON t LEFT OUTER JOIN T_PERSON p ON t.FNR_FK = p.FNR_FK
+                        WHERE t.BEHANDLET = '$behandlet' AND AVSENDER = '$SPK'
+                        ORDER BY t.FIL_INFO_ID, t.INN_TRANSAKSJON_ID
+                        FETCH FIRST $rows ROWS ONLY;
+                        """.trimIndent(),
+                    ),
+                    mapToInntransaksjon,
+                )
+            }
         }
 
     fun validateTransaksjon(session: Session) {
-        Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "validateTransaksjon").recordCallable {
+        validateTransaksjonTimer.recordCallable {
             session.update(queryOf(VALIDATOR_01_UNIK_ID))
             session.update(queryOf(VALIDATOR_02_GYLDIG_FODSELSNUMMER))
             session.update(queryOf(VALIDATOR_03_GYLDIG_PERIODE))
@@ -106,8 +110,7 @@ class InnTransaksjonRepository(
         filInfoId: Long,
         session: Session,
     ): List<Int> =
-        Metrics
-            .timer(DATABASE_CALL, "InnTransaksjonRepository", "insertBatch")
+        insertBatchTimer
             .recordCallable {
                 session.batchPreparedNamedStatement(
                     """
@@ -149,7 +152,7 @@ class InnTransaksjonRepository(
         behandlet: String = BEHANDLET_JA,
         session: Session,
     ) {
-        Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "updateBehandletStatusBatch").recordCallable {
+        updateBehandletStatusBatchTimer.recordCallable {
             session.batchPreparedNamedStatement(
                 """
                 UPDATE T_INN_TRANSAKSJON SET BEHANDLET = '$behandlet' WHERE INN_TRANSAKSJON_ID = :innTransaksjonId
@@ -163,7 +166,7 @@ class InnTransaksjonRepository(
         filInfoId: Int,
         session: Session,
     ) {
-        Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "deleteByFilInfoId").recordCallable {
+        deleteByFilInfoIdTimer.recordCallable {
             session.execute(
                 queryOf(
                     """
@@ -178,7 +181,7 @@ class InnTransaksjonRepository(
     fun findLastFagomraadeByPersonId(personIdListe: List<Int>): Map<Int, String> {
         val fagomradeMap = mutableMapOf<Int, String>()
         using(sessionOf(dataSource)) { session ->
-            Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "findLastFagomraadeByPersonId").recordCallable {
+            findLastFagomraadeByPersonIdTimer.recordCallable {
                 session.list(
                     queryOf(
                         """

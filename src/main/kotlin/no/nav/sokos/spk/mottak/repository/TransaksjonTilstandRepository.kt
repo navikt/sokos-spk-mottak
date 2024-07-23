@@ -16,14 +16,18 @@ import no.nav.sokos.spk.mottak.metrics.Metrics
 class TransaksjonTilstandRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
+    private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "insertBatch")
+    private val deleteTransaksjonTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "deleteTransaksjon")
+    private val getByTransaksjonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "getByTransaksjonId")
+    private val findAllByTransaksjonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "findAllByTransaksjonId")
+
     fun insertBatch(
         transaksjonIdList: List<Int>,
         transaksjonTilstandType: String = TRANS_TILSTAND_OPPRETTET,
         session: Session,
     ): List<Long> {
         val systemId = PropertiesConfig.Configuration().naisAppName
-        return Metrics
-            .timer(DATABASE_CALL, "TransaksjonTilstandRepository", "insertBatch")
+        return insertBatchTimer
             .recordCallable {
                 session.batchPreparedNamedStatementAndReturnGeneratedKeys(
                     """
@@ -46,7 +50,7 @@ class TransaksjonTilstandRepository(
         transaksjonTilstandId: List<Long>,
         session: Session,
     ) {
-        Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "deleteTransaksjon").recordCallable {
+        deleteTransaksjonTimer.recordCallable {
             session.update(
                 queryOf(
                     """
@@ -63,7 +67,7 @@ class TransaksjonTilstandRepository(
      */
     fun getByTransaksjonId(transaksjonId: Int): TransaksjonTilstand? =
         using(sessionOf(dataSource)) { session ->
-            Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "getByTransaksjonId").recordCallable {
+            getByTransaksjonIdTimer.recordCallable {
                 session.single(
                     queryOf(
                         """
@@ -79,7 +83,7 @@ class TransaksjonTilstandRepository(
 
     fun findAllByTransaksjonId(transaksjonId: List<Int>): List<TransaksjonTilstand> =
         using(sessionOf(dataSource)) { session ->
-            Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "findAllByTransaksjonId").recordCallable {
+            findAllByTransaksjonIdTimer.recordCallable {
                 session.list(
                     queryOf(
                         """

@@ -61,7 +61,7 @@ class SendTrekkTransaksjonTilOppdragService(
                 )
                 totalTransaksjoner += transaksjonIdList.size
                 logger.info { "$totalTransaksjoner trekktransaksjoner sendt til OppdragZ brukte ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
-                Metrics.counter("trekk_transaksjoner_til_oppdrag", "Counts the number of trekk transactions sent to OppdragZ").inc(totalTransaksjoner.toLong())
+                Metrics.trekkTransaksjonerTilOppdragCounter.inc(totalTransaksjoner.toLong())
             }.onFailure { exception ->
                 transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, sessionOf(dataSource))
                 updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)

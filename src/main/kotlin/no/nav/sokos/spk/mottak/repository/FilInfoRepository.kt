@@ -18,9 +18,12 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
 class FilInfoRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
+    private val getByFilTilstandAndAllInnTransaksjonIsBehandletTimer = Metrics.timer(DATABASE_CALL, "FilInfoRepository", "getByFilTilstandAndAllInnTransaksjonIsBehandlet")
+    private val insertTimer = Metrics.timer(DATABASE_CALL, "FilInfoRepository", "insert")
+
     fun getByFilTilstandAndAllInnTransaksjonIsBehandlet(filTilstandType: String = FILTILSTANDTYPE_GOD): List<FilInfo> =
         using(sessionOf(dataSource)) { session ->
-            Metrics.timer(DATABASE_CALL, "FilInfoRepository", "getByFilTilstandAndAllInnTransaksjonIsBehandlet").recordCallable {
+            getByFilTilstandAndAllInnTransaksjonIsBehandletTimer.recordCallable {
                 session.list(
                     queryOf(
                         """
@@ -44,7 +47,7 @@ class FilInfoRepository(
         filInfo: FilInfo,
         session: Session,
     ): Long? =
-        Metrics.timer(DATABASE_CALL, "FilInfoRepository", "insert").recordCallable {
+        insertTimer.recordCallable {
             session.updateAndReturnGeneratedKey(
                 queryOf(
                     """

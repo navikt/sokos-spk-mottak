@@ -22,11 +22,19 @@ import no.nav.sokos.spk.mottak.util.Utils.toChar
 class TransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
+    private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "insertBatch")
+    private val updateAllWhereTranstolkningIsNyForMoreThanOneInstanceTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateAllWhereTranstolkningIsNyForMoreThanOneInstance")
+    private val getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstanceTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance")
+    private val updateTransTilstandIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandId")
+    private val findLastTransaksjonByPersonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findLastTransaksjonByPersonId")
+    private val findAllByBelopstypeAndByTransaksjonTilstandTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findAllByBelopstypeAndByTransaksjonTilstand")
+    private val updateTransTilstandStatusTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandStatus")
+
     fun insertBatch(
         transaksjonList: List<Transaksjon>,
         session: Session,
     ) {
-        Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "insertBatch").recordCallable {
+        insertBatchTimer.recordCallable {
             session.batchPreparedNamedStatement(
                 """
                 INSERT INTO T_TRANSAKSJON  (
@@ -71,7 +79,7 @@ class TransaksjonRepository(
         personIdListe: List<Int>,
         session: Session,
     ) {
-        Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateAllWhereTranstolkningIsNyForMoreThanOneInstance").recordCallable {
+        updateAllWhereTranstolkningIsNyForMoreThanOneInstanceTimer.recordCallable {
             session.update(
                 queryOf(
                     """
@@ -97,7 +105,7 @@ class TransaksjonRepository(
 
     fun getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance(): Map<Int, List<String>> =
         using(sessionOf(dataSource)) { session ->
-            Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance").recordCallable {
+            getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstanceTimer.recordCallable {
                 val personIdMap = mutableMapOf<Int, MutableList<String>>()
 
                 session.list(
@@ -119,7 +127,7 @@ class TransaksjonRepository(
         }
 
     fun updateTransTilstandId(session: Session) {
-        Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandId").recordCallable {
+        updateTransTilstandIdTimer.recordCallable {
             session.update(
                 queryOf(
                     """
@@ -135,7 +143,7 @@ class TransaksjonRepository(
 
     fun findLastTransaksjonByPersonId(personIdListe: List<Int>): List<Transaksjon> =
         using(sessionOf(dataSource)) { session ->
-            Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findLastTransaksjonByPersonId").recordCallable {
+            findLastTransaksjonByPersonIdTimer.recordCallable {
                 session.list(
                     queryOf(
                         """
@@ -163,7 +171,7 @@ class TransaksjonRepository(
         transaksjonTilstand: List<String>,
     ): List<Transaksjon> =
         using(sessionOf(dataSource)) { session ->
-            Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findAllByBelopstypeAndByTransaksjonTilstand").recordCallable {
+            findAllByBelopstypeAndByTransaksjonTilstandTimer.recordCallable {
                 session.list(
                     queryOf(
                         """
@@ -189,7 +197,7 @@ class TransaksjonRepository(
         transaksjonTilstandType: String,
         session: Session,
     ) {
-        Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandStatus").recordCallable {
+        updateTransTilstandStatusTimer.recordCallable {
             session.update(
                 queryOf(
                     """

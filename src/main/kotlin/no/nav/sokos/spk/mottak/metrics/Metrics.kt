@@ -14,30 +14,62 @@ object Metrics {
     private val counterCache = ConcurrentHashMap<String, Counter>()
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-    fun timer(
-        metricName: String,
-        className: String,
-        method: String,
-    ): Timer =
+    val timer: (metricName: String, className: String, method: String) -> Timer = { metricName, className, method ->
         Timer
             .builder("${METRICS_NAMESPACE}_$metricName")
             .tag("className", className)
             .tag("method", method)
             .description("Timer for database operations")
             .register(prometheusMeterRegistry)
+    }
 
-    fun counter(
-        metricName: String,
-        helpText: String,
-    ): Counter =
-        counterCache.computeIfAbsent("${METRICS_NAMESPACE}_$metricName") {
-            Counter
-                .builder()
-                .name("${METRICS_NAMESPACE}_$metricName")
-                .help(helpText)
-                .withoutExemplars()
-                .register(prometheusMeterRegistry.prometheusRegistry)
-        }
+    val trekkTransaksjonerTilOppdragCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_trekk_transaksjoner_til_oppdrag")
+            .help("Counts the number of trekk transactions sent to OppdragZ")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val utbetalingTransaksjonerTilOppdragCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_utbetaling_transaksjoner_til_oppdrag")
+            .help("Counts the number of transactions sent to OppdragZ")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val transaksjonGodkjentCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_transaksjon_godkjent")
+            .help("Counts the number of file processed from SPK")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val transaksjonAvvistCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_transaksjon_avvist")
+            .help("Counts the number of file processed from SPK")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val fileProcessedCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_file_processed")
+            .help("Counts the number of file processed from SPK")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val innTransaksjonCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_inn_transaksjoner")
+            .help("Counts the number of transactions received from SPK")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
 
     val mqProducerMetricCounter: Counter =
         Counter

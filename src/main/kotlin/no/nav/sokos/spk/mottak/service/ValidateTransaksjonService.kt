@@ -95,8 +95,8 @@ class ValidateTransaksjonService(
             }
 
             innTransaksjonRepository.updateBehandletStatusBatch(innTransaksjonList.map { it.innTransaksjonId!! }, session = session)
-            innTransaksjonMap[true]?.let { Metrics.counter("transaksjon_godkjent", "Counts the number of file processed from SPK").inc(it.size.toLong()) }
-            innTransaksjonMap[false]?.let { Metrics.counter("transaksjon_avvist", "Counts the number of file processed from SPK").inc(it.size.toLong()) }
+            innTransaksjonMap[true]?.let { Metrics.transaksjonGodkjentCounter.inc(it.size.toLong()) }
+            innTransaksjonMap[false]?.let { Metrics.transaksjonAvvistCounter.inc(it.size.toLong()) }
         }
     }
 
