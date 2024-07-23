@@ -14,26 +14,30 @@ object Metrics {
     private val counterCache = ConcurrentHashMap<String, Counter>()
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-    val timer: (metricName: String, className: String, method: String) -> Timer = { metricName, className, method ->
+    fun timer(
+        metricName: String,
+        className: String,
+        method: String,
+    ): Timer =
         Timer
             .builder("${METRICS_NAMESPACE}_$metricName")
             .tag("className", className)
             .tag("method", method)
             .description("Timer for database operations")
             .register(prometheusMeterRegistry)
-    }
 
     fun counter(
         metricName: String,
         helpText: String,
-    ) = counterCache.computeIfAbsent("${METRICS_NAMESPACE}_$metricName") {
-        Counter
-            .builder()
-            .name("${METRICS_NAMESPACE}_$metricName")
-            .help(helpText)
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-    }
+    ): Counter =
+        counterCache.computeIfAbsent("${METRICS_NAMESPACE}_$metricName") {
+            Counter
+                .builder()
+                .name("${METRICS_NAMESPACE}_$metricName")
+                .help(helpText)
+                .withoutExemplars()
+                .register(prometheusMeterRegistry.prometheusRegistry)
+        }
 
     val mqProducerMetricCounter: Counter =
         Counter
