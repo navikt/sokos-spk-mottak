@@ -45,9 +45,10 @@ data class Transaksjon(
 )
 
 fun Transaksjon.getTransTolkningOppdragKode(): String {
-    return when (transTolkning) {
-        TRANS_TOLKNING_NY -> "NY"
-        TRANS_TOLKNING_NY_EKSIST -> "ENDR"
-        else -> "UEND"
+    if (transTolkning == TRANS_TOLKNING_NY) {
+        return "NY"
+    } else if (transTolkning == TRANS_TOLKNING_NY_EKSIST && fnrEndret == '1') {
+        return "ENDR"
     }
+    return "UEND"
 }
