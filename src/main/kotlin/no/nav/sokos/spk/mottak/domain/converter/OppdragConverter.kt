@@ -97,9 +97,7 @@ object OppdragConverter {
                                     "UFE" -> "UFOR"
                                     else -> throw UnsupportedOperationException("Ukjent ART")
                                 }
-                            grad.apply {
-                                it.toBigInteger()
-                            }
+                            grad = it.toBigInteger()
                         },
                     ),
                 )
