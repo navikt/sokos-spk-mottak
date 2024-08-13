@@ -29,7 +29,7 @@ class TransaksjonTilstandRepository(
         val systemId = PropertiesConfig.Configuration().naisAppName
         return insertBatchTimer
             .recordCallable {
-                session.batchPreparedNamedStatementAndReturnGeneratedKeys(
+                session.batchPreparedNamedStatement(
                     """
                     INSERT INTO T_TRANS_TILSTAND (
                         TRANSAKSJON_ID,
@@ -43,6 +43,18 @@ class TransaksjonTilstandRepository(
                     """.trimIndent(),
                     transaksjonIdList.map { mapOf("transaksjonId" to it) },
                 )
+
+                session.list(
+                    queryOf(
+                        """
+                        SELECT MAX(TRANS_TILSTAND_ID) AS TRANS_TILSTAND_ID
+                        FROM T_TRANS_TILSTAND
+                        WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()})
+                          AND K_TRANS_TILST_T = '$transaksjonTilstandType'
+                        GROUP BY TRANSAKSJON_ID;
+                        """.trimIndent(),
+                    ),
+                ) { row -> row.long("TRANS_TILSTAND_ID") }
             }.orEmpty()
     }
 

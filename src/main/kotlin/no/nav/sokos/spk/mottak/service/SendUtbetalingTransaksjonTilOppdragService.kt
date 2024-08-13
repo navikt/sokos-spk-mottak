@@ -4,8 +4,6 @@ import com.ibm.mq.jakarta.jms.MQQueue
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.xml.bind.JAXBElement
 import kotliquery.Session
-import kotliquery.sessionOf
-import kotliquery.using
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
@@ -86,12 +84,10 @@ class SendUtbetalingTransaksjonTilOppdragService(
         oppdragList: List<String>,
         transaksjonIdList: List<Int>,
     ) {
-        val transaksjonTilstandIdList =
-            using(sessionOf(dataSource)) { session ->
-                updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
-            }
         dataSource.transaction { session ->
+            val transaksjonTilstandIdList = mutableListOf<Long>()
             runCatching {
+                transaksjonTilstandIdList.addAll(updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session))
                 producer.send(
                     oppdragList,
                     MQQueue(PropertiesConfig.MQProperties().utbetalingQueueName),
@@ -101,13 +97,13 @@ class SendUtbetalingTransaksjonTilOppdragService(
                 logger.debug { "TransaksjonsId: ${transaksjonIdList.joinToString()} er sendt til OppdragZ." }
             }.onFailure { exception ->
                 transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, session)
-                updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
+                updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
                 logger.error(exception) { "TransaksjonsId: ${transaksjonIdList.joinToString()} blir ikke sendt til OppdragZ." }
             }
         }
     }
 
-    private fun updateTransaksjonOgTransaksjonTilstand(
+    private fun updateTransaksjonAndTransaksjonTilstand(
         transaksjonIdList: List<Int>,
         transTilstandStatus: String,
         session: Session,

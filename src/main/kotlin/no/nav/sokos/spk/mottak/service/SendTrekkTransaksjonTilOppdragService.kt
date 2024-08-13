@@ -47,13 +47,11 @@ class SendTrekkTransaksjonTilOppdragService(
         logger.info { "Starter sending av trekktransaksjoner til OppdragZ" }
         transaksjoner.chunked(BATCH_SIZE).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
-            val transaksjonTilstandIdList =
-                using(sessionOf(dataSource)) { session ->
-                    updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK)
-                }
+            val transaksjonTilstandIdList = mutableListOf<Long>()
 
             val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
             runCatching {
+                transaksjonTilstandIdList.addAll(updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK))
                 producer.send(
                     trekkMeldinger,
                     MQQueue(PropertiesConfig.MQProperties().trekkQueueName),
