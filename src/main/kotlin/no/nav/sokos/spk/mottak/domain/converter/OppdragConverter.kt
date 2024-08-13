@@ -6,12 +6,15 @@ import no.nav.sokos.spk.mottak.domain.getTransTolkningOppdragKode
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateString
 import no.nav.sokos.spk.mottak.util.Utils.toXMLGregorianCalendar
 import no.trygdeetaten.skjema.oppdrag.Attestant180
+import no.trygdeetaten.skjema.oppdrag.Avstemming115
 import no.trygdeetaten.skjema.oppdrag.Grad170
 import no.trygdeetaten.skjema.oppdrag.Oppdrag110
 import no.trygdeetaten.skjema.oppdrag.OppdragsEnhet120
 import no.trygdeetaten.skjema.oppdrag.OppdragsLinje150
 import no.trygdeetaten.skjema.oppdrag.TfradragTillegg
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 private const val DEFAULT_KODE_AKSJON = "1"
 private const val SATSTYOE_MND = "MND"
@@ -24,6 +27,7 @@ private const val BRUK_KJOREPLAN = "N"
 private const val ART_UFE = "UFE"
 private const val TYPE_SOKNAD = "EO"
 private const val SAKSBEHANDLER_ID = "MOT" // Oppdrag system tillater maks 8 bytes
+private const val KODE_KOMPONENT = "MOT"
 
 object OppdragConverter {
     /**
@@ -51,6 +55,13 @@ object OppdragConverter {
                     },
                 )
             }
+
+            avstemming115 =
+                Avstemming115().apply {
+                    kodeKomponent = KODE_KOMPONENT
+                    nokkelAvstemming = filInfoId.toString()
+                    tidspktMelding = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+                }
         }
 
     fun Transaksjon.oppdragsLinje150(): OppdragsLinje150 =
