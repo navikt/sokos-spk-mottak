@@ -2,9 +2,13 @@ package no.nav.sokos.spk.mottak
 
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
-import no.nav.sokos.spk.mottak.domain.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.GyldigKombinasjon
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
+import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
+import no.nav.sokos.spk.mottak.domain.Transaksjon
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -25,38 +29,44 @@ const val SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP = "P611.ANV.NAV.HUB.SPK.L003919.D2
 const val SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE = "P611.ANV.NAV.HUB.SPK.L003919.D240104.T003017_UGYLDIG_TRANSAKSJON_RECTYPE.txt"
 
 object TestData {
-    fun innTransaksjonMock(): InnTransaksjon {
+    fun transaksjonMock(): Transaksjon {
         val systemId = PropertiesConfig.Configuration().naisAppName
-        return InnTransaksjon(
-            innTransaksjonId = 1,
+        return Transaksjon(
+            transaksjonId = 36799719,
             filInfoId = 123,
-            transaksjonStatus = null,
-            fnr = "22031366171",
+            transaksjonStatus = TransaksjonStatus.OK.code,
+            personId = 1,
             belopstype = BELOPSTYPE_SKATTEPLIKTIG_UTBETALING,
             art = "UFT",
-            avsender = SPK,
+            anviser = SPK,
+            fnr = "22031366171",
             utbetalesTil = null,
-            datoFomStr = "20240201",
-            datoTomStr = "20240229",
-            datoAnviserStr = "20240131",
-            belopStr = "00000346900",
+            osId = null,
+            osLinjeId = null,
+            datoFom = LocalDate.of(2024, 1, 1),
+            datoTom = LocalDate.of(2024, 1, 31),
+            datoAnviser = LocalDate.of(2024, 1, 1),
+            datoPersonFom = LocalDate.of(2000, 1, 1),
+            datoReakFom = null,
+            belop = 1000,
             refTransId = null,
             tekstkode = null,
             rectype = RECTYPE_TRANSAKSJONSRECORD,
-            transId = "112052188",
-            datoFom = LocalDate.of(2024, 2, 1),
-            datoTom = LocalDate.of(2024, 2, 29),
-            datoAnviser = LocalDate.of(2024, 1, 31),
-            belop = 346900,
-            behandlet = "N",
+            transEksId = "112052188",
+            transTolkning = TRANS_TOLKNING_NY_EKSIST,
+            sendtTilOppdrag = "0",
+            trekkvedtakId = null,
+            fnrEndret = Char(0),
+            motId = "36799719",
+            osStatus = null,
             datoOpprettet = LocalDateTime.now(),
-            opprettetAv = systemId,
+            opprettetAv = "Test",
             datoEndret = LocalDateTime.now(),
-            endretAv = systemId,
+            endretAv = "Test",
             versjon = 1,
-            grad = null,
-            gradStr = null,
-            personId = 12345,
+            transTilstandType = TRANS_TILSTAND_OPPRETTET,
+            grad = 100,
+            gyldigKombinasjon = GyldigKombinasjon(fagomrade = "PENSPK", osKlassifikasjon = "PENSPKALD01"),
         )
     }
 }

@@ -14,10 +14,6 @@ data class TransaksjonRecord(
     val art: String,
     val refTransId: String,
     val tekstkode: String,
-    val saldo: String,
-    val prioritet: String,
-    val kid: String,
-    val trekkansvar: String,
     val grad: String,
     var filStatus: FilStatus,
 )

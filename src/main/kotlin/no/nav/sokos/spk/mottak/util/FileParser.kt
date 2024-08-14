@@ -74,11 +74,7 @@ object FileParser {
             art = record.getString(73, 77),
             refTransId = record.getString(77, 89),
             tekstkode = record.getString(89, 93),
-            saldo = record.getString(93, 104),
-            prioritet = record.getString(104, 112),
-            kid = record.getString(112, 138),
-            trekkansvar = record.getString(138, 142),
-            grad = record.getString(142, 146),
+            grad = record.getString(93, 96),
             filStatus = filStatus,
         )
     }

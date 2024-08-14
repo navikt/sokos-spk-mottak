@@ -359,8 +359,8 @@ private fun verifyInntransaksjon(
     innTransaksjon.datoEndret.toLocalDate() shouldBe LocalDate.now()
     innTransaksjon.endretAv shouldBe PropertiesConfig.Configuration().naisAppName
     innTransaksjon.versjon shouldBe 1
-    innTransaksjon.grad shouldBe null
-    innTransaksjon.gradStr shouldBe null
+    innTransaksjon.grad shouldBe 100
+    innTransaksjon.gradStr shouldBe "100"
 }
 
 private fun verifyLopenummer(lopeNummer: LopeNummer?) {
