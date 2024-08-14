@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.ibm.mq.jakarta.jms.MQQueue
+import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.xml.bind.JAXBElement
 import kotliquery.Session
@@ -32,7 +33,15 @@ private const val BATCH_SIZE = 100
 
 class SendUtbetalingTransaksjonTilOppdragService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
-    private val producer: JmsProducerService = JmsProducerService(),
+    private val producer: JmsProducerService =
+        JmsProducerService(
+            MQQueue(PropertiesConfig.MQProperties().utbetalingQueueName).apply {
+                targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
+            },
+            MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName).apply {
+                targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
+            },
+        ),
 ) {
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
@@ -88,12 +97,7 @@ class SendUtbetalingTransaksjonTilOppdragService(
             val transaksjonTilstandIdList = mutableListOf<Long>()
             runCatching {
                 transaksjonTilstandIdList.addAll(updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session))
-                producer.send(
-                    oppdragList,
-                    MQQueue(PropertiesConfig.MQProperties().utbetalingQueueName),
-                    MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
-                )
-
+                producer.send(oppdragList)
                 logger.debug { "TransaksjonsId: ${transaksjonIdList.joinToString()} er sendt til OppdragZ." }
             }.onFailure { exception ->
                 transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, session)
