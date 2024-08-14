@@ -20,10 +20,12 @@ object TrekkConverter {
                 kodeTrekktype = trekkType!!,
                 kodeTrekkAlternativ = trekkAlternativ!!,
                 periode =
-                    Periode(
-                        datoFom!!.toISOString(),
-                        datoTom!!.toISOString(),
-                        sats = belop / 100.0,
+                    mutableListOf(
+                        Periode(
+                            datoFom!!.toISOString(),
+                            datoTom!!.toISOString(),
+                            sats = belop / 100.0,
+                        ),
                     ),
             ),
         )

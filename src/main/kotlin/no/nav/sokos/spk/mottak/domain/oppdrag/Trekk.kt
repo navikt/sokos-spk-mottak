@@ -3,6 +3,7 @@ package no.nav.sokos.spk.mottak.domain.oppdrag
 import jakarta.xml.bind.annotation.XmlAccessType
 import jakarta.xml.bind.annotation.XmlAccessorType
 import jakarta.xml.bind.annotation.XmlElement
+import jakarta.xml.bind.annotation.XmlElementWrapper
 import jakarta.xml.bind.annotation.XmlRootElement
 import kotlinx.serialization.Serializable
 
@@ -25,10 +26,6 @@ data class InnrapporteringTrekk(
     val kreditorIdTss: String,
     @XmlElement(name = "kreditorTrekkId")
     val kreditorTrekkId: String,
-    @XmlElement(name = "kreditorOrgnr")
-    val kreditorOrgnr: String? = null,
-    @XmlElement(name = "kontonr")
-    val kontonr: String? = null,
     @XmlElement(name = "debitorId")
     val debitorId: String,
     @XmlElement(name = "kodeTrekktype")
@@ -45,8 +42,9 @@ data class InnrapporteringTrekk(
     val prioritetFomDato: String? = null,
     @XmlElement(name = "gyldigTomDato")
     val gyldigTomDato: String? = null,
+    @XmlElementWrapper(name = "perioder")
     @XmlElement(name = "periode")
-    val periode: Periode,
+    val periode: List<Periode>,
 )
 
 @Serializable

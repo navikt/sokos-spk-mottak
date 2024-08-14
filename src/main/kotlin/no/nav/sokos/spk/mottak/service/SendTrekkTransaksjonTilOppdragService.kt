@@ -59,22 +59,16 @@ class SendTrekkTransaksjonTilOppdragService(
             transaksjoner.chunked(BATCH_SIZE).forEach { chunk ->
                 val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
                 val transaksjonTilstandIdList = mutableListOf<Long>()
-                logger.info { "###transaksjonTilstandIdList: $transaksjonTilstandIdList" }
-                val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
                 runCatching {
+                    val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
                     transaksjonTilstandIdList.addAll(updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK))
                     producer.send(trekkMeldinger)
                     totalTransaksjoner += transaksjonIdList.size
                 }.onFailure { exception ->
-                    logger.info { "feiler ved sending av melding" }
                     transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, sessionOf(dataSource))
-                    logger.info { "fjernet transaksjon i transaksjonTilstandRepository" }
                     updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)
-                    logger.info { "oppdatert transaksjon i transaksjonRepository" }
                     logger.error(exception) { "Trekktransaksjoner: ${transaksjonIdList.minOrNull()} - ${transaksjonIdList.maxOrNull()} feiler ved sending til OppdragZ." }
-                    logger.info { "feiler ved sending av melding" }
                 }
-                logger.info { "sendt meldinger ok" }
             }
             logger.info { "Fullført sending av $totalTransaksjoner trekktransaksjoner til OppdragZ. Total tid: ${Duration.between(timer, Instant.now()).toSeconds()} sekunder." }
             Metrics.trekkTransaksjonerTilOppdragCounter.inc(totalTransaksjoner.toLong())
