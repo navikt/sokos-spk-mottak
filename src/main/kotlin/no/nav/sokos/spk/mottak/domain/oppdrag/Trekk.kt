@@ -4,54 +4,58 @@ import jakarta.xml.bind.annotation.XmlAccessType
 import jakarta.xml.bind.annotation.XmlAccessorType
 import jakarta.xml.bind.annotation.XmlElement
 import jakarta.xml.bind.annotation.XmlRootElement
+import kotlinx.serialization.Serializable
 
+@Serializable
 @XmlRootElement(name = "dokument")
 @XmlAccessorType(XmlAccessType.FIELD)
 data class Dokument(
-    @field:XmlElement(name = "innrapporteringTrekk")
+    @XmlElement(name = "innrapporteringTrekk")
     val innrapporteringTrekk: InnrapporteringTrekk? = null,
 )
 
+@Serializable
 @XmlAccessorType(XmlAccessType.FIELD)
 data class InnrapporteringTrekk(
-    @field:XmlElement(name = "aksjonskode")
+    @XmlElement(name = "aksjonskode")
     val aksjonskode: String,
-    @field:XmlElement(name = "navTrekkId")
+    @XmlElement(name = "navTrekkId")
     val navTrekkId: String? = null,
-    @field:XmlElement(name = "kreditorIdTss")
+    @XmlElement(name = "kreditorIdTss")
     val kreditorIdTss: String,
-    @field:XmlElement(name = "kreditorTrekkId")
+    @XmlElement(name = "kreditorTrekkId")
     val kreditorTrekkId: String,
-    @field:XmlElement(name = "kreditorOrgnr")
+    @XmlElement(name = "kreditorOrgnr")
     val kreditorOrgnr: String? = null,
-    @field:XmlElement(name = "kontonr")
+    @XmlElement(name = "kontonr")
     val kontonr: String? = null,
-    @field:XmlElement(name = "debitorId")
+    @XmlElement(name = "debitorId")
     val debitorId: String,
-    @field:XmlElement(name = "kodeTrekktype")
+    @XmlElement(name = "kodeTrekktype")
     val kodeTrekktype: String,
-    @field:XmlElement(name = "kodeTrekkAlternativ")
+    @XmlElement(name = "kodeTrekkAlternativ")
     val kodeTrekkAlternativ: String,
-    @field:XmlElement(name = "kid")
+    @XmlElement(name = "kid")
     val kid: String? = null,
-    @field:XmlElement(name = "kreditorsRef")
+    @XmlElement(name = "kreditorsRef")
     val kreditorsRef: String? = null,
-    @field:XmlElement(name = "saldo")
+    @XmlElement(name = "saldo")
     val saldo: Double? = null,
-    @field:XmlElement(name = "prioritetFomDato")
+    @XmlElement(name = "prioritetFomDato")
     val prioritetFomDato: String? = null,
-    @field:XmlElement(name = "gyldigTomDato")
+    @XmlElement(name = "gyldigTomDato")
     val gyldigTomDato: String? = null,
-    @field:XmlElement(name = "periode")
+    @XmlElement(name = "periode")
     val periode: Periode,
 )
 
+@Serializable
 @XmlAccessorType(XmlAccessType.FIELD)
 data class Periode(
-    @field:XmlElement(name = "periodeFomDato")
+    @XmlElement(name = "periodeFomDato")
     val periodeFomDato: String,
-    @field:XmlElement(name = "periodeTomDato")
+    @XmlElement(name = "periodeTomDato")
     val periodeTomDato: String,
-    @field:XmlElement(name = "sats")
+    @XmlElement(name = "sats")
     val sats: Double,
 )
