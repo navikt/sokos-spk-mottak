@@ -31,7 +31,7 @@ open class JmsProducerService(
             }.onSuccess {
                 context.commit()
                 Metrics.mqProducerMetricCounter.inc(payload.size.toLong())
-                logger.info { "MQ-transaksjon committed ${payload.size} messages" }
+                logger.debug { "MQ-transaksjon committed ${payload.size} messages" }
             }.onFailure { exception ->
                 context.rollback()
                 logger.error(exception) { "MQ-transaksjon rolled back" }
