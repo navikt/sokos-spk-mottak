@@ -69,19 +69,35 @@ object Metrics {
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
-    val mqProducerMetricCounter: Counter =
+    val mqUtbetalingProducerMetricCounter: Counter =
         Counter
             .builder()
-            .name("${METRICS_NAMESPACE}_mq_producer")
-            .help("Counts the number of messages sent to OppdragZ via MQ")
+            .name("${METRICS_NAMESPACE}_utbetaling_mq_producer")
+            .help("Counts the number of utbetaling sent to OppdragZ through MQ")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
-    val mqConsumerMetricCounter: Counter =
+    val mqTrekkProducerMetricCounter: Counter =
         Counter
             .builder()
-            .name("${METRICS_NAMESPACE}_mq_consumer")
-            .help("Counts the number of messages receive from OppdragZ via MQ")
+            .name("${METRICS_NAMESPACE}_trekk_mq_producer")
+            .help("Counts the number of trekk sent to OppdragZ through MQ")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val mqUtbetalingListenerMetricCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_utbetaling_mq_listener")
+            .help("Counts the number of utbetaling receive from OppdragZ through MQ")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val mqTrekkListenerMetricCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_trekk_mq_listener")
+            .help("Counts the number of trekk receive from OppdragZ through MQ")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 }

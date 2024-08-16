@@ -6,6 +6,7 @@ import io.kotest.core.listeners.TestListener
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.mockk.mockk
+import io.prometheus.metrics.core.metrics.Counter
 import jakarta.jms.ConnectionFactory
 import jakarta.jms.JMSContext
 import jakarta.jms.JMSProducer
@@ -51,7 +52,7 @@ class JmsProducerServiceTestService(
     private val senderQueue: MQQueue,
     private val replyQueue: MQQueue,
     private val conFactory: ConnectionFactory,
-) : JmsProducerService(senderQueue, replyQueue, conFactory) {
+) : JmsProducerService(senderQueue, replyQueue, mockk<Counter>(), conFactory) {
     override fun send(payload: List<String>) {
         val senderActiveMQQueue = ActiveMQQueue(senderQueue.queueName)
         val replyActiveMQQueue = ActiveMQQueue(replyQueue.queueName)

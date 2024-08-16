@@ -41,6 +41,7 @@ class SendUtbetalingTransaksjonTilOppdragService(
             MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName).apply {
                 targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
             },
+            Metrics.mqUtbetalingProducerMetricCounter,
         ),
 ) {
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)

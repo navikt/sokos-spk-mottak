@@ -25,6 +25,6 @@ private fun Application.module() {
     routingConfig(useAuthentication, applicationState)
 
     DatabaseConfig.postgresMigrate()
-    // JmsConsumerListenerService()
+    // JmsListenerService()
     JobTaskConfig.scheduler().start()
 }
