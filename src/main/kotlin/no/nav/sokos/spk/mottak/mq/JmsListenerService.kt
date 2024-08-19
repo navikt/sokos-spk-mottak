@@ -4,37 +4,30 @@ import jakarta.jms.ConnectionFactory
 import jakarta.jms.JMSContext
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.MQConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.metrics.Metrics
-import no.nav.sokos.spk.mottak.util.JaxbUtils
 
 private val logger = KotlinLogging.logger {}
 
 class JmsListenerService(
     private val connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
+    private val replyQueueName: String,
+    private val messageHandler: MessageHandler,
 ) {
-    private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)
-    private val utbetalingReplyQueueName = PropertiesConfig.MQProperties().utbetalingReplyQueueName
-    private val utbetalingConsumer = jmsContext.createConsumer(jmsContext.createQueue(utbetalingReplyQueueName))
+    private val jmsContext: JMSContext = connectionFactory.createContext()
+    private val messageConsumer = jmsContext.createConsumer(jmsContext.createQueue(replyQueueName))
 
     init {
-        utbetalingConsumer.setMessageListener { message ->
+        messageConsumer.setMessageListener { message ->
             runCatching {
-                val jmsMessage =
-                    message.getBody(String::class.java).also {
-                        logger.info { "Mottatt melding fra OppdragZ, mesageId: ${message.jmsMessageID}, message: $it" }
-                    }
-                val oppdrag = JaxbUtils.unmarshallOppdrag(jmsMessage)
-                // TODO: skal oppdatere DB med ORO (OPPDRAG RETUR OK)
-                println(oppdrag)
+                val jmsMessage = message.getBody(String::class.java)
+                logger.info { "Mottatt melding fra OppdragZ, mesageId: ${message.jmsMessageID}, message: $jmsMessage" }
+                messageHandler.handle(jmsMessage)
                 Metrics.mqConsumerMetricCounter.inc()
             }.onFailure { exception ->
-                logger.error(exception) {
-                    "Feil ved prosessering av melding fra: $utbetalingReplyQueueName"
-                }
+                logger.error(exception) { "Feil ved prosessering av melding fra: $replyQueueName" }
             }
         }
-        jmsContext.setExceptionListener { exception -> logger.error("Feil mot $utbetalingReplyQueueName", exception) }
+        jmsContext.setExceptionListener { exception -> logger.error("Feil mot $replyQueueName", exception) }
         jmsContext.start()
     }
 }

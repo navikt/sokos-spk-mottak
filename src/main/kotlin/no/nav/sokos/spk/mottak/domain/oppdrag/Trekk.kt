@@ -11,6 +11,8 @@ import kotlinx.serialization.Serializable
 @XmlRootElement(name = "dokument")
 @XmlAccessorType(XmlAccessType.FIELD)
 data class Dokument(
+    @XmlElement(name = "mmel")
+    val mmel: Mmel? = null,
     @XmlElement(name = "innrapporteringTrekk")
     val innrapporteringTrekk: InnrapporteringTrekk? = null,
 )
@@ -56,4 +58,31 @@ data class Periode(
     val periodeTomDato: String,
     @XmlElement(name = "sats")
     val sats: Double,
+)
+
+@Serializable
+@XmlAccessorType(XmlAccessType.FIELD)
+data class Mmel(
+    @XmlElement(name = "systemId")
+    val systemId: String? = null,
+    @XmlElement(name = "kodeMelding")
+    val kodeMelding: String? = null,
+    @XmlElement(name = "alvorlighetsgrad")
+    val alvorlighetsgrad: String? = null,
+    @XmlElement(name = "beskrMelding")
+    val beskrMelding: String? = null,
+    @XmlElement(name = "sqlKode")
+    val sqlKode: String? = null,
+    @XmlElement(name = "sqlStateMmel")
+    val sqlStateMmel: String? = null,
+    @XmlElement(name = "sqlMelding")
+    val sqlMelding: String? = null,
+    @XmlElement(name = "mqCompletionKode")
+    val mqCompletionKode: String? = null,
+    @XmlElement(name = "mqReasonKode")
+    val mqReasonKode: String? = null,
+    @XmlElement(name = "programId")
+    val programId: String? = null,
+    @XmlElement(name = "sectionNavn")
+    val sectionNavn: String? = null,
 )

@@ -22,6 +22,8 @@ import no.nav.sokos.spk.mottak.util.Utils.toChar
 class TransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
+    private val updateTransaksjonFromTrekkReplyTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransaksjonFromTrekkReply")
+    private val getByTransEksIdFkTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "getByTransEksIdFk")
     private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "insertBatch")
     private val updateAllWhereTranstolkningIsNyForMoreThanOneInstanceTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateAllWhereTranstolkningIsNyForMoreThanOneInstance")
     private val getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstanceTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance")
@@ -126,6 +128,32 @@ class TransaksjonRepository(
             }
         }
 
+    fun updateTransaksjonFromTrekkReply(
+        transaksjonId: Long,
+        transtilstandId: Long,
+        vedtaksId: String,
+        transaksjonTilstandType: String,
+        feilkode: String,
+        feilkodeMelding: String,
+        session: Session,
+    ) {
+        updateTransaksjonFromTrekkReplyTimer.recordCallable {
+            session.update(
+                queryOf(
+                    """
+                    UPDATE T_TRANSAKSJON t
+                        SET TRANS_TILSTAND_ID = $transtilstandId, 
+                            TREKKVEDTAK_ID_FK = $vedtaksId, 
+                            K_TRANS_TILST_T = $transaksjonTilstandType,
+                            FEILKODE = $feilkode,
+                            FEILKODEMELDING = $feilkodeMelding
+                        WHERE t.TRANSAKSJON_ID = $transaksjonId
+                    """.trimIndent(),
+                ),
+            )
+        }
+    }
+
     fun updateTransTilstandId(session: Session) {
         updateTransTilstandIdTimer.recordCallable {
             session.update(
@@ -210,9 +238,23 @@ class TransaksjonRepository(
         }
     }
 
-    /**
-     * Bruker kun for testing
-     */
+    fun getByTransEksIdFk(
+        transEksIdFk: String,
+        session: Session,
+    ): Long? =
+        getByTransEksIdFkTimer.recordCallable {
+            session.single(
+                queryOf(
+                    """
+                    SELECT TRANSAKSJON_ID
+                    FROM T_TRANSAKSJON 
+                    WHERE TRANS_EKS_ID_FK = $transEksIdFk
+                    """.trimIndent(),
+                ),
+            ) { row -> row.long("TRANSAKSJON_ID") }
+        }
+
+    /** Bruker kun for testing */
     fun getByTransaksjonId(transaksjonId: Int): Transaksjon? =
         using(sessionOf(dataSource)) { session ->
             session.single(

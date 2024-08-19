@@ -16,10 +16,37 @@ import no.nav.sokos.spk.mottak.metrics.Metrics
 class TransaksjonTilstandRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
+    private val insertTransaksjonTilstandTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "insertTransaksjonTilstand")
     private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "insertBatch")
     private val deleteTransaksjonTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "deleteTransaksjon")
     private val getByTransaksjonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "getByTransaksjonId")
     private val findAllByTransaksjonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "findAllByTransaksjonId")
+
+    fun insertTransaksjonTilstand(
+        transaksjonId: Long,
+        transaksjonTilstand: String,
+        session: Session,
+    ): Long? {
+        val systemId = PropertiesConfig.Configuration().naisAppName
+        return insertTransaksjonTilstandTimer
+            .recordCallable {
+                session.updateAndReturnGeneratedKey(
+                    queryOf(
+                        """
+                        INSERT INTO T_TRANS_TILSTAND (
+                            TRANSAKSJON_ID,
+                            K_TRANS_TILST_T, 
+                            DATO_OPPRETTET, 
+                            OPPRETTET_AV, 
+                            DATO_ENDRET, 
+                            ENDRET_AV, 
+                            VERSJON
+                        ) VALUES ($transaksjonId, '$transaksjonTilstand', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)                
+                        """.trimIndent(),
+                    ),
+                )
+            }
+    }
 
     fun insertBatch(
         transaksjonIdList: List<Int>,
@@ -74,9 +101,7 @@ class TransaksjonTilstandRepository(
         }
     }
 
-    /**
-     * Bruker kun for testing
-     */
+    /** Bruker kun for testing */
     fun getByTransaksjonId(transaksjonId: Int): TransaksjonTilstand? =
         using(sessionOf(dataSource)) { session ->
             getByTransaksjonIdTimer.recordCallable {
