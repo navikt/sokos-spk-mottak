@@ -122,10 +122,10 @@ spec:
 
     # DB-SCHEDULER
     - name: READ_AND_PARSEFILE_CRON_PATTERN
-      value: "0 0 10 * * *"
+      value: "0 0 7-17 * * *"
     - name: VALIDATE_TRANSAKSJON_CRON_PATTERN
-      value: "* * */6 * * *"
+      value: "* * 7-17 * * *"
     - name: SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN
-      value: "* * */6 * * *"
+      value: "* * 7-17 * * *"
     - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN
-      value: "* * */6 * * *"
+      value: "* * 7-17 * * *"
