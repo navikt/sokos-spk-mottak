@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<oppdrag xmlns="http://www.trygdeetaten.no/skjema/oppdrag">
+    <mmel>
+        <systemId>231-OPPD</systemId>
+        <alvorlighetsgrad>00</alvorlighetsgrad>
+    </mmel>
+    <oppdrag-110>
+        <kodeAksjon>1</kodeAksjon>
+        <kodeEndring>UEND</kodeEndring>
+        <kodeFagomraade>PENSPK</kodeFagomraade>
+        <fagsystemId>5093067</fagsystemId>
+        <utbetFrekvens>MND</utbetFrekvens>
+        <stonadId>20240801</stonadId>
+        <oppdragGjelderId>19074639472</oppdragGjelderId>
+        <datoOppdragGjelderFom>1900-01-01</datoOppdragGjelderFom>
+        <saksbehId>MOT</saksbehId>
+        <oppdrags-linje-150>
+            <kodeEndringLinje>NY</kodeEndringLinje>
+            <delytelseId>86000057</delytelseId>
+            <kodeKlassifik>PENSPKALD01</kodeKlassifik>
+            <datoKlassifikFom>1900-01-01</datoKlassifikFom>
+            <datoVedtakFom>2024-08-01</datoVedtakFom>
+            <datoVedtakTom>2024-08-31</datoVedtakTom>
+            <sats>6600</sats>
+            <fradragTillegg>T</fradragTillegg>
+            <typeSats>MND</typeSats>
+            <skyldnerId>19074639472</skyldnerId>
+            <brukKjoreplan>N</brukKjoreplan>
+            <saksbehId>MOT</saksbehId>
+            <utbetalesTilId>19074639472</utbetalesTilId>
+            <attestant-180>
+                <attestantId>MOT</attestantId>
+            </attestant-180>
+        </oppdrags-linje-150>
+    </oppdrag-110>
+</oppdrag>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<oppdrag xmlns="http://www.trygdeetaten.no/skjema/oppdrag">
+    <mmel>
+        <systemId>231-OPPD</systemId>
+        <kodeMelding>BB50022F</kodeMelding>
+        <alvorlighetsgrad>08</alvorlighetsgrad>
+        <beskrMelding>DELYTELSE-ID finnes i oppdragsbasen fra før: 83026484</beskrMelding>
+        <programId>K231BB50</programId>
+        <sectionNavn>CA10-KONTROLL-INPUT</sectionNavn>
+    </mmel>
+    <oppdrag-110>
+        <kodeAksjon>1</kodeAksjon>
+        <kodeEndring>ENDR</kodeEndring>
+        <kodeFagomraade>PENSPK</kodeFagomraade>
+        <fagsystemId>992316</fagsystemId>
+        <utbetFrekvens>MND</utbetFrekvens>
+        <stonadId>20240101</stonadId>
+        <oppdragGjelderId>02075240980</oppdragGjelderId>
+        <datoOppdragGjelderFom>1900-01-01</datoOppdragGjelderFom>
+        <saksbehId>MOT</saksbehId>
+        <oppdrags-linje-150>
+            <kodeEndringLinje>NY</kodeEndringLinje>
+            <delytelseId>83026484</delytelseId>
+            <kodeKlassifik>PENSPKALD-OP</kodeKlassifik>
+            <datoKlassifikFom>1900-01-01</datoKlassifikFom>
+            <datoVedtakFom>2024-01-01</datoVedtakFom>
+            <datoVedtakTom>2024-01-31</datoVedtakTom>
+            <sats>3055</sats>
+            <fradragTillegg>T</fradragTillegg>
+            <typeSats>MND</typeSats>
+            <skyldnerId>02075240980</skyldnerId>
+            <brukKjoreplan>N</brukKjoreplan>
+            <saksbehId>MOT</saksbehId>
+            <utbetalesTilId>02075240980</utbetalesTilId>
+            <attestant-180>
+                <attestantId>MOT</attestantId>
+            </attestant-180>
+        </oppdrags-linje-150>
+    </oppdrag-110>
+</oppdrag>

@@ -36,6 +36,7 @@ class SendTrekkTransaksjonTilOppdragService(
             MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName).apply {
                 targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
             },
+            Metrics.mqTrekkProducerMetricCounter,
         ),
 ) {
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
