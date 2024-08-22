@@ -12,6 +12,7 @@ private const val AKSJONSKODE = "NY"
 object TrekkConverter {
     fun Transaksjon.innrapporteringTrekk(): Dokument =
         Dokument(
+            mmel = null,
             InnrapporteringTrekk(
                 aksjonskode = AKSJONSKODE,
                 kreditorIdTss = SPK_TSS,
