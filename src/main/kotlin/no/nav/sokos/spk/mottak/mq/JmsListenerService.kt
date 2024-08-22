@@ -71,6 +71,8 @@ class JmsListenerService(
                     transaksjonTilstandRepository.insertTransaksjonTilstand(
                         transaksjonId!!,
                         trekkStatus,
+                        trekk.mmel?.kodeMelding.orEmpty(),
+                        trekk.mmel?.beskrMelding.orEmpty(),
                         session,
                     )!!
                 transaksjonRepository.updateTransaksjonFromTrekkReply(
@@ -78,8 +80,6 @@ class JmsListenerService(
                     transtilstandId,
                     trekk.innrapporteringTrekk?.navTrekkId!!,
                     trekkStatus,
-                    trekk.mmel?.kodeMelding.orEmpty(),
-                    trekk.mmel?.beskrMelding.orEmpty(),
                     session,
                 )
             }

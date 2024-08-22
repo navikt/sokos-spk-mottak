@@ -25,6 +25,8 @@ class TransaksjonTilstandRepository(
     fun insertTransaksjonTilstand(
         transaksjonId: Long,
         transaksjonTilstand: String,
+        feilkode: String,
+        feilkodeMelding: String,
         session: Session,
     ): Long? {
         val systemId = PropertiesConfig.Configuration().naisAppName
@@ -36,12 +38,14 @@ class TransaksjonTilstandRepository(
                         INSERT INTO T_TRANS_TILSTAND (
                             TRANSAKSJON_ID,
                             K_TRANS_TILST_T, 
+                            FEILKODE,
+                            FEILKODEMELDING,
                             DATO_OPPRETTET, 
                             OPPRETTET_AV, 
                             DATO_ENDRET, 
                             ENDRET_AV, 
                             VERSJON
-                        ) VALUES ($transaksjonId, '$transaksjonTilstand', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)                
+                        ) VALUES ($transaksjonId, '$transaksjonTilstand', '$feilkode', '$feilkodeMelding', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)                
                         """.trimIndent(),
                     ),
                 )

@@ -133,8 +133,6 @@ class TransaksjonRepository(
         transtilstandId: Long,
         vedtaksId: String,
         transaksjonTilstandType: String,
-        feilkode: String,
-        feilkodeMelding: String,
         session: Session,
     ) {
         updateTransaksjonFromTrekkReplyTimer.recordCallable {
@@ -145,8 +143,7 @@ class TransaksjonRepository(
                         SET TRANS_TILSTAND_ID = $transtilstandId, 
                             TREKKVEDTAK_ID_FK = $vedtaksId, 
                             K_TRANS_TILST_T = $transaksjonTilstandType,
-                            FEILKODE = $feilkode,
-                            FEILKODEMELDING = $feilkodeMelding
+                            DATO_ENDRET = CURRENT_TIMESTAMP,
                         WHERE t.TRANSAKSJON_ID = $transaksjonId
                     """.trimIndent(),
                 ),
