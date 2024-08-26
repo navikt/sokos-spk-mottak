@@ -4,8 +4,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.0.10"
-    kotlin("plugin.serialization") version "2.0.10"
+    kotlin("jvm") version "2.0.20"
+    kotlin("plugin.serialization") version "2.0.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
     id("org.jetbrains.kotlinx.kover") version "0.8.3"
@@ -54,13 +54,13 @@ val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.20.1"
 val h2Version = "2.3.232"
-val flywayVersion = "10.17.1"
-val postgresVersion = "42.7.3"
-val dbSchedulerVersion = "14.0.3"
+val flywayVersion = "10.17.2"
+val postgresVersion = "42.7.4"
+val dbSchedulerVersion = "14.1.0"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20240729135316_1bd0ab3"
 val ibmmqVersion = "9.4.0.0"
-val activemqVersion = "2.36.0"
+val activemqVersion = "2.37.0"
 
 dependencies {
 
