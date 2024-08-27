@@ -1,6 +1,5 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.ibm.mq.jakarta.jms.MQQueue
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
@@ -12,11 +11,13 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
 import no.nav.sokos.spk.mottak.listener.Db2Listener
-import no.nav.sokos.spk.mottak.listener.JmsProducerServiceTestService
 import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
 import no.nav.sokos.spk.mottak.listener.MQListener.replyQueueMock
 import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
+import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
+import no.nav.sokos.spk.mottak.mq.JmsProducerService
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 internal class SendTrekkTransaksjonServiceTest :
     BehaviorSpec({
@@ -26,9 +27,10 @@ internal class SendTrekkTransaksjonServiceTest :
             val trekkTransaksjonTilOppdragService: SendTrekkTransaksjonTilOppdragService by lazy {
                 SendTrekkTransaksjonTilOppdragService(
                     Db2Listener.dataSource,
-                    JmsProducerServiceTestService(
-                        MQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                    JmsProducerService(
+                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                        mqTrekkProducerMetricCounter,
                         connectionFactory,
                     ),
                 )
@@ -55,9 +57,10 @@ internal class SendTrekkTransaksjonServiceTest :
             val trekkTransaksjonTilOppdragService =
                 SendTrekkTransaksjonTilOppdragService(
                     Db2Listener.dataSource,
-                    JmsProducerServiceTestService(
+                    JmsProducerService(
                         senderQueueMock,
                         replyQueueMock,
+                        mqTrekkProducerMetricCounter,
                         connectionFactory,
                     ),
                 )

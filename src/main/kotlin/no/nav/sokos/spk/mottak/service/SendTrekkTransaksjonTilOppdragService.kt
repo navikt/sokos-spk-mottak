@@ -58,7 +58,7 @@ class SendTrekkTransaksjonTilOppdragService(
             logger.info { "Starter sending av trekktransaksjoner til OppdragZ" }
             transaksjoner.chunked(BATCH_SIZE).forEach { chunk ->
                 val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
-                val transaksjonTilstandIdList = mutableListOf<Long>()
+                val transaksjonTilstandIdList = mutableListOf<Int>()
                 runCatching {
                     val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
                     transaksjonTilstandIdList.addAll(updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK))
@@ -78,9 +78,9 @@ class SendTrekkTransaksjonTilOppdragService(
     private fun updateTransaksjonOgTransaksjonTilstand(
         transaksjonIdList: List<Int>,
         transTilstandStatus: String,
-    ): List<Long> =
+    ): List<Int> =
         using(sessionOf(dataSource)) { session ->
-            transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session)
-            transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session)
+            transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session = session)
+            transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
         }
 }

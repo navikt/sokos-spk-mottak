@@ -1,6 +1,5 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.ibm.mq.jakarta.jms.MQQueue
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
@@ -17,11 +16,13 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_OPPDRAG
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
-import no.nav.sokos.spk.mottak.listener.JmsProducerServiceTestService
 import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
 import no.nav.sokos.spk.mottak.listener.MQListener.replyQueueMock
 import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
+import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingProducerMetricCounter
+import no.nav.sokos.spk.mottak.mq.JmsProducerService
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 import java.sql.SQLException
 
 internal class SendUtbetalingTransaksjonServiceTest :
@@ -32,9 +33,10 @@ internal class SendUtbetalingTransaksjonServiceTest :
             val utbetalingTransaksjonTilOppdragService: SendUtbetalingTransaksjonTilOppdragService by lazy {
                 SendUtbetalingTransaksjonTilOppdragService(
                     Db2Listener.dataSource,
-                    JmsProducerServiceTestService(
-                        MQQueue(PropertiesConfig.MQProperties().utbetalingQueueName),
-                        MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
+                    JmsProducerService(
+                        ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingQueueName),
+                        ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
+                        mqUtbetalingProducerMetricCounter,
                         connectionFactory,
                     ),
                 )
@@ -61,9 +63,10 @@ internal class SendUtbetalingTransaksjonServiceTest :
             val utbetalingTransaksjonTilOppdragService =
                 SendUtbetalingTransaksjonTilOppdragService(
                     Db2Listener.dataSource,
-                    JmsProducerServiceTestService(
+                    JmsProducerService(
                         senderQueueMock,
                         replyQueueMock,
+                        mqUtbetalingProducerMetricCounter,
                         connectionFactory,
                     ),
                 )
@@ -92,9 +95,10 @@ internal class SendUtbetalingTransaksjonServiceTest :
             val utbetalingTransaksjonTilOppdragService =
                 SendUtbetalingTransaksjonTilOppdragService(
                     dataSourceMock,
-                    JmsProducerServiceTestService(
+                    JmsProducerService(
                         senderQueueMock,
                         replyQueueMock,
+                        mqUtbetalingProducerMetricCounter,
                         connectionFactory,
                     ),
                 )
