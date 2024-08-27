@@ -60,7 +60,7 @@ spec:
     - secret: sokos-spk-mottak-mq-credentials
   env:
     - name: USE_AUTHENTICATION
-      value: "true"
+      value: "false"
 
     # OpenTelemetry
     - name: OTEL_EXPORTER_OTLP_ENDPOINT
@@ -121,6 +121,8 @@ spec:
       value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
 
     # DB-SCHEDULER
+    - name: SCHEDULER_ENABLED
+      value: "false"
     - name: READ_AND_PARSEFILE_CRON_PATTERN
       value: "* * 7-17 * * *"
     - name: VALIDATE_TRANSAKSJON_CRON_PATTERN

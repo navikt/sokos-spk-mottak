@@ -26,5 +26,8 @@ private fun Application.module() {
 
     DatabaseConfig.postgresMigrate()
     // JmsListenerService().start()
-    JobTaskConfig.scheduler().start()
+
+    if (PropertiesConfig.SchedulerProperties().enabled) {
+        JobTaskConfig.scheduler().start()
+    }
 }
