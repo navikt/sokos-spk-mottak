@@ -10,6 +10,7 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
@@ -59,32 +60,43 @@ class JmsListenerService(
             val jmsMessage = message.getBody(String::class.java)
             logger.debug { "Mottatt trekk-melding fra OppdragZ, message content: $jmsMessage" }
             val trekk = JaxbUtils.unmarshallTrekk(jmsMessage)
-            val trekkStatus = trekk.mmel?.kodeMelding.let { "TRF" } ?: "TRO"
+            processTrekkMessage(trekk)
+        }.onFailure { exception ->
+            logger.error(exception) { "Feil ved prosessering av trekkmelding : ${message.jmsMessageID}" }
+        }
+    }
 
-            using(sessionOf(dataSource)) { session ->
-                val transaksjonId =
-                    transaksjonRepository.getByTransEksIdFk(
-                        trekk.innrapporteringTrekk?.kreditorTrekkId!!,
-                        session,
-                    )
+    private fun processTrekkMessage(trekk: Dokument) {
+        val trekkStatus = determineTrekkStatus(trekk)
+        using(sessionOf(dataSource)) { session ->
+            val transaksjonId =
+                transaksjonRepository.getByTransEksIdFk(
+                    trekk.innrapporteringTrekk?.kreditorTrekkId!!,
+                    session,
+                )
+            transaksjonId?.let {
                 val transtilstandId =
                     transaksjonTilstandRepository.insertTransaksjonTilstand(
-                        transaksjonId!!,
+                        it,
                         trekkStatus,
                         trekk.mmel?.kodeMelding.orEmpty(),
                         trekk.mmel?.beskrMelding.orEmpty(),
                         session,
-                    )!!
-                transaksjonRepository.updateTransaksjonFromTrekkReply(
-                    transaksjonId,
-                    transtilstandId,
-                    trekk.innrapporteringTrekk?.navTrekkId!!,
-                    trekkStatus,
-                    session,
-                )
+                    )
+                transtilstandId?.let { id ->
+                    transaksjonRepository.updateTransaksjonFromTrekkReply(
+                        it,
+                        id,
+                        trekk.innrapporteringTrekk?.navTrekkId!!,
+                        trekkStatus,
+                        session,
+                    )
+                }
             }
-        }.onFailure { exception ->
-            logger.error(exception) { "Feil ved prosessering av trekksmelding : ${message.jmsMessageID}" }
         }
+    }
+
+    private fun determineTrekkStatus(trekk: Dokument): String {
+        return trekk.mmel?.kodeMelding?.let { "TRF" } ?: "TRO"
     }
 }
