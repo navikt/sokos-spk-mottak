@@ -58,7 +58,7 @@ val flywayVersion = "10.17.2"
 val postgresVersion = "42.7.4"
 val dbSchedulerVersion = "14.1.0"
 val vaultVersion = "1.3.10"
-val tjenestespesifikasjonVersion = "1.0_20240729135316_1bd0ab3"
+val tjenestespesifikasjonVersion = "1.0_20240528104756_019ab12"
 val ibmmqVersion = "9.4.0.0"
 val activemqVersion = "2.37.0"
 
@@ -117,6 +117,7 @@ dependencies {
 
     // Oppdrag
     implementation("no.nav.familie.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
+    implementation("no.nav.familie.tjenestespesifikasjoner:avstemming-v1-tjenestespesifikasjon:$tjenestespesifikasjonVersion")
 
     // Test
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")

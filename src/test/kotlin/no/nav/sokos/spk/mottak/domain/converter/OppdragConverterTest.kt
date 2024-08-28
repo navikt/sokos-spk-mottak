@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.sokos.spk.mottak.TestData
+import no.nav.sokos.spk.mottak.domain.MOT
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdrag110
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdragsLinje150
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateString
@@ -28,9 +29,9 @@ class OppdragConverterTest :
                 oppdrag110.stonadId shouldBe transaksjon.datoFom!!.withDayOfMonth(1).toLocalDateString()
                 oppdrag110.oppdragGjelderId shouldBe transaksjon.fnr
                 oppdrag110.datoOppdragGjelderFom shouldBe LocalDate.of(1900, 1, 1).toXMLGregorianCalendar()
-                oppdrag110.saksbehId shouldBe "MOT"
+                oppdrag110.saksbehId shouldBe MOT
 
-                oppdrag110.avstemming115.kodeKomponent shouldBe "MOT"
+                oppdrag110.avstemming115.kodeKomponent shouldBe MOT
                 oppdrag110.avstemming115.nokkelAvstemming shouldBe transaksjon.filInfoId.toString()
                 oppdrag110.avstemming115.tidspktMelding shouldNotBe null
 
@@ -46,10 +47,10 @@ class OppdragConverterTest :
                 oppdrag150.typeSats shouldBe "MND"
                 oppdrag150.skyldnerId shouldBe transaksjon.fnr
                 oppdrag150.brukKjoreplan = "N"
-                oppdrag150.saksbehId shouldBe "MOT"
+                oppdrag150.saksbehId shouldBe MOT
                 oppdrag150.utbetalesTilId shouldBe transaksjon.fnr
 
-                oppdrag150.attestant180.first().attestantId shouldBe "MOT"
+                oppdrag150.attestant180.first().attestantId shouldBe MOT
                 oppdrag150.grad170.first().typeGrad shouldBe "UFOR"
                 oppdrag150.grad170.first().grad shouldBe 100.toBigInteger()
             }

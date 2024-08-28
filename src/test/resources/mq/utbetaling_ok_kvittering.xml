@@ -6,28 +6,56 @@
     </mmel>
     <oppdrag-110>
         <kodeAksjon>1</kodeAksjon>
-        <kodeEndring>UEND</kodeEndring>
+        <kodeEndring>NY</kodeEndring>
         <kodeFagomraade>PENSPK</kodeFagomraade>
-        <fagsystemId>5093067</fagsystemId>
+        <fagsystemId>600079</fagsystemId>
         <utbetFrekvens>MND</utbetFrekvens>
-        <stonadId>20240801</stonadId>
-        <oppdragGjelderId>19074639472</oppdragGjelderId>
+        <stonadId>20240501</stonadId>
+        <oppdragGjelderId>01010042859</oppdragGjelderId>
         <datoOppdragGjelderFom>1900-01-01</datoOppdragGjelderFom>
         <saksbehId>MOT</saksbehId>
+        <avstemming-115>
+            <kodeKomponent>MOT</kodeKomponent>
+            <nokkelAvstemming>20039237</nokkelAvstemming>
+            <tidspktMelding>2024-08-21T16:13:14.641291</tidspktMelding>
+        </avstemming-115>
+        <oppdrags-enhet-120>
+            <typeEnhet>BOS</typeEnhet>
+            <enhet>4819</enhet>
+            <datoEnhetFom>1900-01-01</datoEnhetFom>
+        </oppdrags-enhet-120>
         <oppdrags-linje-150>
             <kodeEndringLinje>NY</kodeEndringLinje>
-            <delytelseId>86000057</delytelseId>
+            <delytelseId>20025925</delytelseId>
             <kodeKlassifik>PENSPKALD01</kodeKlassifik>
             <datoKlassifikFom>1900-01-01</datoKlassifikFom>
-            <datoVedtakFom>2024-08-01</datoVedtakFom>
-            <datoVedtakTom>2024-08-31</datoVedtakTom>
-            <sats>6600</sats>
+            <datoVedtakFom>2024-05-01</datoVedtakFom>
+            <datoVedtakTom>2024-05-31</datoVedtakTom>
+            <sats>3055</sats>
             <fradragTillegg>T</fradragTillegg>
             <typeSats>MND</typeSats>
-            <skyldnerId>19074639472</skyldnerId>
+            <skyldnerId>01010042859</skyldnerId>
             <brukKjoreplan>N</brukKjoreplan>
             <saksbehId>MOT</saksbehId>
-            <utbetalesTilId>19074639472</utbetalesTilId>
+            <utbetalesTilId>01010042859</utbetalesTilId>
+            <attestant-180>
+                <attestantId>MOT</attestantId>
+            </attestant-180>
+        </oppdrags-linje-150>
+        <oppdrags-linje-150>
+            <kodeEndringLinje>NY</kodeEndringLinje>
+            <delytelseId>20025926</delytelseId>
+            <kodeKlassifik>PENSPKALD-OP</kodeKlassifik>
+            <datoKlassifikFom>1900-01-01</datoKlassifikFom>
+            <datoVedtakFom>2024-05-01</datoVedtakFom>
+            <datoVedtakTom>2024-05-31</datoVedtakTom>
+            <sats>3055</sats>
+            <fradragTillegg>T</fradragTillegg>
+            <typeSats>MND</typeSats>
+            <skyldnerId>01010042859</skyldnerId>
+            <brukKjoreplan>N</brukKjoreplan>
+            <saksbehId>MOT</saksbehId>
+            <utbetalesTilId>01010042859</utbetalesTilId>
             <attestant-180>
                 <attestantId>MOT</attestantId>
             </attestant-180>

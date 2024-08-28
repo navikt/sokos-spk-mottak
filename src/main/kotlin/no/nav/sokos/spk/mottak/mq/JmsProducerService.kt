@@ -1,11 +1,11 @@
 package no.nav.sokos.spk.mottak.mq
 
-import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.jms.JmsConstants.SESSION_TRANSACTED
 import io.prometheus.metrics.core.metrics.Counter
 import jakarta.jms.ConnectionFactory
 import jakarta.jms.JMSContext
 import jakarta.jms.JMSProducer
+import jakarta.jms.Queue
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.exception.MottakException
@@ -13,8 +13,8 @@ import no.nav.sokos.spk.mottak.exception.MottakException
 private val logger = KotlinLogging.logger {}
 
 open class JmsProducerService(
-    private val senderQueue: MQQueue,
-    private val replyQueue: MQQueue,
+    private val senderQueue: Queue,
+    private val replyQueue: Queue,
     private val metricCounter: Counter,
     private val connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
 ) {

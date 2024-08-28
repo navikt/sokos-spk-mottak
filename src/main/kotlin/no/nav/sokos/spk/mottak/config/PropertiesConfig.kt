@@ -15,6 +15,7 @@ object PropertiesConfig {
                 "NAIS_APP_NAME" to "sokos-spk-mottak",
                 "NAIS_NAMESPACE" to "okonomi",
                 "USE_AUTHENTICATION" to "true",
+                "SCHEDULER_ENABLED" to "true",
                 "READ_AND_PARSEFILE_CRON_PATTERN" to "0 10 * * * *",
                 "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 * * * * *",
                 "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "* * * * * *",
@@ -105,6 +106,7 @@ object PropertiesConfig {
     }
 
     data class SchedulerProperties(
+        val enabled: Boolean = get("SCHEDULER_ENABLED").toBoolean(),
         val readAndParseFileCronPattern: String = getOrEmpty("READ_AND_PARSEFILE_CRON_PATTERN"),
         val validateTransaksjonCronPattern: String = getOrEmpty("VALIDATE_TRANSAKSJON_CRON_PATTERN"),
         val sendUtbetalingTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),

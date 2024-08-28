@@ -1,6 +1,5 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.ibm.mq.jakarta.jms.MQQueue
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
@@ -19,13 +18,15 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
-import no.nav.sokos.spk.mottak.listener.JmsProducerServiceTestService
 import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
 import no.nav.sokos.spk.mottak.listener.MQListener.replyQueueMock
 import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
+import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
+import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 internal class SendTrekkTransaksjonServiceTest :
     BehaviorSpec({
@@ -37,9 +38,10 @@ internal class SendTrekkTransaksjonServiceTest :
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
-                    JmsProducerServiceTestService(
-                        MQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                    JmsProducerService(
+                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                        mqTrekkProducerMetricCounter,
                         connectionFactory,
                     ),
                 )
@@ -68,6 +70,11 @@ internal class SendTrekkTransaksjonServiceTest :
 //                    Db2Listener.dataSource,
 //                    Db2Listener.transaksjonRepository,
 //                    Db2Listener.transaksjonTilstandRepository,
+//                        JmsProducerService(
+//                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+//                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+//                            mqTrekkProducerMetricCounter,
+//                            connectionFactory,
 //                    JmsProducerServiceTestService(
 //                        senderQueueMock,
 //                        replyQueueMock,
@@ -98,9 +105,10 @@ internal class SendTrekkTransaksjonServiceTest :
                     mockk<HikariDataSource>(),
                     mockk<TransaksjonRepository>(),
                     mockk<TransaksjonTilstandRepository>(),
-                    JmsProducerServiceTestService(
+                    JmsProducerService(
                         senderQueueMock,
                         replyQueueMock,
+                        mqTrekkProducerMetricCounter,
                         connectionFactory,
                     ),
                 )
@@ -120,9 +128,10 @@ internal class SendTrekkTransaksjonServiceTest :
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
-                    JmsProducerServiceTestService(
-                        MQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                    JmsProducerService(
+                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                        mqTrekkProducerMetricCounter,
                         connectionFactory,
                     ),
                 )
@@ -135,7 +144,7 @@ internal class SendTrekkTransaksjonServiceTest :
             When("hent trekk og send til OppdragZ") {
                 clearMocks(Db2Listener.transaksjonTilstandRepository)
                 every {
-                    Db2Listener.transaksjonRepository.updateTransTilstandStatus(any(), TRANS_TILSTAND_TREKK_SENDT_OK, any())
+                    Db2Listener.transaksjonRepository.updateTransTilstandStatus(any(), TRANS_TILSTAND_TREKK_SENDT_OK, any(), any())
                 } throws Exception("Feiler ved oppdatering av transtilstand i transaksjon-tabellen!")
                 trekkTransaksjonTilOppdragService.hentTrekkTransaksjonOgSendTilOppdrag()
                 Then("skal ingen transaksjoner blir oppdatert med status TSO (Trekk Sendt Ok), men bli oppdatert med status TSF (Trekk Sendt Feil)") {
@@ -155,9 +164,10 @@ internal class SendTrekkTransaksjonServiceTest :
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
-                    JmsProducerServiceTestService(
-                        MQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                    JmsProducerService(
+                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                        mqTrekkProducerMetricCounter,
                         connectionFactory,
                     ),
                 )
@@ -170,7 +180,7 @@ internal class SendTrekkTransaksjonServiceTest :
             When("hent trekk og send til OppdragZ") {
                 clearMocks(Db2Listener.transaksjonRepository)
                 every {
-                    Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_TREKK_SENDT_OK, any())
+                    Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_TREKK_SENDT_OK, any(), any(), any())
                 } throws Exception("Feiler ved opprettelser av transaksjoner i transaksjontilstand-tabellen!")
                 trekkTransaksjonTilOppdragService.hentTrekkTransaksjonOgSendTilOppdrag()
                 Then("skal ingen transaksjoner blir oppdatert med status TSO (Trekk Sendt Ok), men bli oppdatert med status TSF (Trekk Sendt Feil)") {

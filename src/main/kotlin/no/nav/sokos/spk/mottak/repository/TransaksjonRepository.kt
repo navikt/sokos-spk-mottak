@@ -7,6 +7,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.domain.AvstemmingData
 import no.nav.sokos.spk.mottak.domain.GyldigKombinasjon
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
@@ -128,29 +129,6 @@ class TransaksjonRepository(
             }
         }
 
-    fun updateTransaksjonFromTrekkReply(
-        transaksjonId: Long,
-        transtilstandId: Long,
-        vedtaksId: String,
-        transaksjonTilstandType: String,
-        session: Session,
-    ) {
-        updateTransaksjonFromTrekkReplyTimer.recordCallable {
-            session.update(
-                queryOf(
-                    """
-                    UPDATE T_TRANSAKSJON t
-                        SET TRANS_TILSTAND_ID = $transtilstandId, 
-                            TREKKVEDTAK_ID_FK = $vedtaksId, 
-                            K_TRANS_TILST_T = $transaksjonTilstandType,
-                            DATO_ENDRET = CURRENT_TIMESTAMP,
-                        WHERE t.TRANSAKSJON_ID = $transaksjonId
-                    """.trimIndent(),
-                ),
-            )
-        }
-    }
-
     fun updateTransTilstandId(session: Session) {
         updateTransTilstandIdTimer.recordCallable {
             session.update(
@@ -220,6 +198,7 @@ class TransaksjonRepository(
     fun updateTransTilstandStatus(
         transaksjonIdList: List<Int>,
         transaksjonTilstandType: String,
+        vedtaksId: String? = null,
         session: Session,
     ) {
         updateTransTilstandStatusTimer.recordCallable {
@@ -227,7 +206,9 @@ class TransaksjonRepository(
                 queryOf(
                     """
                     UPDATE T_TRANSAKSJON 
-                        SET K_TRANS_TILST_T = '$transaksjonTilstandType', DATO_ENDRET = CURRENT_TIMESTAMP 
+                        SET K_TRANS_TILST_T = '$transaksjonTilstandType',
+                            TREKKVEDTAK_ID_FK = $vedtaksId, 
+                            DATO_ENDRET = CURRENT_TIMESTAMP 
                         WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()});
                     """.trimIndent(),
                 ),
@@ -235,20 +216,38 @@ class TransaksjonRepository(
         }
     }
 
-    fun getByTransEksIdFk(
-        transEksIdFk: String,
-        session: Session,
-    ): Long? =
+    fun getByTransEksIdFk(transEksIdFk: String): Int? =
         getByTransEksIdFkTimer.recordCallable {
-            session.single(
+            using(sessionOf(dataSource)) { session ->
+                session.single(
+                    queryOf(
+                        """
+                        SELECT TRANSAKSJON_ID
+                        FROM T_TRANSAKSJON 
+                        WHERE TRANS_EKS_ID_FK = $transEksIdFk
+                        """.trimIndent(),
+                    ),
+                ) { row -> row.int("TRANSAKSJON_ID") }
+            }
+        }
+
+    fun getAvstemmingDataByFilInfoId(filInfoId: Int): List<AvstemmingData> =
+        using(sessionOf(dataSource)) { session ->
+            session.list(
                 queryOf(
                     """
-                    SELECT TRANSAKSJON_ID
-                    FROM T_TRANSAKSJON 
-                    WHERE TRANS_EKS_ID_FK = $transEksIdFk
+                    SELECT count(*) AS ANTALL, k.K_FAGOMRADE, t1.K_TRANS_TILST_T, SUM(DECFLOAT(t1.BELOP)) AS BELOP
+                    FROM T_TRANSAKSJON t1
+                             INNER JOIN T_TRANSAKSJON t2 ON t1.TRANSAKSJON_ID = t2.TRANSAKSJON_ID
+                             INNER JOIN T_K_GYLDIG_KOMBIN k ON k.K_ART = t1.K_ART and k.K_BELOP_T = t1.K_BELOP_T
+                    WHERE t1.K_TRANS_TILST_T != 'OAO'
+                      AND t2.K_TRANS_TILST_T IN ('ORO', 'OFO')
+                      AND k.K_FAGOMRADE IN ('PENSPK', 'UFORESPK')
+                      AND t1.FIL_INFO_ID = $filInfoId
+                    group by k.K_FAGOMRADE, t1.K_TRANS_TILST_T;      
                     """.trimIndent(),
                 ),
-            ) { row -> row.long("TRANSAKSJON_ID") }
+            ) { row -> AvstemmingData(row.string("K_FAGOMRADE"), row.string("K_TRANS_TILST_T"), row.int("ANTALL"), row.string("BELOP").toBigInteger()) }
         }
 
     /** Bruker kun for testing */

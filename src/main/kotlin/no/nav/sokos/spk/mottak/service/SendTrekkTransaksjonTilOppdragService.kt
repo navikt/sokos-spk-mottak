@@ -66,7 +66,7 @@ class SendTrekkTransaksjonTilOppdragService(
 
     private fun processTransaksjoner(transaksjoner: List<Transaksjon>): Int {
         var totalTransaksjoner = 0
-        val transaksjonTilstandIdList = mutableListOf<Long>()
+        val transaksjonTilstandIdList = mutableListOf<Int>()
         transaksjoner.chunked(BATCH_SIZE).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
             runCatching {
@@ -84,7 +84,7 @@ class SendTrekkTransaksjonTilOppdragService(
     private fun handleException(
         exception: Throwable,
         transaksjonIdList: List<Int>,
-        transaksjonTilstandIdList: List<Long>,
+        transaksjonTilstandIdList: List<Int>,
     ) {
         when (exception) {
             is MottakException -> { //  MQ-feil
@@ -97,6 +97,7 @@ class SendTrekkTransaksjonTilOppdragService(
                 logger.error { "SQLException : $exception" }
                 updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)
             }
+
             else -> {
                 logger.error { "Exception : $exception" }
                 transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, sessionOf(dataSource))
@@ -109,11 +110,11 @@ class SendTrekkTransaksjonTilOppdragService(
     private fun updateTransaksjonOgTransaksjonTilstand(
         transaksjonIdList: List<Int>,
         transTilstandStatus: String,
-    ): List<Long> {
+    ): List<Int> {
         return runCatching {
             using(sessionOf(dataSource)) { session ->
-                transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session)
-                transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session)
+                transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session = session)
+                transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
             }
         }.onFailure { exception ->
             logger.error { "transaksjonIdList: $transaksjonIdList, transTilstandStatus: $transTilstandStatus" }

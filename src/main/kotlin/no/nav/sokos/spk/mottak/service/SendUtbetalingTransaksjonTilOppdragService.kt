@@ -95,7 +95,7 @@ class SendUtbetalingTransaksjonTilOppdragService(
         transaksjonIdList: List<Int>,
     ) {
         dataSource.transaction { session ->
-            val transaksjonTilstandIdList = mutableListOf<Long>()
+            val transaksjonTilstandIdList = mutableListOf<Int>()
             runCatching {
                 transaksjonTilstandIdList.addAll(updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session))
                 producer.send(oppdragList)
@@ -112,8 +112,8 @@ class SendUtbetalingTransaksjonTilOppdragService(
         transaksjonIdList: List<Int>,
         transTilstandStatus: String,
         session: Session,
-    ): List<Long> {
-        transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session)
-        return transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session)
+    ): List<Int> {
+        transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session = session)
+        return transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
     }
 }

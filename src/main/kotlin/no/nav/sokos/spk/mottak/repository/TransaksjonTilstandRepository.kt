@@ -22,41 +22,13 @@ class TransaksjonTilstandRepository(
     private val getByTransaksjonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "getByTransaksjonId")
     private val findAllByTransaksjonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "findAllByTransaksjonId")
 
-    fun insertTransaksjonTilstand(
-        transaksjonId: Long,
-        transaksjonTilstand: String,
-        feilkode: String,
-        feilkodeMelding: String,
-        session: Session,
-    ): Long? {
-        val systemId = PropertiesConfig.Configuration().naisAppName
-        return insertTransaksjonTilstandTimer
-            .recordCallable {
-                session.updateAndReturnGeneratedKey(
-                    queryOf(
-                        """
-                        INSERT INTO T_TRANS_TILSTAND (
-                            TRANSAKSJON_ID,
-                            K_TRANS_TILST_T, 
-                            FEILKODE,
-                            FEILKODEMELDING,
-                            DATO_OPPRETTET, 
-                            OPPRETTET_AV, 
-                            DATO_ENDRET, 
-                            ENDRET_AV, 
-                            VERSJON
-                        ) VALUES ($transaksjonId, '$transaksjonTilstand', '$feilkode', '$feilkodeMelding', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)                
-                        """.trimIndent(),
-                    ),
-                )
-            }
-    }
-
     fun insertBatch(
         transaksjonIdList: List<Int>,
         transaksjonTilstandType: String = TRANS_TILSTAND_OPPRETTET,
+        feilkode: String? = null,
+        feilkodeMelding: String? = null,
         session: Session,
-    ): List<Long> {
+    ): List<Int> {
         val systemId = PropertiesConfig.Configuration().naisAppName
         return insertBatchTimer
             .recordCallable {
@@ -65,12 +37,14 @@ class TransaksjonTilstandRepository(
                     INSERT INTO T_TRANS_TILSTAND (
                         TRANSAKSJON_ID,
                         K_TRANS_TILST_T, 
+                        FEILKODE,
+                        FEILKODEMELDING,
                         DATO_OPPRETTET, 
                         OPPRETTET_AV, 
                         DATO_ENDRET, 
                         ENDRET_AV, 
                         VERSJON
-                    ) VALUES (:transaksjonId, '$transaksjonTilstandType', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)
+                    ) VALUES (:transaksjonId, '$transaksjonTilstandType', '$feilkode', '$feilkodeMelding', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)
                     """.trimIndent(),
                     transaksjonIdList.map { mapOf("transaksjonId" to it) },
                 )
@@ -85,12 +59,12 @@ class TransaksjonTilstandRepository(
                         GROUP BY TRANSAKSJON_ID;
                         """.trimIndent(),
                     ),
-                ) { row -> row.long("TRANS_TILSTAND_ID") }
+                ) { row -> row.int("TRANS_TILSTAND_ID") }
             }.orEmpty()
     }
 
     fun deleteTransaksjon(
-        transaksjonTilstandId: List<Long>,
+        transaksjonTilstandId: List<Int>,
         session: Session,
     ) {
         deleteTransaksjonTimer.recordCallable {
