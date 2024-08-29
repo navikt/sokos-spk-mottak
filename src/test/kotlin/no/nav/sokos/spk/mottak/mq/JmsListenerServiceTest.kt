@@ -23,9 +23,9 @@ internal class JmsListenerServiceTest :
         val jmsListenerService: JmsListenerService by lazy {
             JmsListenerService(
                 connectionFactory,
-                Db2Listener.dataSource,
                 ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
                 ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                Db2Listener.dataSource,
             )
         }
 

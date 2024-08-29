@@ -26,10 +26,10 @@ import no.nav.sokos.spk.mottak.util.JaxbUtils
 private val logger = KotlinLogging.logger {}
 
 class JmsListenerService(
-    private val connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
+    connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
+    utbetalingReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
+    trekkReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
-    private val utbetalingReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
-    private val trekkReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
 ) {
     private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)
     private val utbetalingMQListener = jmsContext.createConsumer(utbetalingReplyQueue)

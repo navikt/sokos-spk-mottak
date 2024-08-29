@@ -12,10 +12,12 @@ import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonTilOppdragService
 import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonTilOppdragService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
+import no.nav.sokos.spk.mottak.service.WriteToFileService
 
 fun Route.mottakApi(
     readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
     validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService(),
+    writeToFileService: WriteToFileService = WriteToFileService(),
     sendUtbetalingTransaksjonTilOppdragService: SendUtbetalingTransaksjonTilOppdragService = SendUtbetalingTransaksjonTilOppdragService(),
     sendTrekkTransaksjonTilOppdragService: SendTrekkTransaksjonTilOppdragService = SendTrekkTransaksjonTilOppdragService(),
 ) {
@@ -32,6 +34,13 @@ fun Route.mottakApi(
                 validateTransaksjonService.validateInnTransaksjon()
             }
             call.respond(HttpStatusCode.OK, "ValidateTransaksjon har startet, sjekk logger for status")
+        }
+
+        get("writeToFile") {
+            launch(Dispatchers.IO) {
+                writeToFileService.writeReturnFile()
+            }
+            call.respond(HttpStatusCode.OK, "WriteToFileService har startet, sjekk logger for status")
         }
 
         get("sendUtbetalingTransaksjonTilOppdrag") {
