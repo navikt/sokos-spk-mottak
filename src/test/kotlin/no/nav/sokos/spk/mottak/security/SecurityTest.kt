@@ -27,11 +27,13 @@ import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonTilOppdragService
 import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonTilOppdragService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
+import no.nav.sokos.spk.mottak.service.WriteToFileService
 
 private const val API_BASE_PATH = "/api/v1"
 
 private val readAndParseFileService = mockk<ReadAndParseFileService>()
 private val validateTransaksjonService = mockk<ValidateTransaksjonService>()
+private val writeToFileService = mockk<WriteToFileService>()
 private val sendUtbetalingTransaksjonTilOppdragService = mockk<SendUtbetalingTransaksjonTilOppdragService>()
 private val sendTrekkTransaksjonTilOppdragService = mockk<SendTrekkTransaksjonTilOppdragService>()
 
@@ -44,7 +46,7 @@ internal class SecurityTest : FunSpec({
                     securityConfig(true, authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            mottakApi(readAndParseFileService, validateTransaksjonService, sendUtbetalingTransaksjonTilOppdragService, sendTrekkTransaksjonTilOppdragService)
+                            mottakApi(readAndParseFileService, validateTransaksjonService, writeToFileService, sendUtbetalingTransaksjonTilOppdragService, sendTrekkTransaksjonTilOppdragService)
                         }
                     }
                 }
@@ -76,7 +78,7 @@ internal class SecurityTest : FunSpec({
                     securityConfig(true, authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            mottakApi(readAndParseFileService, validateTransaksjonService, sendUtbetalingTransaksjonTilOppdragService, sendTrekkTransaksjonTilOppdragService)
+                            mottakApi(readAndParseFileService, validateTransaksjonService, writeToFileService, sendUtbetalingTransaksjonTilOppdragService, sendTrekkTransaksjonTilOppdragService)
                         }
                     }
                 }
