@@ -112,7 +112,7 @@ class JmsListenerService(
                         trekk.mmel?.beskrMelding.orEmpty(),
                         session,
                     )
-                transtilstandId?.let { id ->  // TODO: Det er nødvendig å sette transaksjonstilstandId i transaksjonstabellen for oppdatering av transaksjonstilstand
+                transtilstandId?.let { id -> // TODO: Det er nødvendig å sette transaksjonstilstandId i transaksjonstabellen for oppdatering av transaksjonstilstand
                     transaksjonRepository.updateTransTilstandStatus(
                         listOf(transaksjonId),
                         trekkStatus,

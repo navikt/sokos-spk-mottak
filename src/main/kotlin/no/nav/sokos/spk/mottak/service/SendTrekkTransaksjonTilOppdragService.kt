@@ -59,19 +59,20 @@ class SendTrekkTransaksjonTilOppdragService(
         return runCatching {
             transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_TREKK, TRANS_TILSTAND_TIL_TREKK)
         }.onFailure { exception ->
-            logger.error(exception) { "Feil under henting av trekktransaksjoner. Feilmelding: ${exception.message}" }
-            throw MottakException("Feil under henting av trekktransaksjoner. Feilmelding: ${exception.message}")
+            logger.error(exception) { "Fatal feil ved henting av trekktransaksjoner. Feilmelding: ${exception.message}" }
+            throw RuntimeException("Fatal feil ved henting av trekktransaksjoner")
         }.getOrNull()
     }
 
     private fun processTransaksjoner(transaksjoner: List<Transaksjon>): Int {
         var totalTransaksjoner = 0
-        val transaksjonTilstandIdList = mutableListOf<Int>()
+        var transaksjonTilstandIdList = listOf<Int>()
         transaksjoner.chunked(BATCH_SIZE).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
             runCatching {
                 val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
-                val transaksjonTilstandIdList = updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK)
+                transaksjonTilstandIdList = updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK)
+                logger.info { "transaksjonTilstandIdList: $transaksjonTilstandIdList" }
                 producer.send(trekkMeldinger)
                 totalTransaksjoner += transaksjonIdList.size
             }.onFailure { exception ->
@@ -86,25 +87,28 @@ class SendTrekkTransaksjonTilOppdragService(
         transaksjonIdList: List<Int>,
         transaksjonTilstandIdList: List<Int>,
     ) {
-        when (exception) {
-            is MottakException -> { //  MQ-feil
-                logger.error { "MottakException : $exception" }
-                transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, sessionOf(dataSource))
-                updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)
-            }
-
-            is SQLException -> { //  DB-feil
-                logger.error { "SQLException : $exception" }
-                updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)
-            }
-
-            else -> {
-                logger.error { "Exception : $exception" }
-                transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, sessionOf(dataSource))
-                updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)
-            }
-        }
         logger.error(exception) { "Trekktransaksjoner: ${transaksjonIdList.minOrNull()} - ${transaksjonIdList.maxOrNull()} feiler ved sending til OppdragZ: ${exception.message}" }
+        runCatching {
+            when (exception) {
+                is MottakException -> { //  MQ-feil
+                    logger.error { "MottakException : $exception" }
+                    transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, sessionOf(dataSource))
+                    updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)
+                }
+                is SQLException -> { //  DB-feil
+                    logger.error { "SQLException : $exception" }
+                    updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)
+                }
+                else -> {
+                    logger.error { "Exception : $exception" }
+                    transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, sessionOf(dataSource))
+                    updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)
+                }
+            }
+        }.onFailure { exception ->
+            logger.error { "Fatal feil ved sending av trekktransaksjoner: ${transaksjonIdList.minOrNull()} - ${transaksjonIdList.maxOrNull()} : ${exception.message}" }
+            throw RuntimeException("Fatal feil ved sending av trekktransaksjoner")
+        }
     }
 
     private fun updateTransaksjonOgTransaksjonTilstand(
