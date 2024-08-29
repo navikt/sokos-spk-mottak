@@ -6,6 +6,7 @@ import io.kotest.core.spec.Spec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.kotest.matchers.shouldNotBe
+import io.mockk.spyk
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.DatabaseTestConfig
@@ -20,12 +21,12 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 
 object Db2Listener : TestListener {
     val dataSource = HikariDataSource(DatabaseTestConfig.hikariConfig())
-    val lopeNummerRepository = LopenummerRepository(dataSource)
-    val innTransaksjonRepository = InnTransaksjonRepository(dataSource)
-    val filInfoRepository = FilInfoRepository(dataSource)
-    val transaksjonRepository = TransaksjonRepository(dataSource)
-    val avvikTransaksjonRepository = AvvikTransaksjonRepository(dataSource)
-    val transaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
+    val lopeNummerRepository = spyk(LopenummerRepository(dataSource))
+    val innTransaksjonRepository = spyk(InnTransaksjonRepository(dataSource))
+    val filInfoRepository = spyk(FilInfoRepository(dataSource))
+    val transaksjonRepository = spyk(TransaksjonRepository(dataSource))
+    val avvikTransaksjonRepository = spyk(AvvikTransaksjonRepository(dataSource))
+    val transaksjonTilstandRepository = spyk(TransaksjonTilstandRepository(dataSource))
 
     override suspend fun beforeSpec(spec: Spec) {
         dataSource shouldNotBe null

@@ -6,6 +6,8 @@ import jakarta.jms.ConnectionFactory
 import jakarta.jms.JMSContext
 import jakarta.jms.Message
 import jakarta.jms.Queue
+import kotliquery.sessionOf
+import kotliquery.using
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQConfig
@@ -15,7 +17,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_RETUR_OK
-import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkListenerMetricCounter
+import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingListenerMetricCounter
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
@@ -88,29 +90,41 @@ class JmsListenerService(
             val jmsMessage = message.getBody(String::class.java)
             logger.debug { "Mottatt trekk-melding fra OppdragZ, message content: $jmsMessage" }
             val trekk = JaxbUtils.unmarshallTrekk(jmsMessage)
-            val trekkStatus = trekk.mmel?.kodeMelding.let { TRANS_TILSTAND_TREKK_RETUR_FEIL } ?: TRANS_TILSTAND_TREKK_RETUR_OK
-
-            dataSource.transaction { session ->
-                val transaksjonId = transaksjonRepository.getByTransEksIdFk(trekk.innrapporteringTrekk?.kreditorTrekkId!!)!!
-
-                transaksjonTilstandRepository.insertBatch(
-                    listOf(transaksjonId),
-                    trekkStatus,
-                    trekk.mmel?.kodeMelding.orEmpty(),
-                    trekk.mmel?.beskrMelding.orEmpty(),
-                    session,
-                )
-
-                transaksjonRepository.updateTransTilstandStatus(
-                    listOf(transaksjonId),
-                    trekkStatus,
-                    trekk.innrapporteringTrekk.navTrekkId,
-                    session,
-                )
-            }
-            mqTrekkListenerMetricCounter.inc()
+            processTrekkMessage(trekk)
         }.onFailure { exception ->
-            logger.error(exception) { "Feil ved prosessering av trekksmelding : ${message.jmsMessageID}" }
+            logger.error(exception) { "Feil ved prosessering av trekkmelding : ${message.jmsMessageID}" }
         }
+    }
+
+    private fun processTrekkMessage(trekk: Dokument) {
+        val trekkStatus = determineTrekkStatus(trekk)
+        using(sessionOf(dataSource)) { session ->
+            val transaksjonId =
+                transaksjonRepository.getByTransEksIdFk(
+                    trekk.innrapporteringTrekk?.kreditorTrekkId!!,
+                )
+            transaksjonId?.let {
+                val transtilstandId =
+                    transaksjonTilstandRepository.insertBatch(
+                        listOf(it),
+                        trekkStatus,
+                        trekk.mmel?.kodeMelding.orEmpty(),
+                        trekk.mmel?.beskrMelding.orEmpty(),
+                        session,
+                    )
+                transtilstandId?.let { id -> // TODO: Det er nødvendig å sette transaksjonstilstandId i transaksjonstabellen for oppdatering av transaksjonstilstand
+                    transaksjonRepository.updateTransTilstandStatus(
+                        listOf(transaksjonId),
+                        trekkStatus,
+                        trekk.innrapporteringTrekk?.navTrekkId!!,
+                        session,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun determineTrekkStatus(trekk: Dokument): String {
+        return trekk.mmel?.kodeMelding?.let { TRANS_TILSTAND_TREKK_RETUR_FEIL } ?: TRANS_TILSTAND_TREKK_RETUR_OK
     }
 }
