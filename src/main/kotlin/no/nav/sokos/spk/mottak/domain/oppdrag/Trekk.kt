@@ -13,6 +13,8 @@ import kotlinx.serialization.Serializable
 data class Dokument(
     @XmlElement(name = "mmel")
     val mmel: Mmel? = null,
+    @XmlElement(name = "transaksjonsId")
+    val transaksjonsId: String? = null,
     @XmlElement(name = "innrapporteringTrekk")
     val innrapporteringTrekk: InnrapporteringTrekk? = null,
 )

@@ -13,6 +13,7 @@ object TrekkConverter {
     fun Transaksjon.innrapporteringTrekk(): Dokument =
         Dokument(
             mmel = null,
+            transaksjonsId = transaksjonId!!.toString(),
             InnrapporteringTrekk(
                 aksjonskode = AKSJONSKODE,
                 kreditorIdTss = SPK_TSS,
