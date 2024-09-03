@@ -111,6 +111,7 @@ object PropertiesConfig {
         val validateTransaksjonCronPattern: String = getOrEmpty("VALIDATE_TRANSAKSJON_CRON_PATTERN"),
         val sendUtbetalingTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
         val sendTrekkTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
+        val sendTransaksjonCronPattern: String = getOrEmpty("SEND_TRANSAKSJON_CRON_PATTERN"),
     )
 
     data class MQProperties(

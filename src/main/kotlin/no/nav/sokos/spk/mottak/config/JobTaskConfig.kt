@@ -10,6 +10,7 @@ import com.github.kagkarlsson.scheduler.task.schedule.Schedules.cron
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
+import no.nav.sokos.spk.mottak.service.SendTransaksjonTilOppdragService
 import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonTilOppdragService
 import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonTilOppdragService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
@@ -78,6 +79,17 @@ object JobTaskConfig {
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
                 sendTrekkTransaksjonTilOppdragService.hentTrekkTransaksjonOgSendTilOppdrag()
+            }
+    }
+
+    internal fun outboxScheduler(
+        sendTransaksjonTilOppdragService: SendTransaksjonTilOppdragService = SendTransaksjonTilOppdragService(),
+        schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
+    ): RecurringTask<Void> {
+        return Tasks
+            .recurring("sendTrekkTransaksjonTilOppdrag", cron(schedulerProperties.sendTransaksjonCronPattern))
+            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
+                sendTransaksjonTilOppdragService.hentTransaksjonOgSendTilOppdrag()
             }
     }
 

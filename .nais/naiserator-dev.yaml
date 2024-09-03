@@ -129,3 +129,5 @@ spec:
       value: "* * 7-17 * * *"
     - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN
       value: "* * 7-17 * * *"
+    - name: SEND_TRANSAKSJON_CRON_PATTERN
+      value: "* * * * * *"

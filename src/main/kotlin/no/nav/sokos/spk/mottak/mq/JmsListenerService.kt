@@ -110,7 +110,8 @@ class JmsListenerService(
                     trekk.mmel?.beskrMelding.orEmpty(),
                     session,
                 )
-            transtilstandId?.let { id -> // TODO: Det er nødvendig å sette transaksjonstilstandId i transaksjonstabellen for oppdatering av transaksjonstilstand
+            transtilstandId?.let {
+                    id -> // TODO: Det er nødvendig å sette transaksjonstilstandId i transaksjonstabellen for oppdatering av transaksjonstilstand. Denne informasjonen brukes i BMOT011 og TMOT014 (VedlikeholdsProvider-hentStatusinfoListe(ejb) - økonomiportalen-client via ESB)
                 transaksjonRepository.updateTransTilstandStatus(
                     listOf(transaksjonId),
                     trekkStatus,

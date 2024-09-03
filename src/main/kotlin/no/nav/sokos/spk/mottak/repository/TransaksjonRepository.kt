@@ -216,20 +216,26 @@ class TransaksjonRepository(
         }
     }
 
-    fun getByTransEksIdFk(transEksIdFk: String): Int? =
-        getByTransEksIdFkTimer.recordCallable {
-            using(sessionOf(dataSource)) { session ->
-                session.single(
-                    queryOf(
-                        """
-                        SELECT TRANSAKSJON_ID
-                        FROM T_TRANSAKSJON 
-                        WHERE TRANS_EKS_ID_FK = $transEksIdFk
-                        """.trimIndent(),
-                    ),
-                ) { row -> row.int("TRANSAKSJON_ID") }
-            }
+    fun updateTransTilstand(
+        transaksjonId: List<Int>,
+        transaksjontilstandId: List<Int>,
+        session: Session,
+    ) {
+        updateTransTilstandStatusTimer.recordCallable {
+            session.update(
+                queryOf(
+                    """
+                    UPDATE T_TRANSAKSJON 
+                        SET TRANSAKSJON_TILSTAND_ID = :transaksjontilstandId,
+                            DATO_ENDRET = CURRENT_TIMESTAMP 
+                        WHERE TRANSAKSJON_ID = :transaksjonId
+                    """.trimIndent(),
+                    transaksjontilstandId.mapNotNull { mapOf("transaksjontilstandId" to it) },
+                    transaksjonId.mapNotNull { mapOf("transaksjonId" to it) },
+                ),
+            )
         }
+    }
 
     fun getAvstemmingDataByFilInfoId(filInfoId: Int): List<AvstemmingData> =
         using(sessionOf(dataSource)) { session ->

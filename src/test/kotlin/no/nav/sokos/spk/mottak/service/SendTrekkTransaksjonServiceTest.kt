@@ -10,7 +10,6 @@ import io.mockk.every
 import io.mockk.mockk
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
@@ -19,14 +18,9 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.MQListener
-import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
-import no.nav.sokos.spk.mottak.listener.MQListener.replyQueueMock
-import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
-import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
-import no.nav.sokos.spk.mottak.mq.JmsProducerService
+import no.nav.sokos.spk.mottak.repository.OutboxRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
-import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 internal class SendTrekkTransaksjonServiceTest :
     BehaviorSpec({
@@ -38,12 +32,7 @@ internal class SendTrekkTransaksjonServiceTest :
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
-                    JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    Db2Listener.outboxRepository,
                 )
             }
             Db2Listener.dataSource.transaction { session ->
@@ -69,12 +58,7 @@ internal class SendTrekkTransaksjonServiceTest :
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
-                    JmsProducerService(
-                        senderQueueMock,
-                        replyQueueMock,
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    Db2Listener.outboxRepository,
                 )
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(TestHelper.readFromResource("/database/trekk_transaksjon.sql")))
@@ -99,12 +83,7 @@ internal class SendTrekkTransaksjonServiceTest :
                     mockk<HikariDataSource>(),
                     mockk<TransaksjonRepository>(),
                     mockk<TransaksjonTilstandRepository>(),
-                    JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    mockk<OutboxRepository>(),
                 )
             When("henter trekk og sender til OppdragZ") {
                 val exception = shouldThrow<RuntimeException> { trekkTransaksjonTilOppdragService.hentTrekkTransaksjonOgSendTilOppdrag() }
@@ -121,12 +100,7 @@ internal class SendTrekkTransaksjonServiceTest :
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
-                    JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    Db2Listener.outboxRepository,
                 )
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(TestHelper.readFromResource("/database/trekk_transaksjon.sql")))
@@ -155,12 +129,7 @@ internal class SendTrekkTransaksjonServiceTest :
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
-                    JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    Db2Listener.outboxRepository,
                 )
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(TestHelper.readFromResource("/database/trekk_transaksjon.sql")))
@@ -189,12 +158,7 @@ internal class SendTrekkTransaksjonServiceTest :
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
-                    JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    Db2Listener.outboxRepository,
                 )
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(TestHelper.readFromResource("/database/trekk_transaksjon.sql")))
