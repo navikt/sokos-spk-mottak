@@ -69,6 +69,7 @@ class JmsListenerService(
                     transaksjonIdList,
                     transTilstandStatus,
                     null,
+                    oppdrag.mmel.alvorlighetsgrad,
                     session,
                 )
                 transaksjonTilstandRepository.insertBatch(
@@ -106,8 +107,8 @@ class JmsListenerService(
                 transaksjonTilstandRepository.insertBatch(
                     listOf(transaksjonId),
                     trekkStatus,
-                    trekk.mmel?.kodeMelding.orEmpty(),
-                    trekk.mmel?.beskrMelding.orEmpty(),
+                    trekk.mmel?.kodeMelding,
+                    trekk.mmel?.beskrMelding,
                     session,
                 )
             transtilstandId?.let {
@@ -116,6 +117,7 @@ class JmsListenerService(
                     listOf(transaksjonId),
                     trekkStatus,
                     trekk.innrapporteringTrekk?.navTrekkId!!,
+                    trekk.mmel?.alvorlighetsgrad,
                     session,
                 )
             }
@@ -124,5 +126,8 @@ class JmsListenerService(
 }
 
 private fun determineTrekkStatus(trekk: Dokument): String {
-    return trekk.mmel?.kodeMelding?.let { TRANS_TILSTAND_TREKK_RETUR_FEIL } ?: TRANS_TILSTAND_TREKK_RETUR_OK
+    return when {
+        trekk.mmel?.alvorlighetsgrad?.toInt()!! < 5 -> TRANS_TILSTAND_TREKK_RETUR_OK
+        else -> TRANS_TILSTAND_TREKK_RETUR_FEIL
+    }
 }

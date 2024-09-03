@@ -199,6 +199,7 @@ class TransaksjonRepository(
         transaksjonIdList: List<Int>,
         transaksjonTilstandType: String,
         vedtaksId: String? = null,
+        alvorlighetsgrad: String? = null,
         session: Session,
     ) {
         updateTransTilstandStatusTimer.recordCallable {
@@ -208,7 +209,8 @@ class TransaksjonRepository(
                     UPDATE T_TRANSAKSJON 
                         SET K_TRANS_TILST_T = '$transaksjonTilstandType',
                             TREKKVEDTAK_ID_FK = $vedtaksId, 
-                            DATO_ENDRET = CURRENT_TIMESTAMP 
+                            DATO_ENDRET = CURRENT_TIMESTAMP,
+                            OS_STATUS = $alvorlighetsgrad
                         WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()});
                     """.trimIndent(),
                 ),

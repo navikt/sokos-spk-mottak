@@ -109,7 +109,7 @@ internal class SendTrekkTransaksjonServiceTest :
             When("henter trekk og sender til OppdragZ") {
                 clearMocks(Db2Listener.transaksjonTilstandRepository)
                 every {
-                    Db2Listener.transaksjonRepository.updateTransTilstandStatus(any(), TRANS_TILSTAND_TREKK_SENDT_OK, any(), any())
+                    Db2Listener.transaksjonRepository.updateTransTilstandStatus(any(), TRANS_TILSTAND_TREKK_SENDT_OK, any(), any(), any())
                 } throws Exception("Feiler ved oppdatering av transtilstand til TSO i transaksjon-tabellen!")
                 trekkTransaksjonTilOppdragService.hentTrekkTransaksjonOgSendTilOppdrag()
                 Then("skal ingen transaksjoner blir oppdatert med status TSO (Trekk Sendt Ok), men bli oppdatert med status TSF (Trekk Sendt Feil)") {
@@ -168,7 +168,7 @@ internal class SendTrekkTransaksjonServiceTest :
                 clearMocks(Db2Listener.transaksjonTilstandRepository)
                 clearMocks(Db2Listener.transaksjonRepository)
                 every {
-                    Db2Listener.transaksjonRepository.updateTransTilstandStatus(any(), any(), any(), any())
+                    Db2Listener.transaksjonRepository.updateTransTilstandStatus(any(), any(), any(), any(), any())
                 } throws Exception("Feiler ved oppdatering av transtilstand til TSF i transaksjon-tabellen!")
 
                 val exception = shouldThrow<RuntimeException> { trekkTransaksjonTilOppdragService.hentTrekkTransaksjonOgSendTilOppdrag() }
