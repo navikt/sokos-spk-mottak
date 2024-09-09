@@ -38,7 +38,7 @@ repositories {
 
 val ktorVersion = "2.3.12"
 val jschVersion = "0.2.19"
-val logbackVersion = "1.5.7"
+val logbackVersion = "1.5.8"
 val logstashVersion = "8.0"
 val jacksonVersion = "2.15.3"
 val micrometerVersion = "1.13.3"
@@ -54,12 +54,12 @@ val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
 val testcontainersVersion = "1.20.1"
 val h2Version = "2.3.232"
-val flywayVersion = "10.17.2"
+val flywayVersion = "10.17.3"
 val postgresVersion = "42.7.4"
 val dbSchedulerVersion = "14.1.0"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20240729135316_1bd0ab3"
-val ibmmqVersion = "9.4.0.0"
+val ibmmqVersion = "9.4.0.5"
 val activemqVersion = "2.37.0"
 
 dependencies {
