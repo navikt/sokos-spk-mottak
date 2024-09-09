@@ -14,9 +14,9 @@ private val logger = KotlinLogging.logger {}
 
 open class JmsProducerService(
     private val senderQueue: Queue,
-    private val replyQueue: Queue,
+    private val replyQueue: Queue? = null,
     private val metricCounter: Counter,
-    private val connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
+    connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
 ) {
     private val jmsContext: JMSContext = connectionFactory.createContext()
     private val producer: JMSProducer = jmsContext.createProducer().apply { jmsReplyTo = replyQueue }

@@ -1,6 +1,9 @@
 package no.nav.sokos.spk.mottak.domain
 
-enum class TransaksjonStatus(val code: String, val message: String) {
+enum class TransaksjonStatus(
+    val code: String,
+    val message: String,
+) {
     OK("00", "Ok"),
     TRANS_ID_DUBLETT("01", "Trans-id dublett"),
     UGYLDIG_FNR("02", "Ugyldig fødselsnummer / fødselsnummer finnes ikke"),

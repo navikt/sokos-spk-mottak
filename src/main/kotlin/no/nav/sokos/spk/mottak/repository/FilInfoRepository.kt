@@ -11,6 +11,7 @@ import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.SPK
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_OK
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
@@ -19,6 +20,7 @@ class FilInfoRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
     private val getByFilTilstandAndAllInnTransaksjonIsBehandletTimer = Metrics.timer(DATABASE_CALL, "FilInfoRepository", "getByFilTilstandAndAllInnTransaksjonIsBehandlet")
+    private val getByAvstemmingStatusIsOSOTimer = Metrics.timer(DATABASE_CALL, "FilInfoRepository", "getByAvstemmingStatusIsOSO")
     private val insertTimer = Metrics.timer(DATABASE_CALL, "FilInfoRepository", "insert")
 
     fun getByFilTilstandAndAllInnTransaksjonIsBehandlet(filTilstandType: String = FILTILSTANDTYPE_GOD): List<FilInfo> =
@@ -27,9 +29,10 @@ class FilInfoRepository(
                 session.list(
                     queryOf(
                         """
-                        SELECT FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
+                        SELECT FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_AVSTEMMING_S
                         FROM T_FIL_INFO
                         WHERE K_FIL_TILSTAND_T = :filTilstandType
+                        AND K_ANVISER = '$SPK'
                         AND K_FIL_S = '${FilStatus.OK.code}'
                         AND FIL_INFO_ID IN (select FIL_INFO_ID
                         FROM T_INN_TRANSAKSJON
@@ -37,6 +40,23 @@ class FilInfoRepository(
                         HAVING SUM(CASE WHEN BEHANDLET = 'J' THEN 0 ELSE 1 END) = 0)
                         """.trimIndent(),
                         mapOf("filTilstandType" to filTilstandType),
+                    ),
+                    mapToFileInfo,
+                )
+            }
+        }
+
+    fun getByAvstemmingStatusIsOSO(): List<FilInfo> =
+        using(sessionOf(dataSource)) { session ->
+            getByAvstemmingStatusIsOSOTimer.recordCallable {
+                session.list(
+                    queryOf(
+                        """
+                        SELECT FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_AVSTEMMING_S
+                        FROM T_FIL_INFO
+                        WHERE K_ANVISER = '$SPK' AND K_AVSTEMMING_S = '$TRANS_TILSTAND_OPPDRAG_SENDT_OK'
+                        ORDER BY FIL_INFO_ID
+                        """.trimIndent(),
                     ),
                     mapToFileInfo,
                 )
@@ -71,6 +91,21 @@ class FilInfoRepository(
             )
         }
 
+    fun updateAvstemmingStatus(
+        filInfoIdList: List<Int?>,
+        avstemmingStatus: String,
+        session: Session,
+    ) {
+        session.update(
+            queryOf(
+                """
+                UPDATE T_FIL_INFO SET K_AVSTEMMING_S = '$avstemmingStatus'
+                WHERE FIL_INFO_ID IN (${filInfoIdList.joinToString()})
+                """.trimIndent(),
+            ),
+        )
+    }
+
     /**
      * Bruker kun for testing
      */
@@ -82,7 +117,7 @@ class FilInfoRepository(
             session.single(
                 queryOf(
                     """
-                    SELECT FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
+                    SELECT FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_AVSTEMMING_S
                     FROM T_FIL_INFO 
                     WHERE LOPENR = :lopeNummer AND K_FIL_TILSTAND_T = :filTilstandType AND K_ANVISER = '$SPK'
                     """.trimIndent(),
@@ -112,6 +147,7 @@ class FilInfoRepository(
             row.localDateTime("DATO_ENDRET"),
             row.string("ENDRET_AV"),
             row.int("VERSJON"),
+            row.stringOrNull("K_AVSTEMMING_S"),
         )
     }
 }

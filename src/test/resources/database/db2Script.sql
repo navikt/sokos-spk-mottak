@@ -78,7 +78,8 @@ CREATE TABLE T_FIL_INFO
     OPPRETTET_AV     VARCHAR(20)  NOT NULL,
     DATO_ENDRET      TIMESTAMP(6) NOT NULL,
     ENDRET_AV        VARCHAR(20)  NOT NULL,
-    VERSJON          INTEGER      NOT NULL
+    VERSJON          INTEGER      NOT NULL,
+    K_AVSTEMMING_S   VARCHAR(20)
 );
 
 -- TABLE T_PERSON
@@ -326,7 +327,8 @@ create table T_K_GYLDIG_KOMBIN
     ENDRET_AV          VARCHAR(20)  not null
 );
 
-insert into T_K_GYLDIG_KOMBIN (K_GYLDIG_KOMBIN_ID, K_ART, K_BELOP_T, K_TREKKGRUPPE, K_TREKK_T, K_TREKKALT_T, K_ANVISER, K_FAGOMRADE, OS_KLASSIFIKASJON, DATO_FOM, DATO_TOM, ER_GYLDIG, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV)
+insert into T_K_GYLDIG_KOMBIN (K_GYLDIG_KOMBIN_ID, K_ART, K_BELOP_T, K_TREKKGRUPPE, K_TREKK_T, K_TREKKALT_T, K_ANVISER, K_FAGOMRADE, OS_KLASSIFIKASJON, DATO_FOM, DATO_TOM, ER_GYLDIG, DATO_OPPRETTET,
+                               OPPRETTET_AV, DATO_ENDRET, ENDRET_AV)
 values (1, 'ALD', '01', null, null, null, 'SPK', 'PENSPK', 'PENSPKALD01', '1899-12-31', null, '1', '2007-11-26 13:13:00.000000', 'J.Stillingen', '2008-02-04 16:00:00.000000', 'A.Braathen'),
        (2, 'ALD', '02', null, null, null, 'SPK', 'PENSPK', 'PENSPKALD-OP', '1899-12-31', null, '1', '2007-11-26 13:13:00.000000', 'J.Stillingen', '2008-02-04 16:00:00.000000', 'A.Braathen'),
        (3, 'ALD', '04', null, null, null, 'SPK', 'PENSPK', null, '1899-12-31', null, '1', '2007-11-26 13:13:00.000000', 'J.Stillingen', '2008-09-19 13:13:00.000000', 'Ø. Wiborg'),
@@ -373,7 +375,8 @@ values (1, 'ALD', '01', null, null, null, 'SPK', 'PENSPK', 'PENSPKALD01', '1899-
        (46, 'U67', '01', null, null, null, 'SPK', 'PENSPK', 'PENSPKU67', '1899-12-31', null, '1', '2012-12-07 22:08:09.980936', 'M.Khan', '2012-12-07 22:08:09.980936', 'M.Khan'),
        (47, 'U67', '02', null, null, null, 'SPK', 'PENSPK', 'PENSPKU67-OP', '1899-12-31', null, '1', '2012-12-07 22:08:10.469008', 'M.Khan', '2012-12-07 22:08:10.469008', 'M.Khan'),
        (48, 'U67', '04', null, null, null, 'SPK', 'PENSPK', null, '1899-12-31', null, '1', '2012-12-07 22:08:10.470395', 'M.Khan', '2012-12-07 22:08:10.470395', 'M.Khan'),
-       (81, 'UFT', '02', null, null, null, 'SPK', 'UFORESPK', 'UFORESPKUT-IOP', '1899-12-31', null, '1', '2014-12-01 17:12:07.973581', 'PATCH_PK-17312', '2014-12-01 17:12:07.973581', 'PATCH_PK-17312'),
+       (81, 'UFT', '02', null, null, null, 'SPK', 'UFORESPK', 'UFORESPKUT-IOP', '1899-12-31', null, '1', '2014-12-01 17:12:07.973581', 'PATCH_PK-17312', '2014-12-01 17:12:07.973581',
+        'PATCH_PK-17312'),
        (82, 'UFT', '04', null, null, null, 'SPK', 'UFORESPK', 'UFORESPKUT-OP', '1899-12-31', null, '1', '2014-12-01 17:12:08.306580', 'PATCH_PK-17312', '2014-12-01 17:12:08.306580', 'PATCH_PK-17312'),
        (83, 'UFT', '01', null, null, null, 'SPK', 'UFORESPK', 'UFORESPKUT', '1899-12-31', null, '1', '2014-12-01 17:12:08.307946', 'PATCH_PK-17312', '2014-12-01 17:12:08.307946', 'PATCH_PK-17312'),
        (84, 'UFE', '01', null, null, null, 'SPK', 'UFORESPK', 'UFORESPKUT', '1899-12-31', null, '1', '2016-09-24 00:54:10.005838', 'PK-30848', '2016-09-24 00:54:10.005838', 'PK-30848'),

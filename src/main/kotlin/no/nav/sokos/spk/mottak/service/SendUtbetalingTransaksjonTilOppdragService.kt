@@ -20,6 +20,7 @@ import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
+import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
@@ -46,6 +47,7 @@ class SendUtbetalingTransaksjonTilOppdragService(
 ) {
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
+    private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource)
 
     fun hentUtbetalingTransaksjonOgSendTilOppdrag() {
         val timer = Instant.now()
@@ -71,6 +73,10 @@ class SendUtbetalingTransaksjonTilOppdragService(
                     }
                     logger.info { "$totalTransaksjoner utbetalingstransaksjoner sendt til OppdragZ på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
                     Metrics.utbetalingTransaksjonerTilOppdragCounter.inc(totalTransaksjoner.toLong())
+
+                    dataSource.transaction { session ->
+                        filInfoRepository.updateAvstemmingStatus(transaksjonList.distinctBy { it.filInfoId }.map { it.filInfoId }, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
+                    }
                 }
             }.onFailure { exception ->
                 val errorMessage = "Feil under sending av utbetalingstransaksjoner til OppdragZ. Feilmelding: ${exception.message}"
@@ -94,10 +100,13 @@ class SendUtbetalingTransaksjonTilOppdragService(
         oppdragList: List<String>,
         transaksjonIdList: List<Int>,
     ) {
+        val transaksjonTilstandIdList = mutableListOf<Int>()
         dataSource.transaction { session ->
-            val transaksjonTilstandIdList = mutableListOf<Int>()
+            transaksjonTilstandIdList.addAll(updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session))
+        }
+
+        dataSource.transaction { session ->
             runCatching {
-                transaksjonTilstandIdList.addAll(updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session))
                 producer.send(oppdragList)
                 logger.debug { "TransaksjonsId: ${transaksjonIdList.joinToString()} er sendt til OppdragZ." }
             }.onFailure { exception ->
@@ -113,7 +122,7 @@ class SendUtbetalingTransaksjonTilOppdragService(
         transTilstandStatus: String,
         session: Session,
     ): List<Int> {
-        transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session = session)
+        transaksjonRepository.updateTransTilstandStatusAndOSStatus(transaksjonIdList, transTilstandStatus, session = session)
         return transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
     }
 }

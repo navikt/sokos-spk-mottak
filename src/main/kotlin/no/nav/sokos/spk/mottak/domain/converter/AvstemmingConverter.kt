@@ -1,51 +1,125 @@
 package no.nav.sokos.spk.mottak.domain.converter
 
 import no.nav.sokos.spk.mottak.domain.MOT
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_FEIL
+import no.nav.sokos.spk.mottak.domain.TransaksjonDetalj
+import no.nav.sokos.spk.mottak.domain.TransaksjonOppsummering
+import no.nav.sokos.spk.mottak.util.Utils.toAvstemmingPeriode
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.AksjonType
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Aksjonsdata
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.AvstemmingType
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.DetaljType
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Detaljdata
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Fortegn
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Grunnlagsdata
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.KildeType
-import java.time.LocalDateTime
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Periodedata
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Totaldata
+import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+private const val AVLEVERENDE_KOMPONENT_KODE = "MOTTKOMP"
 private const val MOTTAKENDE_KOMPONENT_KODE = "OS"
 
 object AvstemmingConverter {
-    fun startMelding(
-        fom: LocalDateTime,
-        tom: LocalDateTime,
+    fun default(
+        fom: String,
+        tom: String,
         fagomrade: String,
     ): Avstemmingsdata =
         Avstemmingsdata().apply {
             aksjon =
                 Aksjonsdata().apply {
-                    aksjonType = AksjonType.START
                     kildeType = KildeType.AVLEV
                     avstemmingType = AvstemmingType.GRSN
-                    avleverendeKomponentKode = "??"
+                    avleverendeKomponentKode = AVLEVERENDE_KOMPONENT_KODE
                     mottakendeKomponentKode = MOTTAKENDE_KOMPONENT_KODE
                     underkomponentKode = fagomrade
-                    nokkelFom = fom.format(DateTimeFormatter.ISO_DATE_TIME)
-                    nokkelFom = tom.format(DateTimeFormatter.ISO_DATE_TIME)
+                    nokkelFom = fom
+                    nokkelFom = tom
                     avleverendeAvstemmingId = UUID.randomUUID().toString()
                     brukerId = MOT
                 }
         }
 
+    fun Avstemmingsdata.startMelding() =
+        this.apply {
+            aksjon = this.aksjon.apply { aksjonType = AksjonType.START }
+        }
+
     fun Avstemmingsdata.sluttMelding() =
-        Avstemmingsdata().apply {
+        this.apply {
             aksjon = this.aksjon.apply { aksjonType = AksjonType.AVSL }
         }
 
-    fun Avstemmingsdata.dataMelding(): Avstemmingsdata =
-        Avstemmingsdata().apply {
-            aksjon = this.aksjon.apply { AksjonType.DATA }
+    fun Avstemmingsdata.dataMelding(oppsummeringList: List<TransaksjonOppsummering>): Avstemmingsdata {
+        val godkjentList = oppsummeringList.filter { it.osStatus == 0 }
+        val varselList = oppsummeringList.filter { it.osStatus in 1..4 }
+        val avvistList = oppsummeringList.filter { it.transTilstandType == TRANS_TILSTAND_OPPDRAG_RETUR_FEIL }
+        val manglerList = oppsummeringList.filter { it.osStatus == null && it.transTilstandType != TRANS_TILSTAND_OPPDRAG_SENDT_FEIL }
+
+        return this.apply {
+            aksjon = this.aksjon.apply { aksjonType = AksjonType.DATA }
+            total =
+                Totaldata().apply {
+                    totalAntall = oppsummeringList.sumOf { it.antall }
+                    totalBelop = oppsummeringList.sumOf { it.belop }
+                    fortegn = Fortegn.T
+                }
+            periode =
+                Periodedata().apply {
+                    datoAvstemtFom = LocalDate.now().atStartOfDay().toAvstemmingPeriode()
+                    datoAvstemtTom = LocalTime.MAX.atDate(LocalDate.now()).toAvstemmingPeriode()
+                }
+            grunnlag =
+                Grunnlagsdata().apply {
+                    godkjentAntall = godkjentList.sumOf { it.antall }
+                    godkjentBelop = godkjentList.sumOf { it.belop }
+                    godkjentFortegn = Fortegn.T
+
+                    varselAntall = varselList.sumOf { it.antall }
+                    varselBelop = varselList.sumOf { it.belop }
+                    varselFortegn = Fortegn.T
+
+                    avvistAntall = avvistList.sumOf { it.antall }
+                    avvistBelop = avvistList.sumOf { it.belop }
+                    avvistFortegn = Fortegn.T
+
+                    manglerAntall = manglerList.sumOf { it.antall }
+                    manglerBelop = manglerList.sumOf { it.belop }
+                    manglerFortegn = Fortegn.T
+                }
+        }
+    }
+
+    fun Avstemmingsdata.avvikMelding(transaksjonDetaljer: List<TransaksjonDetalj>): Avstemmingsdata =
+        this.apply {
+            aksjon = this.aksjon.apply { aksjonType = AksjonType.DATA }
+            detalj.addAll(
+                transaksjonDetaljer.map { transaksjonDetalj ->
+                    Detaljdata().apply {
+                        detaljType = transaksjonDetalj.detaljType()
+                        offnr = transaksjonDetalj.fnr
+                        avleverendeTransaksjonNokkel = transaksjonDetalj.fagsystemId
+                        meldingKode = transaksjonDetalj.feilkode
+                        alvorlighetsgrad = transaksjonDetalj.osStatus
+                        tekstMelding = transaksjonDetalj.feilkodeMelding
+                        tidspunkt = transaksjonDetalj.datoOpprettet.format(DateTimeFormatter.ISO_DATE_TIME)
+                    }
+                },
+            )
         }
 
-    fun Avstemmingsdata.avvikMelding(): Avstemmingsdata =
-        Avstemmingsdata().apply {
-            aksjon = this.aksjon.apply { AksjonType.DATA }
-        }
+    private fun TransaksjonDetalj.detaljType(): DetaljType =
+        osStatus?.let { status ->
+            when (status.toInt()) {
+                0 -> throw IllegalStateException("Ukjent detalj type")
+                in 1..4 -> DetaljType.VARS
+                else -> DetaljType.AVVI
+            }
+        } ?: DetaljType.MANG
 }

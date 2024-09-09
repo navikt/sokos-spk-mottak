@@ -39,6 +39,7 @@ object PropertiesConfig {
                 "MQ_UTBETALING_REPLY_QUEUE_NAME" to "QA.Q1_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY",
                 "MQ_TREKK_QUEUE_NAME" to "QA.Q1_231.OB04_TREKK_MOT_XML",
                 "MQ_TREKK_REPLY_QUEUE_NAME" to "QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY",
+                "MQ_AVSTEMMING_QUEUE_NAME" to "QA.Q1_231.OB04_AVSTEMMING_XML",
             ),
         )
 
@@ -120,11 +121,12 @@ object PropertiesConfig {
         val mqChannelName: String = getOrEmpty("MQ_CHANNEL_NAME"),
         val serviceUsername: String = getOrEmpty("MQ_SERVICE_USERNAME"),
         val servicePassword: String = getOrEmpty("MQ_SERVICE_PASSWORD"),
+        val userAuth: Boolean = true,
         val trekkQueueName: String = getOrEmpty("MQ_TREKK_QUEUE_NAME"),
         val trekkReplyQueueName: String = getOrEmpty("MQ_TREKK_REPLY_QUEUE_NAME"),
         val utbetalingQueueName: String = getOrEmpty("MQ_UTBETALING_QUEUE_NAME"),
         val utbetalingReplyQueueName: String = getOrEmpty("MQ_UTBETALING_REPLY_QUEUE_NAME"),
-        val userAuth: Boolean = true,
+        val avstemmingQueueName: String = getOrEmpty("MQ_AVSTEMEMING_QUEUE_NAME"),
     )
 
     enum class Profile {

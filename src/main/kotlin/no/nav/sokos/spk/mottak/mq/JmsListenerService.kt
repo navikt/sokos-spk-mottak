@@ -20,6 +20,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_RETUR_OK
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkListenerMetricCounter
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingListenerMetricCounter
+import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
@@ -38,6 +39,7 @@ class JmsListenerService(
 
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
+    private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource)
 
     init {
         utbetalingMQListener.setMessageListener { onUtbetalingMessage(it) }
@@ -65,7 +67,7 @@ class JmsListenerService(
             val transaksjonIdList = oppdrag.oppdrag110.oppdragsLinje150.map { it.delytelseId.toInt() }
 
             dataSource.transaction { session ->
-                transaksjonRepository.updateTransTilstandStatus(
+                transaksjonRepository.updateTransTilstandStatusAndOSStatus(
                     transaksjonIdList,
                     transTilstandStatus,
                     null,
@@ -111,8 +113,9 @@ class JmsListenerService(
                     trekk.mmel?.beskrMelding,
                     session,
                 )
-            transtilstandId?.let { id -> // TODO: Det er nødvendig å sette transaksjonstilstandId i transaksjonstabellen for oppdatering av transaksjonstilstand
-                transaksjonRepository.updateTransTilstandStatus(
+            transtilstandId?.let { id ->
+                // TODO: Det er nødvendig å sette transaksjonstilstandId i transaksjonstabellen for oppdatering av transaksjonstilstand
+                transaksjonRepository.updateTransTilstandStatusAndOSStatus(
                     listOf(transaksjonId),
                     trekkStatus,
                     trekk.innrapporteringTrekk?.navTrekkId!!,
@@ -124,9 +127,8 @@ class JmsListenerService(
     }
 }
 
-private fun determineTrekkStatus(trekk: Dokument): String {
-    return when {
+private fun determineTrekkStatus(trekk: Dokument): String =
+    when {
         trekk.mmel?.alvorlighetsgrad?.toInt()!! < 5 -> TRANS_TILSTAND_TREKK_RETUR_OK
         else -> TRANS_TILSTAND_TREKK_RETUR_FEIL
     }
-}

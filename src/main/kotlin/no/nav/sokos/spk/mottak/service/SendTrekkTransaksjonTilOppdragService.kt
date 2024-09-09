@@ -55,14 +55,13 @@ class SendTrekkTransaksjonTilOppdragService(
         }
     }
 
-    private fun fetchTransaksjoner(): List<Transaksjon>? {
-        return runCatching {
+    private fun fetchTransaksjoner(): List<Transaksjon>? =
+        runCatching {
             transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_TREKK, TRANS_TILSTAND_TIL_TREKK)
         }.onFailure { exception ->
             logger.error(exception) { "Fatal feil ved henting av trekktransaksjoner. Feilmelding: ${exception.message}" }
             throw RuntimeException("Fatal feil ved henting av trekktransaksjoner")
         }.getOrNull()
-    }
 
     private fun processTransaksjoner(transaksjoner: List<Transaksjon>): Int {
         var totalTransaksjoner = 0
@@ -114,15 +113,14 @@ class SendTrekkTransaksjonTilOppdragService(
     private fun updateTransaksjonOgTransaksjonTilstand(
         transaksjonIdList: List<Int>,
         transTilstandStatus: String,
-    ): List<Int> {
-        return runCatching {
+    ): List<Int> =
+        runCatching {
             using(sessionOf(dataSource)) { session ->
-                transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session = session)
+                transaksjonRepository.updateTransTilstandStatusAndOSStatus(transaksjonIdList, transTilstandStatus, session = session)
                 transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
             }
         }.onFailure { exception ->
             logger.error { "transaksjonIdList: $transaksjonIdList, transTilstandStatus: $transTilstandStatus" }
             throw SQLException("Feil under henting av trekktransaksjoner. Feilmelding: ${exception.message}")
         }.getOrNull() ?: emptyList()
-    }
 }

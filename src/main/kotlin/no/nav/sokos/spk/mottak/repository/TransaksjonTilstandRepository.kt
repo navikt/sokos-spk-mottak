@@ -16,7 +16,6 @@ import no.nav.sokos.spk.mottak.metrics.Metrics
 class TransaksjonTilstandRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
-    private val insertTransaksjonTilstandTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "insertTransaksjonTilstand")
     private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "insertBatch")
     private val deleteTransaksjonTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "deleteTransaksjon")
     private val getByTransaksjonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "getByTransaksjonId")
@@ -117,6 +116,8 @@ class TransaksjonTilstandRepository(
             row.int("TRANS_TILSTAND_ID"),
             row.int("TRANSAKSJON_ID"),
             row.string("K_TRANS_TILST_T"),
+            row.stringOrNull("FEILKODE"),
+            row.stringOrNull("FEILKODEMELDING"),
             row.localDateTime("DATO_OPPRETTET"),
             row.string("OPPRETTET_AV"),
             row.localDateTime("DATO_ENDRET"),

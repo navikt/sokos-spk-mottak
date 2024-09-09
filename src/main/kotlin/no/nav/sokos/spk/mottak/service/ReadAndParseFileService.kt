@@ -155,7 +155,7 @@ class ReadAndParseFileService(
                 }
                 logger.debug { "Start-record: $record" }
             } else {
-                if (content.size != totalRecord) { // TODO: Sjekk om det er en bedre måte å sjekke på
+                if (content.size != totalRecord) {
                     val transaction = FileParser.parseTransaksjonRecord(record)
                     if (filStatus == FilStatus.OK && transaction.filStatus != FilStatus.OK) {
                         filStatus = transaction.filStatus

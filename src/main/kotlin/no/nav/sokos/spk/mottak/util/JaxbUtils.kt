@@ -3,6 +3,7 @@ package no.nav.sokos.spk.mottak.util
 import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.Marshaller
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
 import no.trygdeetaten.skjema.oppdrag.Oppdrag
 import java.io.StringReader
 import java.io.StringWriter
@@ -32,6 +33,18 @@ object JaxbUtils {
                 XMLInputFactory.newInstance().createXMLStreamReader(StreamSource(oppdragXml.toValidOppdragXml())),
                 Oppdrag::class.java,
             ).value
+
+    fun marshallAvstemmingsdata(avstemmingsdata: Avstemmingsdata): String {
+        val marshaller =
+            jaxbContextOppdrag.createMarshaller().apply {
+                setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
+                setProperty(Marshaller.JAXB_ENCODING, "UTF-8")
+            }
+        return StringWriter().use {
+            marshaller.marshal(avstemmingsdata, it)
+            it.toString()
+        }
+    }
 
     fun marshallTrekk(trekk: Dokument): String {
         val marshaller =
