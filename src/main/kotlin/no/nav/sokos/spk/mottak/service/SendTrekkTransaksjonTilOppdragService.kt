@@ -4,10 +4,10 @@ import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.sessionOf
-import kotliquery.using
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
@@ -94,18 +94,20 @@ class SendTrekkTransaksjonTilOppdragService(
                     transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, sessionOf(dataSource))
                     updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)
                 }
+
                 is SQLException -> { //  DB-feil
                     logger.error { "SQLException : $exception" }
                     updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)
                 }
+
                 else -> {
                     logger.error { "Exception : $exception" }
                     transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, sessionOf(dataSource))
                     updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL)
                 }
             }
-        }.onFailure { exception ->
-            logger.error { "Fatal feil ved sending av trekktransaksjoner: ${transaksjonIdList.minOrNull()} - ${transaksjonIdList.maxOrNull()} : ${exception.message}" }
+        }.onFailure { error ->
+            logger.error(error) { "Fatal feil ved sending av trekktransaksjoner: ${transaksjonIdList.minOrNull()} - ${transaksjonIdList.maxOrNull()} : ${exception.message}" }
             throw RuntimeException("Fatal feil ved sending av trekktransaksjoner")
         }
     }
@@ -115,9 +117,10 @@ class SendTrekkTransaksjonTilOppdragService(
         transTilstandStatus: String,
     ): List<Int> =
         runCatching {
-            using(sessionOf(dataSource)) { session ->
-                transaksjonRepository.updateTransTilstandStatusAndOSStatus(transaksjonIdList, transTilstandStatus, session = session)
-                transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
+            dataSource.transaction { session ->
+                val transTilstandIdList = transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
+                transaksjonRepository.updateBatch(transaksjonIdList, transTilstandIdList, transTilstandStatus, session = session)
+                transTilstandIdList
             }
         }.onFailure { exception ->
             logger.error { "transaksjonIdList: $transaksjonIdList, transTilstandStatus: $transTilstandStatus" }

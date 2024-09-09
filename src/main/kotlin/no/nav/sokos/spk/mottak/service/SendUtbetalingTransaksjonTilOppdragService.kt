@@ -122,7 +122,8 @@ class SendUtbetalingTransaksjonTilOppdragService(
         transTilstandStatus: String,
         session: Session,
     ): List<Int> {
-        transaksjonRepository.updateTransTilstandStatusAndOSStatus(transaksjonIdList, transTilstandStatus, session = session)
-        return transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
+        val transTilstandIdList = transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
+        transaksjonRepository.updateBatch(transaksjonIdList, transTilstandIdList, transTilstandStatus, session = session)
+        return transTilstandIdList
     }
 }

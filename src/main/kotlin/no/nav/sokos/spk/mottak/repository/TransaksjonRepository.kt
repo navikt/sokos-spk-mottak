@@ -33,7 +33,7 @@ class TransaksjonRepository(
     private val updateTransTilstandIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandId")
     private val findLastTransaksjonByPersonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findLastTransaksjonByPersonId")
     private val findAllByBelopstypeAndByTransaksjonTilstandTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findAllByBelopstypeAndByTransaksjonTilstand")
-    private val updateTransTilstandStatusTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandStatus")
+    private val updateBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandStatus")
 
     fun insertBatch(
         transaksjonList: List<Transaksjon>,
@@ -76,6 +76,38 @@ class TransaksjonRepository(
                 ) VALUES (:transaksjonId, :filInfoId, :transaksjonStatus, :personId, :belopstype, :art, :anviser, :fnr, :utbetalesTil, :datoFom, :datoTom, :datoAnviser, :datoPersonFom, :datoReakFom, :belop, :refTransId, :tekstkode, :rectype, :transEksId, :transTolkning, :sendtTilOppdrag, :fnrEndret, :motId, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :transTilstandType, :grad)
                 """.trimIndent(),
                 transaksjonList.map { it.asMap() },
+            )
+        }
+    }
+
+    fun updateBatch(
+        transaksjonIdList: List<Int>,
+        transTilstandIdList: List<Int>,
+        transaksjonTilstandType: String,
+        vedtaksId: String? = null,
+        osStatus: String? = null,
+        session: Session,
+    ) {
+        updateBatchTimer.recordCallable {
+            session.batchPreparedNamedStatement(
+                """
+                UPDATE T_TRANSAKSJON 
+                    SET K_TRANS_TILST_T = :transaksjonTilstandType,
+                        TREKKVEDTAK_ID_FK = :vedtaksId, 
+                        OS_STATUS = :osStatus,
+                        DATO_ENDRET = CURRENT_TIMESTAMP,
+                        TRANS_TILSTAND_ID = :transTilstandId
+                    WHERE TRANSAKSJON_ID IN (:transaksjonId);
+                """.trimIndent(),
+                transaksjonIdList.zip(transTilstandIdList).map {
+                    mapOf(
+                        "transaksjonId" to it.first,
+                        "transTilstandId" to it.second,
+                        "transaksjonTilstandType" to transaksjonTilstandType,
+                        "vedtaksId" to vedtaksId,
+                        "osStatus" to osStatus,
+                    )
+                },
             )
         }
     }
@@ -194,48 +226,6 @@ class TransaksjonRepository(
                     ),
                     mapToTransaksjon,
                 )
-            }
-        }
-
-    fun updateTransTilstandStatusAndOSStatus(
-        transaksjonIdList: List<Int>,
-        transaksjonTilstandType: String,
-        vedtaksId: String? = null,
-        osStatus: String? = null,
-        session: Session,
-    ) {
-        updateTransTilstandStatusTimer.recordCallable {
-            session.update(
-                queryOf(
-                    """
-                    UPDATE T_TRANSAKSJON 
-                        SET K_TRANS_TILST_T = '$transaksjonTilstandType',
-                            TREKKVEDTAK_ID_FK = :vedtaksId, 
-                            OS_STATUS = :osStatus,
-                            DATO_ENDRET = CURRENT_TIMESTAMP 
-                        WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()});
-                    """.trimIndent(),
-                    mapOf(
-                        "vedtaksId" to vedtaksId,
-                        "osStatus" to osStatus,
-                    ),
-                ),
-            )
-        }
-    }
-
-    fun getByTransEksIdFk(transEksIdFk: String): Int? =
-        getByTransEksIdFkTimer.recordCallable {
-            using(sessionOf(dataSource)) { session ->
-                session.single(
-                    queryOf(
-                        """
-                        SELECT TRANSAKSJON_ID
-                        FROM T_TRANSAKSJON 
-                        WHERE TRANS_EKS_ID_FK = $transEksIdFk
-                        """.trimIndent(),
-                    ),
-                ) { row -> row.int("TRANSAKSJON_ID") }
             }
         }
 

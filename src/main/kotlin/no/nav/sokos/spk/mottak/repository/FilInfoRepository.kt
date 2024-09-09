@@ -63,7 +63,7 @@ class FilInfoRepository(
             }
         }
 
-    fun insert(
+    fun insertBatch(
         filInfo: FilInfo,
         session: Session,
     ): Long? =

@@ -1,6 +1,8 @@
 package no.nav.sokos.spk.mottak.domain.converter
 
 import no.nav.sokos.spk.mottak.domain.SPK_TSS
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_RETUR_FEIL
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_RETUR_OK
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.domain.oppdrag.InnrapporteringTrekk
@@ -31,4 +33,10 @@ object TrekkConverter {
                     ),
             ),
         )
+
+    fun Dokument.trekkStatus(): String =
+        when {
+            mmel?.alvorlighetsgrad?.toInt()!! < 5 -> TRANS_TILSTAND_TREKK_RETUR_OK
+            else -> TRANS_TILSTAND_TREKK_RETUR_FEIL
+        }
 }

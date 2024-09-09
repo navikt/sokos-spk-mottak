@@ -15,8 +15,7 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
-import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_RETUR_FEIL
-import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_RETUR_OK
+import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.trekkStatus
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkListenerMetricCounter
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingListenerMetricCounter
@@ -67,18 +66,21 @@ class JmsListenerService(
             val transaksjonIdList = oppdrag.oppdrag110.oppdragsLinje150.map { it.delytelseId.toInt() }
 
             dataSource.transaction { session ->
-                transaksjonRepository.updateTransTilstandStatusAndOSStatus(
+                val transTilstandIdList =
+                    transaksjonTilstandRepository.insertBatch(
+                        transaksjonIdList,
+                        transTilstandStatus,
+                        oppdrag.mmel.kodeMelding,
+                        oppdrag.mmel.beskrMelding,
+                        session,
+                    )
+
+                transaksjonRepository.updateBatch(
                     transaksjonIdList,
+                    transTilstandIdList,
                     transTilstandStatus,
                     null,
                     oppdrag.mmel.alvorlighetsgrad,
-                    session,
-                )
-                transaksjonTilstandRepository.insertBatch(
-                    transaksjonIdList,
-                    transTilstandStatus,
-                    oppdrag.mmel.kodeMelding,
-                    oppdrag.mmel.beskrMelding,
                     session,
                 )
             }
@@ -102,10 +104,10 @@ class JmsListenerService(
     }
 
     private fun processTrekkMessage(trekk: Dokument) {
-        val trekkStatus = determineTrekkStatus(trekk)
+        val trekkStatus = trekk.trekkStatus()
         val transaksjonId = trekk.transaksjonsId!!.toInt()
         using(sessionOf(dataSource)) { session ->
-            val transtilstandId =
+            val transTilstandIdList =
                 transaksjonTilstandRepository.insertBatch(
                     listOf(transaksjonId),
                     trekkStatus,
@@ -113,22 +115,15 @@ class JmsListenerService(
                     trekk.mmel?.beskrMelding,
                     session,
                 )
-            transtilstandId?.let { id ->
-                // TODO: Det er nødvendig å sette transaksjonstilstandId i transaksjonstabellen for oppdatering av transaksjonstilstand
-                transaksjonRepository.updateTransTilstandStatusAndOSStatus(
-                    listOf(transaksjonId),
-                    trekkStatus,
-                    trekk.innrapporteringTrekk?.navTrekkId!!,
-                    trekk.mmel?.alvorlighetsgrad,
-                    session,
-                )
-            }
+
+            transaksjonRepository.updateBatch(
+                listOf(transaksjonId),
+                transTilstandIdList,
+                trekkStatus,
+                trekk.innrapporteringTrekk?.navTrekkId!!,
+                trekk.mmel?.alvorlighetsgrad,
+                session,
+            )
         }
     }
 }
-
-private fun determineTrekkStatus(trekk: Dokument): String =
-    when {
-        trekk.mmel?.alvorlighetsgrad?.toInt()!! < 5 -> TRANS_TILSTAND_TREKK_RETUR_OK
-        else -> TRANS_TILSTAND_TREKK_RETUR_FEIL
-    }
