@@ -24,15 +24,16 @@ import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
+import no.nav.sokos.spk.mottak.util.MQ_BATCH_SIZE
 import no.trygdeetaten.skjema.oppdrag.ObjectFactory
 import no.trygdeetaten.skjema.oppdrag.Oppdrag
+import java.sql.SQLException
 import java.time.Duration
 import java.time.Instant
 
 private val logger = KotlinLogging.logger { }
-private const val BATCH_SIZE = 100
 
-class SendUtbetalingTransaksjonTilOppdragService(
+class SendUtbetalingTransaksjonToOppdragZService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
     private val producer: JmsProducerService =
         JmsProducerService(
@@ -49,7 +50,7 @@ class SendUtbetalingTransaksjonTilOppdragService(
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
     private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource)
 
-    fun hentUtbetalingTransaksjonOgSendTilOppdrag() {
+    fun getUtbetalingTransaksjonAndSendToOppdragZ() {
         val timer = Instant.now()
         var totalTransaksjoner = 0
 
@@ -59,16 +60,16 @@ class SendUtbetalingTransaksjonTilOppdragService(
                 if (transaksjonList.isNotEmpty()) {
                     logger.info { "Starter sending av utbetalingstransaksjoner til OppdragZ" }
 
-                    transaksjonList.chunked(BATCH_SIZE).forEach { items ->
+                    transaksjonList.chunked(MQ_BATCH_SIZE).forEach { items ->
                         val oppdragList =
                             transaksjonList
                                 .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
-                                .map { it.value.toOppdrag() }
+                                .map { it.value.toUtbetalingsOppdrag() }
                                 .map { JaxbUtils.marshallOppdrag(it) }
 
                         val transaksjonIdList = items.map { it.transaksjonId!! }
 
-                        sendTilOppdrag(oppdragList, transaksjonIdList)
+                        sendToOppdragZ(oppdragList, transaksjonIdList)
                         totalTransaksjoner += oppdragList.size
                     }
                     logger.info { "$totalTransaksjoner utbetalingstransaksjoner sendt til OppdragZ på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " }
@@ -86,7 +87,7 @@ class SendUtbetalingTransaksjonTilOppdragService(
         }
     }
 
-    private fun List<Transaksjon>.toOppdrag(): JAXBElement<Oppdrag> =
+    private fun List<Transaksjon>.toUtbetalingsOppdrag(): JAXBElement<Oppdrag> =
         ObjectFactory().createOppdrag(
             Oppdrag().apply {
                 oppdrag110 =
@@ -96,22 +97,23 @@ class SendUtbetalingTransaksjonTilOppdragService(
             },
         )
 
-    private fun sendTilOppdrag(
+    private fun sendToOppdragZ(
         oppdragList: List<String>,
         transaksjonIdList: List<Int>,
     ) {
-        val transaksjonTilstandIdList = mutableListOf<Int>()
-        dataSource.transaction { session ->
-            transaksjonTilstandIdList.addAll(updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session))
-        }
-
         dataSource.transaction { session ->
             runCatching {
                 producer.send(oppdragList)
+                updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
                 logger.debug { "TransaksjonsId: ${transaksjonIdList.joinToString()} er sendt til OppdragZ." }
             }.onFailure { exception ->
-                transaksjonTilstandRepository.deleteTransaksjon(transaksjonTilstandIdList, session)
-                updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
+                if (exception is MottakException) {
+                    try {
+                        updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
+                    } catch (e: SQLException) {
+                        logger.error(e) { "Database feil: ${e.message}" }
+                    }
+                }
                 logger.error(exception) { "TransaksjonsId: ${transaksjonIdList.joinToString()} blir ikke sendt til OppdragZ." }
             }
         }

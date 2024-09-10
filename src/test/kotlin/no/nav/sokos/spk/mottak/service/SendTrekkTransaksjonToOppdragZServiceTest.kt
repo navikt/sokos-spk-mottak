@@ -28,13 +28,13 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
-internal class SendTrekkTransaksjonServiceTest :
+internal class SendTrekkTransaksjonToOppdragZServiceTest :
     BehaviorSpec({
         extensions(listOf(Db2Listener, MQListener))
 
         Given("det finnes trekk som skal sendes til oppdragZ") {
-            val trekkTransaksjonTilOppdragService: SendTrekkTransaksjonTilOppdragService by lazy {
-                SendTrekkTransaksjonTilOppdragService(
+            val trekkTransaksjonTilOppdragService: SendTrekkTransaksjonToOppdragZService by lazy {
+                SendTrekkTransaksjonToOppdragZService(
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
@@ -65,7 +65,7 @@ internal class SendTrekkTransaksjonServiceTest :
 
         Given("det finnes trekk som skal sendes til oppdragZ med MQ server nede") {
             val trekkTransaksjonTilOppdragService =
-                SendTrekkTransaksjonTilOppdragService(
+                SendTrekkTransaksjonToOppdragZService(
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
@@ -95,7 +95,7 @@ internal class SendTrekkTransaksjonServiceTest :
 
         Given("det finnes trekk som skal sendes til oppdragZ med database nede") {
             val trekkTransaksjonTilOppdragService =
-                SendTrekkTransaksjonTilOppdragService(
+                SendTrekkTransaksjonToOppdragZService(
                     mockk<HikariDataSource>(),
                     mockk<TransaksjonRepository>(),
                     mockk<TransaksjonTilstandRepository>(),
@@ -117,7 +117,7 @@ internal class SendTrekkTransaksjonServiceTest :
 
         Given("det finnes trekk som skal sendes til oppdragZ med database som feiler ved oppdatering av transtilstand i transaksjonstabellen") {
             val trekkTransaksjonTilOppdragService =
-                SendTrekkTransaksjonTilOppdragService(
+                SendTrekkTransaksjonToOppdragZService(
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
@@ -151,7 +151,7 @@ internal class SendTrekkTransaksjonServiceTest :
 
         Given("det finnes trekk som skal sendes til oppdragZ med database som feiler ved opprettelse av transaksjoner i transaksjontilstandtabellen") {
             val trekkTransaksjonTilOppdragService =
-                SendTrekkTransaksjonTilOppdragService(
+                SendTrekkTransaksjonToOppdragZService(
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
@@ -185,7 +185,7 @@ internal class SendTrekkTransaksjonServiceTest :
 
         Given("det finnes trekk som skal sendes til oppdragZ med database som feiler ved oppdatering av transtilstand i transaksjon-tabellen også etter at sendingen feilet") {
             val trekkTransaksjonTilOppdragService =
-                SendTrekkTransaksjonTilOppdragService(
+                SendTrekkTransaksjonToOppdragZService(
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,

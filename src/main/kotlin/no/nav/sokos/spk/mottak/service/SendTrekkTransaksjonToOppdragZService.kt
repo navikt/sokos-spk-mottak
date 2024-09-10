@@ -21,14 +21,14 @@ import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
+import no.nav.sokos.spk.mottak.util.MQ_BATCH_SIZE
 import java.sql.SQLException
 import java.time.Duration
 import java.time.Instant
 
 private val logger = KotlinLogging.logger { }
-private const val BATCH_SIZE = 100
 
-class SendTrekkTransaksjonTilOppdragService(
+class SendTrekkTransaksjonToOppdragZService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
@@ -66,7 +66,7 @@ class SendTrekkTransaksjonTilOppdragService(
     private fun processTransaksjoner(transaksjoner: List<Transaksjon>): Int {
         var totalTransaksjoner = 0
         var transaksjonTilstandIdList = listOf<Int>()
-        transaksjoner.chunked(BATCH_SIZE).forEach { chunk ->
+        transaksjoner.chunked(MQ_BATCH_SIZE).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
             runCatching {
                 val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }

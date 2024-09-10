@@ -16,10 +16,9 @@ object PropertiesConfig {
                 "NAIS_NAMESPACE" to "okonomi",
                 "USE_AUTHENTICATION" to "true",
                 "SCHEDULER_ENABLED" to "true",
-                "READ_AND_PARSEFILE_CRON_PATTERN" to "0 10 * * * *",
-                "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 * * * * *",
-                "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "0 * * * * *",
-                "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "0 * * * * *",
+                "READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN" to "0 10 * * * *",
+                "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
+                "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
                 "GRENSNITT_AVSTEMMING_CRON_PATTERN" to "0 0 * * * *",
             ),
         )
@@ -109,10 +108,9 @@ object PropertiesConfig {
 
     data class SchedulerProperties(
         val enabled: Boolean = get("SCHEDULER_ENABLED").toBoolean(),
-        val readAndParseFileCronPattern: String = getOrEmpty("READ_AND_PARSEFILE_CRON_PATTERN"),
-        val validateTransaksjonCronPattern: String = getOrEmpty("VALIDATE_TRANSAKSJON_CRON_PATTERN"),
-        val sendUtbetalingTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
-        val sendTrekkTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
+        val readParseFileAndValidateTransactionsCronPattern: String = getOrEmpty("READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN"),
+        val sendUtbetalingTransaksjonToOppdragZCronPattern: String = getOrEmpty("SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN"),
+        val sendTrekkTransaksjonToOppdragZCronPattern: String = getOrEmpty("SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN"),
         val grensesnittAvstemmingCronPattern: String = getOrEmpty("GRENSNITT_AVSTEMMING_CRON_PATTERN"),
     )
 
