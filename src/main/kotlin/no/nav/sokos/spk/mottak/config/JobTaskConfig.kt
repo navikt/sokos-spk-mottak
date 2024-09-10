@@ -9,6 +9,7 @@ import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import com.github.kagkarlsson.scheduler.task.schedule.Schedules.cron
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
+import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonTilOppdragService
 import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonTilOppdragService
@@ -23,8 +24,13 @@ object JobTaskConfig {
     fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource()): Scheduler =
         Scheduler
             .create(dataSource)
-            .startTasks(recurringReadAndParseFileTask(), recurringValidateTransaksjonTask())
-            .failureLogging(LogLevel.ERROR, true)
+            .startTasks(
+                recurringReadAndParseFileTask(),
+                recurringValidateTransaksjonTask(),
+                recurringSendUtbetalingTransaksjonTilOppdragTask(),
+                recurringSendTrekkTransaksjonTilOppdragTask(),
+                recurringGrensesnittAvstemmingTask(),
+            ).failureLogging(LogLevel.ERROR, true)
             .build()
 
     internal fun recurringReadAndParseFileTask(
@@ -78,6 +84,19 @@ object JobTaskConfig {
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
                 sendTrekkTransaksjonTilOppdragService.hentTrekkTransaksjonOgSendTilOppdrag()
+            }
+    }
+
+    internal fun recurringGrensesnittAvstemmingTask(
+        avstemmingService: AvstemmingService = AvstemmingService(),
+        schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
+    ): RecurringTask<Void> {
+        var showLogLocalTime = LocalDateTime.now()
+        return Tasks
+            .recurring("grensesnittAvstemming", cron(schedulerProperties.sendTrekkTransaksjonTilOppdragCronPattern))
+            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
+                showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                avstemmingService.sendGrensesnittAvstemming()
             }
     }
 

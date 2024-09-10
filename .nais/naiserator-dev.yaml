@@ -121,6 +121,8 @@ spec:
       value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
 
     # DB-SCHEDULER
+    - name: SCHEDULER_ENABLED
+      value: "false"
     - name: READ_AND_PARSEFILE_CRON_PATTERN
       value: "0 0 7-17 * * *"
     - name: VALIDATE_TRANSAKSJON_CRON_PATTERN
@@ -129,3 +131,5 @@ spec:
       value: "* * 7-17 * * *"
     - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN
       value: "* * 7-17 * * *"
+    - name: GRENSNITT_AVSTEMMING_CRON_PATTERN
+      value: "0 0 5 * * *"

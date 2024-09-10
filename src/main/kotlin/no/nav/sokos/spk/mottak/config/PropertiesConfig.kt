@@ -18,8 +18,9 @@ object PropertiesConfig {
                 "SCHEDULER_ENABLED" to "true",
                 "READ_AND_PARSEFILE_CRON_PATTERN" to "0 10 * * * *",
                 "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 * * * * *",
-                "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "* * * * * *",
-                "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "* * * * * *",
+                "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "0 * * * * *",
+                "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "0 * * * * *",
+                "GRENSNITT_AVSTEMMING_CRON_PATTERN" to "0 0 * * * *",
             ),
         )
 
@@ -112,6 +113,7 @@ object PropertiesConfig {
         val validateTransaksjonCronPattern: String = getOrEmpty("VALIDATE_TRANSAKSJON_CRON_PATTERN"),
         val sendUtbetalingTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
         val sendTrekkTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
+        val grensesnittAvstemmingCronPattern: String = getOrEmpty("GRENSNITT_AVSTEMMING_CRON_PATTERN"),
     )
 
     data class MQProperties(
