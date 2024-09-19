@@ -9,8 +9,8 @@ import io.ktor.server.routing.route
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
-import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonTilOppdragService
-import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonTilOppdragService
+import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragService
+import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 import no.nav.sokos.spk.mottak.service.WriteToFileService
 
@@ -18,8 +18,8 @@ fun Route.mottakApi(
     readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
     validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService(),
     writeToFileService: WriteToFileService = WriteToFileService(),
-    sendUtbetalingTransaksjonTilOppdragService: SendUtbetalingTransaksjonTilOppdragService = SendUtbetalingTransaksjonTilOppdragService(),
-    sendTrekkTransaksjonTilOppdragService: SendTrekkTransaksjonTilOppdragService = SendTrekkTransaksjonTilOppdragService(),
+    sendUtbetalingTransaksjonToOppdragService: SendUtbetalingTransaksjonToOppdragService = SendUtbetalingTransaksjonToOppdragService(),
+    sendTrekkTransaksjonToOppdragService: SendTrekkTransaksjonToOppdragService = SendTrekkTransaksjonToOppdragService(),
 ) {
     route("api/v1") {
         get("readAndParseFile") {
@@ -45,14 +45,14 @@ fun Route.mottakApi(
 
         get("sendUtbetalingTransaksjonTilOppdrag") {
             launch(Dispatchers.IO) {
-                sendUtbetalingTransaksjonTilOppdragService.hentUtbetalingTransaksjonOgSendTilOppdrag()
+                sendUtbetalingTransaksjonToOppdragService.fetchUtbetalingTransaksjonAndSendToOppdrag()
             }
             call.respond(HttpStatusCode.OK, "SendUtbetalingTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
         get("sendTrekkTransaksjonTilOppdrag") {
             launch(Dispatchers.IO) {
-                sendTrekkTransaksjonTilOppdragService.hentTrekkTransaksjonOgSendTilOppdrag()
+                sendTrekkTransaksjonToOppdragService.fetchTrekkTransaksjonAndSendToOppdrag()
             }
             call.respond(HttpStatusCode.OK, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
         }

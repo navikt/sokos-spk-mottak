@@ -203,17 +203,16 @@ class TransaksjonRepository(
         session: Session,
     ) {
         updateTransTilstandStatusTimer.recordCallable {
-            session.update(
-                queryOf(
-                    """
-                    UPDATE T_TRANSAKSJON 
-                        SET K_TRANS_TILST_T = '$transaksjonTilstandType',
-                            TREKKVEDTAK_ID_FK = $vedtaksId, 
-                            DATO_ENDRET = CURRENT_TIMESTAMP,
-                            OS_STATUS = $alvorlighetsgrad
-                        WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()});
-                    """.trimIndent(),
-                ),
+            session.batchPreparedNamedStatement(
+                """
+                UPDATE T_TRANSAKSJON 
+                    SET K_TRANS_TILST_T = '$transaksjonTilstandType',
+                        TREKKVEDTAK_ID_FK = $vedtaksId, 
+                        DATO_ENDRET = CURRENT_TIMESTAMP,
+                        OS_STATUS = $alvorlighetsgrad
+                    WHERE TRANSAKSJON_ID = :transaksjonId
+                """.trimIndent(),
+                transaksjonIdList.map { mapOf("transaksjonId" to it) },
             )
         }
     }
@@ -228,7 +227,7 @@ class TransaksjonRepository(
                 queryOf(
                     """
                     UPDATE T_TRANSAKSJON 
-                        SET TRANSAKSJON_TILSTAND_ID = :transaksjontilstandId,
+                        SET TRANS_TILSTAND_ID = :transaksjontilstandId,
                             DATO_ENDRET = CURRENT_TIMESTAMP 
                         WHERE TRANSAKSJON_ID = :transaksjonId
                     """.trimIndent(),

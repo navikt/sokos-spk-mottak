@@ -10,9 +10,10 @@ import com.github.kagkarlsson.scheduler.task.schedule.Schedules.cron
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
-import no.nav.sokos.spk.mottak.service.SendTransaksjonTilOppdragService
-import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonTilOppdragService
-import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonTilOppdragService
+import no.nav.sokos.spk.mottak.service.SendTrekkService
+import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragService
+import no.nav.sokos.spk.mottak.service.SendUtbetalingService
+import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 import no.nav.sokos.spk.mottak.service.WriteToFileService
 import java.time.Duration
@@ -24,7 +25,7 @@ object JobTaskConfig {
     fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource()): Scheduler =
         Scheduler
             .create(dataSource)
-            .startTasks(recurringReadAndParseFileTask(), recurringValidateTransaksjonTask())
+            .startTasks(recurringValidateTransaksjonTask())
             .failureLogging(LogLevel.ERROR, true)
             .build()
 
@@ -56,40 +57,55 @@ object JobTaskConfig {
             }
     }
 
-    internal fun recurringSendUtbetalingTransaksjonTilOppdragTask(
-        sendUtbetalingTransaksjonTilOppdragService: SendUtbetalingTransaksjonTilOppdragService = SendUtbetalingTransaksjonTilOppdragService(),
+    internal fun recurringSendUtbetalingTransaksjonToOppdragTask(
+        sendUtbetalingTransaksjonToOppdragService: SendUtbetalingTransaksjonToOppdragService = SendUtbetalingTransaksjonToOppdragService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<Void> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("sendUtbetalingTransaksjonTilOppdrag", cron(schedulerProperties.sendUtbetalingTransaksjonTilOppdragCronPattern))
+            .recurring("sendUtbetalingTransaksjonToOppdrag", cron(schedulerProperties.sendUtbetalingTransaksjonTilOppdragCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendUtbetalingTransaksjonTilOppdragService.hentUtbetalingTransaksjonOgSendTilOppdrag()
+                sendUtbetalingTransaksjonToOppdragService.fetchUtbetalingTransaksjonAndSendToOppdrag()
             }
     }
 
-    internal fun recurringSendTrekkTransaksjonTilOppdragTask(
-        sendTrekkTransaksjonTilOppdragService: SendTrekkTransaksjonTilOppdragService = SendTrekkTransaksjonTilOppdragService(),
+    internal fun recurringSendTrekkTransaksjonToOppdragTask(
+        sendTrekkTransaksjonToOppdragService: SendTrekkTransaksjonToOppdragService = SendTrekkTransaksjonToOppdragService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<Void> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("sendTrekkTransaksjonTilOppdrag", cron(schedulerProperties.sendTrekkTransaksjonTilOppdragCronPattern))
+            .recurring("sendTrekkTransaksjonToOppdrag", cron(schedulerProperties.sendTrekkTransaksjonTilOppdragCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendTrekkTransaksjonTilOppdragService.hentTrekkTransaksjonOgSendTilOppdrag()
+                sendTrekkTransaksjonToOppdragService.fetchTrekkTransaksjonAndSendToOppdrag()
             }
     }
 
-    internal fun outboxScheduler(
-        sendTransaksjonTilOppdragService: SendTransaksjonTilOppdragService = SendTransaksjonTilOppdragService(),
+    internal fun outboxTrekkTask(
+        sendTrekkService: SendTrekkService = SendTrekkService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<Void> {
+        var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("sendTrekkTransaksjonTilOppdrag", cron(schedulerProperties.sendTransaksjonCronPattern))
+            .recurring("sendTrekk", cron(schedulerProperties.sendTransaksjonCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
-                sendTransaksjonTilOppdragService.hentTransaksjonOgSendTilOppdrag()
+                showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                sendTrekkService.sendToOppdrag()
+            }
+    }
+
+    internal fun outboxUtbetalingTask(
+        sendUtbetalingService: SendUtbetalingService = SendUtbetalingService(),
+        schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
+    ): RecurringTask<Void> {
+        var showLogLocalTime = LocalDateTime.now()
+        return Tasks
+            .recurring("sendUtbetaling", cron(schedulerProperties.sendTransaksjonCronPattern))
+            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
+                showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                sendUtbetalingService.sendToOppdrag()
             }
     }
 

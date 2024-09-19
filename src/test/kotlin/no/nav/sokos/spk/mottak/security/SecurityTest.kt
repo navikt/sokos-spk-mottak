@@ -24,8 +24,8 @@ import no.nav.sokos.spk.mottak.config.authenticate
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.securityConfig
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
-import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonTilOppdragService
-import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonTilOppdragService
+import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragService
+import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 import no.nav.sokos.spk.mottak.service.WriteToFileService
 
@@ -34,8 +34,8 @@ private const val API_BASE_PATH = "/api/v1"
 private val readAndParseFileService = mockk<ReadAndParseFileService>()
 private val validateTransaksjonService = mockk<ValidateTransaksjonService>()
 private val writeToFileService = mockk<WriteToFileService>()
-private val sendUtbetalingTransaksjonTilOppdragService = mockk<SendUtbetalingTransaksjonTilOppdragService>()
-private val sendTrekkTransaksjonTilOppdragService = mockk<SendTrekkTransaksjonTilOppdragService>()
+private val sendUtbetalingTransaksjonToOppdragService = mockk<SendUtbetalingTransaksjonToOppdragService>()
+private val sendTrekkTransaksjonToOppdragService = mockk<SendTrekkTransaksjonToOppdragService>()
 
 internal class SecurityTest : FunSpec({
 
@@ -46,7 +46,7 @@ internal class SecurityTest : FunSpec({
                     securityConfig(true, authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            mottakApi(readAndParseFileService, validateTransaksjonService, writeToFileService, sendUtbetalingTransaksjonTilOppdragService, sendTrekkTransaksjonTilOppdragService)
+                            mottakApi(readAndParseFileService, validateTransaksjonService, writeToFileService, sendUtbetalingTransaksjonToOppdragService, sendTrekkTransaksjonToOppdragService)
                         }
                     }
                 }
@@ -78,7 +78,7 @@ internal class SecurityTest : FunSpec({
                     securityConfig(true, authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            mottakApi(readAndParseFileService, validateTransaksjonService, writeToFileService, sendUtbetalingTransaksjonTilOppdragService, sendTrekkTransaksjonTilOppdragService)
+                            mottakApi(readAndParseFileService, validateTransaksjonService, writeToFileService, sendUtbetalingTransaksjonToOppdragService, sendTrekkTransaksjonToOppdragService)
                         }
                     }
                 }

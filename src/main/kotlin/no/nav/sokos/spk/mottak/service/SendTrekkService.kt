@@ -3,7 +3,6 @@ package no.nav.sokos.spk.mottak.service
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
-import kotliquery.Session
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
@@ -17,9 +16,9 @@ import java.time.Instant
 
 private val logger = KotlinLogging.logger { }
 
-class SendTransaksjonTilOppdragService(
+class SendTrekkService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
-    private val outboxRepository: OutboxRepository = OutboxRepository(dataSource),
+    private val outboxRepository: OutboxRepository = OutboxRepository(),
     private val producer: JmsProducerService =
         JmsProducerService(
             MQQueue(PropertiesConfig.MQProperties().trekkQueueName).apply {
@@ -31,37 +30,29 @@ class SendTransaksjonTilOppdragService(
             Metrics.mqTrekkProducerMetricCounter,
         ),
 ) {
-    fun hentTransaksjonOgSendTilOppdrag() {
+    fun sendToOppdrag() {
         val timer = Instant.now()
-        var transaksjoner: Map<Int, String> = emptyMap()
+        var transaksjoner = emptyList<Pair<Int, String>>()
         dataSource.transaction { session ->
             runCatching {
-                transaksjoner = getTransaksjoner(session)
-                producer.send(transaksjoner.entries.map { it.value })
-                deleteTransaksjoner(transaksjoner.keys, session)
+                transaksjoner = outboxRepository.getTrekk(session)
+                if (transaksjoner.isEmpty()) {
+                    return@transaction
+                }
+                producer.send(transaksjoner.map { it.second })
+                outboxRepository.deleteTrekk(transaksjoner.map { it.first }, session)
+                logger.info { "Fullført sending av ${transaksjoner.size} trekktransaksjoner til OppdragZ. Total tid: ${Duration.between(timer, Instant.now()).toSeconds()} sekunder." }
             }.onFailure { exception ->
                 when (exception) {
                     is MottakException -> {
-                        logger.error { "Feiler ved utsendelse av ${transaksjoner.size} transaksjoner til OppdragZ: $exception" }
+                        logger.error { "Feiler ved utsendelse av ${transaksjoner.size} trekktransaksjoner til OppdragZ: $exception" }
                     }
 
                     else -> {
-                        logger.error { "Feiler ved db-uthenting av ${transaksjoner.size} transaksjoner til OppdragZ: $exception" }
+                        logger.error { "Feiler ved db-uthenting av ${transaksjoner.size} trekktransaksjoner til OppdragZ: $exception" }
                     }
                 }
             }
-            logger.info { "Fullført sending av ${transaksjoner.size} transaksjoner til OppdragZ. Total tid: ${Duration.between(timer, Instant.now()).toSeconds()} sekunder." }
         }
-    }
-
-    fun getTransaksjoner(session: Session): Map<Int, String> {
-        return outboxRepository.get(session)?.toMap() ?: return emptyMap()
-    }
-
-    fun deleteTransaksjoner(
-        transaksjonIdList: Set<Int>,
-        session: Session,
-    ) {
-        outboxRepository.delete(transaksjonIdList, session)
     }
 }

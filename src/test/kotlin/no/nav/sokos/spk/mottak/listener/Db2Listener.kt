@@ -28,7 +28,7 @@ object Db2Listener : TestListener {
     val transaksjonRepository = spyk(TransaksjonRepository(dataSource))
     val avvikTransaksjonRepository = spyk(AvvikTransaksjonRepository(dataSource))
     val transaksjonTilstandRepository = spyk(TransaksjonTilstandRepository(dataSource))
-    val outboxRepository = spyk(OutboxRepository(dataSource))
+    val outboxRepository = spyk(OutboxRepository())
 
     override suspend fun beforeSpec(spec: Spec) {
         dataSource shouldNotBe null

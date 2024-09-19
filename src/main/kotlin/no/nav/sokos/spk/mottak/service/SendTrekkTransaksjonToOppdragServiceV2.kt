@@ -1,5 +1,6 @@
 package no.nav.sokos.spk.mottak.service
 
+import com.ibm.db2.jcc.am.BatchUpdateException
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Session
 import mu.KotlinLogging
@@ -18,18 +19,18 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
 
 private val logger = KotlinLogging.logger { }
-private const val BATCH_SIZE = 100
+private const val BATCH_SIZE = 1000
 
-class SendTrekkTransaksjonTilOppdragService(
+class SendTrekkTransaksjonToOppdragServiceV2(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
-    private val outboxRepository: OutboxRepository = OutboxRepository(dataSource),
+    private val outboxRepository: OutboxRepository = OutboxRepository(),
 ) {
-    fun hentTrekkTransaksjonOgSendTilOppdrag() {
+    fun fetchTrekkTransaksjonAndSendToOppdrag() {
         val transaksjoner = fetchTransaksjoner() ?: return
-        Metrics.timer(SERVICE_CALL, "SendTrekkTransaksjonTilOppdragService", "hentTrekkTransaksjonOgSendTilOppdrag").recordCallable {
-            logger.info { "Starter sending av trekktransaksjoner til OppdragZ" }
+        Metrics.timer(SERVICE_CALL, "SendTrekkTransaksjonToOppdragServiceV2", "fetchTrekkTransaksjonAndSendToOppdrag").recordCallable {
+            logger.info { "Starter sending av ${transaksjoner.size} trekktransaksjoner til OppdragZ" }
             val totalTransaksjoner = processTransaksjoner(transaksjoner)
             Metrics.trekkTransaksjonerTilOppdragCounter.inc(totalTransaksjoner.toLong())
         }
@@ -52,9 +53,14 @@ class SendTrekkTransaksjonTilOppdragService(
                 runCatching {
                     val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
                     updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK, trekkMeldinger, session)
+                    logger.info { "Inserted ${trekkMeldinger.size} trekkmeldinger" }
                     totalTransaksjoner += transaksjonIdList.size
                 }.onFailure { exception ->
-                    logger.error(exception) { "Trekktransaksjoner: ${transaksjonIdList.minOrNull()} - ${transaksjonIdList.maxOrNull()} feiler ved sending til OppdragZ: ${exception.message}" }
+                    logger.error(exception) { "Feiler ved utsending av trekktransaksjonene: ${transaksjonIdList.joinToString()} : $exception" }
+                    if (exception is BatchUpdateException) {
+                        val ex: BatchUpdateException = exception
+                        logger.error { "Feilårsak er ${ex.nextException}" }
+                    }
                 }
             }
         }
@@ -70,6 +76,6 @@ class SendTrekkTransaksjonTilOppdragService(
         transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session = session)
         val transaksjonTilstandIdList = transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
         transaksjonRepository.updateTransTilstand(transaksjonIdList, transaksjonTilstandIdList, session = session)
-        outboxRepository.insert(transaksjonIdList.zip(trekkMeldinger).toMap(), session = session)
+        outboxRepository.insertTrekk(transaksjonIdList.zip(trekkMeldinger).toMap(), session = session)
     }
 }

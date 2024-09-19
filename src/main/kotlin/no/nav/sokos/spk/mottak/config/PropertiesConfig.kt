@@ -17,9 +17,10 @@ object PropertiesConfig {
                 "USE_AUTHENTICATION" to "true",
                 "SCHEDULER_ENABLED" to "true",
                 "READ_AND_PARSEFILE_CRON_PATTERN" to "0 10 * * * *",
-                "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 * * * * *",
-                "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "* * * * * *",
-                "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "* * * * * *",
+                "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 0 0 * * *",
+                "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "0 * * * * *",
+                "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "0 * * * * *",
+                "SEND_TRANSAKSJON_CRON_PATTERN" to "*/10 * * * * *",
             ),
         )
 

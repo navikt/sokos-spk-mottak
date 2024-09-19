@@ -1,20 +1,16 @@
 package no.nav.sokos.spk.mottak.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Session
 import kotliquery.queryOf
-import no.nav.sokos.spk.mottak.config.DatabaseConfig
 
-class OutboxRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
-) {
-    fun insert(
+class OutboxRepository() {
+    fun insertTrekk(
         meldinger: Map<Int, String>,
         session: Session,
     ) {
         session.batchPreparedNamedStatement(
             """
-            INSERT INTO OUTBOX (
+            INSERT INTO T_OUTBOX_TREKK (
                 TRANSAKSJON_ID,
                 MELDING
             ) VALUES (:transaksjonId, :melding)
@@ -23,32 +19,70 @@ class OutboxRepository(
         )
     }
 
-    fun get(session: Session): Map<Int, String>? {
-        return session.single(
+    fun insertUtbetaling(
+        meldinger: Map<String, String>,
+        session: Session,
+    ) {
+        session.batchPreparedNamedStatement(
+            """
+            INSERT INTO T_OUTBOX_UTBETALING (
+                TRANSAKSJON_ID,
+                MELDING
+            ) VALUES (:transaksjonId, :melding)
+            """.trimIndent(),
+            meldinger.map { mapOf("transaksjonId" to it.key, "melding" to it.value) },
+        )
+    }
+
+    fun getTrekk(session: Session): List<Pair<Int, String>> {
+        return session.list(
             queryOf(
                 """
                 SELECT TRANSAKSJON_ID, MELDING 
-                FROM OUTBOX 
-                ORDER BY timestamp ASC
+                FROM T_OUTBOX_TREKK
                 SKIP LOCKED DATA
                 """.trimIndent(),
             ),
-        ) { row -> mapOf(row.int("TRANSAKSJON_ID") to row.string("MELDING")) }
+        ) { row -> Pair(row.int("TRANSAKSJON_ID"), row.string("MELDING")) }.orEmpty()
     }
 
-    fun delete(
-        tansaksjonIdList: Set<Int>,
-        session: Session,
-    ) {
-        session.update(
+    fun getUtbetaling(session: Session): List<Pair<String, String>> {
+        return session.list(
             queryOf(
                 """
-                DELETE FROM OUTBOX 
-                WHERE TRANSAKSJON_ID = :transaksjonId
+                SELECT TRANSAKSJON_ID, MELDING 
+                FROM T_OUTBOX_UTBETALING
                 SKIP LOCKED DATA
                 """.trimIndent(),
-                tansaksjonIdList.map { mapOf("transaksjonId" to it) },
             ),
+        ) { row -> Pair(row.string("TRANSAKSJON_ID"), row.string("MELDING")) }.orEmpty()
+    }
+
+    fun deleteTrekk(
+        tansaksjonIdList: List<Int>,
+        session: Session,
+    ) {
+        session.batchPreparedNamedStatement(
+            """
+            DELETE FROM T_OUTBOX_TREKK 
+            WHERE TRANSAKSJON_ID = :transaksjonId
+            SKIP LOCKED DATA
+            """.trimIndent(),
+            tansaksjonIdList.map { mapOf("transaksjonId" to it) },
+        )
+    }
+
+    fun deleteUtbetaling(
+        tansaksjonIdList: List<String>,
+        session: Session,
+    ) {
+        session.batchPreparedNamedStatement(
+            """
+            DELETE FROM T_OUTBOX_UTBETALING 
+            WHERE TRANSAKSJON_ID = :transaksjonId
+            SKIP LOCKED DATA
+            """.trimIndent(),
+            tansaksjonIdList.map { mapOf("transaksjonId" to it) },
         )
     }
 }
