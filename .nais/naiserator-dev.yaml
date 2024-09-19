@@ -111,6 +111,8 @@ spec:
       value: QA.Q1_231.OB04_TREKK_MOT_XML
     - name: MQ_TREKK_REPLY_QUEUE_NAME
       value: QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY
+    - name: MQ_AVSTEMEMING_QUEUE_NAME
+      value: QA.Q1_231.OB04_AVSTEMMING_XML
 
     # SFTP
     - name: SFTP_SERVER
@@ -121,13 +123,15 @@ spec:
       value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
 
     # DB-SCHEDULER
-    - name: READ_AND_PARSEFILE_CRON_PATTERN
+    - name: SCHEDULER_ENABLED
+      value: "false"
+    - name: READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN
       value: "0 0 7-17 * * *"
-    - name: VALIDATE_TRANSAKSJON_CRON_PATTERN
+    - name: SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
       value: "* * 7-17 * * *"
-    - name: SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN
-      value: "* * 7-17 * * *"
-    - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN
+    - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
       value: "* * 7-17 * * *"
     - name: SEND_TRANSAKSJON_CRON_PATTERN
       value: "*/5 * * * * *"
+    - name: GRENSESNITT_AVSTEMMING_CRON_PATTERN
+      value: "0 0 5 * * *"

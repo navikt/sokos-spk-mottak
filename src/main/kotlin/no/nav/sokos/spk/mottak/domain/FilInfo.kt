@@ -19,4 +19,5 @@ data class FilInfo(
     val datoEndret: LocalDateTime,
     val endretAv: String,
     val versjon: Int,
+    val avstemmingStatus: String? = null,
 )

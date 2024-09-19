@@ -13,7 +13,6 @@ import no.trygdeetaten.skjema.oppdrag.OppdragsEnhet120
 import no.trygdeetaten.skjema.oppdrag.OppdragsLinje150
 import no.trygdeetaten.skjema.oppdrag.TfradragTillegg
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 private const val DEFAULT_KODE_AKSJON = "1"
@@ -60,7 +59,7 @@ object OppdragConverter {
                 Avstemming115().apply {
                     kodeKomponent = KODE_KOMPONENT
                     nokkelAvstemming = filInfoId.toString()
-                    tidspktMelding = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+                    tidspktMelding = datoOpprettet.format(DateTimeFormatter.ISO_DATE_TIME)
                 }
         }
 

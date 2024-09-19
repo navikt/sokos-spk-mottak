@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak.util
 
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.xml.datatype.DatatypeFactory
 import javax.xml.datatype.XMLGregorianCalendar
@@ -18,4 +19,6 @@ object Utils {
     fun LocalDate.toXMLGregorianCalendar(): XMLGregorianCalendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(this.toString())
 
     fun Boolean.toChar(): Char = if (this) '1' else '0'
+
+    fun LocalDateTime.toAvstemmingPeriode(): String = this.format(DateTimeFormatter.ofPattern("yyyyMMddHH"))
 }

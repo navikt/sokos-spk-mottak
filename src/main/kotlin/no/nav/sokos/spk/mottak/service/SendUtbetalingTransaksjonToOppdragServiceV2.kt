@@ -35,20 +35,16 @@ class SendUtbetalingTransaksjonToOppdragServiceV2(
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
     private val outboxRepository: OutboxRepository = OutboxRepository(),
 ) {
-    fun fetchUtbetalingTransaksjonAndSendToOppdrag() {
+    fun getUtbetalingTransaksjonAndSendToOppdrag() {
         val timer = Instant.now()
         var totalTransaksjoner = 0
 
-        Metrics.timer(SERVICE_CALL, "SendUtbetalingTransaksjonToOppdragServiceV2", "fetchUtbetalingTransaksjonAndSendToOppdrag").recordCallable {
+        Metrics.timer(SERVICE_CALL, "SendUtbetalingTransaksjonToOppdragServiceV2", "getUtbetalingTransaksjonAndSendToOppdrag").recordCallable {
             runCatching {
                 val transaksjonList = transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
                 if (transaksjonList.isNotEmpty()) {
                     logger.info { "Starter sending av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
-                    val oppdragList =
-                        transaksjonList
-                            .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
-                            .map { it.value.toOppdrag() }
-                            .map { JaxbUtils.marshallOppdrag(it) }
+                    val oppdragList = transaksjonList.groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }.map { it.value.toOppdrag() }.map { JaxbUtils.marshallOppdrag(it) }
                     logger.info { "Oppdragslistestørrelse ${oppdragList.size}" }
                     oppdragList.chunked(BATCH_SIZE).forEach { oppdragChunk ->
                         logger.info { "Sender ${oppdragChunk.size} utbetalingsmeldinger " }
@@ -107,9 +103,8 @@ class SendUtbetalingTransaksjonToOppdragServiceV2(
         utbetalingsMeldinger: List<String> = emptyList(),
         session: Session,
     ) {
-        transaksjonRepository.updateTransTilstandStatus(transaksjonIdList, transTilstandStatus, session = session)
-        val transaksjonTilstandIdList = transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
-        transaksjonRepository.updateTransTilstand(transaksjonIdList, transaksjonTilstandIdList, session = session)
+        val transTilstandIdList = transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
+        transaksjonRepository.updateBatch(transaksjonIdList, transTilstandIdList, transTilstandStatus, session = session)
         outboxRepository.insertUtbetaling(messageKeyList.zip(utbetalingsMeldinger).toMap(), session = session)
     }
 }

@@ -8,9 +8,10 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
-import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragService
-import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragService
+import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragZService
+import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragZService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 import no.nav.sokos.spk.mottak.service.WriteToFileService
 
@@ -18,43 +19,39 @@ fun Route.mottakApi(
     readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
     validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService(),
     writeToFileService: WriteToFileService = WriteToFileService(),
-    sendUtbetalingTransaksjonToOppdragService: SendUtbetalingTransaksjonToOppdragService = SendUtbetalingTransaksjonToOppdragService(),
-    sendTrekkTransaksjonToOppdragService: SendTrekkTransaksjonToOppdragService = SendTrekkTransaksjonToOppdragService(),
+    sendUtbetalingTransaksjonToOppdragZService: SendUtbetalingTransaksjonToOppdragZService = SendUtbetalingTransaksjonToOppdragZService(),
+    sendTrekkTransaksjonToOppdragZService: SendTrekkTransaksjonToOppdragZService = SendTrekkTransaksjonToOppdragZService(),
+    avstemmingService: AvstemmingService = AvstemmingService(),
 ) {
     route("api/v1") {
-        get("readAndParseFile") {
+        get("readParseFileAndValidateTransactions") {
             launch(Dispatchers.IO) {
                 readAndParseFileService.readAndParseFile()
+                validateTransaksjonService.validateInnTransaksjon()
+                writeToFileService.writeReturnFile()
             }
             call.respond(HttpStatusCode.OK, "ReadAndParseFile av filer har startet, sjekk logger for status")
         }
 
-        get("validateTransaksjon") {
+        get("sendUtbetalingTransaksjonToOppdragZ") {
             launch(Dispatchers.IO) {
-                validateTransaksjonService.validateInnTransaksjon()
-            }
-            call.respond(HttpStatusCode.OK, "ValidateTransaksjon har startet, sjekk logger for status")
-        }
-
-        get("writeToFile") {
-            launch(Dispatchers.IO) {
-                writeToFileService.writeReturnFile()
-            }
-            call.respond(HttpStatusCode.OK, "WriteToFileService har startet, sjekk logger for status")
-        }
-
-        get("sendUtbetalingTransaksjonTilOppdrag") {
-            launch(Dispatchers.IO) {
-                sendUtbetalingTransaksjonToOppdragService.fetchUtbetalingTransaksjonAndSendToOppdrag()
+                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
             }
             call.respond(HttpStatusCode.OK, "SendUtbetalingTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
-        get("sendTrekkTransaksjonTilOppdrag") {
+        get("sendTrekkTransaksjonToOppdragZ") {
             launch(Dispatchers.IO) {
-                sendTrekkTransaksjonToOppdragService.fetchTrekkTransaksjonAndSendToOppdrag()
+                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
             }
             call.respond(HttpStatusCode.OK, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
+        }
+
+        get("avstemming") {
+            launch(Dispatchers.IO) {
+                avstemmingService.sendGrensesnittAvstemming()
+            }
+            call.respond(HttpStatusCode.OK, "GrensesnittAvstemming har startet, sjekk logger for status")
         }
     }
 }

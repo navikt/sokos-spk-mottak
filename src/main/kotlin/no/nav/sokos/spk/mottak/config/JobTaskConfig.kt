@@ -9,11 +9,12 @@ import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import com.github.kagkarlsson.scheduler.task.schedule.Schedules.cron
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
+import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.SendTrekkService
-import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragService
+import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragZService
 import no.nav.sokos.spk.mottak.service.SendUtbetalingService
-import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragService
+import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragZService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 import no.nav.sokos.spk.mottak.service.WriteToFileService
 import java.time.Duration
@@ -25,61 +26,67 @@ object JobTaskConfig {
     fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource()): Scheduler =
         Scheduler
             .create(dataSource)
-            .startTasks(recurringValidateTransaksjonTask())
-            .failureLogging(LogLevel.ERROR, true)
+            .startTasks(
+                recurringReadParseFileAndValidateTransactionsTask(),
+                recurringSendUtbetalingTransaksjonToOppdragZTask(),
+                recurringSendTrekkTransaksjonToOppdragZTask(),
+                recurringGrensesnittAvstemmingTask(),
+            ).failureLogging(LogLevel.ERROR, true)
             .build()
 
-    internal fun recurringReadAndParseFileTask(
+    internal fun recurringReadParseFileAndValidateTransactionsTask(
         readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
-        schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
-    ): RecurringTask<Void> {
-        var showLogLocalTime = LocalDateTime.now()
-        return Tasks
-            .recurring("readAndParseFile", cron(schedulerProperties.readAndParseFileCronPattern))
-            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
-                showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                readAndParseFileService.readAndParseFile()
-            }
-    }
-
-    internal fun recurringValidateTransaksjonTask(
         validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService(),
         writeToFileService: WriteToFileService = WriteToFileService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<Void> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("validateTransaksjon", cron(schedulerProperties.validateTransaksjonCronPattern))
+            .recurring("readParseFileAndValidateTransactions", cron(schedulerProperties.readParseFileAndValidateTransactionsCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                readAndParseFileService.readAndParseFile()
                 validateTransaksjonService.validateInnTransaksjon()
                 writeToFileService.writeReturnFile()
             }
     }
 
-    internal fun recurringSendUtbetalingTransaksjonToOppdragTask(
-        sendUtbetalingTransaksjonToOppdragService: SendUtbetalingTransaksjonToOppdragService = SendUtbetalingTransaksjonToOppdragService(),
+    internal fun recurringSendUtbetalingTransaksjonToOppdragZTask(
+        sendUtbetalingTransaksjonToOppdragZService: SendUtbetalingTransaksjonToOppdragZService = SendUtbetalingTransaksjonToOppdragZService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<Void> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("sendUtbetalingTransaksjonToOppdrag", cron(schedulerProperties.sendUtbetalingTransaksjonTilOppdragCronPattern))
+            .recurring("sendUtbetalingTransaksjonToOppdragZ", cron(schedulerProperties.sendUtbetalingTransaksjonToOppdragZCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendUtbetalingTransaksjonToOppdragService.fetchUtbetalingTransaksjonAndSendToOppdrag()
+                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
             }
     }
 
-    internal fun recurringSendTrekkTransaksjonToOppdragTask(
-        sendTrekkTransaksjonToOppdragService: SendTrekkTransaksjonToOppdragService = SendTrekkTransaksjonToOppdragService(),
+    internal fun recurringSendTrekkTransaksjonToOppdragZTask(
+        sendTrekkTransaksjonToOppdragZService: SendTrekkTransaksjonToOppdragZService = SendTrekkTransaksjonToOppdragZService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<Void> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("sendTrekkTransaksjonToOppdrag", cron(schedulerProperties.sendTrekkTransaksjonTilOppdragCronPattern))
+            .recurring("sendTrekkTransaksjonToOppdragZ", cron(schedulerProperties.sendTrekkTransaksjonToOppdragZCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendTrekkTransaksjonToOppdragService.fetchTrekkTransaksjonAndSendToOppdrag()
+                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
+            }
+    }
+
+    internal fun recurringGrensesnittAvstemmingTask(
+        avstemmingService: AvstemmingService = AvstemmingService(),
+        schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
+    ): RecurringTask<Void> {
+        var showLogLocalTime = LocalDateTime.now()
+        return Tasks
+            .recurring("grensesnittAvstemming", cron(schedulerProperties.sendTrekkTransaksjonToOppdragZCronPattern))
+            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
+                showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                avstemmingService.sendGrensesnittAvstemming()
             }
     }
 

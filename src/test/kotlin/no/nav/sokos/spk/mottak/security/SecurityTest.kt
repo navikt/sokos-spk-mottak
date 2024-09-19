@@ -23,9 +23,10 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.authenticate
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.securityConfig
+import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
-import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragService
-import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragService
+import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragZService
+import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragZService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 import no.nav.sokos.spk.mottak.service.WriteToFileService
 
@@ -34,8 +35,9 @@ private const val API_BASE_PATH = "/api/v1"
 private val readAndParseFileService = mockk<ReadAndParseFileService>()
 private val validateTransaksjonService = mockk<ValidateTransaksjonService>()
 private val writeToFileService = mockk<WriteToFileService>()
-private val sendUtbetalingTransaksjonToOppdragService = mockk<SendUtbetalingTransaksjonToOppdragService>()
-private val sendTrekkTransaksjonToOppdragService = mockk<SendTrekkTransaksjonToOppdragService>()
+private val sendUtbetalingTransaksjonToOppdragZService = mockk<SendUtbetalingTransaksjonToOppdragZService>()
+private val sendTrekkTransaksjonToOppdragZService = mockk<SendTrekkTransaksjonToOppdragZService>()
+private val avstemmingService = mockk<AvstemmingService>()
 
 internal class SecurityTest : FunSpec({
 
@@ -46,11 +48,18 @@ internal class SecurityTest : FunSpec({
                     securityConfig(true, authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            mottakApi(readAndParseFileService, validateTransaksjonService, writeToFileService, sendUtbetalingTransaksjonToOppdragService, sendTrekkTransaksjonToOppdragService)
+                            mottakApi(
+                                readAndParseFileService,
+                                validateTransaksjonService,
+                                writeToFileService,
+                                sendUtbetalingTransaksjonToOppdragZService,
+                                sendTrekkTransaksjonToOppdragZService,
+                                avstemmingService,
+                            )
                         }
                     }
                 }
-                val response = client.get("$API_BASE_PATH/readAndParseFile")
+                val response = client.get("$API_BASE_PATH/readParseFileAndValidateTransactions")
                 response.status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -78,15 +87,24 @@ internal class SecurityTest : FunSpec({
                     securityConfig(true, authConfig())
                     routing {
                         authenticate(true, AUTHENTICATION_NAME) {
-                            mottakApi(readAndParseFileService, validateTransaksjonService, writeToFileService, sendUtbetalingTransaksjonToOppdragService, sendTrekkTransaksjonToOppdragService)
+                            mottakApi(
+                                readAndParseFileService,
+                                validateTransaksjonService,
+                                writeToFileService,
+                                sendUtbetalingTransaksjonToOppdragZService,
+                                sendTrekkTransaksjonToOppdragZService,
+                                avstemmingService,
+                            )
                         }
                     }
                 }
 
                 every { readAndParseFileService.readAndParseFile() } returns Unit
+                every { validateTransaksjonService.validateInnTransaksjon() } returns Unit
+                every { writeToFileService.writeReturnFile() } returns Unit
 
                 val response =
-                    client.get("$API_BASE_PATH/readAndParseFile") {
+                    client.get("$API_BASE_PATH/readParseFileAndValidateTransactions") {
                         header("Authorization", "Bearer ${mockOAuth2Server.tokenFromDefaultProvider()}")
                         contentType(ContentType.Application.Json)
                     }

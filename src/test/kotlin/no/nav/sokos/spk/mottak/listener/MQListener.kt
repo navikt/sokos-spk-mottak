@@ -5,7 +5,6 @@ import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.mockk.mockk
 import jakarta.jms.ConnectionFactory
-import jakarta.jms.JMSContext
 import org.apache.activemq.artemis.api.core.TransportConfiguration
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl
 import org.apache.activemq.artemis.core.remoting.impl.invm.InVMAcceptorFactory
@@ -24,14 +23,12 @@ object MQListener : TestListener {
             )
 
     lateinit var connectionFactory: ConnectionFactory
-    lateinit var testContext: JMSContext
     val senderQueueMock = mockk<ActiveMQQueue>()
     val replyQueueMock = mockk<ActiveMQQueue>()
 
     override suspend fun beforeTest(testCase: TestCase) {
         server.start()
         connectionFactory = ActiveMQConnectionFactory("vm:localhost?create=false")
-        testContext = connectionFactory.createContext()
     }
 
     override suspend fun afterTest(

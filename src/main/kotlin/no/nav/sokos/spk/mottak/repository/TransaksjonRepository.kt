@@ -7,13 +7,14 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.domain.AvstemmingData
 import no.nav.sokos.spk.mottak.domain.GyldigKombinasjon
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.Transaksjon
+import no.nav.sokos.spk.mottak.domain.TransaksjonDetalj
+import no.nav.sokos.spk.mottak.domain.TransaksjonOppsummering
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
@@ -23,15 +24,15 @@ import no.nav.sokos.spk.mottak.util.Utils.toChar
 class TransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
-    private val updateTransaksjonFromTrekkReplyTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransaksjonFromTrekkReply")
-    private val getByTransEksIdFkTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "getByTransEksIdFk")
+    private val findTransaksjonDetaljerByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonDetaljerByFilInfoId")
+    private val findTransaksjonOppsummeringByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonOppsummeringByFilInfoId")
     private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "insertBatch")
     private val updateAllWhereTranstolkningIsNyForMoreThanOneInstanceTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateAllWhereTranstolkningIsNyForMoreThanOneInstance")
     private val getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstanceTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance")
     private val updateTransTilstandIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandId")
     private val findLastTransaksjonByPersonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findLastTransaksjonByPersonId")
     private val findAllByBelopstypeAndByTransaksjonTilstandTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findAllByBelopstypeAndByTransaksjonTilstand")
-    private val updateTransTilstandStatusTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandStatus")
+    private val updateBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandStatus")
 
     fun insertBatch(
         transaksjonList: List<Transaksjon>,
@@ -74,6 +75,38 @@ class TransaksjonRepository(
                 ) VALUES (:transaksjonId, :filInfoId, :transaksjonStatus, :personId, :belopstype, :art, :anviser, :fnr, :utbetalesTil, :datoFom, :datoTom, :datoAnviser, :datoPersonFom, :datoReakFom, :belop, :refTransId, :tekstkode, :rectype, :transEksId, :transTolkning, :sendtTilOppdrag, :fnrEndret, :motId, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :transTilstandType, :grad)
                 """.trimIndent(),
                 transaksjonList.map { it.asMap() },
+            )
+        }
+    }
+
+    fun updateBatch(
+        transaksjonIdList: List<Int>,
+        transTilstandIdList: List<Int>,
+        transaksjonTilstandType: String,
+        vedtaksId: String? = null,
+        osStatus: String? = null,
+        session: Session,
+    ) {
+        updateBatchTimer.recordCallable {
+            session.batchPreparedNamedStatement(
+                """
+                UPDATE T_TRANSAKSJON 
+                    SET K_TRANS_TILST_T = :transaksjonTilstandType,
+                        TREKKVEDTAK_ID_FK = :vedtaksId, 
+                        OS_STATUS = :osStatus,
+                        DATO_ENDRET = CURRENT_TIMESTAMP,
+                        TRANS_TILSTAND_ID = :transTilstandId
+                    WHERE TRANSAKSJON_ID IN (:transaksjonId);
+                """.trimIndent(),
+                transaksjonIdList.zip(transTilstandIdList).map {
+                    mapOf(
+                        "transaksjonId" to it.first,
+                        "transTilstandId" to it.second,
+                        "transaksjonTilstandType" to transaksjonTilstandType,
+                        "vedtaksId" to vedtaksId,
+                        "osStatus" to osStatus,
+                    )
+                },
             )
         }
     }
@@ -195,66 +228,60 @@ class TransaksjonRepository(
             }
         }
 
-    fun updateTransTilstandStatus(
-        transaksjonIdList: List<Int>,
-        transaksjonTilstandType: String,
-        vedtaksId: String? = null,
-        alvorlighetsgrad: String? = null,
-        session: Session,
-    ) {
-        updateTransTilstandStatusTimer.recordCallable {
-            session.batchPreparedNamedStatement(
-                """
-                UPDATE T_TRANSAKSJON 
-                    SET K_TRANS_TILST_T = '$transaksjonTilstandType',
-                        TREKKVEDTAK_ID_FK = $vedtaksId, 
-                        DATO_ENDRET = CURRENT_TIMESTAMP,
-                        OS_STATUS = $alvorlighetsgrad
-                    WHERE TRANSAKSJON_ID = :transaksjonId
-                """.trimIndent(),
-                transaksjonIdList.map { mapOf("transaksjonId" to it) },
-            )
-        }
-    }
-
-    fun updateTransTilstand(
-        transaksjonId: List<Int>,
-        transaksjontilstandId: List<Int>,
-        session: Session,
-    ) {
-        updateTransTilstandStatusTimer.recordCallable {
-            session.update(
-                queryOf(
-                    """
-                    UPDATE T_TRANSAKSJON 
-                        SET TRANS_TILSTAND_ID = :transaksjontilstandId,
-                            DATO_ENDRET = CURRENT_TIMESTAMP 
-                        WHERE TRANSAKSJON_ID = :transaksjonId
-                    """.trimIndent(),
-                    transaksjontilstandId.mapNotNull { mapOf("transaksjontilstandId" to it) },
-                    transaksjonId.mapNotNull { mapOf("transaksjonId" to it) },
-                ),
-            )
-        }
-    }
-
-    fun getAvstemmingDataByFilInfoId(filInfoId: Int): List<AvstemmingData> =
+    fun findTransaksjonOppsummeringByFilInfoId(filInfoId: Int): List<TransaksjonOppsummering> =
         using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    SELECT count(*) AS ANTALL, k.K_FAGOMRADE, t1.K_TRANS_TILST_T, SUM(DECFLOAT(t1.BELOP)) AS BELOP
-                    FROM T_TRANSAKSJON t1
-                             INNER JOIN T_TRANSAKSJON t2 ON t1.TRANSAKSJON_ID = t2.TRANSAKSJON_ID
-                             INNER JOIN T_K_GYLDIG_KOMBIN k ON k.K_ART = t1.K_ART and k.K_BELOP_T = t1.K_BELOP_T
-                    WHERE t1.K_TRANS_TILST_T != 'OAO'
-                      AND t2.K_TRANS_TILST_T IN ('ORO', 'OFO')
-                      AND k.K_FAGOMRADE IN ('PENSPK', 'UFORESPK')
-                      AND t1.FIL_INFO_ID = $filInfoId
-                    group by k.K_FAGOMRADE, t1.K_TRANS_TILST_T;      
-                    """.trimIndent(),
-                ),
-            ) { row -> AvstemmingData(row.string("K_FAGOMRADE"), row.string("K_TRANS_TILST_T"), row.int("ANTALL"), row.string("BELOP").toBigInteger()) }
+            findTransaksjonOppsummeringByFilInfoIdTimer.recordCallable {
+                session.list(
+                    queryOf(
+                        """
+                        SELECT count(*) AS ANTALL, k.K_FAGOMRADE, t.FIL_INFO_ID, t.K_TRANS_TILST_T, SUM(DECFLOAT(t.BELOP)) AS BELOP
+                        FROM T_TRANSAKSJON t
+                                 INNER JOIN T_K_GYLDIG_KOMBIN k ON k.K_ART = t.K_ART and k.K_BELOP_T = t.K_BELOP_T
+                        WHERE k.K_FAGOMRADE IN ('PENSPK', 'UFORESPK')
+                          AND t.FIL_INFO_ID = $filInfoId
+                        group by k.K_FAGOMRADE, t.FIL_INFO_ID, t.K_TRANS_TILST_T, t.OS_STATUS
+                        """.trimIndent(),
+                    ),
+                ) { row ->
+                    TransaksjonOppsummering(
+                        row.string("K_FAGOMRADE"),
+                        row.int("FIL_INFO_ID"),
+                        row.intOrNull("OS_STATUS"),
+                        row.string("K_TRANS_TILST_T"),
+                        row.int("ANTALL"),
+                        row.bigDecimal("BELOP"),
+                    )
+                }
+            }
+        }
+
+    fun findTransaksjonDetaljerByFilInfoId(filInfoIdList: List<Int>): List<TransaksjonDetalj> =
+        using(sessionOf(dataSource)) { session ->
+            findTransaksjonDetaljerByFilInfoIdTimer.recordCallable {
+                session.list(
+                    queryOf(
+                        """
+                        SELECT t.TRANSAKSJON_ID, t.FNR_FK, k.K_FAGOMRADE, t.OS_STATUS, t.K_TRANS_TILST_T, tt.FEILKODE, tt.FEILKODEMELDING, t.DATO_OPPRETTET
+                        FROM T_TRANSAKSJON t 
+                                    INNER JOIN T_K_GYLDIG_KOMBIN k ON k.K_ART = t.K_ART and k.K_BELOP_T = t.K_BELOP_T
+                                    INNER JOIN T_TRANS_TILSTAND tt ON t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID
+                        WHERE k.K_ANVISER = '$SPK' AND t.FIL_INFO_ID IN (${filInfoIdList.joinToString()}) AND tt.FEILKODE <> ''
+                        ORDER BY t.TRANSAKSJON_ID;
+                        """.trimIndent(),
+                    ),
+                ) { row ->
+                    TransaksjonDetalj(
+                        row.int("TRANSAKSJON_ID"),
+                        row.string("FNR_FK"),
+                        row.string("K_FAGOMRADE"),
+                        row.stringOrNull("OS_STATUS"),
+                        row.string("K_TRANS_TILST_T"),
+                        row.stringOrNull("FEILKODE"),
+                        row.stringOrNull("FEILKODEMELDING"),
+                        row.localDateTime("DATO_OPPRETTET"),
+                    )
+                }
+            }
         }
 
     /** Bruker kun for testing */

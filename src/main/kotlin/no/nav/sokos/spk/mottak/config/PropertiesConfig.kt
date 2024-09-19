@@ -16,11 +16,11 @@ object PropertiesConfig {
                 "NAIS_NAMESPACE" to "okonomi",
                 "USE_AUTHENTICATION" to "true",
                 "SCHEDULER_ENABLED" to "true",
-                "READ_AND_PARSEFILE_CRON_PATTERN" to "0 10 * * * *",
-                "VALIDATE_TRANSAKSJON_CRON_PATTERN" to "0 0 0 * * *",
-                "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "0 * * * * *",
-                "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN" to "0 * * * * *",
+                "READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN" to "0 10 * * * *",
+                "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
+                "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
                 "SEND_TRANSAKSJON_CRON_PATTERN" to "*/10 * * * * *",
+                "GRENSNITT_AVSTEMMING_CRON_PATTERN" to "0 0 * * * *",
             ),
         )
 
@@ -40,6 +40,7 @@ object PropertiesConfig {
                 "MQ_UTBETALING_REPLY_QUEUE_NAME" to "QA.Q1_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY",
                 "MQ_TREKK_QUEUE_NAME" to "QA.Q1_231.OB04_TREKK_MOT_XML",
                 "MQ_TREKK_REPLY_QUEUE_NAME" to "QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY",
+                "MQ_AVSTEMMING_QUEUE_NAME" to "QA.Q1_231.OB04_AVSTEMMING_XML",
             ),
         )
 
@@ -108,11 +109,11 @@ object PropertiesConfig {
 
     data class SchedulerProperties(
         val enabled: Boolean = get("SCHEDULER_ENABLED").toBoolean(),
-        val readAndParseFileCronPattern: String = getOrEmpty("READ_AND_PARSEFILE_CRON_PATTERN"),
-        val validateTransaksjonCronPattern: String = getOrEmpty("VALIDATE_TRANSAKSJON_CRON_PATTERN"),
-        val sendUtbetalingTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
-        val sendTrekkTransaksjonTilOppdragCronPattern: String = getOrEmpty("SEND_TREKK_TRANSAKSJON_TIL_OPPDRAG_CRON_PATTERN"),
+        val readParseFileAndValidateTransactionsCronPattern: String = getOrEmpty("READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN"),
+        val sendUtbetalingTransaksjonToOppdragZCronPattern: String = getOrEmpty("SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN"),
+        val sendTrekkTransaksjonToOppdragZCronPattern: String = getOrEmpty("SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN"),
         val sendTransaksjonCronPattern: String = getOrEmpty("SEND_TRANSAKSJON_CRON_PATTERN"),
+        val grensesnittAvstemmingCronPattern: String = getOrEmpty("GRENSNITT_AVSTEMMING_CRON_PATTERN"),
     )
 
     data class MQProperties(
@@ -122,11 +123,12 @@ object PropertiesConfig {
         val mqChannelName: String = getOrEmpty("MQ_CHANNEL_NAME"),
         val serviceUsername: String = getOrEmpty("MQ_SERVICE_USERNAME"),
         val servicePassword: String = getOrEmpty("MQ_SERVICE_PASSWORD"),
+        val userAuth: Boolean = true,
         val trekkQueueName: String = getOrEmpty("MQ_TREKK_QUEUE_NAME"),
         val trekkReplyQueueName: String = getOrEmpty("MQ_TREKK_REPLY_QUEUE_NAME"),
         val utbetalingQueueName: String = getOrEmpty("MQ_UTBETALING_QUEUE_NAME"),
         val utbetalingReplyQueueName: String = getOrEmpty("MQ_UTBETALING_REPLY_QUEUE_NAME"),
-        val userAuth: Boolean = true,
+        val avstemmingQueueName: String = getOrEmpty("MQ_AVSTEMEMING_QUEUE_NAME"),
     )
 
     enum class Profile {

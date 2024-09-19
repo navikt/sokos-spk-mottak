@@ -56,10 +56,12 @@ internal class JmsListenerServiceTest :
                         mqUtbetalingListenerMetricCounter.longValue shouldBe 2
 
                         val transaksjonIdList = listOf(20025925, 20025926)
-                        val transaksjonList = Db2Listener.transaksjonTilstandRepository.findAllByTransaksjonId(transaksjonIdList)
-                        transaksjonList.map {
-                            it.transaksjonTilstandType shouldBe TRANS_TILSTAND_OPPDRAG_RETUR_OK
+                        transaksjonIdList.forEach {
+                            val transaksjon = Db2Listener.transaksjonRepository.getByTransaksjonId(it)!!
+                            transaksjon.transTilstandType shouldBe TRANS_TILSTAND_OPPDRAG_RETUR_OK
+                            transaksjon.osStatus shouldBe "00"
                         }
+
                         val transTilstandList = Db2Listener.transaksjonTilstandRepository.findAllByTransaksjonId(transaksjonIdList)
                         transTilstandList.map {
                             it.transaksjonTilstandType == TRANS_TILSTAND_OPPDRAG_RETUR_OK
