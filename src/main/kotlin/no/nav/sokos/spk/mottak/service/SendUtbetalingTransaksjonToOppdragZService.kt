@@ -24,6 +24,7 @@ import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
+import no.nav.sokos.spk.mottak.util.MQ_BATCH_SIZE
 import no.nav.sokos.spk.mottak.util.XmlUtils
 import no.trygdeetaten.skjema.oppdrag.ObjectFactory
 import no.trygdeetaten.skjema.oppdrag.Oppdrag
@@ -31,7 +32,6 @@ import java.time.Duration
 import java.time.Instant
 
 private val logger = KotlinLogging.logger { }
-private const val BATCH_SIZE = 1000
 
 class SendUtbetalingTransaksjonToOppdragZService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
@@ -65,7 +65,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
                             .map { it.value.toUtbetalingsOppdrag() }
                             .map { JaxbUtils.marshallOppdrag(it) }
                     logger.info { "Oppdragslistestørrelse ${oppdragList.size}" }
-                    oppdragList.chunked(BATCH_SIZE).forEach { oppdragChunk ->
+                    oppdragList.chunked(MQ_BATCH_SIZE).forEach { oppdragChunk ->
                         logger.info { "Sender ${oppdragChunk.size} utbetalingsmeldinger " }
                         sendToOppdragZ(oppdragChunk)
                         totalTransaksjoner += oppdragChunk.size

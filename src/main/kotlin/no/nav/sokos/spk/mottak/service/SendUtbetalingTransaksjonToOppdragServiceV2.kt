@@ -20,6 +20,7 @@ import no.nav.sokos.spk.mottak.repository.OutboxRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
+import no.nav.sokos.spk.mottak.util.MQ_BATCH_SIZE
 import no.nav.sokos.spk.mottak.util.XmlUtils.parseXmlToString
 import no.nav.sokos.spk.mottak.util.XmlUtils.parseXmlToStringList
 import no.trygdeetaten.skjema.oppdrag.ObjectFactory
@@ -27,7 +28,6 @@ import no.trygdeetaten.skjema.oppdrag.Oppdrag
 import java.time.Instant
 
 private val logger = KotlinLogging.logger { }
-private const val BATCH_SIZE = 1000
 
 class SendUtbetalingTransaksjonToOppdragServiceV2(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
@@ -46,7 +46,7 @@ class SendUtbetalingTransaksjonToOppdragServiceV2(
                     logger.info { "Starter sending av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
                     val oppdragList = transaksjonList.groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }.map { it.value.toOppdrag() }.map { JaxbUtils.marshallOppdrag(it) }
                     logger.info { "Oppdragslistestørrelse ${oppdragList.size}" }
-                    oppdragList.chunked(BATCH_SIZE).forEach { oppdragChunk ->
+                    oppdragList.chunked(MQ_BATCH_SIZE).forEach { oppdragChunk ->
                         logger.info { "Sender ${oppdragChunk.size} utbetalingsmeldinger " }
                         sendToOppdrag(oppdragChunk)
                         totalTransaksjoner += oppdragChunk.size

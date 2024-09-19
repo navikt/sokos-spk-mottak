@@ -17,9 +17,9 @@ import no.nav.sokos.spk.mottak.repository.OutboxRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
+import no.nav.sokos.spk.mottak.util.MQ_BATCH_SIZE
 
 private val logger = KotlinLogging.logger { }
-private const val BATCH_SIZE = 1000
 
 class SendTrekkTransaksjonToOppdragServiceV2(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
@@ -47,7 +47,7 @@ class SendTrekkTransaksjonToOppdragServiceV2(
 
     private fun processTransaksjoner(transaksjoner: List<Transaksjon>): Int {
         var totalTransaksjoner = 0
-        transaksjoner.chunked(BATCH_SIZE).forEach { chunk ->
+        transaksjoner.chunked(MQ_BATCH_SIZE).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
             dataSource.transaction { session ->
                 runCatching {

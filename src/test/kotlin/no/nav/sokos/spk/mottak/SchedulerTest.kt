@@ -1,7 +1,15 @@
 package no.nav.sokos.spk.mottak
 
+import com.github.kagkarlsson.scheduler.Scheduler
+import com.github.kagkarlsson.scheduler.logging.LogLevel.ERROR
+import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.ShouldSpec
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import kotlinx.coroutines.delay
+import no.nav.sokos.spk.mottak.config.JobTaskConfig
+import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.listener.PostgresListener
 import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
@@ -21,55 +29,55 @@ internal class SchedulerTest :
         val sendTrekkTransaksjonToOppdragZService = mockk<SendTrekkTransaksjonToOppdragZService>()
         val avstemmingService = mockk<AvstemmingService>()
 
-//        should("skal starte skedulering og trigge jobber") {
-//            every { readAndParseFileService.readAndParseFile() } returns Unit
-//            every { validateTransaksjonService.validateInnTransaksjon() } returns Unit
-//            every { writeToFileService.writeReturnFile() } returns Unit
-//            every { sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ() } returns Unit
-//            every { sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag() } returns Unit
-//            every { avstemmingService.sendGrensesnittAvstemming() } returns Unit
-//
-//            val schedulerProperties =
-//                PropertiesConfig
-//                    .SchedulerProperties()
-//                    .copy(
-//                        readParseFileAndValidateTransactionsCronPattern = "* * * * * *",
-//                        sendUtbetalingTransaksjonToOppdragZCronPattern = "* * * * * *",
-//                        sendTrekkTransaksjonToOppdragZCronPattern = "* * * * * *",
-//                        grensesnittAvstemmingCronPattern = "* * * * * *",
-//                    )
-//            val readParseFileAndValidateTransactionsTask =
-//                JobTaskConfig.recurringReadParseFileAndValidateTransactionsTask(
-//                    readAndParseFileService,
-//                    validateTransaksjonService,
-//                    writeToFileService,
-//                    schedulerProperties,
-//                )
-//            val sendUtbetalingTransaksjonTilOppdragTask = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask(sendUtbetalingTransaksjonToOppdragZService, schedulerProperties)
-//            val sendTrekkTransaksjonTilOppdragTask = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask(sendTrekkTransaksjonToOppdragZService, schedulerProperties)
-//            val avstemmingTask = JobTaskConfig.recurringGrensesnittAvstemmingTask(avstemmingService, schedulerProperties)
-//
-//            val scheduler =
-//                Scheduler
-//                    .create(PostgresListener.dataSource)
-//                    .startTasks(
-//                        readParseFileAndValidateTransactionsTask,
-//                        sendUtbetalingTransaksjonTilOppdragTask,
-//                        sendTrekkTransaksjonTilOppdragTask,
-//                        avstemmingTask,
-//                    ).failureLogging(LogLevel.ERROR, true)
-//                    .build()
-//
-//            runBlocking {
-//                scheduler.start()
-//                delay(12000)
-//                scheduler.stop()
-//            }
-//
-//            verify { readAndParseFileService.readAndParseFile() }
-//            verify { validateTransaksjonService.validateInnTransaksjon() }
-//            verify { sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ() }
-//            verify { sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag() }
-//            verify { avstemmingService.sendGrensesnittAvstemming() }
-//        }
+        should("skal starte skedulering og trigge jobber") {
+            every { readAndParseFileService.readAndParseFile() } returns Unit
+            every { validateTransaksjonService.validateInnTransaksjon() } returns Unit
+            every { writeToFileService.writeReturnFile() } returns Unit
+            every { sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ() } returns Unit
+            every { sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag() } returns Unit
+            every { avstemmingService.sendGrensesnittAvstemming() } returns Unit
+
+            val schedulerProperties =
+                PropertiesConfig
+                    .SchedulerProperties()
+                    .copy(
+                        readParseFileAndValidateTransactionsCronPattern = "* * * * * *",
+                        sendUtbetalingTransaksjonToOppdragZCronPattern = "* * * * * *",
+                        sendTrekkTransaksjonToOppdragZCronPattern = "* * * * * *",
+                        grensesnittAvstemmingCronPattern = "* * * * * *",
+                    )
+            val readParseFileAndValidateTransactionsTask =
+                JobTaskConfig.recurringReadParseFileAndValidateTransactionsTask(
+                    readAndParseFileService,
+                    validateTransaksjonService,
+                    writeToFileService,
+                    schedulerProperties,
+                )
+            val sendUtbetalingTransaksjonTilOppdragTask = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask(sendUtbetalingTransaksjonToOppdragZService, schedulerProperties)
+            val sendTrekkTransaksjonTilOppdragTask = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask(sendTrekkTransaksjonToOppdragZService, schedulerProperties)
+            val avstemmingTask = JobTaskConfig.recurringGrensesnittAvstemmingTask(avstemmingService, schedulerProperties)
+
+            val scheduler =
+                Scheduler
+                    .create(PostgresListener.dataSource)
+                    .startTasks(
+                        readParseFileAndValidateTransactionsTask,
+                        sendUtbetalingTransaksjonTilOppdragTask,
+                        sendTrekkTransaksjonTilOppdragTask,
+                        avstemmingTask,
+                    ).failureLogging(ERROR, true)
+                    .build()
+
+            runBlocking {
+                scheduler.start()
+                delay(12000)
+                scheduler.stop()
+            }
+
+            verify { readAndParseFileService.readAndParseFile() }
+            verify { validateTransaksjonService.validateInnTransaksjon() }
+            verify { sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ() }
+            verify { sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag() }
+            verify { avstemmingService.sendGrensesnittAvstemming() }
+        }
     })
