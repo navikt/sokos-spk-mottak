@@ -65,22 +65,24 @@ class SendTrekkTransaksjonToOppdragZService(
         var totalTransaksjoner = 0
         transaksjoner.chunked(MQ_BATCH_SIZE).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
-            dataSource.transaction { session ->
-                runCatching {
+            runCatching {
+                dataSource.transaction { session ->
                     val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
                     producer.send(trekkMeldinger)
                     updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK, session)
                     totalTransaksjoner += transaksjonIdList.size
                     logger.info { "Fullført sending av ${transaksjonIdList.size} trekktransaksjoner til OppdragZ. Total tid: ${Duration.between(timer, Instant.now()).toSeconds()} sekunder." }
-                }.onFailure { exception ->
-                    if (exception is MottakException) {
-                        runCatching {
+                }
+            }.onFailure { exception ->
+                logger.error(exception) { "Feiler ved utsending av trekktransaksjonene: ${transaksjonIdList.joinToString()} : $exception" }
+                if (exception is MottakException) {
+                    runCatching {
+                        dataSource.transaction { session ->
                             updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL, session)
-                        }.onFailure { exception ->
-                            logger.error(exception) { "DB2-feil: $exception" }
                         }
+                    }.onFailure { exception ->
+                        logger.error(exception) { "DB2-feil: $exception" }
                     }
-                    logger.error(exception) { "Trekktransaksjoner: ${transaksjonIdList.minOrNull()} - ${transaksjonIdList.maxOrNull()} feiler ved sending til OppdragZ: $exception" }
                 }
             }
         }

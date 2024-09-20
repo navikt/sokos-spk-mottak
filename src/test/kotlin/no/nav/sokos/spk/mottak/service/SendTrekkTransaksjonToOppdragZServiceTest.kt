@@ -2,7 +2,6 @@ package no.nav.sokos.spk.mottak.service
 
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -29,7 +28,6 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
-@Ignored
 internal class SendTrekkTransaksjonToOppdragZServiceTest :
     BehaviorSpec({
         extensions(listOf(Db2Listener, MQListener))
@@ -140,13 +138,12 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                     Db2Listener.transaksjonRepository.updateBatch(any(), any(), eq(TRANS_TILSTAND_TREKK_SENDT_OK), any(), any(), any())
                 } throws Exception("Feiler ved oppdatering av transtilstand til TSO i transaksjon-tabellen!")
                 trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag()
-                Then("skal ingen transaksjoner blir oppdatert med status TSO (Trekk Sendt Ok), men bli oppdatert med status TSF (Trekk Sendt Feil)") {
+                Then("skal ingen transaksjoner blir oppdatert med status TSO (Trekk Sendt Ok), men beholder status OPR (Opprettet)") {
                     val transaksjonList = Db2Listener.transaksjonRepository.findAllByFilInfoId(filInfoId = 20000402)
-                    transaksjonList.map { it.transTilstandType shouldBe TRANS_TILSTAND_TREKK_SENDT_FEIL }
+                    transaksjonList.map { it.transTilstandType shouldBe TRANS_TILSTAND_OPPRETTET }
 
                     val transaksjonTilstandList = Db2Listener.transaksjonTilstandRepository.findAllByTransaksjonId(transaksjonList.map { it.transaksjonId!! })
-                    transaksjonTilstandList.size shouldBe 10
-                    transaksjonTilstandList.map { it.transaksjonTilstandType shouldBe TRANS_TILSTAND_TREKK_SENDT_FEIL }
+                    transaksjonTilstandList.size shouldBe 0
                 }
             }
         }
@@ -174,26 +171,25 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                     Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_TREKK_SENDT_OK, any(), any(), any())
                 } throws Exception("Feiler ved opprettelse av transaksjoner i transaksjontilstand-tabellen!")
                 trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag()
-                Then("skal ingen transaksjoner blir oppdatert med status TSO (Trekk Sendt Ok), men bli oppdatert med status TSF (Trekk Sendt Feil)") {
+                Then("skal ingen transaksjoner blir oppdatert med status TSO (Trekk Sendt Ok), men beholder status OPR (Opprettet)") {
                     val transaksjonList = Db2Listener.transaksjonRepository.findAllByFilInfoId(filInfoId = 20000402)
-                    transaksjonList.map { it.transTilstandType shouldBe TRANS_TILSTAND_TREKK_SENDT_FEIL }
+                    transaksjonList.map { it.transTilstandType shouldBe TRANS_TILSTAND_OPPRETTET }
 
                     val transaksjonTilstandList = Db2Listener.transaksjonTilstandRepository.findAllByTransaksjonId(transaksjonList.map { it.transaksjonId!! })
-                    transaksjonTilstandList.size shouldBe 10
-                    transaksjonTilstandList.map { it.transaksjonTilstandType shouldBe TRANS_TILSTAND_TREKK_SENDT_FEIL }
+                    transaksjonTilstandList.size shouldBe 0
                 }
             }
         }
 
-        Given("det finnes trekk som skal sendes til oppdragZ med database som feiler ved oppdatering av transtilstand i transaksjon-tabellen også etter at sendingen feilet") {
+        Given("det finnes trekk som skal sendes til oppdragZ med MQ server nede og som feiler ved opprettelse av transaksjoner med feilstatus i transaksjontilstandtabellen") {
             val trekkTransaksjonTilOppdragService =
                 SendTrekkTransaksjonToOppdragZService(
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
                     JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                        senderQueueMock,
+                        replyQueueMock,
                         mqTrekkProducerMetricCounter,
                         connectionFactory,
                     ),
@@ -203,20 +199,17 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
             }
             Db2Listener.transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_TREKK, TRANS_TILSTAND_TIL_TREKK).size shouldBe 10
             When("henter trekk og sender til OppdragZ") {
-                clearMocks(Db2Listener.transaksjonTilstandRepository)
                 clearMocks(Db2Listener.transaksjonRepository)
                 every {
-                    Db2Listener.transaksjonRepository.updateBatch(any(), any(), any(), any(), any(), any())
-                } throws Exception("Feiler ved oppdatering av transtilstand til TSF i transaksjon-tabellen!")
+                    Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_TREKK_SENDT_FEIL, any(), any(), any())
+                } throws Exception("Feiler ved opprettelse av transaksjoner med feilstatus i transaksjontilstand-tabellen!")
+                trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag()
+                Then("skal ingen transaksjoner blir oppdatert med status TSF (Trekk Sendt Feil), men beholder status OPR (Opprettet)") {
+                    val transaksjonList = Db2Listener.transaksjonRepository.findAllByFilInfoId(filInfoId = 20000402)
+                    transaksjonList.map { it.transTilstandType shouldBe TRANS_TILSTAND_OPPRETTET }
 
-                val exception = shouldThrow<RuntimeException> { trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag() }
-                val transaksjonList = Db2Listener.transaksjonRepository.findAllByFilInfoId(filInfoId = 20000402)
-                transaksjonList.map { it.transTilstandType shouldBe TRANS_TILSTAND_OPPRETTET }
-                val transaksjonTilstandList = Db2Listener.transaksjonTilstandRepository.findAllByTransaksjonId(transaksjonList.map { it.transaksjonId!! })
-                transaksjonTilstandList.size shouldBe 0
-
-                Then("skal det kastes en fatal feil og SendTrekkTransaksjonToOppdragServiceV2 skal stoppes") {
-                    exception.message shouldContain "Fatal feil ved sending av trekktransaksjoner"
+                    val transaksjonTilstandList = Db2Listener.transaksjonTilstandRepository.findAllByTransaksjonId(transaksjonList.map { it.transaksjonId!! })
+                    transaksjonTilstandList.size shouldBe 0
                 }
             }
         }

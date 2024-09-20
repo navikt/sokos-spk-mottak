@@ -49,18 +49,19 @@ class SendTrekkTransaksjonToOppdragServiceV2(
         var totalTransaksjoner = 0
         transaksjoner.chunked(MQ_BATCH_SIZE).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
-            dataSource.transaction { session ->
-                runCatching {
+            runCatching {
+                dataSource.transaction { session ->
+
                     val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
                     updateTransaksjonOgTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK, trekkMeldinger, session)
                     logger.info { "Inserted ${trekkMeldinger.size} trekkmeldinger" }
                     totalTransaksjoner += transaksjonIdList.size
-                }.onFailure { exception ->
-                    logger.error(exception) { "Feiler ved utsending av trekktransaksjonene: ${transaksjonIdList.joinToString()} : $exception" }
-                    if (exception is BatchUpdateException) {
-                        val ex: BatchUpdateException = exception
-                        logger.error { "Feilårsak er ${ex.nextException}" }
-                    }
+                }
+            }.onFailure { exception ->
+                logger.error(exception) { "Feiler ved utsending av trekktransaksjonene: ${transaksjonIdList.joinToString()} : $exception" }
+                if (exception is BatchUpdateException) {
+                    val ex: BatchUpdateException = exception
+                    logger.error { "Feilårsak er ${ex.nextException}" }
                 }
             }
         }
