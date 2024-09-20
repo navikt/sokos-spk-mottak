@@ -98,8 +98,8 @@ class SendUtbetalingTransaksjonToOppdragZService(
         dataSource.transaction { session ->
             var transaksjonIdList = emptyList<Int>()
             runCatching {
-                producer.send(oppdragList)
                 transaksjonIdList = findTransaksjonIdList(oppdragList)
+                producer.send(oppdragList)
                 updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
             }.onFailure { exception ->
                 if (exception is MottakException) {
