@@ -27,12 +27,12 @@ open class JmsProducerService(
             runCatching {
                 messages.forEach { message ->
                     producer.send(senderQueue, message)
-                    logger.info { "sendt message $message" }
+                    logger.debug { "sendt message $message" }
                 }
             }.onSuccess {
                 context.commit()
                 metricCounter.inc(payload.size.toLong())
-                logger.debug { "MQ-transaksjon committed ${payload.size} messages" }
+                logger.info { "MQ-transaksjon committed ${messages.size} messages" }
             }.onFailure { exception ->
                 context.rollback()
                 logger.error(exception) { "MQ-transaksjon rolled back" }

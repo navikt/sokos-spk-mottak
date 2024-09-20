@@ -1,7 +1,7 @@
 package no.nav.sokos.spk.mottak
 
 import com.github.kagkarlsson.scheduler.Scheduler
-import com.github.kagkarlsson.scheduler.logging.LogLevel
+import com.github.kagkarlsson.scheduler.logging.LogLevel.ERROR
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.ShouldSpec
 import io.mockk.every
@@ -34,7 +34,7 @@ internal class SchedulerTest :
             every { validateTransaksjonService.validateInnTransaksjon() } returns Unit
             every { writeToFileService.writeReturnFile() } returns Unit
             every { sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ() } returns Unit
-            every { sendTrekkTransaksjonToOppdragZService.hentTrekkTransaksjonOgSendTilOppdrag() } returns Unit
+            every { sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag() } returns Unit
             every { avstemmingService.sendGrensesnittAvstemming() } returns Unit
 
             val schedulerProperties =
@@ -65,7 +65,7 @@ internal class SchedulerTest :
                         sendUtbetalingTransaksjonTilOppdragTask,
                         sendTrekkTransaksjonTilOppdragTask,
                         avstemmingTask,
-                    ).failureLogging(LogLevel.ERROR, true)
+                    ).failureLogging(ERROR, true)
                     .build()
 
             runBlocking {
@@ -77,7 +77,7 @@ internal class SchedulerTest :
             verify { readAndParseFileService.readAndParseFile() }
             verify { validateTransaksjonService.validateInnTransaksjon() }
             verify { sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ() }
-            verify { sendTrekkTransaksjonToOppdragZService.hentTrekkTransaksjonOgSendTilOppdrag() }
+            verify { sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag() }
             verify { avstemmingService.sendGrensesnittAvstemming() }
         }
     })

@@ -55,7 +55,7 @@ class TransaksjonTilstandRepository(
                         FROM T_TRANS_TILSTAND
                         WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()})
                           AND K_TRANS_TILST_T = '$transaksjonTilstandType'
-                        GROUP BY TRANSAKSJON_ID;
+                        GROUP BY TRANSAKSJON_ID
                         """.trimIndent(),
                     ),
                 ) { row -> row.int("TRANS_TILSTAND_ID") }
@@ -71,7 +71,7 @@ class TransaksjonTilstandRepository(
                 queryOf(
                     """
                     DELETE FROM T_TRANS_TILSTAND  
-                        WHERE TRANS_TILSTAND_ID IN (${transaksjonTilstandId.joinToString()});
+                        WHERE TRANS_TILSTAND_ID IN (${transaksjonTilstandId.joinToString()})
                     """.trimIndent(),
                 ),
             )

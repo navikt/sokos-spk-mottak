@@ -42,7 +42,7 @@ fun Route.mottakApi(
 
         get("sendTrekkTransaksjonToOppdragZ") {
             launch(Dispatchers.IO) {
-                sendTrekkTransaksjonToOppdragZService.hentTrekkTransaksjonOgSendTilOppdrag()
+                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
             }
             call.respond(HttpStatusCode.OK, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
