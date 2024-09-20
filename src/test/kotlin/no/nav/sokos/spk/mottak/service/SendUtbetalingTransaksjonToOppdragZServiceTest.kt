@@ -32,13 +32,14 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
         Given("det finnes utbetalinger som skal sendes til oppdragZ") {
             val utbetalingTransaksjonTilOppdragService: SendUtbetalingTransaksjonToOppdragZService by lazy {
                 SendUtbetalingTransaksjonToOppdragZService(
-                    Db2Listener.dataSource,
-                    JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
-                        mqUtbetalingProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    dataSource = Db2Listener.dataSource,
+                    producer =
+                        JmsProducerService(
+                            ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingQueueName),
+                            ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
+                            mqUtbetalingProducerMetricCounter,
+                            connectionFactory,
+                        ),
                 )
             }
 
@@ -62,13 +63,14 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
         Given("det finnes utbetalinger som skal sendes til oppdragZ med MQ server som er nede") {
             val utbetalingTransaksjonTilOppdragService =
                 SendUtbetalingTransaksjonToOppdragZService(
-                    Db2Listener.dataSource,
-                    JmsProducerService(
-                        senderQueueMock,
-                        replyQueueMock,
-                        mqUtbetalingProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    dataSource = Db2Listener.dataSource,
+                    producer =
+                        JmsProducerService(
+                            senderQueueMock,
+                            replyQueueMock,
+                            mqUtbetalingProducerMetricCounter,
+                            connectionFactory,
+                        ),
                 )
 
             Db2Listener.dataSource.transaction { session ->
@@ -94,13 +96,14 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
 
             val utbetalingTransaksjonTilOppdragService =
                 SendUtbetalingTransaksjonToOppdragZService(
-                    dataSourceMock,
-                    JmsProducerService(
-                        senderQueueMock,
-                        replyQueueMock,
-                        mqUtbetalingProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    dataSource = dataSourceMock,
+                    producer =
+                        JmsProducerService(
+                            senderQueueMock,
+                            replyQueueMock,
+                            mqUtbetalingProducerMetricCounter,
+                            connectionFactory,
+                        ),
                 )
 
             When("hent utbetalinger og send til OppdragZ") {

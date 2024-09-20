@@ -22,34 +22,38 @@ import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
 
 private val logger = KotlinLogging.logger { }
 private const val ANTALL_DETALJER_PER_MELDING = 70
+private const val ANTALL_IKKE_UTFORT_TRANSAKSJON = 500
 
 class AvstemmingService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),
+    private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val producer: JmsProducerService =
         JmsProducerService(
-            senderQueue = MQQueue(PropertiesConfig.MQProperties().avstemmingQueueName).apply { targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ },
+            senderQueue =
+                MQQueue(PropertiesConfig.MQProperties().avstemmingQueueName).apply {
+                    targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
+                },
             metricCounter = Metrics.mqUtbetalingProducerMetricCounter,
         ),
 ) {
-    private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource)
-    private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
-
     fun sendGrensesnittAvstemming() {
         runCatching {
-            val fileInfoList = filInfoRepository.getByAvstemmingStatusIsOSO()
+            val fileInfoMap = filInfoRepository.getByAvstemmingStatusIsOSO(ANTALL_IKKE_UTFORT_TRANSAKSJON)
 
-            if (fileInfoList.isNotEmpty()) {
+            if (fileInfoMap.isNotEmpty()) {
                 Metrics.timer(SERVICE_CALL, "AvstemmingService", "sendGrensesnittAvstemming").recordCallable {
                     val oppsummeringMap =
-                        fileInfoList
-                            .flatMap { transaksjonRepository.findTransaksjonOppsummeringByFilInfoId(it.filInfoId!!) }
+                        fileInfoMap
+                            .flatMap { transaksjonRepository.findTransaksjonOppsummeringByFilInfoId(it.key) }
                             .groupBy { it.fagomrade }
                     logger.debug { "Transkasjon oppsummering: $oppsummeringMap" }
 
-                    val filInfoIdList = fileInfoList.map { it.filInfoId!! }
+                    val filInfoIdList = fileInfoMap.map { it.key }
                     val transaksjonDetaljer = transaksjonRepository.findTransaksjonDetaljerByFilInfoId(filInfoIdList)
                     oppsummeringMap.forEach { oppsummering -> sendAvstemmingTilMQ(oppsummering.key, oppsummering.value, transaksjonDetaljer, filInfoIdList) }
                     dataSource.transaction { session ->
@@ -57,6 +61,8 @@ class AvstemmingService(
                     }
                     logger.info { "Avstemming sendt OK for fileInfoId: ${filInfoIdList.joinToString()}" }
                 }
+            } else {
+                logger.info { "Ingen transaksjoner eller for mange antall ikke fått kvittering fra OppdragZ transaksjoner til grensesnitt avstemming." }
             }
         }.onFailure { exception ->
             val errorMessage = "Feil under sending av avstemming til OppdragZ. Feilmelding: ${exception.message}"
@@ -72,7 +78,8 @@ class AvstemmingService(
         filInfoIdList: List<Int>,
     ) {
         val avstemming = AvstemmingConverter.default(filInfoIdList.first().toString(), filInfoIdList.last().toString(), fagomrade)
-        val avstemmingList = mutableListOf(avstemming.startMelding())
+        val avstemmingList = mutableListOf<Avstemmingsdata>()
+        avstemmingList.add(avstemming.startMelding())
 
         if (transaksjonDetaljer.isNotEmpty()) {
             transaksjonDetaljer.chunked(ANTALL_DETALJER_PER_MELDING).forEach {

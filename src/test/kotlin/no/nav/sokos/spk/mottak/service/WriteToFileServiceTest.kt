@@ -31,7 +31,10 @@ internal class WriteToFileServiceTest :
         }
 
         val writeToFileService: WriteToFileService by lazy {
-            WriteToFileService(Db2Listener.dataSource, ftpService)
+            WriteToFileService(
+                dataSource = Db2Listener.dataSource,
+                ftpService = ftpService,
+            )
         }
 
         afterEach {

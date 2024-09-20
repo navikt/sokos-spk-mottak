@@ -126,7 +126,7 @@ object PropertiesConfig {
         val trekkReplyQueueName: String = getOrEmpty("MQ_TREKK_REPLY_QUEUE_NAME"),
         val utbetalingQueueName: String = getOrEmpty("MQ_UTBETALING_QUEUE_NAME"),
         val utbetalingReplyQueueName: String = getOrEmpty("MQ_UTBETALING_REPLY_QUEUE_NAME"),
-        val avstemmingQueueName: String = getOrEmpty("MQ_AVSTEMEMING_QUEUE_NAME"),
+        val avstemmingQueueName: String = getOrEmpty("MQ_AVSTEMMING_QUEUE_NAME"),
     )
 
     enum class Profile {

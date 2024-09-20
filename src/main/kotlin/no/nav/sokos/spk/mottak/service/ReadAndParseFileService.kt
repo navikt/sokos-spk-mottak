@@ -30,12 +30,11 @@ private val logger = KotlinLogging.logger {}
 
 class ReadAndParseFileService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource),
+    private val lopenummerRepository: LopenummerRepository = LopenummerRepository(dataSource),
+    private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),
     private val ftpService: FtpService = FtpService(),
 ) {
-    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource)
-    private val lopenummerRepository: LopenummerRepository = LopenummerRepository(dataSource)
-    private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource)
-
     fun readAndParseFile() {
         logger.info { "Filprossesering jobben startet" }
         val downloadFiles = ftpService.downloadFiles()

@@ -22,8 +22,8 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
-private const val AVLEVERENDE_KOMPONENT_KODE = "MOTTKOMP"
-private const val MOTTAKENDE_KOMPONENT_KODE = "OS"
+const val AVLEVERENDE_KOMPONENT_KODE = "MOTTKOMP"
+const val MOTTAKENDE_KOMPONENT_KODE = "OS"
 
 object AvstemmingConverter {
     fun default(
@@ -46,14 +46,14 @@ object AvstemmingConverter {
                 }
         }
 
-    fun Avstemmingsdata.startMelding() =
-        this.apply {
-            aksjon = this.aksjon.apply { aksjonType = AksjonType.START }
+    fun Avstemmingsdata.startMelding(): Avstemmingsdata =
+        this.copy().apply {
+            aksjon = this.aksjon.copy().apply { aksjonType = AksjonType.START }
         }
 
     fun Avstemmingsdata.sluttMelding() =
-        this.apply {
-            aksjon = this.aksjon.apply { aksjonType = AksjonType.AVSL }
+        this.copy().apply {
+            aksjon = this.aksjon.copy().apply { aksjonType = AksjonType.AVSL }
         }
 
     fun Avstemmingsdata.dataMelding(oppsummeringList: List<TransaksjonOppsummering>): Avstemmingsdata {
@@ -62,8 +62,8 @@ object AvstemmingConverter {
         val avvistList = oppsummeringList.filter { it.transTilstandType == TRANS_TILSTAND_OPPDRAG_RETUR_FEIL }
         val manglerList = oppsummeringList.filter { it.osStatus == null && it.transTilstandType != TRANS_TILSTAND_OPPDRAG_SENDT_FEIL }
 
-        return this.apply {
-            aksjon = this.aksjon.apply { aksjonType = AksjonType.DATA }
+        return copy().apply {
+            aksjon = this.aksjon.copy().apply { aksjonType = AksjonType.DATA }
             total =
                 Totaldata().apply {
                     totalAntall = oppsummeringList.sumOf { it.antall }
@@ -112,6 +112,30 @@ object AvstemmingConverter {
                     }
                 },
             )
+        }
+
+    private fun Avstemmingsdata.copy(): Avstemmingsdata =
+        Avstemmingsdata().apply {
+            aksjon = this@copy.aksjon
+            total = this@copy.total
+            periode = this@copy.periode
+            grunnlag = this@copy.grunnlag
+            detalj.addAll(this@copy.detalj)
+        }
+
+    private fun Aksjonsdata.copy(): Aksjonsdata =
+        Aksjonsdata().apply {
+            aksjonType = this@copy.aksjonType
+            kildeType = this@copy.kildeType
+            avstemmingType = this@copy.avstemmingType
+            avleverendeKomponentKode = this@copy.avleverendeKomponentKode
+            mottakendeKomponentKode = this@copy.mottakendeKomponentKode
+            underkomponentKode = this@copy.underkomponentKode
+            nokkelFom = this@copy.nokkelFom
+            nokkelTom = this@copy.nokkelTom
+            tidspunktAvstemmingTom = this@copy.tidspunktAvstemmingTom
+            avleverendeAvstemmingId = this@copy.avleverendeAvstemmingId
+            brukerId = this@copy.brukerId
         }
 
     private fun TransaksjonDetalj.detaljType(): DetaljType =

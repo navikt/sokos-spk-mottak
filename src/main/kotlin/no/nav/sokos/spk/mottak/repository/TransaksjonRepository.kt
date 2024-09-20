@@ -26,7 +26,6 @@ class TransaksjonRepository(
 ) {
     private val findTransaksjonDetaljerByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonDetaljerByFilInfoId")
     private val findTransaksjonOppsummeringByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonOppsummeringByFilInfoId")
-    private val getByTransEksIdFkTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "getByTransEksIdFk")
     private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "insertBatch")
     private val updateAllWhereTranstolkningIsNyForMoreThanOneInstanceTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateAllWhereTranstolkningIsNyForMoreThanOneInstance")
     private val getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstanceTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance")
@@ -235,11 +234,10 @@ class TransaksjonRepository(
                 session.list(
                     queryOf(
                         """
-                        SELECT count(*) AS ANTALL, k.K_FAGOMRADE, t.FIL_INFO_ID, t.K_TRANS_TILST_T, SUM(DECFLOAT(t.BELOP)) AS BELOP
+                        SELECT count(*) AS ANTALL, k.K_FAGOMRADE, t.FIL_INFO_ID, t.OS_STATUS, t.K_TRANS_TILST_T, SUM(CAST(t.BELOP AS BIGINT)) AS BELOP
                         FROM T_TRANSAKSJON t
                                  INNER JOIN T_K_GYLDIG_KOMBIN k ON k.K_ART = t.K_ART and k.K_BELOP_T = t.K_BELOP_T
-                        WHERE k.K_FAGOMRADE IN ('PENSPK', 'UFORESPK')
-                          AND t.FIL_INFO_ID = $filInfoId
+                        WHERE k.K_FAGOMRADE IN ('PENSPK', 'UFORESPK') AND t.K_BELOP_T IN ('01','02') AND t.FIL_INFO_ID = $filInfoId
                         group by k.K_FAGOMRADE, t.FIL_INFO_ID, t.K_TRANS_TILST_T, t.OS_STATUS
                         """.trimIndent(),
                     ),

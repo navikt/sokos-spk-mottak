@@ -55,7 +55,10 @@ internal class ReadParseFileServiceTest :
         }
 
         val readAndParseFileService: ReadAndParseFileService by lazy {
-            ReadAndParseFileService(dataSource, ftpService)
+            ReadAndParseFileService(
+                dataSource = dataSource,
+                ftpService = ftpService,
+            )
         }
 
         afterEach {
@@ -118,7 +121,10 @@ internal class ReadParseFileServiceTest :
         Given("det finnes ubehandlet fil i \"inbound\" på FTP-serveren ") {
             val ftpServiceMock = mockk<FtpService>()
             val readAndParseFileService: ReadAndParseFileService by lazy {
-                ReadAndParseFileService(dataSource, ftpServiceMock)
+                ReadAndParseFileService(
+                    dataSource = dataSource,
+                    ftpService = ftpServiceMock,
+                )
             }
 
             When("leser ok format filen og parser") {
