@@ -4,6 +4,7 @@ import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.Marshaller
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.ObjectFactory
 import no.trygdeetaten.skjema.oppdrag.Oppdrag
 import java.io.StringReader
 import java.io.StringWriter
@@ -13,6 +14,7 @@ import javax.xml.transform.stream.StreamSource
 object JaxbUtils {
     private val jaxbContextOppdrag = JAXBContext.newInstance(Oppdrag::class.java)
     private val jaxbContextTrekk = JAXBContext.newInstance(Dokument::class.java)
+    private val jaxbContextAvstemming = JAXBContext.newInstance(Avstemmingsdata::class.java)
 
     fun marshallOppdrag(oppdrag: Any): String {
         val marshaller =
@@ -36,12 +38,12 @@ object JaxbUtils {
 
     fun marshallAvstemmingsdata(avstemmingsdata: Avstemmingsdata): String {
         val marshaller =
-            jaxbContextOppdrag.createMarshaller().apply {
+            jaxbContextAvstemming.createMarshaller().apply {
                 setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
                 setProperty(Marshaller.JAXB_ENCODING, "UTF-8")
             }
         return StringWriter().use {
-            marshaller.marshal(avstemmingsdata, it)
+            marshaller.marshal(ObjectFactory().createAvstemmingsdata(avstemmingsdata), it)
             it.toString()
         }
     }

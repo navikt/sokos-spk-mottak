@@ -46,20 +46,22 @@ class FilInfoRepository(
             }
         }
 
-    fun getByAvstemmingStatusIsOSO(): List<FilInfo> =
+    fun getByAvstemmingStatusIsOSO(antallUkjentOSZStatus: Int): Map<Int, Int> =
         using(sessionOf(dataSource)) { session ->
             getByAvstemmingStatusIsOSOTimer.recordCallable {
-                session.list(
-                    queryOf(
-                        """
-                        SELECT FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_AVSTEMMING_S
-                        FROM T_FIL_INFO
-                        WHERE K_ANVISER = '$SPK' AND K_AVSTEMMING_S = '$TRANS_TILSTAND_OPPDRAG_SENDT_OK'
-                        ORDER BY FIL_INFO_ID
-                        """.trimIndent(),
-                    ),
-                    mapToFileInfo,
-                )
+                session
+                    .list(
+                        queryOf(
+                            """
+                            select t.FIL_INFO_ID, count(t.TRANSAKSJON_ID) AS ANTALL
+                            from T_FIL_INFO fi INNER JOIN T_TRANSAKSJON t ON fi.FIL_INFO_ID = t.FIL_INFO_ID
+                            where fi.K_ANVISER = 'SPK' AND fi.K_AVSTEMMING_S = '$TRANS_TILSTAND_OPPDRAG_SENDT_OK' AND t.K_BELOP_T IN ('01', '02') AND t.OS_STATUS is not null
+                            group by t.FIL_INFO_ID
+                            having count(*) <= $antallUkjentOSZStatus
+                            """.trimIndent(),
+                        ),
+                    ) { row -> row.int("FIL_INFO_ID") to row.int("ANTALL") }
+                    .toMap()
             }
         }
 

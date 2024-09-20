@@ -35,6 +35,9 @@ private val logger = KotlinLogging.logger { }
 
 class SendUtbetalingTransaksjonToOppdragZService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
+    private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
+    private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),
     private val producer: JmsProducerService =
         JmsProducerService(
             MQQueue(PropertiesConfig.MQProperties().utbetalingQueueName).apply {
@@ -46,10 +49,6 @@ class SendUtbetalingTransaksjonToOppdragZService(
             Metrics.mqUtbetalingProducerMetricCounter,
         ),
 ) {
-    private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
-    private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
-    private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource)
-
     fun getUtbetalingTransaksjonAndSendToOppdragZ() {
         val timer = Instant.now()
         var totalTransaksjoner = 0

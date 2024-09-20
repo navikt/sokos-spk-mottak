@@ -19,11 +19,10 @@ private const val OUTPUT_FILE_NAME = "SPK_NAV_%s_ANV"
 
 class WriteToFileService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource),
+    private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),
     private val ftpService: FtpService = FtpService(),
 ) {
-    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource)
-    private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource)
-
     fun writeReturnFile() {
         runCatching {
             val filInfoList = filInfoRepository.getByFilTilstandAndAllInnTransaksjonIsBehandlet()

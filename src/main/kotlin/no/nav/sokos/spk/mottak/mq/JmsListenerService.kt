@@ -6,25 +6,24 @@ import jakarta.jms.ConnectionFactory
 import jakarta.jms.JMSContext
 import jakarta.jms.Message
 import jakarta.jms.Queue
-import kotliquery.sessionOf
-import kotliquery.using
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.transaction
+import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.trekkStatus
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkListenerMetricCounter
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingListenerMetricCounter
-import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
 
 private val logger = KotlinLogging.logger {}
+private const val OS_STATUS_OK = "00"
 
 class JmsListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
@@ -38,7 +37,6 @@ class JmsListenerService(
 
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
-    private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource)
 
     init {
         utbetalingMQListener.setMessageListener { onUtbetalingMessage(it) }
@@ -63,7 +61,10 @@ class JmsListenerService(
                     else -> TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
                 }
 
-            val transaksjonIdList = oppdrag.oppdrag110.oppdragsLinje150.map { it.delytelseId.toInt() }
+            val transaksjonIdList =
+                oppdrag.oppdrag110.oppdragsLinje150
+                    .filter { !verifyTransaksjonHasOSStatus(it.delytelseId.toInt(), oppdrag.mmel.alvorlighetsgrad) }
+                    .map { it.delytelseId.toInt() }
 
             dataSource.transaction { session ->
                 val transTilstandIdList =
@@ -106,24 +107,41 @@ class JmsListenerService(
     private fun processTrekkMessage(trekk: Dokument) {
         val trekkStatus = trekk.trekkStatus()
         val transaksjonId = trekk.transaksjonsId!!.toInt()
-        using(sessionOf(dataSource)) { session ->
-            val transTilstandIdList =
-                transaksjonTilstandRepository.insertBatch(
+        if (!verifyTransaksjonHasOSStatus(transaksjonId, trekkStatus)) {
+            dataSource.transaction { session ->
+                val transTilstandIdList =
+                    transaksjonTilstandRepository.insertBatch(
+                        listOf(transaksjonId),
+                        trekkStatus,
+                        trekk.mmel?.kodeMelding,
+                        trekk.mmel?.beskrMelding,
+                        session,
+                    )
+
+                transaksjonRepository.updateBatch(
                     listOf(transaksjonId),
+                    transTilstandIdList,
                     trekkStatus,
-                    trekk.mmel?.kodeMelding,
-                    trekk.mmel?.beskrMelding,
+                    trekk.innrapporteringTrekk?.navTrekkId!!,
+                    trekk.mmel?.alvorlighetsgrad,
                     session,
                 )
+            }
+        }
+    }
 
-            transaksjonRepository.updateBatch(
-                listOf(transaksjonId),
-                transTilstandIdList,
-                trekkStatus,
-                trekk.innrapporteringTrekk?.navTrekkId!!,
-                trekk.mmel?.alvorlighetsgrad,
-                session,
-            )
+    private fun verifyTransaksjonHasOSStatus(
+        transaksjonId: Int,
+        osStatus: String,
+    ): Boolean {
+        return when {
+            osStatus == OS_STATUS_OK -> false
+            transaksjonRepository.getByTransaksjonId(transaksjonId)!!.osStatus != TRANSAKSJONSTATUS_OK -> {
+                logger.warn { "Transaksjon: $transaksjonId er allerede oppdatert med OS status" }
+                return true
+            }
+
+            else -> false
         }
     }
 }

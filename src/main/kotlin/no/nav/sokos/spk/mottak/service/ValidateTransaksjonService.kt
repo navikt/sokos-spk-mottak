@@ -20,12 +20,11 @@ private val logger = KotlinLogging.logger {}
 
 class ValidateTransaksjonService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource),
+    private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
+    private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
+    private val avvikTransaksjonRepository: AvvikTransaksjonRepository = AvvikTransaksjonRepository(dataSource),
 ) {
-    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource)
-    private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
-    private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
-    private val avvikTransaksjonRepository: AvvikTransaksjonRepository = AvvikTransaksjonRepository(dataSource)
-
     fun validateInnTransaksjon() {
         val timer = Instant.now()
         var totalInnTransaksjoner = 0
