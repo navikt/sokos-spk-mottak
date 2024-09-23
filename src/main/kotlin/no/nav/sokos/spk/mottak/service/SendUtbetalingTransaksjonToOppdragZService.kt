@@ -95,22 +95,24 @@ class SendUtbetalingTransaksjonToOppdragZService(
         )
 
     private fun sendToOppdragZ(oppdragList: List<String>) {
-        dataSource.transaction { session ->
-            var transaksjonIdList = emptyList<Int>()
-            runCatching {
+        var transaksjonIdList = emptyList<Int>()
+        runCatching {
+            dataSource.transaction { session ->
                 transaksjonIdList = findTransaksjonIdList(oppdragList)
                 producer.send(oppdragList)
                 updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
-            }.onFailure { exception ->
-                if (exception is MottakException) {
-                    runCatching {
-                        updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
-                    }.onFailure { exception ->
-                        logger.error(exception) { "DB2-feil: $exception" }
-                    }
-                }
-                logger.error(exception) { "Feiler ved utsending av utbetalingstransaksjonene: ${transaksjonIdList.joinToString()} : $exception" }
             }
+        }.onFailure { exception ->
+            if (exception is MottakException) {
+                runCatching {
+                    dataSource.transaction { session ->
+                        updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
+                    }
+                }.onFailure { exception ->
+                    logger.error(exception) { "DB2-feil: $exception" }
+                }
+            }
+            logger.error(exception) { "Feiler ved utsending av utbetalingstransaksjonene: ${transaksjonIdList.joinToString()} : $exception" }
         }
     }
 
