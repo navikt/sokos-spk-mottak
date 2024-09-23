@@ -19,7 +19,6 @@ object PropertiesConfig {
                 "READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN" to "0 10 * * * *",
                 "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
                 "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
-                "SEND_TRANSAKSJON_CRON_PATTERN" to "*/10 * * * * *",
                 "GRENSNITT_AVSTEMMING_CRON_PATTERN" to "0 0 * * * *",
             ),
         )
@@ -112,7 +111,6 @@ object PropertiesConfig {
         val readParseFileAndValidateTransactionsCronPattern: String = getOrEmpty("READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN"),
         val sendUtbetalingTransaksjonToOppdragZCronPattern: String = getOrEmpty("SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN"),
         val sendTrekkTransaksjonToOppdragZCronPattern: String = getOrEmpty("SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN"),
-        val sendTransaksjonCronPattern: String = getOrEmpty("SEND_TRANSAKSJON_CRON_PATTERN"),
         val grensesnittAvstemmingCronPattern: String = getOrEmpty("GRENSNITT_AVSTEMMING_CRON_PATTERN"),
     )
 

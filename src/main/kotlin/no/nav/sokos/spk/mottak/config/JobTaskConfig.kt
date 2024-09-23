@@ -11,9 +11,7 @@ import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
-import no.nav.sokos.spk.mottak.service.SendTrekkService
 import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragZService
-import no.nav.sokos.spk.mottak.service.SendUtbetalingService
 import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragZService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 import no.nav.sokos.spk.mottak.service.WriteToFileService
@@ -87,32 +85,6 @@ object JobTaskConfig {
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
                 avstemmingService.sendGrensesnittAvstemming()
-            }
-    }
-
-    internal fun outboxTrekkTask(
-        sendTrekkService: SendTrekkService = SendTrekkService(),
-        schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
-    ): RecurringTask<Void> {
-        var showLogLocalTime = LocalDateTime.now()
-        return Tasks
-            .recurring("sendTrekk", cron(schedulerProperties.sendTransaksjonCronPattern))
-            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
-                showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendTrekkService.sendToOppdrag()
-            }
-    }
-
-    internal fun outboxUtbetalingTask(
-        sendUtbetalingService: SendUtbetalingService = SendUtbetalingService(),
-        schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
-    ): RecurringTask<Void> {
-        var showLogLocalTime = LocalDateTime.now()
-        return Tasks
-            .recurring("sendUtbetaling", cron(schedulerProperties.sendTransaksjonCronPattern))
-            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
-                showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendUtbetalingService.sendToOppdrag()
             }
     }
 

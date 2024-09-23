@@ -17,7 +17,6 @@ class TransaksjonTilstandRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
     private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "insertBatch")
-    private val deleteTransaksjonTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "deleteTransaksjon")
     private val getByTransaksjonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "getByTransaksjonId")
     private val findAllByTransaksjonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "findAllByTransaksjonId")
 
@@ -60,22 +59,6 @@ class TransaksjonTilstandRepository(
                     ),
                 ) { row -> row.int("TRANS_TILSTAND_ID") }
             }.orEmpty()
-    }
-
-    fun deleteTransaksjon(
-        transaksjonTilstandId: List<Int>,
-        session: Session,
-    ) {
-        deleteTransaksjonTimer.recordCallable {
-            session.update(
-                queryOf(
-                    """
-                    DELETE FROM T_TRANS_TILSTAND  
-                        WHERE TRANS_TILSTAND_ID IN (${transaksjonTilstandId.joinToString()})
-                    """.trimIndent(),
-                ),
-            )
-        }
     }
 
     /** Bruker kun for testing */

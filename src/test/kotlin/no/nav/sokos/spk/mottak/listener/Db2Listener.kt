@@ -16,7 +16,6 @@ import no.nav.sokos.spk.mottak.repository.AvvikTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.LopenummerRepository
-import no.nav.sokos.spk.mottak.repository.OutboxRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 
@@ -28,7 +27,6 @@ object Db2Listener : TestListener {
     val transaksjonRepository = spyk(TransaksjonRepository(dataSource))
     val avvikTransaksjonRepository = spyk(AvvikTransaksjonRepository(dataSource))
     val transaksjonTilstandRepository = spyk(TransaksjonTilstandRepository(dataSource))
-    val outboxRepository = spyk(OutboxRepository())
 
     override suspend fun beforeSpec(spec: Spec) {
         dataSource shouldNotBe null
@@ -38,7 +36,6 @@ object Db2Listener : TestListener {
         transaksjonRepository shouldNotBe null
         avvikTransaksjonRepository shouldNotBe null
         transaksjonTilstandRepository shouldNotBe null
-        outboxRepository shouldNotBe null
 
         dataSource.transaction { session ->
             session.update(queryOf(readFromResource("/database/db2Script.sql")))
