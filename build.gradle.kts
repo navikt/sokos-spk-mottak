@@ -37,7 +37,7 @@ repositories {
 }
 
 val ktorVersion = "2.3.12"
-val jschVersion = "0.2.19"
+val jschVersion = "0.2.20"
 val logbackVersion = "1.5.8"
 val logstashVersion = "8.0"
 val jacksonVersion = "2.15.3"
@@ -46,7 +46,7 @@ val kotlinLoggingVersion = "3.0.5"
 val janionVersion = "3.1.12"
 val natpryceVersion = "1.6.10.0"
 val kotestVersion = "5.9.1"
-val kotlinxSerializationVersion = "1.7.2"
+val kotlinxSerializationVersion = "1.7.3"
 val mockOAuth2ServerVersion = "2.1.9"
 val mockkVersion = "1.13.12"
 val hikariVersion = "5.1.0"
