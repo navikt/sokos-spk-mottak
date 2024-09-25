@@ -20,6 +20,7 @@ object PropertiesConfig {
                 "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
                 "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
                 "GRENSNITT_AVSTEMMING_CRON_PATTERN" to "0 0 * * * *",
+                "MQ_BATCH_SIZE" to "200",
             ),
         )
 
@@ -127,6 +128,7 @@ object PropertiesConfig {
         val utbetalingQueueName: String = getOrEmpty("MQ_UTBETALING_QUEUE_NAME"),
         val utbetalingReplyQueueName: String = getOrEmpty("MQ_UTBETALING_REPLY_QUEUE_NAME"),
         val avstemmingQueueName: String = getOrEmpty("MQ_AVSTEMMING_QUEUE_NAME"),
+        val mqBatchSize: Int = get("MQ_BATCH_SIZE").toInt(),
     )
 
     enum class Profile {

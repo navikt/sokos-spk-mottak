@@ -42,11 +42,11 @@ class SendTrekkTransaksjonToOppdragZService(
             Metrics.mqTrekkProducerMetricCounter,
         ),
 ) {
-    fun getTrekkTransaksjonAndSendToOppdrag() {
+    fun getTrekkTransaksjonAndSendToOppdrag(mqBatchSize: Int = MQ_BATCH_SIZE) {
         val transaksjoner = getTransaksjoner() ?: return
         Metrics.timer(SERVICE_CALL, "SendTrekkTransaksjonToOppdragZService", "getTrekkTransaksjonAndSendToOppdrag").recordCallable {
             logger.info { "Starter sending av ${transaksjoner.size} trekktransaksjoner til OppdragZ" }
-            val totalTransaksjoner = processTransaksjoner(transaksjoner)
+            val totalTransaksjoner = processTransaksjoner(transaksjoner, mqBatchSize)
             Metrics.trekkTransaksjonerTilOppdragCounter.inc(totalTransaksjoner.toLong())
         }
     }
@@ -60,10 +60,13 @@ class SendTrekkTransaksjonToOppdragZService(
         }.getOrNull()
     }
 
-    private fun processTransaksjoner(transaksjoner: List<Transaksjon>): Int {
+    private fun processTransaksjoner(
+        transaksjoner: List<Transaksjon>,
+        mqBatchSize: Int,
+    ): Int {
         val timer = Instant.now()
         var totalTransaksjoner = 0
-        transaksjoner.chunked(MQ_BATCH_SIZE).forEach { chunk ->
+        transaksjoner.chunked(mqBatchSize).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
             runCatching {
                 dataSource.transaction { session ->

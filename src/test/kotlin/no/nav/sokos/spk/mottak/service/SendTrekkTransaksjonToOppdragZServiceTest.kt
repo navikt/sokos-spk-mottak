@@ -24,8 +24,6 @@ import no.nav.sokos.spk.mottak.listener.MQListener.replyQueueMock
 import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
-import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
-import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 internal class SendTrekkTransaksjonToOppdragZServiceTest :
@@ -35,15 +33,14 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
         Given("det finnes trekk som skal sendes til oppdragZ") {
             val trekkTransaksjonTilOppdragService: SendTrekkTransaksjonToOppdragZService by lazy {
                 SendTrekkTransaksjonToOppdragZService(
-                    Db2Listener.dataSource,
-                    Db2Listener.transaksjonRepository,
-                    Db2Listener.transaksjonTilstandRepository,
-                    JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    dataSource = Db2Listener.dataSource,
+                    producer =
+                        JmsProducerService(
+                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                            mqTrekkProducerMetricCounter,
+                            connectionFactory,
+                        ),
                 )
             }
             Db2Listener.dataSource.transaction { session ->
@@ -66,15 +63,14 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
         Given("det finnes trekk som skal sendes til oppdragZ med MQ server nede") {
             val trekkTransaksjonTilOppdragService =
                 SendTrekkTransaksjonToOppdragZService(
-                    Db2Listener.dataSource,
-                    Db2Listener.transaksjonRepository,
-                    Db2Listener.transaksjonTilstandRepository,
-                    JmsProducerService(
-                        senderQueueMock,
-                        replyQueueMock,
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    dataSource = Db2Listener.dataSource,
+                    producer =
+                        JmsProducerService(
+                            senderQueueMock,
+                            replyQueueMock,
+                            mqTrekkProducerMetricCounter,
+                            connectionFactory,
+                        ),
                 )
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(TestHelper.readFromResource("/database/trekk_transaksjon.sql")))
@@ -96,15 +92,14 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
         Given("det finnes trekk som skal sendes til oppdragZ med database nede") {
             val trekkTransaksjonTilOppdragService =
                 SendTrekkTransaksjonToOppdragZService(
-                    mockk<HikariDataSource>(),
-                    mockk<TransaksjonRepository>(),
-                    mockk<TransaksjonTilstandRepository>(),
-                    JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                    dataSource = mockk<HikariDataSource>(),
+                    producer =
+                        JmsProducerService(
+                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                            mqTrekkProducerMetricCounter,
+                            connectionFactory,
+                        ),
                 )
             When("henter trekk og sender til OppdragZ") {
                 val exception = shouldThrow<RuntimeException> { trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag() }

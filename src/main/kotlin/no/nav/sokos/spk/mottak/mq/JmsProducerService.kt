@@ -27,7 +27,6 @@ open class JmsProducerService(
             runCatching {
                 messages.forEach { message ->
                     producer.send(senderQueue, message)
-                    logger.debug { "sendt message $message" }
                 }
             }.onSuccess {
                 context.commit()

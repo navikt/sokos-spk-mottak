@@ -113,6 +113,8 @@ spec:
       value: QA.QX_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY
     - name: MQ_AVSTEMMING_QUEUE_NAME
       value: QA.Q1_231.OB04_AVSTEMMING_XML
+    - name: MQ_BATCH_SIZE
+      value: "200"
 
     # SFTP
     - name: SFTP_SERVER

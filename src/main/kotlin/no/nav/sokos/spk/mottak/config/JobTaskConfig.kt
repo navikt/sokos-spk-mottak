@@ -58,7 +58,7 @@ object JobTaskConfig {
             .recurring("sendUtbetalingTransaksjonToOppdragZ", cron(schedulerProperties.sendUtbetalingTransaksjonToOppdragZCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
+                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ(PropertiesConfig.MQProperties().mqBatchSize)
             }
     }
 
@@ -71,7 +71,7 @@ object JobTaskConfig {
             .recurring("sendTrekkTransaksjonToOppdragZ", cron(schedulerProperties.sendTrekkTransaksjonToOppdragZCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
+                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag(PropertiesConfig.MQProperties().mqBatchSize)
             }
     }
 

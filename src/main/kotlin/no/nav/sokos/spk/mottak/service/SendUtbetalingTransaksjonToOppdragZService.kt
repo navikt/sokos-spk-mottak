@@ -49,7 +49,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
             Metrics.mqUtbetalingProducerMetricCounter,
         ),
 ) {
-    fun getUtbetalingTransaksjonAndSendToOppdragZ() {
+    fun getUtbetalingTransaksjonAndSendToOppdragZ(mqBatchSize: Int = MQ_BATCH_SIZE) {
         val timer = Instant.now()
         var totalTransaksjoner = 0
 
@@ -64,8 +64,9 @@ class SendUtbetalingTransaksjonToOppdragZService(
                             .map { it.value.toUtbetalingsOppdrag() }
                             .map { JaxbUtils.marshallOppdrag(it) }
                     logger.info { "Oppdragslistestørrelse ${oppdragList.size}" }
-                    oppdragList.chunked(MQ_BATCH_SIZE).forEach { oppdragChunk ->
+                    oppdragList.chunked(mqBatchSize).forEach { oppdragChunk ->
                         logger.info { "Sender ${oppdragChunk.size} utbetalingsmeldinger " }
+                        oppdragChunk.forEach { logger.info { "###chunk: $it " } }
                         sendToOppdragZ(oppdragChunk)
                         totalTransaksjoner += oppdragChunk.size
                     }
