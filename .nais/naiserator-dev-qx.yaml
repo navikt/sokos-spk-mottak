@@ -116,6 +116,12 @@ spec:
     - name: MQ_BATCH_SIZE
       value: "200"
 
+    # PDL
+    - name: PDL_URL
+      value: "https://pdl-api-q1.dev.intern.nav.no"
+    - name: PDL_SCOPE
+      value: "api://dev-fss.pdl.pdl-api-q1/.default"
+
     # SFTP
     - name: SFTP_SERVER
       value: b31apvl069.oera-q.local
