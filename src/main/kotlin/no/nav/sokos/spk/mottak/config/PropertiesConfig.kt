@@ -129,6 +129,11 @@ object PropertiesConfig {
         val avstemmingQueueName: String = getOrEmpty("MQ_AVSTEMMING_QUEUE_NAME"),
     )
 
+    data class PdlProperties(
+        val pdlUrl: String = getOrEmpty("PDL_URL"),
+        val pdlScope: String = getOrEmpty("PDL_SCOPE"),
+    )
+
     enum class Profile {
         LOCAL,
         DEV,

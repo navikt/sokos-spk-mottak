@@ -21,14 +21,21 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.config.httpClient
 import java.time.Instant
 
 private val logger = KotlinLogging.logger {}
+private const val TENANT = "tenant"
+private const val CLIENT_ID = "client_id"
+private const val SCOPE = "scope"
+private const val CLIENT_SECRET = "client_secret"
+private const val GRANT_TYPE = "grant_type"
+private const val CLIENT_CREDENTIALS = "client_credentials"
 
 class AccessTokenClient(
     private val azureAdProperties: PropertiesConfig.AzureAdProperties = PropertiesConfig.AzureAdProperties(),
     private val azureAdScope: String,
-    private val client: HttpClient = HttpClient(),
+    private val client: HttpClient = httpClient,
     private val azureAdAccessTokenUrl: String = "https://login.microsoftonline.com/${azureAdProperties.tenantId}/oauth2/v2.0/token",
 ) {
     private val mutex = Mutex()
@@ -59,11 +66,11 @@ class AccessTokenClient(
                 setBody(
                     FormDataContent(
                         Parameters.build {
-                            append("tenant", azureAdProperties.tenantId)
-                            append("client_id", azureAdProperties.clientId)
-                            append("scope", azureAdScope)
-                            append("client_secret", azureAdProperties.clientSecret)
-                            append("grant_type", "client_credentials")
+                            append(TENANT, azureAdProperties.tenantId)
+                            append(CLIENT_ID, azureAdProperties.clientId)
+                            append(SCOPE, azureAdScope)
+                            append(CLIENT_SECRET, azureAdProperties.clientSecret)
+                            append(GRANT_TYPE, CLIENT_CREDENTIALS)
                         },
                     ),
                 )
