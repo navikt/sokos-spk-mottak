@@ -33,7 +33,7 @@ import no.nav.sokos.spk.mottak.util.JaxbUtils
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 import java.sql.SQLException
 
-const val BATCH_SIZE = 2
+const val UTBETALING_BATCH_SIZE = 2
 
 internal class SendUtbetalingTransaksjonToOppdragZServiceTest : BehaviorSpec({
     extensions(listOf(Db2Listener, MQListener))
@@ -225,13 +225,12 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest : BehaviorSpec({
         val transaksjoner = Db2Listener.transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
         transaksjoner.size shouldBe 5
 
-        When("hent utbetalinger og send til OppdragZ") {
-            utbetalingTransaksjonTilOppdragService.getUtbetalingTransaksjonAndSendToOppdragZ(BATCH_SIZE)
-            Then("skal alle utbetalinger blir sent i en batch-chunk") {
-                val slot = slot<List<String>>()
-                verify { producer.send(capture(slot)) }
-                verify(exactly = 1) { producer.send(any()) }
+        val slot = slot<List<String>>()
 
+        When("hent utbetalinger og send til OppdragZ") {
+            utbetalingTransaksjonTilOppdragService.getUtbetalingTransaksjonAndSendToOppdragZ(UTBETALING_BATCH_SIZE)
+            Then("skal alle utbetalinger blir sent i en batch-chunk") {
+                verify(exactly = 1) { producer.send(capture(slot)) }
                 val sentMessages = slot.captured
                 sentMessages.size shouldBe 2
                 sentMessages.first().contains("<kodeEndring>NY</kodeEndring>") shouldBe true
@@ -259,11 +258,12 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest : BehaviorSpec({
         val transaksjoner = Db2Listener.transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
         transaksjoner.size shouldBe 1
 
+        val slot = slot<List<String>>()
+
         When("hent utbetalinger og send til OppdragZ") {
             utbetalingTransaksjonTilOppdragService.getUtbetalingTransaksjonAndSendToOppdragZ()
             Then("skal en transaksjon bli oppdatert med status OSO (Oppdrag Sendt OK) og meldingen som sendes til OppdragZ skal ha status 'ENDR'") {
-                val slot = slot<List<String>>()
-                verify { producer.send(capture(slot)) }
+                verify(exactly = 1) { producer.send(capture(slot)) }
                 val sentMessage = slot.captured
                 sentMessage.size shouldBe 1
                 sentMessage.first().contains("<kodeEndring>ENDR</kodeEndring>") shouldBe true

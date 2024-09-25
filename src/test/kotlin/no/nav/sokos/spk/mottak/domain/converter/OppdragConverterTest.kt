@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.sokos.spk.mottak.TestData
 import no.nav.sokos.spk.mottak.domain.MOT
+import no.nav.sokos.spk.mottak.domain.SPK_TSS
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdrag110
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdragsLinje150
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateString
@@ -45,7 +46,7 @@ class OppdragConverterTest :
                 oppdrag150.sats shouldBe (transaksjon.belop / 100).toBigDecimal()
                 oppdrag150.fradragTillegg shouldBe TfradragTillegg.T
                 oppdrag150.typeSats shouldBe "MND"
-                oppdrag150.skyldnerId shouldBe transaksjon.fnr
+                oppdrag150.skyldnerId shouldBe SPK_TSS
                 oppdrag150.brukKjoreplan = "N"
                 oppdrag150.saksbehId shouldBe MOT
                 oppdrag150.utbetalesTilId shouldBe transaksjon.fnr
