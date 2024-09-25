@@ -1,5 +1,6 @@
 package no.nav.sokos.spk.mottak.domain.converter
 
+import no.nav.sokos.spk.mottak.domain.SPK_TSS
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.getTransTolkningOppdragKode
@@ -74,7 +75,7 @@ object OppdragConverter {
             sats = (belop / 100).toBigDecimal()
             fradragTillegg = TfradragTillegg.T
             typeSats = SATSTYOE_MND
-            skyldnerId = fnr
+            skyldnerId = SPK_TSS
             brukKjoreplan = BRUK_KJOREPLAN
             saksbehId = SAKSBEHANDLER_ID
             utbetalesTilId = utbetalesTil ?: fnr

@@ -8,6 +8,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragZService
@@ -35,14 +36,14 @@ fun Route.mottakApi(
 
         get("sendUtbetalingTransaksjonToOppdragZ") {
             launch(Dispatchers.IO) {
-                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
+                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ(PropertiesConfig.MQProperties().mqBatchSize)
             }
             call.respond(HttpStatusCode.OK, "SendUtbetalingTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
         get("sendTrekkTransaksjonToOppdragZ") {
             launch(Dispatchers.IO) {
-                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
+                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag(PropertiesConfig.MQProperties().mqBatchSize)
             }
             call.respond(HttpStatusCode.OK, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
         }

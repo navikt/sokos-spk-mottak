@@ -1,3 +1,3 @@
 package no.nav.sokos.spk.mottak.util
 
-const val MQ_BATCH_SIZE = 1000
+const val MQ_BATCH_SIZE = 200
