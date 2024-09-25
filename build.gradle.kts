@@ -1,4 +1,7 @@
+import com.expediagroup.graphql.plugin.gradle.config.GraphQLSerializer
+import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLGenerateClientTask
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import kotlinx.kover.gradle.plugin.dsl.tasks.KoverReport
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -6,6 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "2.0.20"
     kotlin("plugin.serialization") version "2.0.20"
+    id("com.expediagroup.graphql") version "8.0.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
     id("org.jetbrains.kotlinx.kover") version "0.8.3"
@@ -61,6 +65,7 @@ val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20240729135316_1bd0ab3"
 val ibmmqVersion = "9.4.0.5"
 val activemqVersion = "2.37.0"
+val graphqlClientVersion = "8.0.0"
 
 dependencies {
 
@@ -119,6 +124,11 @@ dependencies {
     implementation("no.nav.familie.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
     implementation("no.nav.familie.tjenestespesifikasjoner:avstemming-v1-tjenestespesifikasjon:$tjenestespesifikasjonVersion")
 
+    // GraphQL
+    implementation("com.expediagroup:graphql-kotlin-ktor-client:$graphqlClientVersion") {
+        exclude("com.expediagroup:graphql-kotlin-client-jackson")
+    }
+
     // Test
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
@@ -145,9 +155,43 @@ kotlin {
 }
 
 tasks {
+    named("runKtlintCheckOverMainSourceSet").configure {
+        dependsOn("graphqlGenerateClient")
+    }
+
+    named("runKtlintFormatOverMainSourceSet").configure {
+        dependsOn("graphqlGenerateClient")
+    }
 
     withType<KotlinCompile>().configureEach {
         dependsOn("ktlintFormat")
+        dependsOn("graphqlGenerateClient")
+    }
+
+    ktlint {
+        filter {
+            exclude { element -> element.file.path.contains("generated/") }
+        }
+    }
+
+    withType<KoverReport>().configureEach {
+        kover {
+            reports {
+                filters {
+                    excludes {
+                        // exclusion rules - classes to exclude from report
+                        classes("no.nav.pdl.*")
+                    }
+                }
+            }
+        }
+    }
+
+    withType<GraphQLGenerateClientTask>().configureEach {
+        packageName.set("no.nav.pdl")
+        schemaFile.set(file("$projectDir/src/main/resources/graphql/schema.graphql"))
+        queryFileDirectory.set(file("$projectDir/src/main/resources/graphql"))
+        serializer = GraphQLSerializer.KOTLINX
     }
 
     withType<ShadowJar>().configureEach {
