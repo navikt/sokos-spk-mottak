@@ -131,6 +131,11 @@ object PropertiesConfig {
         val mqBatchSize: Int = get("MQ_BATCH_SIZE").toInt(),
     )
 
+    data class PdlProperties(
+        val pdlUrl: String = getOrEmpty("PDL_URL"),
+        val pdlScope: String = getOrEmpty("PDL_SCOPE"),
+    )
+
     enum class Profile {
         LOCAL,
         DEV,
