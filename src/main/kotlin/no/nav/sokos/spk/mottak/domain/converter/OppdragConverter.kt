@@ -90,6 +90,7 @@ object OppdragConverter {
                         Grad170().apply {
                             typeGrad =
                                 when (art) {
+                                    "ALP" -> "UTAP"
                                     "AFP" -> "AFPG"
                                     "UFO" -> "UFOR"
                                     "UFT" -> "UFOR"
