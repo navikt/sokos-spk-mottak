@@ -63,7 +63,7 @@ class JmsListenerService(
 
             val transaksjonIdList =
                 oppdrag.oppdrag110.oppdragsLinje150
-                    .filter { !verifyTransaksjonHasOSStatus(it.delytelseId.toInt(), oppdrag.mmel.alvorlighetsgrad) }
+                    .filter { !isDuplicate(it.delytelseId.toInt(), oppdrag.mmel.alvorlighetsgrad) }
                     .map { it.delytelseId.toInt() }
 
             dataSource.transaction { session ->
@@ -107,7 +107,7 @@ class JmsListenerService(
     private fun processTrekkMessage(trekk: Dokument) {
         val trekkStatus = trekk.trekkStatus()
         val transaksjonId = trekk.transaksjonsId!!.toInt()
-        if (!verifyTransaksjonHasOSStatus(transaksjonId, trekkStatus)) {
+        if (!isDuplicate(transaksjonId, trekkStatus)) {
             dataSource.transaction { session ->
                 val transTilstandIdList =
                     transaksjonTilstandRepository.insertBatch(
@@ -130,14 +130,14 @@ class JmsListenerService(
         }
     }
 
-    private fun verifyTransaksjonHasOSStatus(
+    private fun isDuplicate(
         transaksjonId: Int,
         osStatus: String,
     ): Boolean {
         return when {
             osStatus == OS_STATUS_OK -> false
-            transaksjonRepository.getByTransaksjonId(transaksjonId)!!.osStatus != TRANSAKSJONSTATUS_OK -> {
-                logger.warn { "Transaksjon: $transaksjonId er allerede oppdatert med OS status" }
+            transaksjonRepository.getByTransaksjonId(transaksjonId)!!.osStatus == TRANSAKSJONSTATUS_OK -> {
+                logger.warn { "Transaksjon: $transaksjonId er allerede mottatt med OK-status" }
                 return true
             }
 

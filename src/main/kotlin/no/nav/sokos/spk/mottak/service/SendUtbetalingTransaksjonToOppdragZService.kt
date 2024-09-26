@@ -66,7 +66,6 @@ class SendUtbetalingTransaksjonToOppdragZService(
                     logger.info { "Oppdragslistestørrelse ${oppdragList.size}" }
                     oppdragList.chunked(mqBatchSize).forEach { oppdragChunk ->
                         logger.info { "Sender ${oppdragChunk.size} utbetalingsmeldinger " }
-                        oppdragChunk.forEach { logger.info { "###chunk: $it " } }
                         sendToOppdragZ(oppdragChunk)
                         totalTransaksjoner += oppdragChunk.size
                     }
