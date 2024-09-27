@@ -66,6 +66,11 @@ class JmsListenerService(
                     .filter { !isDuplicate(it.delytelseId.toInt(), oppdrag.mmel.alvorlighetsgrad) }
                     .map { it.delytelseId.toInt() }
 
+            if (transaksjonIdList.isEmpty()) {
+                logger.warn { "Ingen nye transaksjoner å prosessere!" }
+                return
+            }
+
             dataSource.transaction { session ->
                 val transTilstandIdList =
                     transaksjonTilstandRepository.insertBatch(
@@ -85,7 +90,6 @@ class JmsListenerService(
                     session,
                 )
             }
-
             mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
         }.onFailure { exception ->
             logger.error(exception) { "Feil ved prosessering av oppdragsmelding : ${message.jmsMessageID}" }
@@ -98,7 +102,6 @@ class JmsListenerService(
             logger.debug { "Mottatt trekk-melding fra OppdragZ, message content: $jmsMessage" }
             val trekk = JaxbUtils.unmarshallTrekk(jmsMessage)
             processTrekkMessage(trekk)
-            mqTrekkListenerMetricCounter.inc()
         }.onFailure { exception ->
             logger.error(exception) { "Feil ved prosessering av trekkmelding : ${message.jmsMessageID}" }
         }
@@ -127,6 +130,7 @@ class JmsListenerService(
                     session,
                 )
             }
+            mqTrekkListenerMetricCounter.inc()
         }
     }
 
