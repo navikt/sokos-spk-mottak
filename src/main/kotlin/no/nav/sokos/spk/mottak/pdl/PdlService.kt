@@ -30,12 +30,10 @@ class PdlService(
     suspend fun getIdenterBolk(identer: List<String>): Map<String, List<IdentInformasjon>> {
         val request = HentIdenterBolk(HentIdenterBolk.Variables(identer))
 
-        println("REQUEST :: $request")
-
         logger.info { "Henter accesstoken for oppslag mot PDL" }
         val accessToken = accessTokenClient.getSystemToken()
 
-        logger.info { "Henter Person fra PDL" }
+        logger.info { "Henter identer fra PDL" }
         val response =
             client.post("$pdlUrl/graphql") {
                 header(HttpHeaders.Authorization, "Bearer $accessToken")
@@ -44,8 +42,6 @@ class PdlService(
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }
-
-        println("response :: ${response.body<String>()}")
 
         return when {
             response.status.isSuccess() -> {
