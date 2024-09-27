@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<dokument>
+    <mmel>
+        <systemId>123-TREKK</systemId>
+        <kodeMelding>BB50022F</kodeMelding>
+        <alvorlighetsgrad>08</alvorlighetsgrad>
+        <beskrMelding>transaksjon finnes i oppdrag fra før: 20425974</beskrMelding>
+        <programId>K231AA50</programId>
+        <sectionNavn>CA55-KONTROLL-INPUT</sectionNavn>
+    </mmel>
+    <transaksjonsId>20425974</transaksjonsId>
+    <innrapporteringTrekk>
+        <aksjonskode>NY</aksjonskode>
+        <navTrekkId>12345</navTrekkId>
+        <kreditorIdTss>80000427901</kreditorIdTss>
+        <kreditorTrekkId>10342395</kreditorTrekkId>
+        <debitorId>19074639472</debitorId>
+        <kodeTrekktype>SPK2</kodeTrekktype>
+        <kodeTrekkAlternativ>LOPM</kodeTrekkAlternativ>
+        <perioder>
+            <periode>
+                <periodeFomDato>2024-07-01</periodeFomDato>
+                <periodeTomDato>2024-07-31</periodeTomDato>
+                <sats>100000.0</sats>
+            </periode>
+        </perioder>
+    </innrapporteringTrekk>
+</dokument>

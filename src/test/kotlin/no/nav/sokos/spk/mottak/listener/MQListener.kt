@@ -1,8 +1,8 @@
 package no.nav.sokos.spk.mottak.listener
 
-import io.kotest.core.listeners.TestListener
-import io.kotest.core.test.TestCase
-import io.kotest.core.test.TestResult
+import io.kotest.core.listeners.AfterSpecListener
+import io.kotest.core.listeners.BeforeSpecListener
+import io.kotest.core.spec.Spec
 import io.mockk.mockk
 import jakarta.jms.ConnectionFactory
 import org.apache.activemq.artemis.api.core.TransportConfiguration
@@ -12,7 +12,7 @@ import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
-object MQListener : TestListener {
+object MQListener : BeforeSpecListener, AfterSpecListener {
     private val server =
         EmbeddedActiveMQ()
             .setConfiguration(
@@ -26,15 +26,12 @@ object MQListener : TestListener {
     val senderQueueMock = mockk<ActiveMQQueue>()
     val replyQueueMock = mockk<ActiveMQQueue>()
 
-    override suspend fun beforeTest(testCase: TestCase) {
+    override suspend fun beforeSpec(spec: Spec) {
         server.start()
         connectionFactory = ActiveMQConnectionFactory("vm:localhost?create=false")
     }
 
-    override suspend fun afterTest(
-        testCase: TestCase,
-        result: TestResult,
-    ) {
+    override suspend fun afterSpec(spec: Spec) {
         server.stop()
     }
 }

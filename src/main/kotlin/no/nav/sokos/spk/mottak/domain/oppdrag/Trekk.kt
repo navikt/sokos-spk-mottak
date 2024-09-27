@@ -23,19 +23,19 @@ data class Dokument(
 @XmlAccessorType(XmlAccessType.FIELD)
 data class InnrapporteringTrekk(
     @XmlElement(name = "aksjonskode")
-    val aksjonskode: String,
+    val aksjonskode: String = "",
     @XmlElement(name = "navTrekkId")
     val navTrekkId: String? = null,
     @XmlElement(name = "kreditorIdTss")
-    val kreditorIdTss: String,
+    val kreditorIdTss: String = "",
     @XmlElement(name = "kreditorTrekkId")
-    val kreditorTrekkId: String,
+    val kreditorTrekkId: String = "",
     @XmlElement(name = "debitorId")
-    val debitorId: String,
+    val debitorId: String = "",
     @XmlElement(name = "kodeTrekktype")
-    val kodeTrekktype: String,
+    val kodeTrekktype: String = "",
     @XmlElement(name = "kodeTrekkAlternativ")
-    val kodeTrekkAlternativ: String,
+    val kodeTrekkAlternativ: String = "",
     @XmlElement(name = "kid")
     val kid: String? = null,
     @XmlElement(name = "kreditorsRef")
@@ -48,18 +48,18 @@ data class InnrapporteringTrekk(
     val gyldigTomDato: String? = null,
     @XmlElementWrapper(name = "perioder")
     @XmlElement(name = "periode")
-    val periode: List<Periode>,
+    val periode: MutableList<Periode> = mutableListOf(),
 )
 
 @Serializable
 @XmlAccessorType(XmlAccessType.FIELD)
 data class Periode(
     @XmlElement(name = "periodeFomDato")
-    val periodeFomDato: String,
+    val periodeFomDato: String = "",
     @XmlElement(name = "periodeTomDato")
-    val periodeTomDato: String,
+    val periodeTomDato: String = "",
     @XmlElement(name = "sats")
-    val sats: Double,
+    val sats: Double = 0.0,
 )
 
 @Serializable
