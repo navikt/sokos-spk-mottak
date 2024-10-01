@@ -1,5 +1,8 @@
 package no.nav.sokos.spk.mottak
 
+import no.nav.pdl.enums.IdentGruppe
+import no.nav.pdl.hentidenterbolk.HentIdenterBolkResult
+import no.nav.pdl.hentidenterbolk.IdentInformasjon
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
 import no.nav.sokos.spk.mottak.domain.GyldigKombinasjon
@@ -69,4 +72,48 @@ object TestData {
             gyldigKombinasjon = GyldigKombinasjon(fagomrade = "PENSPK", osKlassifikasjon = "PENSPKALD01"),
         )
     }
+
+    fun hentIdenterBolkResultMock(
+        fnr: String,
+        oldFnr: String? = null,
+    ): HentIdenterBolkResult {
+        val identer =
+            mutableListOf(
+                IdentInformasjon(
+                    ident = fnr,
+                    historisk = false,
+                    gruppe = IdentGruppe.FOLKEREGISTERIDENT,
+                ),
+            )
+
+        oldFnr?.let {
+            identer.add(
+                IdentInformasjon(
+                    ident = it,
+                    historisk = true,
+                    gruppe = IdentGruppe.FOLKEREGISTERIDENT,
+                ),
+            )
+        }
+
+        return HentIdenterBolkResult(
+            ident = fnr,
+            identer = identer,
+        )
+    }
+
+    val FNR_LIST =
+        listOf(
+            "66043800214",
+            "55044100206",
+            "71032900202",
+            "70033500228",
+            "41113600223",
+            "43103800243",
+            "66064900162",
+            "59063200225",
+            "43084200249",
+            "43084200248",
+            "58052700262",
+        )
 }

@@ -88,7 +88,7 @@ class ReadAndParseFileService(
         lopenummerRepository.updateLopeNummer(recordData.startRecord.filLopenummer, FILTYPE_ANVISER, session)
 
         val filInfo = recordData.startRecord.toFileInfo(recordData.filNavn!!, FILTILSTANDTYPE_GOD, FilStatus.OK.code)
-        val filInfoId = filInfoRepository.insertBatch(filInfo, session)!!
+        val filInfoId = filInfoRepository.insert(filInfo, session)!!
 
         var antallInnTransaksjon = 0
         recordData.transaksjonRecordList.chunked(BATCH_SIZE).forEach { innTransaksjonList ->
@@ -127,7 +127,7 @@ class ReadAndParseFileService(
                     exception.statusCode,
                     exception.message,
                 )
-            filInfoRepository.insertBatch(filInfo, session)!!
+            filInfoRepository.insert(filInfo, session)!!
 
             createAvviksFil(recordData.startRecord.kildeData, exception)
             ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.FERDIG)
