@@ -20,7 +20,6 @@ import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
-import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.MQ_BATCH_SIZE
 import java.time.Duration
 import java.time.Instant
@@ -70,7 +69,7 @@ class SendTrekkTransaksjonToOppdragZService(
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
             runCatching {
                 dataSource.transaction { session ->
-                    val trekkMeldinger = chunk.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
+                    val trekkMeldinger = chunk.map { it.innrapporteringTrekk() }
                     producer.send(trekkMeldinger)
                     updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK, session)
                     totalTransaksjoner += transaksjonIdList.size

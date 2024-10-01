@@ -27,7 +27,6 @@ import no.nav.sokos.spk.mottak.listener.MQListener.replyQueueMock
 import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
-import no.nav.sokos.spk.mottak.util.JaxbUtils
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 const val TREKK_BATCH_SIZE = 2
@@ -60,7 +59,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                     sentMessages.size shouldBe 5
 
                     val sent = sentMessages.flatten()
-                    val expectedMessages = transaksjoner.map { JaxbUtils.marshallTrekk(it.innrapporteringTrekk()) }
+                    val expectedMessages = transaksjoner.map { it.innrapporteringTrekk() }
 
                     for (msg in expectedMessages) {
                         sent shouldContain msg
@@ -74,12 +73,12 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                 SendTrekkTransaksjonToOppdragZService(
                     dataSource = Db2Listener.dataSource,
                     producer =
-                        JmsProducerService(
-                            senderQueueMock,
-                            replyQueueMock,
-                            mqTrekkProducerMetricCounter,
-                            connectionFactory,
-                        ),
+                    JmsProducerService(
+                        senderQueueMock,
+                        replyQueueMock,
+                        mqTrekkProducerMetricCounter,
+                        connectionFactory,
+                    ),
                 )
 
             setupDatabase("/database/trekk_transaksjon.sql")
@@ -100,12 +99,12 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                 SendTrekkTransaksjonToOppdragZService(
                     dataSource = mockk<HikariDataSource>(),
                     producer =
-                        JmsProducerService(
-                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                            mqTrekkProducerMetricCounter,
-                            connectionFactory,
-                        ),
+                    JmsProducerService(
+                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                        mqTrekkProducerMetricCounter,
+                        connectionFactory,
+                    ),
                 )
 
             When("henter trekk og sender til OppdragZ") {

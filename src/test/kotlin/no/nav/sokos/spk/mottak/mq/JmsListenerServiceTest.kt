@@ -131,7 +131,7 @@ internal class JmsListenerServiceTest :
             When("henter trekkmeldinger og sender til OppdragZ") {
                 jmsListenerService.start()
 
-                val reply = readFromResource("/mq/trekk_ok_kvittering.xml")
+                val reply = readFromResource("/mq/trekk_ok_kvittering.json")
                 jmsProducerTrekk.send(listOf(reply))
 
                 Then("skal det returneres en OK-trekkmelding tilbake") {
@@ -154,7 +154,7 @@ internal class JmsListenerServiceTest :
             When("henter trekkmeldinger og sender til OppdragZ") {
                 jmsListenerService.start()
 
-                val reply = readFromResource("/mq/trekk_feil_kvittering.xml")
+                val reply = readFromResource("/mq/trekk_feil_kvittering.json")
                 jmsProducerTrekk.send(listOf(reply))
 
                 Then("skal det returneres en trekk-feilmelding tilbake") {
@@ -179,7 +179,7 @@ internal class JmsListenerServiceTest :
             When("henter trekkmeldinger og sender til OppdragZ") {
                 jmsListenerService.start()
 
-                val reply = readFromResource("/mq/trekk_feil_kvittering.xml")
+                val reply = readFromResource("/mq/trekk_feil_kvittering.json")
                 jmsProducerTrekk.send(listOf(reply))
 
                 Then("skal det returneres en trekk-duplikatmelding tilbake") {

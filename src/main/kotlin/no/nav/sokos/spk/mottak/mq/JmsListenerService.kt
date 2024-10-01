@@ -6,6 +6,7 @@ import jakarta.jms.ConnectionFactory
 import jakarta.jms.JMSContext
 import jakarta.jms.Message
 import jakarta.jms.Queue
+import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQConfig
@@ -16,6 +17,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.trekkStatus
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
+import no.nav.sokos.spk.mottak.domain.oppdrag.DokumentWrapper
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkListenerMetricCounter
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingListenerMetricCounter
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
@@ -37,6 +39,8 @@ class JmsListenerService(
 
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     init {
         utbetalingMQListener.setMessageListener { onUtbetalingMessage(it) }
@@ -99,8 +103,7 @@ class JmsListenerService(
     private fun onTrekkMessage(message: Message) {
         runCatching {
             val jmsMessage = message.getBody(String::class.java)
-            logger.debug { "Mottatt trekk-melding fra OppdragZ, message content: $jmsMessage" }
-            val trekk = JaxbUtils.unmarshallTrekk(jmsMessage)
+            val trekk = json.decodeFromString<DokumentWrapper>(jmsMessage).dokument
             processTrekkMessage(trekk)
         }.onFailure { exception ->
             logger.error(exception) { "Feil ved prosessering av trekkmelding : ${message.jmsMessageID}" }
