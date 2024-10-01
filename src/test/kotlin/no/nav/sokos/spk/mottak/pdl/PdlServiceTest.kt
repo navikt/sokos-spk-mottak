@@ -8,101 +8,97 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.mockk.coEvery
-import io.mockk.mockk
 import no.nav.pdl.enums.IdentGruppe
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
+import no.nav.sokos.spk.mottak.listener.WiremockListener
 import no.nav.sokos.spk.mottak.listener.WiremockListener.wiremock
-import no.nav.sokos.spk.mottak.security.AccessTokenClient
+import wiremock.org.apache.hc.core5.http.ContentType.APPLICATION_JSON
 
-private const val APPLICATION_JSON = "application/json"
+internal class PdlServiceTest :
+    FunSpec({
 
-private val accessTokenClient = mockk<AccessTokenClient>()
-private val pdlService =
-    PdlService(
-        pdlUrl = wiremock.baseUrl(),
-        accessTokenClient = accessTokenClient,
-    )
+        val pdlService =
+            PdlService(
+                pdlUrl = wiremock.baseUrl(),
+                accessTokenClient = WiremockListener.accessTokenClient,
+            )
 
-internal class PdlServiceTest : FunSpec({
+        test("hent identer fra PDL gir respons med identer") {
 
-    beforeTest {
-        coEvery { accessTokenClient.getSystemToken() } returns "token"
-    }
+            val identerFunnetOkResponse = readFromResource("/pdl/hentIdenterBolkOkResponse.json")
 
-    test("hent identer fra PDL gir respons med identer") {
+            wiremock.stubFor(
+                WireMock
+                    .post(urlEqualTo("/graphql"))
+                    .willReturn(
+                        aResponse()
+                            .withHeader(HttpHeaders.ContentType, APPLICATION_JSON.mimeType)
+                            .withStatus(HttpStatusCode.OK.value)
+                            .withBody(identerFunnetOkResponse),
+                    ),
+            )
 
-        val identerFunnetOkResponse = readFromResource("/pdl/hentIdenterBolkOkResponse.json")
+            val response = pdlService.getIdenterBolk(listOf("12345678912", "01111953488", "40074203226"))
 
-        wiremock.stubFor(
-            WireMock.post(urlEqualTo("/graphql"))
-                .willReturn(
-                    aResponse()
-                        .withHeader(HttpHeaders.ContentType, APPLICATION_JSON)
-                        .withStatus(HttpStatusCode.OK.value)
-                        .withBody(identerFunnetOkResponse),
-                ),
-        )
+            response.size shouldBe 3
 
-        val response = pdlService.getIdenterBolk(listOf("12345678912", "01111953488", "40074203226"))
+            response["12345678912"]?.size shouldBe 2
+            response["12345678912"]?.get(0)?.historisk shouldBe true
+            response["12345678912"]?.get(1)?.historisk shouldBe false
+            response["12345678912"]?.get(0)?.gruppe shouldBe IdentGruppe.FOLKEREGISTERIDENT
 
-        response.size shouldBe 3
+            response["01111953488"]?.size shouldBe 1
+            response["01111953488"]?.get(0)?.historisk shouldBe false
+            response["01111953488"]?.get(0)?.gruppe shouldBe IdentGruppe.FOLKEREGISTERIDENT
 
-        response["12345678912"]?.size shouldBe 2
-        response["12345678912"]?.get(0)?.historisk shouldBe true
-        response["12345678912"]?.get(1)?.historisk shouldBe false
-        response["12345678912"]?.get(0)?.gruppe shouldBe IdentGruppe.FOLKEREGISTERIDENT
+            response["40074203226"]?.size shouldBe 1
+            response["40074203226"]?.get(0)?.historisk shouldBe false
+            response["40074203226"]?.get(0)?.gruppe shouldBe IdentGruppe.FOLKEREGISTERIDENT
+        }
 
-        response["01111953488"]?.size shouldBe 1
-        response["01111953488"]?.get(0)?.historisk shouldBe false
-        response["01111953488"]?.get(0)?.gruppe shouldBe IdentGruppe.FOLKEREGISTERIDENT
+        test("hent identer fra PDL med tom array request gir PdlException") {
 
-        response["40074203226"]?.size shouldBe 1
-        response["40074203226"]?.get(0)?.historisk shouldBe false
-        response["40074203226"]?.get(0)?.gruppe shouldBe IdentGruppe.FOLKEREGISTERIDENT
-    }
+            val identerFunnetFeilResponse = readFromResource("/pdl/hentIdenterBolkFeilResponse.json")
 
-    test("hent identer fra PDL med tom array request gir PdlException") {
+            wiremock.stubFor(
+                WireMock
+                    .post(urlEqualTo("/graphql"))
+                    .willReturn(
+                        aResponse()
+                            .withHeader(HttpHeaders.ContentType, APPLICATION_JSON.mimeType)
+                            .withStatus(HttpStatusCode.OK.value)
+                            .withBody(identerFunnetFeilResponse),
+                    ),
+            )
 
-        val identerFunnetFeilResponse = readFromResource("/pdl/hentIdenterBolkFeilResponse.json")
+            val exception =
+                shouldThrow<PdlException> {
+                    pdlService.getIdenterBolk(emptyList())
+                }
 
-        wiremock.stubFor(
-            WireMock.post(urlEqualTo("/graphql"))
-                .willReturn(
-                    aResponse()
-                        .withHeader(HttpHeaders.ContentType, APPLICATION_JSON)
-                        .withStatus(HttpStatusCode.OK.value)
-                        .withBody(identerFunnetFeilResponse),
-                ),
-        )
+            exception.message shouldBe "Message: Ingen identer angitt."
+        }
 
-        val exception =
-            shouldThrow<PdlException> {
-                pdlService.getIdenterBolk(emptyList())
-            }
+        test("hent identer fra PDL uten accesstoken returnerer at clienten ikke er autentisert") {
 
-        exception.message shouldBe "Message: Ingen identer angitt."
-    }
+            val ikkeAutentisertResponse = readFromResource("/pdl/ikkeAutentisertResponse.json")
 
-    test("hent identer fra PDL uten accesstoken returnerer at clienten ikke er autentisert") {
+            wiremock.stubFor(
+                WireMock
+                    .post(urlEqualTo("/graphql"))
+                    .willReturn(
+                        aResponse()
+                            .withHeader(HttpHeaders.ContentType, APPLICATION_JSON.mimeType)
+                            .withStatus(HttpStatusCode.OK.value)
+                            .withBody(ikkeAutentisertResponse),
+                    ),
+            )
 
-        val ikkeAutentisertResponse = readFromResource("/pdl/ikkeAutentisertResponse.json")
+            val exception =
+                shouldThrow<PdlException> {
+                    pdlService.getIdenterBolk(listOf("12345678912"))
+                }
 
-        wiremock.stubFor(
-            WireMock.post(urlEqualTo("/graphql"))
-                .willReturn(
-                    aResponse()
-                        .withHeader(HttpHeaders.ContentType, APPLICATION_JSON)
-                        .withStatus(HttpStatusCode.OK.value)
-                        .withBody(ikkeAutentisertResponse),
-                ),
-        )
-
-        val exception =
-            shouldThrow<PdlException> {
-                pdlService.getIdenterBolk(listOf("12345678912"))
-            }
-
-        exception.message shouldBe "Message: Ikke autentisert"
-    }
-})
+            exception.message shouldBe "Message: Ikke autentisert"
+        }
+    })
