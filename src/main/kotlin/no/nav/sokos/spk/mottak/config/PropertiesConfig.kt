@@ -16,6 +16,7 @@ object PropertiesConfig {
                 "NAIS_NAMESPACE" to "okonomi",
                 "USE_AUTHENTICATION" to "true",
                 "SCHEDULER_ENABLED" to "true",
+                "MQ_LISTENER_ENABLED" to "true",
                 "READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN" to "0 10 * * * *",
                 "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
                 "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
@@ -129,6 +130,7 @@ object PropertiesConfig {
         val utbetalingReplyQueueName: String = getOrEmpty("MQ_UTBETALING_REPLY_QUEUE_NAME"),
         val avstemmingQueueName: String = getOrEmpty("MQ_AVSTEMMING_QUEUE_NAME"),
         val mqBatchSize: Int = get("MQ_BATCH_SIZE").toInt(),
+        val mqListenerEnabled: Boolean = get("MQ_LISTENER_ENABLED").toBoolean(),
     )
 
     data class PdlProperties(

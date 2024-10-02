@@ -20,8 +20,14 @@ fun Route.mottakApi(
     readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
     validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService(),
     writeToFileService: WriteToFileService = WriteToFileService(),
-    sendUtbetalingTransaksjonToOppdragZService: SendUtbetalingTransaksjonToOppdragZService = SendUtbetalingTransaksjonToOppdragZService(),
-    sendTrekkTransaksjonToOppdragZService: SendTrekkTransaksjonToOppdragZService = SendTrekkTransaksjonToOppdragZService(),
+    sendUtbetalingTransaksjonToOppdragZService: SendUtbetalingTransaksjonToOppdragZService =
+        SendUtbetalingTransaksjonToOppdragZService(
+            mqBatchSize = PropertiesConfig.MQProperties().mqBatchSize,
+        ),
+    sendTrekkTransaksjonToOppdragZService: SendTrekkTransaksjonToOppdragZService =
+        SendTrekkTransaksjonToOppdragZService(
+            mqBatchSize = PropertiesConfig.MQProperties().mqBatchSize,
+        ),
     avstemmingService: AvstemmingService = AvstemmingService(),
 ) {
     route("api/v1") {
@@ -36,14 +42,14 @@ fun Route.mottakApi(
 
         get("sendUtbetalingTransaksjonToOppdragZ") {
             launch(Dispatchers.IO) {
-                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ(PropertiesConfig.MQProperties().mqBatchSize)
+                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
             }
             call.respond(HttpStatusCode.OK, "SendUtbetalingTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
         get("sendTrekkTransaksjonToOppdragZ") {
             launch(Dispatchers.IO) {
-                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag(PropertiesConfig.MQProperties().mqBatchSize)
+                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
             }
             call.respond(HttpStatusCode.OK, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
         }

@@ -7,6 +7,7 @@ import jakarta.xml.bind.JAXBElement
 import kotliquery.Session
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.config.MQ_BATCH_SIZE
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_OPPDRAG
@@ -24,8 +25,6 @@ import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
-import no.nav.sokos.spk.mottak.util.MQ_BATCH_SIZE
-import no.nav.sokos.spk.mottak.util.XmlUtils
 import no.trygdeetaten.skjema.oppdrag.ObjectFactory
 import no.trygdeetaten.skjema.oppdrag.Oppdrag
 import java.time.Duration
@@ -38,6 +37,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
     private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),
+    private val mqBatchSize: Int = MQ_BATCH_SIZE,
     private val producer: JmsProducerService =
         JmsProducerService(
             MQQueue(PropertiesConfig.MQProperties().utbetalingQueueName).apply {
@@ -49,7 +49,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
             Metrics.mqUtbetalingProducerMetricCounter,
         ),
 ) {
-    fun getUtbetalingTransaksjonAndSendToOppdragZ(mqBatchSize: Int = MQ_BATCH_SIZE) {
+    fun getUtbetalingTransaksjonAndSendToOppdragZ() {
         val timer = Instant.now()
         var totalTransaksjoner = 0
 
@@ -62,12 +62,19 @@ class SendUtbetalingTransaksjonToOppdragZService(
                         transaksjonList
                             .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
                             .map { it.value.toUtbetalingsOppdrag() }
-                            .map { JaxbUtils.marshallOppdrag(it) }
                     logger.info { "Oppdragslistestørrelse ${oppdragList.size}" }
+
                     oppdragList.chunked(mqBatchSize).forEach { oppdragChunk ->
-                        logger.info { "Sender ${oppdragChunk.size} utbetalingsmeldinger " }
-                        sendToOppdragZ(oppdragChunk)
-                        totalTransaksjoner += oppdragChunk.size
+                        val transaksjonIdList =
+                            oppdragChunk.flatMap { oppdrag ->
+                                oppdrag.value.oppdrag110.oppdragsLinje150
+                                    .map { it.delytelseId.toInt() }
+                            }
+                        val oppdragXML = oppdragChunk.map { JaxbUtils.marshallOppdrag(it) }
+
+                        sendToOppdragZ(oppdragXML, transaksjonIdList)
+                        logger.info { "Sender ${transaksjonIdList.size} utbetalingstransaksjoner " }
+                        totalTransaksjoner += transaksjonIdList.size
                     }
                     logger.info { "Fullført sending av $totalTransaksjoner utbetalingstransaksjoner til OppdragZ. Total tid: ${Duration.between(timer, Instant.now()).toSeconds()} sekunder." }
                     Metrics.utbetalingTransaksjonerTilOppdragCounter.inc(totalTransaksjoner.toLong())
@@ -94,11 +101,12 @@ class SendUtbetalingTransaksjonToOppdragZService(
             },
         )
 
-    private fun sendToOppdragZ(oppdragList: List<String>) {
-        var transaksjonIdList = emptyList<Int>()
+    private fun sendToOppdragZ(
+        oppdragList: List<String>,
+        transaksjonIdList: List<Int>,
+    ) {
         runCatching {
             dataSource.transaction { session ->
-                transaksjonIdList = findTransaksjonIdList(oppdragList)
                 producer.send(oppdragList)
                 updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
             }
@@ -115,8 +123,6 @@ class SendUtbetalingTransaksjonToOppdragZService(
             logger.error(exception) { "Feiler ved utsending av utbetalingstransaksjonene: ${transaksjonIdList.joinToString()} : $exception" }
         }
     }
-
-    private fun findTransaksjonIdList(oppdragList: List<String>): List<Int> = oppdragList.flatMap { XmlUtils.parseXmlToStringList(it, "delytelseId").map { it.toInt() } }
 
     private fun updateTransaksjonAndTransaksjonTilstand(
         transaksjonIdList: List<Int>,
