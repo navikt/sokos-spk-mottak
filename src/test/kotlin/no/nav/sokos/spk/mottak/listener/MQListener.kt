@@ -1,7 +1,6 @@
 package no.nav.sokos.spk.mottak.listener
 
-import io.kotest.core.listeners.AfterSpecListener
-import io.kotest.core.listeners.BeforeSpecListener
+import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
 import io.mockk.mockk
 import jakarta.jms.ConnectionFactory
@@ -12,7 +11,7 @@ import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
-object MQListener : BeforeSpecListener, AfterSpecListener {
+object MQListener : TestListener {
     private val server =
         EmbeddedActiveMQ()
             .setConfiguration(

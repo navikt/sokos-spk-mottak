@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Session
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.config.MQ_BATCH_SIZE
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_TREKK
@@ -20,7 +21,6 @@ import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
-import no.nav.sokos.spk.mottak.util.MQ_BATCH_SIZE
 import java.time.Duration
 import java.time.Instant
 
@@ -30,6 +30,7 @@ class SendTrekkTransaksjonToOppdragZService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
+    private val mqBatchSize: Int = MQ_BATCH_SIZE,
     private val producer: JmsProducerService =
         JmsProducerService(
             MQQueue(PropertiesConfig.MQProperties().trekkQueueName).apply {
@@ -41,7 +42,7 @@ class SendTrekkTransaksjonToOppdragZService(
             Metrics.mqTrekkProducerMetricCounter,
         ),
 ) {
-    fun getTrekkTransaksjonAndSendToOppdrag(mqBatchSize: Int = MQ_BATCH_SIZE) {
+    fun getTrekkTransaksjonAndSendToOppdrag() {
         val transaksjoner = getTransaksjoner() ?: return
         Metrics.timer(SERVICE_CALL, "SendTrekkTransaksjonToOppdragZService", "getTrekkTransaksjonAndSendToOppdrag").recordCallable {
             logger.info { "Starter sending av ${transaksjoner.size} trekktransaksjoner til OppdragZ" }
@@ -50,14 +51,13 @@ class SendTrekkTransaksjonToOppdragZService(
         }
     }
 
-    private fun getTransaksjoner(): List<Transaksjon>? {
-        return runCatching {
+    private fun getTransaksjoner(): List<Transaksjon>? =
+        runCatching {
             transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_TREKK, TRANS_TILSTAND_TIL_TREKK)
         }.onFailure { exception ->
             logger.error(exception) { "Fatal feil ved henting av trekktransaksjoner: ${exception.message}" }
             throw RuntimeException("Fatal feil ved henting av trekktransaksjoner")
         }.getOrNull()
-    }
 
     private fun processTransaksjoner(
         transaksjoner: List<Transaksjon>,

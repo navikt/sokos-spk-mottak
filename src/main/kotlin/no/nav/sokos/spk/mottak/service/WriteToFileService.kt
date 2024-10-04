@@ -54,7 +54,7 @@ class WriteToFileService(
             }
             anvisningFil += FileParser.createEndRecord(antallTransaksjon, sumBelop)
 
-            filInfoRepository.insertBatch(
+            filInfoRepository.insert(
                 filInfo.copy(
                     filInfoId = null,
                     filType = FILTYPE_INNLEST,

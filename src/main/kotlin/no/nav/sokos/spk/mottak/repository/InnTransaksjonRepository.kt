@@ -30,12 +30,13 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.optionalOrNull
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 import java.time.LocalDateTime
 
-private const val READ_ROWS: Int = 10000
+const val READ_ROWS: Int = 10000
 
 class InnTransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
 ) {
     private val getByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "getByFilInfoId")
+    private val findAllFnrWithoutPersonIdTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "findAllFnrWithoutPersonId")
     private val getByBehandletTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "getByBehandlet")
     private val validateTransaksjonTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "validateTransaksjon")
     private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "insertBatch")
@@ -57,6 +58,21 @@ class InnTransaksjonRepository(
                         """.trimIndent(),
                     ),
                     mapToInntransaksjon,
+                )
+            }
+        }
+
+    fun findAllFnrWithoutPersonId(): List<String> =
+        using(sessionOf(dataSource)) { session ->
+            findAllFnrWithoutPersonIdTimer.recordCallable {
+                session.list(
+                    queryOf(
+                        """
+                        select distinct t.FNR_FK from T_INN_TRANSAKSJON t left outer join T_PERSON p on (t.FNR_FK = p.FNR_FK)
+                        where p.PERSON_ID is null
+                        """.trimIndent(),
+                    ),
+                    { row -> row.string("FNR_FK") },
                 )
             }
         }

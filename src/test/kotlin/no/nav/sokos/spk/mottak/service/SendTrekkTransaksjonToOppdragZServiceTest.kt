@@ -40,6 +40,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
             val trekkTransaksjonTilOppdragService: SendTrekkTransaksjonToOppdragZService by lazy {
                 SendTrekkTransaksjonToOppdragZService(
                     dataSource = Db2Listener.dataSource,
+                    mqBatchSize = TREKK_BATCH_SIZE,
                     producer = producer,
                 )
             }
@@ -52,7 +53,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
             val sentMessages = mutableListOf<List<String>>()
 
             When("henter trekk og sender til OppdragZ") {
-                trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag(TREKK_BATCH_SIZE)
+                trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag()
                 Then("skal alle transaksjoner bli oppdatert med status TSO (Trekk Sendt OK)") {
                     verifyDatabaseState(TRANS_TILSTAND_TREKK_SENDT_OK, 10)
                     verify(exactly = 5) { producer.send(capture(sentMessages)) }
@@ -122,6 +123,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
+                    producer =
                     JmsProducerService(
                         ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
                         ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
@@ -153,6 +155,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
+                    producer =
                     JmsProducerService(
                         ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
                         ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
@@ -184,6 +187,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
+                    producer =
                     JmsProducerService(
                         senderQueueMock,
                         replyQueueMock,

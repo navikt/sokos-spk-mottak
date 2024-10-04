@@ -112,7 +112,10 @@ class JmsListenerService(
         }
     }
 
-    private fun processTrekkMessage(trekk: Dokument, trekkInfo: Mmel) {
+    private fun processTrekkMessage(
+        trekk: Dokument,
+        trekkInfo: Mmel,
+    ) {
         val trekkStatus = trekkInfo.trekkStatus()
         val transaksjonId = trekk.transaksjonsId!!.toInt()
         if (!isDuplicate(transaksjonId, trekkStatus)) {
