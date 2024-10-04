@@ -4,38 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DokumentWrapper(
-    val dokument: Dokument
-)
-
-@Serializable
-data class Dokument(
     val mmel: Mmel? = null,
-    val transaksjonsId: String? = null,
-    val innrapporteringTrekk: InnrapporteringTrekk? = null,
-)
-
-@Serializable
-data class InnrapporteringTrekk(
-    val aksjonskode: String = "",
-    val navTrekkId: String? = null,
-    val kreditorIdTss: String = "",
-    val kreditorTrekkId: String = "",
-    val debitorId: String = "",
-    val kodeTrekktype: String = "",
-    val kodeTrekkAlternativ: String = "",
-    val kid: String? = null,
-    val kreditorsRef: String? = null,
-    val saldo: Double? = null,
-    val prioritetFomDato: String? = null,
-    val gyldigTomDato: String? = null,
-    val periode: MutableList<Periode> = mutableListOf(),
-)
-
-@Serializable
-data class Periode(
-    val periodeFomDato: String = "",
-    val periodeTomDato: String = "",
-    val sats: Double = 0.0,
+    val dokument: Dokument? = null,
 )
 
 @Serializable
@@ -51,4 +21,34 @@ data class Mmel(
     val mqReasonKode: String? = null,
     val programId: String? = null,
     val sectionNavn: String? = null,
+)
+
+@Serializable
+data class Dokument(
+    val transaksjonsId: String? = null,
+    val innrapporteringTrekk: InnrapporteringTrekk? = null,
+)
+
+@Serializable
+data class InnrapporteringTrekk(
+    val aksjonskode: String? = null,
+    val navTrekkId: String? = null,
+    val kreditorIdTss: String? = null,
+    val kreditorTrekkId: String? = null,
+    val debitorId: String? = null,
+    val kodeTrekktype: String? = null,
+    val kodeTrekkAlternativ: String? = null,
+    val perioder: Perioder? = null,
+)
+
+@Serializable
+data class Perioder(
+    val periode: MutableList<Periode> = mutableListOf(),
+)
+
+@Serializable
+data class Periode(
+    val periodeFomDato: String? = null,
+    val periodeTomDato: String? = null,
+    val sats: Double = 0.0,
 )

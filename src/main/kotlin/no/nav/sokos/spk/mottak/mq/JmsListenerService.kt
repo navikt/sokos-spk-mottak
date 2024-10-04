@@ -18,6 +18,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.trekkStatus
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.domain.oppdrag.DokumentWrapper
+import no.nav.sokos.spk.mottak.domain.oppdrag.Mmel
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkListenerMetricCounter
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingListenerMetricCounter
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
@@ -103,15 +104,16 @@ class JmsListenerService(
     private fun onTrekkMessage(message: Message) {
         runCatching {
             val jmsMessage = message.getBody(String::class.java)
-            val trekk = json.decodeFromString<DokumentWrapper>(jmsMessage).dokument
-            processTrekkMessage(trekk)
+            logger.info { "Mottatt trekkmelding fra OppdragZ, message content: $jmsMessage" }
+            val trekkWrapper = json.decodeFromString<DokumentWrapper>(jmsMessage)
+            processTrekkMessage(trekkWrapper.dokument!!, trekkWrapper.mmel!!)
         }.onFailure { exception ->
             logger.error(exception) { "Feil ved prosessering av trekkmelding : ${message.jmsMessageID}" }
         }
     }
 
-    private fun processTrekkMessage(trekk: Dokument) {
-        val trekkStatus = trekk.trekkStatus()
+    private fun processTrekkMessage(trekk: Dokument, trekkInfo: Mmel) {
+        val trekkStatus = trekkInfo.trekkStatus()
         val transaksjonId = trekk.transaksjonsId!!.toInt()
         if (!isDuplicate(transaksjonId, trekkStatus)) {
             dataSource.transaction { session ->
@@ -119,8 +121,8 @@ class JmsListenerService(
                     transaksjonTilstandRepository.insertBatch(
                         listOf(transaksjonId),
                         trekkStatus,
-                        trekk.mmel?.kodeMelding,
-                        trekk.mmel?.beskrMelding,
+                        trekkInfo.kodeMelding,
+                        trekkInfo.beskrMelding,
                         session,
                     )
 
@@ -129,7 +131,7 @@ class JmsListenerService(
                     transTilstandIdList,
                     trekkStatus,
                     trekk.innrapporteringTrekk?.navTrekkId!!,
-                    trekk.mmel?.alvorlighetsgrad,
+                    trekkInfo.alvorlighetsgrad,
                     session,
                 )
             }

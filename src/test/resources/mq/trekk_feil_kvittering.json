@@ -1,13 +1,13 @@
 {
+  "mmel": {
+    "systemId": "123-TREKK",
+    "kodeMelding": "BB50022F",
+    "alvorlighetsgrad": "08",
+    "beskrMelding": "transaksjon finnes i oppdrag fra før: 20425974",
+    "programId": "K231AA50",
+    "sectionNavn": "CA55-KONTROLL-INPUT"
+  },
   "dokument": {
-    "mmel": {
-      "systemId": "123-TREKK",
-      "kodeMelding": "BB50022F",
-      "alvorlighetsgrad": "08",
-      "beskrMelding": "transaksjon finnes i oppdrag fra før: 20425974",
-      "programId": "K231AA50",
-      "sectionNavn": "CA55-KONTROLL-INPUT"
-    },
     "transaksjonsId": "20425974",
     "innrapporteringTrekk": {
       "aksjonskode": "NY",

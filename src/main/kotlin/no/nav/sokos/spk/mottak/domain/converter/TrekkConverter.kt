@@ -9,7 +9,9 @@ import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.domain.oppdrag.DokumentWrapper
 import no.nav.sokos.spk.mottak.domain.oppdrag.InnrapporteringTrekk
+import no.nav.sokos.spk.mottak.domain.oppdrag.Mmel
 import no.nav.sokos.spk.mottak.domain.oppdrag.Periode
+import no.nav.sokos.spk.mottak.domain.oppdrag.Perioder
 import no.nav.sokos.spk.mottak.util.Utils.toISOString
 
 private const val AKSJONSKODE = "NY"
@@ -22,7 +24,6 @@ object TrekkConverter {
         json.encodeToString(
             DokumentWrapper(
                 dokument = Dokument(
-                    mmel = null,
                     transaksjonsId = transaksjonId!!.toString(),
                     InnrapporteringTrekk(
                         aksjonskode = AKSJONSKODE,
@@ -31,12 +32,13 @@ object TrekkConverter {
                         debitorId = fnr,
                         kodeTrekktype = trekkType!!,
                         kodeTrekkAlternativ = trekkAlternativ!!,
-                        periode =
-                        mutableListOf(
-                            Periode(
-                                datoFom!!.toISOString(),
-                                datoTom!!.toISOString(),
-                                sats = belop / 100.0,
+                        perioder = Perioder(
+                            mutableListOf(
+                                Periode(
+                                    datoFom!!.toISOString(),
+                                    datoTom!!.toISOString(),
+                                    sats = belop / 100.0
+                                ),
                             ),
                         ),
                     ),
@@ -44,9 +46,9 @@ object TrekkConverter {
             )
         )
 
-    fun Dokument.trekkStatus(): String =
+    fun Mmel.trekkStatus(): String =
         when {
-            mmel?.alvorlighetsgrad?.toInt()!! < 5 -> TRANS_TILSTAND_TREKK_RETUR_OK
+            alvorlighetsgrad?.toInt()!! < 5 -> TRANS_TILSTAND_TREKK_RETUR_OK
             else -> TRANS_TILSTAND_TREKK_RETUR_FEIL
         }
 }

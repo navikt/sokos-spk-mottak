@@ -1,9 +1,9 @@
 {
+  "mmel": {
+    "systemId": "123-TREKK",
+    "alvorlighetsgrad": "00"
+  },
   "dokument": {
-    "mmel": {
-      "systemId": "123-TREKK",
-      "alvorlighetsgrad": "00"
-    },
     "transaksjonsId": "20425974",
     "innrapporteringTrekk": {
       "aksjonskode": "NY",
