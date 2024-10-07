@@ -115,6 +115,8 @@ spec:
       value: QA.Q1_231.OB04_AVSTEMMING_XML
     - name: MQ_BATCH_SIZE
       value: "200"
+    - name: MQ_LISTENER_ENABLED
+      value: "false"
 
     # PDL
     - name: PDL_URL

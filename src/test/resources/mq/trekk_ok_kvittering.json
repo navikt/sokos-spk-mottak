@@ -1,0 +1,27 @@
+{
+  "mmel": {
+    "systemId": "123-TREKK",
+    "alvorlighetsgrad": "00"
+  },
+  "dokument": {
+    "transaksjonsId": "20425974",
+    "innrapporteringTrekk": {
+      "aksjonskode": "NY",
+      "navTrekkId": "12345",
+      "kreditorIdTss": "80000427901",
+      "kreditorTrekkId": "10342395",
+      "debitorId": "19074639472",
+      "kodeTrekktype": "SPK2",
+      "kodeTrekkAlternativ": "LOPM",
+      "perioder": {
+        "periode": [
+          {
+            "periodeFomDato": "2024-07-01",
+            "periodeTomDato": "2024-07-31",
+            "sats": "100000.0"
+          }
+        ]
+      }
+    }
+  }
+}

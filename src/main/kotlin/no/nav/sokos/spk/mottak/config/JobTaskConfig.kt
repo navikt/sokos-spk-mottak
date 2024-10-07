@@ -50,7 +50,10 @@ object JobTaskConfig {
     }
 
     internal fun recurringSendUtbetalingTransaksjonToOppdragZTask(
-        sendUtbetalingTransaksjonToOppdragZService: SendUtbetalingTransaksjonToOppdragZService = SendUtbetalingTransaksjonToOppdragZService(),
+        sendUtbetalingTransaksjonToOppdragZService: SendUtbetalingTransaksjonToOppdragZService =
+            SendUtbetalingTransaksjonToOppdragZService(
+                mqBatchSize = PropertiesConfig.MQProperties().mqBatchSize,
+            ),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<Void> {
         var showLogLocalTime = LocalDateTime.now()
@@ -58,12 +61,15 @@ object JobTaskConfig {
             .recurring("sendUtbetalingTransaksjonToOppdragZ", cron(schedulerProperties.sendUtbetalingTransaksjonToOppdragZCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ(PropertiesConfig.MQProperties().mqBatchSize)
+                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
             }
     }
 
     internal fun recurringSendTrekkTransaksjonToOppdragZTask(
-        sendTrekkTransaksjonToOppdragZService: SendTrekkTransaksjonToOppdragZService = SendTrekkTransaksjonToOppdragZService(),
+        sendTrekkTransaksjonToOppdragZService: SendTrekkTransaksjonToOppdragZService =
+            SendTrekkTransaksjonToOppdragZService(
+                mqBatchSize = PropertiesConfig.MQProperties().mqBatchSize,
+            ),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<Void> {
         var showLogLocalTime = LocalDateTime.now()
@@ -71,7 +77,7 @@ object JobTaskConfig {
             .recurring("sendTrekkTransaksjonToOppdragZ", cron(schedulerProperties.sendTrekkTransaksjonToOppdragZCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag(PropertiesConfig.MQProperties().mqBatchSize)
+                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
             }
     }
 
