@@ -18,7 +18,6 @@ import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_01_UNIK_ID
-import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_02_GYLDIG_FODSELSNUMMER
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_03_GYLDIG_PERIODE
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_04_GYDLIG_BELOPSTYPE
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_05_UGYLDIG_ART
@@ -41,6 +40,7 @@ class InnTransaksjonRepository(
     private val validateTransaksjonTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "validateTransaksjon")
     private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "insertBatch")
     private val updateBehandletStatusBatchTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "updateBehandletStatusBatch")
+    private val updateTransaksjonStatusTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "updateTransaksjonStatus")
     private val deleteByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "deleteByFilInfoId")
     private val findLastFagomraadeByPersonIdTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "findLastFagomraadeByPersonId")
 
@@ -102,7 +102,6 @@ class InnTransaksjonRepository(
     fun validateTransaksjon(session: Session) {
         validateTransaksjonTimer.recordCallable {
             session.update(queryOf(VALIDATOR_01_UNIK_ID))
-            session.update(queryOf(VALIDATOR_02_GYLDIG_FODSELSNUMMER))
             session.update(queryOf(VALIDATOR_03_GYLDIG_PERIODE))
             session.update(queryOf(VALIDATOR_09_GYLDIG_ANVISER_DATO))
             session.update(queryOf(VALIDATOR_10_GYLDIG_BELOP))
@@ -174,6 +173,22 @@ class InnTransaksjonRepository(
                 UPDATE T_INN_TRANSAKSJON SET BEHANDLET = '$behandlet' WHERE INN_TRANSAKSJON_ID = :innTransaksjonId
                 """.trimIndent(),
                 innTransaksjonIdList.map { mapOf("innTransaksjonId" to it) },
+            )
+        }
+    }
+
+    fun updateTransaksjonStatus(
+        fnr: String,
+        status: String,
+        session: Session,
+    ) {
+        updateTransaksjonStatusTimer.recordCallable {
+            session.execute(
+                queryOf(
+                    """
+                    UPDATE T_INN_TRANSAKSJON SET K_TRANSAKSJON_S = '$status' WHERE FNR_FK = '$fnr'
+                    """.trimIndent(),
+                ),
             )
         }
     }

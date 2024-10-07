@@ -67,7 +67,7 @@ internal class ValidateTransaksjonServiceTest :
             Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 15
             When("det valideres") {
                 validateTransaksjonService.validateInnTransaksjon()
-                Then("skal det opprettes 10 ok-transaksjon og 5 avvikstransaksjon") {
+                Then("skal det opprettes 10 ok-transaksjoner og 5 avvikstransaksjoner") {
                     val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
 
                     val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOk() }
@@ -144,25 +144,6 @@ internal class ValidateTransaksjonServiceTest :
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
                         verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "01")
-                    }
-                }
-            }
-        }
-
-        Given("det finnes en innTransaksjon som har ugyldig fnr") {
-            Db2Listener.dataSource.transaction { session ->
-                session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_ugyldig_fnr.sql")))
-            }
-            Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
-            When("det valideres ") {
-                validateTransaksjonService.validateInnTransaksjon()
-                Then("skal det opprettes en avvikstransaksjon med valideringsfeil 02") {
-                    val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
-                    innTransaksjonList.filter { !it.isTransaksjonStatusOk() }.size shouldBe 1
-                    innTransaksjonList.forEach { innTransaksjon ->
-                        val avvikTransaksjon =
-                            Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "02")
                     }
                 }
             }
@@ -426,13 +407,13 @@ internal class ValidateTransaksjonServiceTest :
                     )
                 val exception = shouldThrow<MottakException> { validateTransaksjonServiceMock.validateInnTransaksjon() }
 
-                Then("skal det kastet en MottakException med database feil") {
+                Then("skal det kastet en MottakException med databasefeil") {
                     exception.message shouldBe "Feil under behandling av innTransaksjoner. Feilmelding: No database connection!"
                 }
             }
         }
 
-        Given("det fins innTranskasjoner som har mangler personId") {
+        Given("det finnes innTranskasjoner som mangler personId") {
 
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(readFromResource("/database/validate_innTransaksjon_and_person.sql")))
@@ -465,7 +446,7 @@ internal class ValidateTransaksjonServiceTest :
                         ),
                 )
 
-                Then("skal det opprettes 2 nye personer og 10 ok-transaksjon blir validert") {
+                Then("skal det opprettes 2 nye personer og 10 ok-transaksjoner blir validert") {
                     validateTransaksjonService.validateInnTransaksjon()
                     Db2Listener.personRepository.findByFnr(FNR_LIST).size shouldBe 11
                     Db2Listener.innTransaksjonRepository
@@ -477,7 +458,7 @@ internal class ValidateTransaksjonServiceTest :
         }
 
         Given("det finnes innTranskasjoner som mangler personId og fødselsnummer som trenger oppdatering") {
-            When("det valideres med PDL returnere 2 personer") {
+            When("det valideres mot PDL som returnere 2 personer") {
                 Db2Listener.dataSource.transaction { session ->
                     session.update(queryOf(readFromResource("/database/validate_innTransaksjon_and_person.sql")))
                 }
@@ -511,7 +492,7 @@ internal class ValidateTransaksjonServiceTest :
                         ),
                 )
 
-                Then("skal det opprettes 1 ny person og oppdater 1 fødselsnummer og 10 ok-transaksjon blir validert") {
+                Then("skal det opprettes 1 ny person og oppdatere 1 fødselsnummer og 10 ok-transaksjoner blir validert") {
                     validateTransaksjonService.validateInnTransaksjon()
                     Db2Listener.personRepository.findByFnr(FNR_LIST).size shouldBe 10
                     Db2Listener.innTransaksjonRepository
@@ -521,7 +502,7 @@ internal class ValidateTransaksjonServiceTest :
                 }
             }
 
-            When("det valideres med PDL returnere 1 person") {
+            When("det valideres mot PDL som returnerer 1 person") {
                 Db2Listener.dataSource.transaction { session ->
                     session.update(queryOf(readFromResource("/database/validate_innTransaksjon_and_person.sql")))
                 }
@@ -553,13 +534,18 @@ internal class ValidateTransaksjonServiceTest :
                         ),
                 )
 
-                Then("skal ingen personer opprettes og oppdateres og 8 ok-transaksjon blir validert") {
+                Then("skal ingen personer opprettes eller oppdateres og 8 ok-transaksjoner blir validert") {
                     validateTransaksjonService.validateInnTransaksjon()
                     Db2Listener.personRepository.findByFnr(FNR_LIST).size shouldBe 9
 
                     val innTransaksjonMap = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA).groupBy { it.isTransaksjonStatusOk() }
                     innTransaksjonMap[true]!!.size shouldBe 8
                     innTransaksjonMap[false]!!.size shouldBe 2
+                    innTransaksjonMap[false]!!.forEach { innTransaksjon ->
+                        val avvikTransaksjon =
+                            Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "02")
+                    }
                 }
             }
         }
