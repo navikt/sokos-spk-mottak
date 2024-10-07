@@ -74,12 +74,12 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                 SendTrekkTransaksjonToOppdragZService(
                     dataSource = Db2Listener.dataSource,
                     producer =
-                    JmsProducerService(
-                        senderQueueMock,
-                        replyQueueMock,
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                        JmsProducerService(
+                            senderQueueMock,
+                            replyQueueMock,
+                            mqTrekkProducerMetricCounter,
+                            connectionFactory,
+                        ),
                 )
 
             setupDatabase("/database/trekk_transaksjon.sql")
@@ -100,12 +100,12 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                 SendTrekkTransaksjonToOppdragZService(
                     dataSource = mockk<HikariDataSource>(),
                     producer =
-                    JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                        JmsProducerService(
+                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                            mqTrekkProducerMetricCounter,
+                            connectionFactory,
+                        ),
                 )
 
             When("henter trekk og sender til OppdragZ") {
@@ -124,12 +124,12 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
                     producer =
-                    JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                        JmsProducerService(
+                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                            mqTrekkProducerMetricCounter,
+                            connectionFactory,
+                        ),
                 )
 
             setupDatabase("/database/trekk_transaksjon.sql")
@@ -156,12 +156,12 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
                     producer =
-                    JmsProducerService(
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
-                        ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                        JmsProducerService(
+                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
+                            ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                            mqTrekkProducerMetricCounter,
+                            connectionFactory,
+                        ),
                 )
 
             setupDatabase("/database/trekk_transaksjon.sql")
@@ -188,12 +188,12 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
                     producer =
-                    JmsProducerService(
-                        senderQueueMock,
-                        replyQueueMock,
-                        mqTrekkProducerMetricCounter,
-                        connectionFactory,
-                    ),
+                        JmsProducerService(
+                            senderQueueMock,
+                            replyQueueMock,
+                            mqTrekkProducerMetricCounter,
+                            connectionFactory,
+                        ),
                 )
 
             setupDatabase("/database/trekk_transaksjon.sql")

@@ -19,33 +19,37 @@ private const val AKSJONSKODE = "NY"
 object TrekkConverter {
     private val json = Json { ignoreUnknownKeys = true }
 
-    fun Transaksjon.innrapporteringTrekk(): String = json.encodeToString(
-        DokumentWrapper(
-            dokument = Dokument(
-                transaksjonsId = transaksjonId!!.toString(),
-                InnrapporteringTrekk(
-                    aksjonskode = AKSJONSKODE,
-                    kreditorIdTss = SPK_TSS,
-                    kreditorTrekkId = transEksId,
-                    debitorId = fnr,
-                    kodeTrekktype = trekkType!!,
-                    kodeTrekkAlternativ = trekkAlternativ!!,
-                    perioder = Perioder(
-                        mutableListOf(
-                            Periode(
-                                datoFom!!.toISOString(),
-                                datoTom!!.toISOString(),
-                                sats = belop / 100.0,
-                            ),
+    fun Transaksjon.innrapporteringTrekk(): String =
+        json.encodeToString(
+            DokumentWrapper(
+                dokument =
+                    Dokument(
+                        transaksjonsId = transaksjonId!!.toString(),
+                        InnrapporteringTrekk(
+                            aksjonskode = AKSJONSKODE,
+                            kreditorIdTss = SPK_TSS,
+                            kreditorTrekkId = transEksId,
+                            debitorId = fnr,
+                            kodeTrekktype = trekkType!!,
+                            kodeTrekkAlternativ = trekkAlternativ!!,
+                            perioder =
+                                Perioder(
+                                    mutableListOf(
+                                        Periode(
+                                            datoFom!!.toISOString(),
+                                            datoTom!!.toISOString(),
+                                            sats = belop / 100.0,
+                                        ),
+                                    ),
+                                ),
                         ),
                     ),
-                ),
             ),
-        ),
-    )
+        )
 
-    fun Mmel.trekkStatus(): String = when {
-        alvorlighetsgrad?.toInt()!! < 5 -> TRANS_TILSTAND_TREKK_RETUR_OK
-        else -> TRANS_TILSTAND_TREKK_RETUR_FEIL
-    }
+    fun Mmel.trekkStatus(): String =
+        when {
+            alvorlighetsgrad?.toInt()!! < 5 -> TRANS_TILSTAND_TREKK_RETUR_OK
+            else -> TRANS_TILSTAND_TREKK_RETUR_FEIL
+        }
 }
