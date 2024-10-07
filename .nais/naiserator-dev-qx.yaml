@@ -120,9 +120,9 @@ spec:
 
     # PDL
     - name: PDL_URL
-      value: "https://pdl-api-q1.dev.intern.nav.no"
+      value: "https://pdl-api-q2.dev.intern.nav.no"
     - name: PDL_SCOPE
-      value: "api://dev-fss.pdl.pdl-api-q1/.default"
+      value: "api://dev-fss.pdl.pdl-api-q2/.default"
 
     # SFTP
     - name: SFTP_SERVER
