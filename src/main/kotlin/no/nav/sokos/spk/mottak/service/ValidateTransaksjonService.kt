@@ -7,6 +7,7 @@ import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.domain.mapToTransaksjon
 import no.nav.sokos.spk.mottak.exception.MottakException
@@ -23,6 +24,7 @@ import java.time.Instant
 
 private val logger = KotlinLogging.logger {}
 private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
+private const val UGYLDIG_FNR = "02"
 
 class ValidateTransaksjonService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
@@ -125,11 +127,13 @@ class ValidateTransaksjonService(
                                         personRepository.update(personList.first().personId!!, ident, session)
                                     } else {
                                         secureLogger.error { "Ingen person funnet i database for fnr: $fnr, ingen fnr oppdateres" }
+                                        innTransaksjonRepository.updateTransaksjonStatus(fnr, UGYLDIG_FNR, session)
                                     }
                                 }
                             }
                         } else {
                             secureLogger.error { "Ingen person funnet i PDL for fnr: $fnr" }
+                            innTransaksjonRepository.updateTransaksjonStatus(fnr, UGYLDIG_FNR, session)
                         }
                     }
                 }

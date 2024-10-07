@@ -17,6 +17,7 @@ import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.innrapporteringTrekk
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
+import no.nav.sokos.spk.mottak.metrics.Metrics.timer
 import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
@@ -43,10 +44,12 @@ class SendTrekkTransaksjonToOppdragZService(
         ),
 ) {
     fun getTrekkTransaksjonAndSendToOppdrag() {
+        val timer = Instant.now()
         val transaksjoner = getTransaksjoner() ?: return
         Metrics.timer(SERVICE_CALL, "SendTrekkTransaksjonToOppdragZService", "getTrekkTransaksjonAndSendToOppdrag").recordCallable {
             logger.info { "Starter sending av ${transaksjoner.size} trekktransaksjoner til OppdragZ" }
             val totalTransaksjoner = processTransaksjoner(transaksjoner, mqBatchSize)
+            logger.info { "Fullført sending av ${transaksjoner.size} trekktransaksjoner til OppdragZ. Total tid: ${Duration.between(timer, Instant.now()).toSeconds()} sekunder." }
             Metrics.trekkTransaksjonerTilOppdragCounter.inc(totalTransaksjoner.toLong())
         }
     }
@@ -63,7 +66,6 @@ class SendTrekkTransaksjonToOppdragZService(
         transaksjoner: List<Transaksjon>,
         mqBatchSize: Int,
     ): Int {
-        val timer = Instant.now()
         var totalTransaksjoner = 0
         transaksjoner.chunked(mqBatchSize).forEach { chunk ->
             val transaksjonIdList = chunk.mapNotNull { it.transaksjonId }
@@ -73,7 +75,6 @@ class SendTrekkTransaksjonToOppdragZService(
                     producer.send(trekkMeldinger)
                     updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_OK, session)
                     totalTransaksjoner += transaksjonIdList.size
-                    logger.info { "Fullført sending av ${transaksjonIdList.size} trekktransaksjoner til OppdragZ. Total tid: ${Duration.between(timer, Instant.now()).toSeconds()} sekunder." }
                 }
             }.onFailure { exception ->
                 logger.error(exception) { "Feiler ved utsending av trekktransaksjonene: ${transaksjonIdList.joinToString()} : $exception" }

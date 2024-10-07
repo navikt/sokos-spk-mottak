@@ -31,17 +31,6 @@ object TransaksjonValidatorQuery {
                                        AND t1.TRANS_ID_FK = t2.TRANS_ID_FK)	
         """.trimIndent()
 
-    val VALIDATOR_02_GYLDIG_FODSELSNUMMER =
-        """
-        UPDATE T_INN_TRANSAKSJON
-        SET K_TRANSAKSJON_S = '02'
-        WHERE K_TRANSAKSJON_S IS NULL
-          AND FNR_FK IN (SELECT t1.FNR_FK
-                         FROM T_INN_TRANSAKSJON t1
-                                  LEFT JOIN T_PERSON t2 ON t1.FNR_FK = t2.FNR_FK
-                         WHERE t2.FNR_FK IS NULL)
-        """.trimIndent()
-
     val VALIDATOR_03_GYLDIG_PERIODE =
         """
         UPDATE T_INN_TRANSAKSJON
