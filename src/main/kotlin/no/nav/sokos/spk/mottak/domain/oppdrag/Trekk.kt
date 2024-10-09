@@ -12,7 +12,7 @@ data class DokumentWrapper(
 data class Mmel(
     val systemId: String? = null,
     val kodeMelding: String? = null,
-    val alvorlighetsgrad: String? = null,
+    val alvorlighetsgrad: String,
     val beskrMelding: String? = null,
     val sqlKode: String? = null,
     val sqlStateMmel: String? = null,
@@ -25,20 +25,20 @@ data class Mmel(
 
 @Serializable
 data class Dokument(
-    val transaksjonsId: String? = null,
-    val innrapporteringTrekk: InnrapporteringTrekk? = null,
+    val transaksjonsId: String,
+    val innrapporteringTrekk: InnrapporteringTrekk,
 )
 
 @Serializable
 data class InnrapporteringTrekk(
-    val aksjonskode: String? = null,
+    val aksjonskode: String,
     val navTrekkId: String? = null,
-    val kreditorIdTss: String? = null,
-    val kreditorTrekkId: String? = null,
-    val debitorId: String? = null,
-    val kodeTrekktype: String? = null,
-    val kodeTrekkAlternativ: String? = null,
-    val perioder: Perioder? = null,
+    val kreditorIdTss: String,
+    val kreditorTrekkId: String,
+    val debitorId: String,
+    val kodeTrekktype: String,
+    val kodeTrekkAlternativ: String,
+    val perioder: Perioder,
 )
 
 @Serializable
@@ -48,7 +48,7 @@ data class Perioder(
 
 @Serializable
 data class Periode(
-    val periodeFomDato: String? = null,
-    val periodeTomDato: String? = null,
-    val sats: Double = 0.0,
+    val periodeFomDato: String,
+    val periodeTomDato: String,
+    val sats: Double,
 )
