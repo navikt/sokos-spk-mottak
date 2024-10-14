@@ -104,7 +104,7 @@ class JmsListenerService(
     private fun onTrekkMessage(message: Message) {
         runCatching {
             val jmsMessage = message.getBody(String::class.java)
-            logger.info { "Mottatt trekkmelding fra OppdragZ, message content: $jmsMessage" }
+            logger.debug { "Mottatt trekkmelding fra OppdragZ, message content: $jmsMessage" }
             val trekkWrapper = json.decodeFromString<DokumentWrapper>(jmsMessage)
             processTrekkMessage(trekkWrapper.dokument!!, trekkWrapper.mmel!!)
         }.onFailure { exception ->
@@ -118,7 +118,7 @@ class JmsListenerService(
     ) {
         val trekkStatus = trekkInfo.trekkStatus()
         val transaksjonId = trekk.transaksjonsId!!.toInt()
-        if (!isDuplicate(transaksjonId, trekkStatus)) {
+        if (!isDuplicate(transaksjonId, trekkInfo.alvorlighetsgrad)) {
             dataSource.transaction { session ->
                 val transTilstandIdList =
                     transaksjonTilstandRepository.insertBatch(
@@ -133,7 +133,7 @@ class JmsListenerService(
                     listOf(transaksjonId),
                     transTilstandIdList,
                     trekkStatus,
-                    trekk.innrapporteringTrekk?.navTrekkId!!,
+                    trekk.innrapporteringTrekk?.navTrekkId ?: null,
                     trekkInfo.alvorlighetsgrad,
                     session,
                 )
