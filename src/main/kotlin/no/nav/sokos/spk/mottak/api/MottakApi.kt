@@ -1,7 +1,6 @@
 package no.nav.sokos.spk.mottak.api
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -32,7 +31,7 @@ fun Route.mottakApi(
 ) {
     route("api/v1") {
         get("readParseFileAndValidateTransactions") {
-            launch(Dispatchers.IO) {
+            call.launch(Dispatchers.IO) {
                 readAndParseFileService.readAndParseFile()
                 validateTransaksjonService.validateInnTransaksjon()
                 writeToFileService.writeReturnFile()
@@ -41,21 +40,21 @@ fun Route.mottakApi(
         }
 
         get("sendUtbetalingTransaksjonToOppdragZ") {
-            launch(Dispatchers.IO) {
+            call.launch(Dispatchers.IO) {
                 sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
             }
             call.respond(HttpStatusCode.OK, "SendUtbetalingTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
         get("sendTrekkTransaksjonToOppdragZ") {
-            launch(Dispatchers.IO) {
+            call.launch(Dispatchers.IO) {
                 sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
             }
             call.respond(HttpStatusCode.OK, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
         get("avstemming") {
-            launch(Dispatchers.IO) {
+            call.launch(Dispatchers.IO) {
                 avstemmingService.sendGrensesnittAvstemming()
             }
             call.respond(HttpStatusCode.OK, "GrensesnittAvstemming har startet, sjekk logger for status")
