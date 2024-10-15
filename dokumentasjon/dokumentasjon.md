@@ -1,26 +1,25 @@
 # Innholdsoversikt
 
-* [1. Avhengighetskart](#1-avhengighetskart)
-* [2. Løsningsbeskrivelse](#2-løsningsbeskrivelse)
-* [3. Valideringsregler](#1-valideringsregler)
-* [4. Tester](#2-tester)
+## Overordnet beskrivelse
+- [Overordnet](løsningsbeskrivelse/overordnet/overordnet.md)
+- [Domenemodell](løsningsbeskrivelse/overordnet/domenemodell.md)
+- [Avhengighetskart](løsningsbeskrivelse/overordnet/avhengighetskart.md)
+- [Flowchart](løsningsbeskrivelse/overordnet/flowchart.md)
+
+## Detaljert beskrivelse av tjenestene
+- [ReadAndParseFileService](løsningsbeskrivelse/detaljert/ReadAndParseFileService.md)
+- [ValidateTransaksjonService](løsningsbeskrivelse/detaljert/ValidateTransaksjonService.md)
+- [WriteToFileService](løsningsbeskrivelse/detaljert/WriteToFileService.md)
+- [SendUtbetalingTransaksjonToOppdragZService](løsningsbeskrivelse/detaljert/SendUtbetalingTransaksjonToOppdragZService.md)
+- [SendTrekkTransaksjonToOppdragZService](løsningsbeskrivelse/detaljert/SendTrekkTransaksjonToOppdragZService.md)
+- [JmsListenerService](løsningsbeskrivelse/detaljert/JmsListenerService.md)
+- [AvstemmingService](løsningsbeskrivelse/detaljert/AvstemmingService.md)
 
 
-# 1. Avhengighetskart
-
-Oversikt over avhengigheter for sokos-spk-mottak
-
-# 2. Løsningsbeskrivelse
-
-Løsningsbeskrivelse for sokos-spk-mottak
-
-# 3. Valideringsregler
-
-Valideringsregler for sokos-spk-mottak
-
-# 4. Tester
-
-Tester for sokos-spk-mottak
+## Tester
+- [Filformat tester](tester/filformat-tester.md)
+- [Transaksjonstolkning tester](tester/transaksjonstolkning-tester.md)
+- [Transaksjonvalidering tester](tester/transaksjonsvalidering-tester.md)
 
 
 
