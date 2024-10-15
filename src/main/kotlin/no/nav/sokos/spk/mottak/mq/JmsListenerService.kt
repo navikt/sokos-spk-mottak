@@ -15,7 +15,7 @@ import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
-import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.trekkStatus
+import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.trekkTilstandStatus
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.domain.oppdrag.DokumentWrapper
 import no.nav.sokos.spk.mottak.domain.oppdrag.Mmel
@@ -116,8 +116,8 @@ class JmsListenerService(
         trekk: Dokument,
         trekkInfo: Mmel,
     ) {
-        val trekkStatus = trekkInfo.trekkStatus()
-        val transaksjonId = trekk.transaksjonsId!!.toInt()
+        val trekkStatus = trekkInfo.trekkTilstandStatus()
+        val transaksjonId = trekk.transaksjonsId.toInt()
         if (!isDuplicate(transaksjonId, trekkInfo.alvorlighetsgrad)) {
             dataSource.transaction { session ->
                 val transTilstandIdList =
