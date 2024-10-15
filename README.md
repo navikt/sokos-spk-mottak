@@ -45,6 +45,12 @@ For å kjøre applikasjonen lokalt må du gjøre følgende:
   Denne vil opprette [default.properties](defaults.properties) med alle environment variabler du trenger for å kjøre
   applikasjonen som er definert i [PropertiesConfig](src/main/kotlin/no/nav/sokos/spk/mottak/config/PropertiesConfig.kt).
 
+- Må også ha med `db2jcc_license_cisuz.jar` for at `sokos-spk-mottak` skal kunne koble seg til DB2.
+  Denne må ligge i `Classpath` som JVM options. F.eks på Mac/Linux blir følgende lagt til:
+```
+-cp $Classpath$:path/db2jcc_license_cisuz.jar
+```
+
 # 4. Programvarearkitektur
 
 Legg ved skissediagram for hvordan arkitekturen er bygget
@@ -98,7 +104,7 @@ kubectl logs -f sokos-spk-mottak-<POD-ID> --namespace okonomi -c sokos-spk-motta
 ### Alarmer
 
 Vi bruker [nais-alerts](https://doc.nais.io/observability/alerts) for å sette opp alarmer.
-Disse finner man konfigurert i [.nais/alerts-dev.yaml](.nais/alerts-dev.yaml) filen og [.nais/alerts-prod.yaml](.nais/alerts-prod.yaml)
+Disse finner man konfigurert i [.nais/alerts-dev.yaml](.nais/alerts-dev.yaml) filen og [.nais/alerts-prod.yaml](.nais/alerts-prod.yaml).
 Alarmene blir publisert i Slack kanalen #team-moby-alerts-dev og #team-moby-alerts-prod.
 
 ### Grafana
