@@ -194,8 +194,9 @@ class ReadAndParseFileService(
         exception: FilValidationException,
     ): String =
         startRecord
+            .padEnd(78 + exception.message.count(), ' ')
             .replaceRange(76, 78, exception.statusCode)
-            .replaceRange(78, startRecord.length, exception.message)
+            .replaceRange(78, 78 + exception.message.length, exception.message)
 
     private fun createFileName(): String = "SPK_NAV_${SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())}_INL"
 }
