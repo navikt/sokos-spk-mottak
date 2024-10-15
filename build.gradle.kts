@@ -7,9 +7,9 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.0.20"
-    kotlin("plugin.serialization") version "2.0.20"
-    id("com.expediagroup.graphql") version "8.0.0"
+    kotlin("jvm") version "2.0.21"
+    kotlin("plugin.serialization") version "2.0.21"
+    id("com.expediagroup.graphql") version "8.1.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
     id("org.jetbrains.kotlinx.kover") version "0.8.3"
@@ -40,12 +40,12 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "2.3.12"
+val ktorVersion = "3.0.0"
 val jschVersion = "0.2.20"
-val logbackVersion = "1.5.8"
+val logbackVersion = "1.5.10"
 val logstashVersion = "8.0"
 val jacksonVersion = "2.15.3"
-val micrometerVersion = "1.13.4"
+val micrometerVersion = "1.13.5"
 val kotlinLoggingVersion = "3.0.5"
 val janionVersion = "3.1.12"
 val natpryceVersion = "1.6.10.0"
@@ -53,20 +53,20 @@ val kotestVersion = "5.9.1"
 val kotestWiremockVersion = "3.1.0"
 val kotlinxSerializationVersion = "1.7.3"
 val mockOAuth2ServerVersion = "2.1.9"
-val mockkVersion = "1.13.12"
+val mockkVersion = "1.13.13"
 val hikariVersion = "6.0.0"
 val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
-val testcontainersVersion = "1.20.1"
+val testcontainersVersion = "1.20.2"
 val h2Version = "2.3.232"
-val flywayVersion = "10.18.2"
+val flywayVersion = "10.19.0"
 val postgresVersion = "42.7.4"
 val dbSchedulerVersion = "14.1.0"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20240729135316_1bd0ab3"
 val ibmmqVersion = "9.4.0.5"
 val activemqVersion = "2.37.0"
-val graphqlClientVersion = "8.0.0"
+val graphqlClientVersion = "8.1.0"
 
 dependencies {
 

@@ -47,9 +47,9 @@ object TrekkConverter {
             ),
         )
 
-    fun Mmel.trekkStatus(): String =
+    fun Mmel.trekkTilstandStatus(): String =
         when {
-            alvorlighetsgrad?.toInt()!! < 5 -> TRANS_TILSTAND_TREKK_RETUR_OK
+            alvorlighetsgrad.toInt() < 5 -> TRANS_TILSTAND_TREKK_RETUR_OK
             else -> TRANS_TILSTAND_TREKK_RETUR_FEIL
         }
 }
