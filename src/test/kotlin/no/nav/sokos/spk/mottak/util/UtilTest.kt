@@ -2,8 +2,8 @@ package no.nav.sokos.spk.mottak.util
 
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
+import no.nav.sokos.spk.mottak.util.Utils.booleanToString
 import no.nav.sokos.spk.mottak.util.Utils.toAvstemmingPeriode
-import no.nav.sokos.spk.mottak.util.Utils.toChar
 import no.nav.sokos.spk.mottak.util.Utils.toISOString
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateString
@@ -46,10 +46,10 @@ internal class UtilTest :
             }
         }
 
-        context("Boolean konverteres til char") {
-            expect("returnerer Char") {
-                true.toChar() shouldBe '1'
-                false.toChar() shouldBe '0'
+        context("Boolean konverteres til String") {
+            expect("returnerer String") {
+                true.booleanToString() shouldBe "1"
+                false.booleanToString() shouldBe "0"
             }
         }
 

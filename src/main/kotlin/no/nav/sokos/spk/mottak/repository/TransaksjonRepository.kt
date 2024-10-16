@@ -19,7 +19,7 @@ import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
 import no.nav.sokos.spk.mottak.util.SQLUtils.optionalOrNull
-import no.nav.sokos.spk.mottak.util.Utils.toChar
+import no.nav.sokos.spk.mottak.util.Utils.booleanToString
 
 class TransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
@@ -342,7 +342,7 @@ class TransaksjonRepository(
             transTolkning = row.string("K_TRANS_TOLKNING"),
             sendtTilOppdrag = row.string("SENDT_TIL_OPPDRAG"),
             trekkvedtakId = row.stringOrNull("TREKKVEDTAK_ID_FK"),
-            fnrEndret = row.boolean("FNR_ENDRET").toChar(),
+            fnrEndret = row.boolean("FNR_ENDRET").booleanToString(),
             motId = row.string("MOT_ID"),
             osStatus = row.stringOrNull("OS_STATUS"),
             datoOpprettet = row.localDateTime("DATO_OPPRETTET"),

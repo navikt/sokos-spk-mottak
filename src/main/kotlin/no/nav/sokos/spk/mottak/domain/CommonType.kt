@@ -39,8 +39,8 @@ const val TRANS_TOLKNING_NY = "NY"
 const val TRANS_TOLKNING_NY_EKSIST = "NY_EKSIST"
 
 // FNR ENDRET
-const val FNR_ENDRET = '1'
-const val FNR_IKKE_ENDRET = '0'
+const val FNR_ENDRET = "1"
+const val FNR_IKKE_ENDRET = "0"
 
 // TRANSAKSJON TILSTAND STATUS
 const val TRANS_TILSTAND_OPPRETTET = "OPR"
