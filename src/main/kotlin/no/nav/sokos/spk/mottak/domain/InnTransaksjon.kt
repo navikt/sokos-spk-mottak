@@ -1,7 +1,7 @@
 package no.nav.sokos.spk.mottak.domain
 
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.util.Utils.toChar
+import no.nav.sokos.spk.mottak.util.Utils.booleanToString
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -64,7 +64,7 @@ fun InnTransaksjon.mapToTransaksjon(
         transEksId = this.transId,
         transTolkning = lastFagOmraadeMap[this.innTransaksjonId]?.let { TRANS_TOLKNING_NY_EKSIST } ?: TRANS_TOLKNING_NY,
         sendtTilOppdrag = "0",
-        fnrEndret = (transaksjon?.let { it.fnr != this.fnr } ?: false).toChar(),
+        fnrEndret = (transaksjon?.let { it.fnr != this.fnr } ?: false).booleanToString(),
         motId = this.innTransaksjonId.toString(),
         datoOpprettet = LocalDateTime.now(),
         opprettetAv = systemId,

@@ -59,7 +59,7 @@ object TestData {
             transTolkning = TRANS_TOLKNING_NY_EKSIST,
             sendtTilOppdrag = "0",
             trekkvedtakId = null,
-            fnrEndret = Char(0),
+            fnrEndret = "0",
             motId = "36799719",
             osStatus = null,
             datoOpprettet = LocalDateTime.now(),

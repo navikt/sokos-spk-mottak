@@ -25,8 +25,10 @@ import java.util.stream.Collectors
 object TestHelper {
     fun readFromResource(filename: String): String {
         val inputStream = this::class.java.getResourceAsStream(filename)!!
-        return BufferedReader(InputStreamReader(inputStream)).lines()
-            .parallel().collect(Collectors.joining("\n"))
+        return BufferedReader(InputStreamReader(inputStream))
+            .lines()
+            .parallel()
+            .collect(Collectors.joining("\n"))
     }
 
     fun verifyFilInfo(
@@ -60,7 +62,7 @@ object TestHelper {
         transaksjon: Transaksjon,
         innTransaksjon: InnTransaksjon,
         tolkning: String,
-        fnrEndret: Char,
+        fnrEndret: String,
         transaksjonType: String = TRANSAKSJONSTATUS_OK,
     ) {
         val systemId = PropertiesConfig.Configuration().naisAppName
