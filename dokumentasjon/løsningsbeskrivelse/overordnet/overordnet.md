@@ -13,10 +13,10 @@ NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar dagl
 <br/> Tjeneste som genererer en returfil per anvisningsfil som sendes til SPK og som inneholder samme informasjon som anvisningsfilen men med tilleggsinformasjon om status på transaksjonsvalideringen.
 
 4. [SendUtbetalingTransaksjonToOppdragZService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/SendUtbetalingTransaksjonToOppdragZService.kt)
-<br/> Tjeneste som sender alle utbetalingstransaksjoner til Oppdragssystemet(OS) som ligger i `T_TRANSAKSJON` (dvs godkjente) men som ennå ikke er oversendt. I tillegg vil også transaksjoner som har feilet ved tidligere forsøk sendes til OS.
+<br/> Tjeneste som sender alle utbetalingstransaksjoner til Oppdragssystemet(OS) som ligger i `T_TRANSAKSJON` (dvs godkjente) men som ennå ikke er oversendt. I tillegg vil også transaksjoner som har feilet ved tidligere oversendelsesforsøk sendes til OS.
 
 5. [SendTrekkTransaksjonToOppdragZService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/SendTrekkTransaksjonToOppdragZService.kt)
-<br/> Tjeneste som sender alle trekktransaksjoner til Oppdragssystemet(OS) som ligger i `T_TRANSAKSJON` (dvs godkjente) men som ennå ikke er oversendt. I tillegg vil også transaksjoner som har feilet ved tidligere forsøk sendes til OS.
+<br/> Tjeneste som sender alle trekktransaksjoner til Oppdragssystemet(OS) som ligger i `T_TRANSAKSJON` (dvs godkjente) men som ennå ikke er oversendt. I tillegg vil også transaksjoner som har feilet ved tidligere oversendelsesforsøk sendes til OS.
 
 6. [JmsListenerService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/mq/JmsListenerService.kt) 
 <br/> Tjeneste som lytter til reply-meldinger fra OS og lagrer meldingstatus og annen informasjon i T_TRANSAKSJON. Reply-meldingene inneholder informasjon om status til behandlingen av transaksjonene i OS.
