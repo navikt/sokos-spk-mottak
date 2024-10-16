@@ -51,7 +51,7 @@ class AvstemmingService(
                         fileInfoMap
                             .flatMap { transaksjonRepository.findTransaksjonOppsummeringByFilInfoId(it.key) }
                             .groupBy { it.fagomrade }
-                    logger.debug { "Transkasjon oppsummering: $oppsummeringMap" }
+                    logger.debug { "Transaksjonsoppsummering: $oppsummeringMap" }
 
                     val filInfoIdList = fileInfoMap.map { it.key }
                     val transaksjonDetaljer = transaksjonRepository.findTransaksjonDetaljerByFilInfoId(filInfoIdList)
@@ -59,13 +59,13 @@ class AvstemmingService(
                     dataSource.transaction { session ->
                         filInfoRepository.updateAvstemmingStatus(filInfoIdList, TRANS_TILSTAND_OPPDRAG_AVSTEMMING, session)
                     }
-                    logger.info { "Avstemming sendt OK for fileInfoId: ${filInfoIdList.joinToString()}" }
+                    logger.info { "Avstemming sendt OK for filInfoId: ${filInfoIdList.joinToString()}" }
                 }
             } else {
-                logger.info { "Ingen transaksjoner eller for mange antall ikke fått kvittering fra OppdragZ transaksjoner til grensesnitt avstemming." }
+                logger.info { "Ingen transaksjoner eller for mange transaksjoner som ikke har fått kvittering fra OppdragZ" }
             }
         }.onFailure { exception ->
-            val errorMessage = "Feil under sending av avstemming til OppdragZ. Feilmelding: ${exception.message}"
+            val errorMessage = "Utsending av avstemming til OppdragZ feilet. Feilmelding: ${exception.message}"
             logger.error(exception) { errorMessage }
             throw MottakException(errorMessage)
         }

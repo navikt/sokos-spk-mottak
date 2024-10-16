@@ -31,11 +31,11 @@ open class JmsProducerService(
             }.onSuccess {
                 context.commit()
                 metricCounter.inc(payload.size.toLong())
-                logger.info { "MQ-transaksjon committed ${messages.size} messages" }
+                logger.debug { "MQ-transaksjon committed ${messages.size} meldinger" }
             }.onFailure { exception ->
                 context.rollback()
                 logger.error(exception) { "MQ-transaksjon rolled back" }
-                throw MottakException(exception.message!!)
+                throw MottakException(exception.message ?: "Feil ved sending av melding til MQ")
             }
         }
     }

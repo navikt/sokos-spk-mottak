@@ -36,7 +36,6 @@ class ReadAndParseFileService(
     private val ftpService: FtpService = FtpService(),
 ) {
     fun readAndParseFile() {
-        logger.info { "Filprossesering jobben startet" }
         val downloadFiles = ftpService.downloadFiles()
 
         when {
@@ -117,7 +116,7 @@ class ReadAndParseFileService(
             ) {
                 lopenummerRepository.updateLopeNummer(recordData.startRecord.filLopenummer, FILTYPE_ANVISER, session)
             } else {
-                logger.info { "Kan ikke oppdatere løpenummer for ${recordData.filNavn} siden betingelsene ikke er tilfredsstilt" }
+                logger.error { "Kan ikke oppdatere løpenummer for ${recordData.filNavn} siden betingelsene ikke er tilfredsstilt" }
             }
 
             val filInfo =
@@ -131,7 +130,7 @@ class ReadAndParseFileService(
 
             createAvviksFil(recordData.startRecord.kildeData, exception)
             ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.FERDIG)
-            logger.info { "Avviksfil er opprettet for fil: ${recordData.filNavn} med status: ${exception.statusCode} med løpenummer: ${recordData.startRecord.filLopenummer}" }
+            logger.error { "Avviksfil er opprettet for fil: ${recordData.filNavn} med status: ${exception.statusCode} med løpenummer: ${recordData.startRecord.filLopenummer}" }
         }.onFailure {
             logger.error { "Feil ved opprettelse av avviksfil: ${recordData.filNavn}. Feilmelding: ${it.message}" }
             throw MottakException("Feil ved opprettelse av avviksfil: ${recordData.filNavn}. Feilmelding: ${it.message}")

@@ -27,12 +27,12 @@ class WriteToFileService(
         runCatching {
             val filInfoList = filInfoRepository.getByFilTilstandAndAllInnTransaksjonIsBehandlet()
             if (filInfoList.isNotEmpty()) {
-                logger.info { "Skriv fil til SPK for filInfoId: ${filInfoList.map { it.filInfoId }.joinToString()}" }
+                logger.info { "Returfil produseres for filInfoId: ${filInfoList.map { it.filInfoId }.joinToString()}" }
                 filInfoList.forEach { createTempFileAndUploadToFtpServer(it) }
-                logger.info { "Filene er opprettet og lastes opp til FTP server" }
+                logger.info { "Returfil er produsert og lastet opp til FTP server" }
             }
         }.onFailure { exception ->
-            val errorMessage = "Feil under skriving returfil til SPK. Feilmelding: ${exception.message}"
+            val errorMessage = "Skriving av returfil feilet. Feilmelding: ${exception.message}"
             logger.error(exception) { errorMessage }
             throw MottakException(errorMessage)
         }
@@ -69,7 +69,7 @@ class WriteToFileService(
             innTransaksjonRepository.deleteByFilInfoId(filInfo.filInfoId, session)
 
             ftpService.createFile(returFilnavn, Directories.ANVISNINGSRETUR, anvisningFil)
-            logger.info { "$returFilnavn med antall transaksjoner: $antallTransaksjon og beløp: $sumBelop opprettet og har lastet opp tilbake til SPK i ${Directories.ANVISNINGSRETUR}" }
+            logger.info { "$returFilnavn med antall transaksjoner: $antallTransaksjon og beløp: $sumBelop opprettet og har lastet opp til ${Directories.ANVISNINGSRETUR}" }
         }
     }
 
