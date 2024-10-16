@@ -257,9 +257,7 @@ create table T_K_BELOP_T
 insert into T_K_BELOP_T (K_BELOP_T, DEKODE, DATO_FOM, DATO_TOM, ER_GYLDIG, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV)
 values ('01', 'Skattepliktig utbetaling', '1899-12-31', null, '1', '2007-09-11 13:13:00.000000', 'F.Andersen', '2007-09-11 13:13:00.000000', 'F.Andersen'),
        ('02', 'Ikke skattepliktig utbetaling', '1899-12-31', null, '1', '2007-09-11 13:13:00.000000', 'F.Andersen', '2007-09-11 13:13:00.000000', 'F.Andersen'),
-       ('03', 'Trekk', '1899-12-31', null, '1', '2007-09-11 13:13:00.000000', 'F.Andersen', '2007-09-11 13:13:00.000000', 'F.Andersen'),
-       ('04', 'Annulering utbetaling', '1899-12-31', null, '1', '2007-09-11 13:13:00.000000', 'F.Andersen', '2007-09-11 13:13:00.000000', 'F.Andersen'),
-       ('05', 'Annulering trekk', '1899-12-31', null, '1', '2007-09-11 13:13:00.000000', 'F.Andersen', '2007-09-11 13:13:00.000000', 'F.Andersen');
+       ('03', 'Trekk', '1899-12-31', null, '1', '2007-09-11 13:13:00.000000', 'F.Andersen', '2007-09-11 13:13:00.000000', 'F.Andersen');
 
 -- TABLE T_K_ART
 
