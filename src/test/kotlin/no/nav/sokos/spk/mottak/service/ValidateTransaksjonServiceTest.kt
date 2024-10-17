@@ -42,19 +42,22 @@ import java.time.LocalDate
 
 internal class ValidateTransaksjonServiceTest :
     BehaviorSpec({
-        extensions(listOf(Db2Listener))
+        extensions(listOf(WiremockListener, Db2Listener))
 
-        val pdlService =
+        val pdlService: PdlService by lazy {
             PdlService(
-                pdlUrl = WiremockListener.wiremock.baseUrl(),
+                pdlUrl = wiremock.baseUrl(),
                 accessTokenClient = WiremockListener.accessTokenClient,
             )
-        val validateTransaksjonService =
+        }
+
+        val validateTransaksjonService: ValidateTransaksjonService by lazy {
             ValidateTransaksjonService(
                 dataSource = Db2Listener.dataSource,
                 innTransaksjonRepository = Db2Listener.innTransaksjonRepository,
                 pdlService = pdlService,
             )
+        }
 
         every { Db2Listener.innTransaksjonRepository.findAllFnrWithoutPersonId() } returns emptyList()
 
@@ -503,6 +506,7 @@ internal class ValidateTransaksjonServiceTest :
             }
 
             When("det valideres mot PDL som returnerer 1 person") {
+
                 Db2Listener.dataSource.transaction { session ->
                     session.update(queryOf(readFromResource("/database/validate_innTransaksjon_and_person.sql")))
                 }
