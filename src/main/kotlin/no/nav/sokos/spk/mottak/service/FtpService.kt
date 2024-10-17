@@ -3,6 +3,7 @@ package no.nav.sokos.spk.mottak.service
 import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.SftpConfig
+import no.nav.sokos.spk.mottak.exception.SFtpException
 import java.io.ByteArrayOutputStream
 
 private val logger = KotlinLogging.logger {}
@@ -29,8 +30,8 @@ class FtpService(
                 connector.put(content.toByteArray().inputStream(), path)
                 logger.debug { "$fileName ble opprettet i mappen $path" }
             }.onFailure { exception ->
-                logger.error { "$fileName ble ikke opprettet i mappen $path: ${exception.message}" }
-                throw exception
+                logger.error { "$fileName ble ikke opprettet i mappen $path. Feilmelding: ${exception.message}" }
+                throw SFtpException("SFtp-feil: $exception")
             }
         }
     }
@@ -48,8 +49,8 @@ class FtpService(
                 connector.rename(oldpath, newpath)
                 logger.debug { "$fileName ble flyttet fra mappen ${from.value} til mappen ${to.value}" }
             }.onFailure { exception ->
-                logger.error { "$fileName ble ikke flyttet fra mappe $oldpath til mappe $newpath: ${exception.message}" }
-                throw exception
+                logger.error { "$fileName ble ikke flyttet fra mappe $oldpath til mappe $newpath. Feilmelding: ${exception.message}" }
+                throw SFtpException("SFtp-feil: $exception")
             }
         }
     }
@@ -70,9 +71,9 @@ class FtpService(
                         connector.get(fileName, outputStream)
                         String(outputStream.toByteArray()).split("\r?\n|\r".toRegex()).filter { file -> file.isNotEmpty() }
                     }
-            } catch (e: SftpException) {
-                logger.error { "$fileName ble ikke hentet. Feilmelding: ${e.message}" }
-                throw e
+            } catch (exception: SftpException) {
+                logger.error { "$fileName ble ikke hentet. Feilmelding: ${exception.message}" }
+                throw SFtpException("SFtp-feil: $exception")
             }
         }
     }

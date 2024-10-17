@@ -112,7 +112,7 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
             When("hent utbetalinger og send til OppdragZ") {
                 val exception = shouldThrow<MottakException> { utbetalingTransaksjonTilOppdragService.getUtbetalingTransaksjonAndSendToOppdragZ() }
                 Then("skal det kaste en feilmelding og SendUtbetalingTransaksjonToOppdragServiceV2 stoppet") {
-                    exception.message shouldBe "Feil under sending av utbetalingstransaksjoner til OppdragZ. Feilmelding: No database connection!"
+                    exception.message shouldBe "Sending av utbetalingstransaksjoner til OppdragZ feilet. Feilmelding: No database connection!"
                 }
             }
         }

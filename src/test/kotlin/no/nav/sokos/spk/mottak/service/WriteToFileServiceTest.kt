@@ -75,7 +75,7 @@ internal class WriteToFileServiceTest :
 
                 Then("skal det kastes en MottakException med databasefeil") {
                     val exception = shouldThrow<MottakException> { writeToFileServiceMock.writeReturnFile() }
-                    exception.message shouldBe "Feil under skriving returfil til SPK. Feilmelding: No database connection!"
+                    exception.message shouldBe "Skriving av returfil feilet. Feilmelding: No database connection!"
                 }
             }
         }
@@ -93,7 +93,7 @@ internal class WriteToFileServiceTest :
 
                 Then("skal det kastet en MottakException med ftp feil") {
                     val exception = shouldThrow<MottakException> { writeToFileServiceMock.writeReturnFile() }
-                    exception.message shouldBe "Feil under skriving returfil til SPK. Feilmelding: Ftp server can not move file!"
+                    exception.message shouldBe "Skriving av returfil feilet. Feilmelding: Ftp server can not move file!"
                 }
             }
         }

@@ -15,9 +15,9 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.innrapporteringTrekk
+import no.nav.sokos.spk.mottak.exception.DatabaseException
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
-import no.nav.sokos.spk.mottak.metrics.Metrics.timer
 import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
@@ -57,9 +57,10 @@ class SendTrekkTransaksjonToOppdragZService(
     private fun getTransaksjoner(): List<Transaksjon>? =
         runCatching {
             transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_TREKK, TRANS_TILSTAND_TIL_TREKK)
-        }.onFailure { exception ->
-            logger.error(exception) { "Fatal feil ved henting av trekktransaksjoner: ${exception.message}" }
-            throw RuntimeException("Fatal feil ved henting av trekktransaksjoner")
+        }.onFailure { databaseException ->
+            val errorMessage = "Db2-feil: + ${databaseException.message}"
+            logger.error(databaseException) { errorMessage }
+            throw DatabaseException(errorMessage, databaseException)
         }.getOrNull()
 
     private fun processTransaksjoner(
@@ -77,14 +78,14 @@ class SendTrekkTransaksjonToOppdragZService(
                     totalTransaksjoner += transaksjonIdList.size
                 }
             }.onFailure { exception ->
-                logger.error(exception) { "Feiler ved utsending av trekktransaksjonene: ${transaksjonIdList.joinToString()} : $exception" }
+                logger.error(exception) { "Utsending av trekktransaksjonene feilet. Feilmelding: ${exception.message}" }
                 if (exception is MottakException) {
                     runCatching {
                         dataSource.transaction { session ->
                             updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL, session)
                         }
-                    }.onFailure { exception ->
-                        logger.error(exception) { "DB2-feil: $exception" }
+                    }.onFailure { databaseException ->
+                        logger.error(databaseException) { "Db2-feil: + ${databaseException.message}" }
                     }
                 }
             }
