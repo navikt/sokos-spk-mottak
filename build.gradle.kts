@@ -49,8 +49,8 @@ val micrometerVersion = "1.13.5"
 val kotlinLoggingVersion = "3.0.5"
 val janionVersion = "3.1.12"
 val natpryceVersion = "1.6.10.0"
-val kotestVersion = "5.9.1"
-val kotestWiremockVersion = "3.1.0"
+val kotestVersion = "6.0.0.M1"
+val wiremockVersion = "3.0.1"
 val kotlinxSerializationVersion = "1.7.3"
 val mockOAuth2ServerVersion = "2.1.9"
 val mockkVersion = "1.13.13"
@@ -139,7 +139,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("com.h2database:h2:$h2Version")
     testImplementation("org.apache.activemq:artemis-jakarta-server:$activemqVersion")
-    testImplementation("io.kotest.extensions:kotest-extensions-wiremock:$kotestWiremockVersion")
+    testImplementation("com.github.tomakehurst:wiremock:$wiremockVersion")
 }
 
 sourceSets {
