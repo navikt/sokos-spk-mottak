@@ -19,4 +19,4 @@ Løsningen unngår derfor den uønskede tilstanden at db viser ok-status mens me
 
 Når oversendelsen er ferdig, oppdateres T_FIL_INFO med K_AVSTEMMING_S lik OSO (Oppdrag Sendt Ok) for de anvisningsfilene som inneholdt de prosesserte utbetalingstransaksjonene.
 
-Utbetalingsmeldingformat:
+**Mapping av utbetalingsmeldinger**
