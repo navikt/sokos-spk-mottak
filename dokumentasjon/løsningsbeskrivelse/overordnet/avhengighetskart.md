@@ -3,12 +3,12 @@
 ````mermaid
     C4Context
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
-
-    System(spk, "SPK", "SPK sender transaksjonsfil<br>og mottar transaksjonsfil med status tilbake")
+    System(spk, "SPK", "sender anvisningsfil<br>og mottar returfil med status tilbake")
     System(sokos-spk-mottak, "sokos-spk-mottak", "")
     UpdateElementStyle(sokos-spk-mottak, $fontColor="white", $bgColor="green", $borderColor="black")
-    System(oppdragZ, "Oppdrag Z", "Får utbetaling- og trekk transaksjoner")
-
+    System(oppdragZ, "OppdragZ", "mottar utbetaling- og trekktransaksjoner og returnerer meldingstatuser")
+    System(Avstemming, "Avstemmingskomponenten", "mottar avstemmingsdata")
     BiRel(spk, sokos-spk-mottak, "")
-    Rel(sokos-spk-mottak, oppdragZ, "")
+    BiRel(sokos-spk-mottak, oppdragZ, "")
+    Rel(sokos-spk-mottak, Avstemming, "")
 ````

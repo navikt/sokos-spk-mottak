@@ -1,6 +1,6 @@
 ````mermaid
 erDiagram
-    T_FIL_INFO ||--|{ T_INN_TRANSAKSJON: har
+    T_FIL_INFO ||--|{ T_INN_TRANSAKSJON: ""
     T_FIL_INFO {
         int fil_info_id
         string fil_navn
@@ -49,7 +49,7 @@ erDiagram
         string grad
         int grad_str
     }
-    T_FIL_INFO ||--|{ T_AVV_TRANSAKSJON: har
+    T_FIL_INFO ||--|{ T_AVV_TRANSAKSJON: ""
     T_AVV_TRANSAKSJON {
         int avv_transaksjon_id
         int fil_info_id
@@ -74,7 +74,7 @@ erDiagram
         int versjon
         int grad
     }
-    T_FIL_INFO ||--|{ T_TRANSAKSJON: har
+    T_FIL_INFO ||--|{ T_TRANSAKSJON:  ""
     T_TRANSAKSJON {
         int transaksjon_id
         int trans_tilstand_id
@@ -123,8 +123,8 @@ erDiagram
         string k_trans_tilst_t
         string grad
     }
-    T_TRANSAKSJON ||--|{ T_TRANS_TILSTAND: har
-    T_TRANS_TILSTAND ||--|| T_TRANSAKSJON: har
+    T_TRANSAKSJON ||--|{ T_TRANS_TILSTAND: ""
+    T_TRANS_TILSTAND ||--|| T_TRANSAKSJON: ""
     T_TRANS_TILSTAND {
         int trans_tilstand_id
         int transaksjon_id
@@ -137,7 +137,7 @@ erDiagram
         string feilkode
         string feilkodemelding
     }
-    T_PERSON ||--|{ T_TRANSAKSJON: har
+    T_PERSON ||--|{ T_TRANSAKSJON: ""
     T_PERSON {
         int person_id
         string fnr_fk
@@ -147,7 +147,7 @@ erDiagram
         string endret_av
         int versjon
     }
-    T_K_ART ||--|{ T_TRANSAKSJON: har
+    T_K_ART ||--|{ T_TRANSAKSJON: ""
     T_K_ART {
         string k_art
         string dekode
@@ -159,7 +159,7 @@ erDiagram
         LocalDateTime dato_endret
         string endret_av
     }
-    T_K_ART ||--|{ T_K_GYLDIG_KOMBIN: har
+    T_K_ART ||--|{ T_K_GYLDIG_KOMBIN: ""
     T_K_GYLDIG_KOMBIN {
         int k_gyldig_kombin_id
         string k_art

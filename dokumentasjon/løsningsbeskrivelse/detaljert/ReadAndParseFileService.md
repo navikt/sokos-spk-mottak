@@ -6,7 +6,7 @@ Filene fra SPK blir lastet ned fra katalogen **/inbound** på en SFTP-server og 
 hvor
 dato = ddmmyy og tid = hhmmss
 
-**Startbetingelse**: Dersom det finnes filer på SFTP-serveren når tjenesten starter og T_INN_TRANSAKSJON er tom, vil filene prosesseres etter hverandre i rekkefølge angitt av løpenummer i filnavnet.
+**Startbetingelse:** Dersom det finnes filer på SFTP-serveren når tjenesten starter og T_INN_TRANSAKSJON er tom, vil filene prosesseres etter hverandre i rekkefølge angitt av løpenummer i filnavnet.
 For hver fil gjøres følgende behandling :
 
 Parser hver record og gjør validering avhengig av recordtype. Hver fil skal ha en startrecord, en eller flere transaksjonrecorder og en sluttrecord. Valideringsreglene for recordtypene er

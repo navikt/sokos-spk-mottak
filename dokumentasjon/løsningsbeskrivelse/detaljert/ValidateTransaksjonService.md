@@ -3,7 +3,7 @@
 Tjenesten behandler transaksjoner som er blitt lastet inn i T_INN_TRANSAKSJON i tjenesten ReadAndParseFileService. Alle transaksjoner som valideres ok lastes inn i T_TRANSAKSJON, mens de som feiler
 lastes inn i T_AVV_TRANSAKSJON.
 
-Startbetingelse: Dersom T_INN_TRANSAKSJON inneholder transaksjoner som ikke er behandlet, dvs kolonnen BEHANDLET i T_INN_TRANSAKSJON er N.
+**Startbetingelse:** Dersom T_INN_TRANSAKSJON inneholder transaksjoner som ikke er behandlet, dvs kolonnen BEHANDLET i T_INN_TRANSAKSJON er N.
 Følgende valideringstrinn foretas:
 
 * Validering av fnr. Dersom fnr ikke finnes i T_PERSON blir det foretatt en forespørsel mot PDL for å sjekke om fnr tilhører en ny person eller om det har vært en endring av fnr.
