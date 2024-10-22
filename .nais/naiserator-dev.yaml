@@ -41,11 +41,18 @@ spec:
     application:
       enabled: true
       tenant: trygdeetaten.no
+      allowAllUsers: true
+      claims:
+        extra:
+          - NAVident
   accessPolicy:
     inbound:
       rules:
         - application: azure-token-generator
           namespace: aura
+          cluster: dev-gcp
+        - application: sokos-utbetalingsportalen
+          namespace: okonomi
           cluster: dev-gcp
   webproxy: true
   vault:
