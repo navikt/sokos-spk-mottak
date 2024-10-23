@@ -36,6 +36,11 @@ class ReadAndParseFileService(
     private val ftpService: FtpService = FtpService(),
 ) {
     fun readAndParseFile() {
+        if (innTransaksjonRepository.countByInnTransaksjon() > 0) {
+            logger.info { "Forrige InnTransaksjoner er ikke ferdig behandlet, ingen innlesning prosess vil starte" }
+            return
+        }
+
         val downloadFiles = ftpService.downloadFiles()
 
         when {

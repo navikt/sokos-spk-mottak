@@ -22,6 +22,7 @@ import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
+import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
@@ -37,6 +38,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
     private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),
+    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource),
     private val mqBatchSize: Int = MQ_BATCH_SIZE,
     private val producer: JmsProducerService =
         JmsProducerService(
@@ -50,6 +52,11 @@ class SendUtbetalingTransaksjonToOppdragZService(
         ),
 ) {
     fun getUtbetalingTransaksjonAndSendToOppdragZ() {
+        if (innTransaksjonRepository.countByInnTransaksjon() > 0) {
+            logger.info { "InnTransaksjoner er ikke ferdig behandlet, ingen utbetalingstransaksjoner vil bli behandlet" }
+            return
+        }
+
         val timer = Instant.now()
         var totalTransaksjoner = 0
 
