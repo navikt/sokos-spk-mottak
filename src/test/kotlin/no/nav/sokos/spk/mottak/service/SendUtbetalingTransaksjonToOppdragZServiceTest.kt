@@ -1,10 +1,10 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.zaxxer.hikari.HikariDataSource
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -94,12 +94,14 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
         }
 
         Given("det finnes utbetalinger som skal sendes til oppdragZ med database som er nede") {
-            val dataSourceMock = mockk<HikariDataSource>()
-            every { dataSourceMock.connection } throws SQLException("No database connection!")
+            every { Db2Listener.innTransaksjonRepository.countByInnTransaksjon() }.returns(0)
+            every { Db2Listener.transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG) } throws SQLException("No database connection!")
 
             val utbetalingTransaksjonTilOppdragService =
                 SendUtbetalingTransaksjonToOppdragZService(
-                    dataSource = dataSourceMock,
+                    dataSource = Db2Listener.dataSource,
+                    innTransaksjonRepository = Db2Listener.innTransaksjonRepository,
+                    transaksjonRepository = Db2Listener.transaksjonRepository,
                     producer =
                         JmsProducerService(
                             senderQueueMock,
@@ -111,6 +113,7 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
 
             When("hent utbetalinger og send til OppdragZ") {
                 val exception = shouldThrow<MottakException> { utbetalingTransaksjonTilOppdragService.getUtbetalingTransaksjonAndSendToOppdragZ() }
+                clearAllMocks()
                 Then("skal det kaste en feilmelding og SendUtbetalingTransaksjonToOppdragServiceV2 stoppet") {
                     exception.message shouldBe "Sending av utbetalingstransaksjoner til OppdragZ feilet. Feilmelding: No database connection!"
                 }
