@@ -7,6 +7,7 @@
     "transaksjonsId": "20425974",
     "innrapporteringTrekk": {
       "aksjonskode": "NY",
+      "kilde": "SPK-MOT",
       "navTrekkId": "12345",
       "kreditorIdTss": "80000427901",
       "kreditorTrekkId": "10342395",

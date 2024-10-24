@@ -2,6 +2,7 @@ package no.nav.sokos.spk.mottak.domain.converter
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import no.nav.sokos.spk.mottak.domain.SPK_MOT
 import no.nav.sokos.spk.mottak.domain.SPK_TSS
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_RETUR_OK
@@ -27,6 +28,7 @@ object TrekkConverter {
                         transaksjonsId = transaksjonId!!.toString(),
                         InnrapporteringTrekk(
                             aksjonskode = AKSJONSKODE,
+                            kilde = SPK_MOT,
                             kreditorIdTss = SPK_TSS,
                             kreditorTrekkId = transEksId,
                             debitorId = fnr,
