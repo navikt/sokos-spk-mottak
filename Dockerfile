@@ -1,18 +1,15 @@
-FROM bellsoft/liberica-openjdk-alpine:21@sha256:ee40d83d93023b804847568d847e6540799091bd1b61322f8272de2ef369aa8b
+FROM gcr.io/distroless/java21-debian12
 
-RUN apk update && apk add --no-cache \
-  curl \
-  dumb-init \
-  && rm -rf /var/lib/apt/lists/*
+FROM debian:12 as BUILD
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init
 
-COPY build/libs/*.jar app.jar
-COPY java-opts.sh /
+FROM gcr.io/distroless/java21-debian12
+COPY --from=BUILD /usr/bin/dumb-init /usr/bin/dumb-init
 
 RUN chmod +x /java-opts.sh
-RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
 
 ENV TZ="Europe/Oslo"
+COPY build/libs/*.jar app.jar
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
-
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["sh", "-c", ". /java-opts.sh && exec java ${JAVA_OPTS} -jar app.jar"]
