@@ -32,6 +32,7 @@ data class Dokument(
 @Serializable
 data class InnrapporteringTrekk(
     val aksjonskode: String,
+    val kilde: String,
     val navTrekkId: String? = null,
     val kreditorIdTss: String,
     val kreditorTrekkId: String,
