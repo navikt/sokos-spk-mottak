@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "2.0.21"
     kotlin("plugin.serialization") version "2.0.21"
-    id("com.expediagroup.graphql") version "8.2.0"
+    id("com.expediagroup.graphql") version "8.2.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
     id("org.jetbrains.kotlinx.kover") version "0.8.3"
@@ -42,7 +42,7 @@ repositories {
 
 val ktorVersion = "3.0.0"
 val jschVersion = "0.2.20"
-val logbackVersion = "1.5.11"
+val logbackVersion = "1.5.12"
 val logstashVersion = "8.0"
 val jacksonVersion = "2.15.3"
 val micrometerVersion = "1.13.6"
@@ -65,8 +65,8 @@ val dbSchedulerVersion = "14.1.0"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20241021101018_2aa57cc"
 val ibmmqVersion = "9.4.1.0"
-val activemqVersion = "2.37.0"
-val graphqlClientVersion = "8.2.0"
+val activemqVersion = "2.38.0"
+val graphqlClientVersion = "8.2.1"
 
 dependencies {
 
