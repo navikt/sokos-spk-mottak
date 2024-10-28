@@ -22,7 +22,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
-const val AVLEVERENDE_KOMPONENT_KODE = "MOTTKOMP"
+const val AVLEVERENDE_KOMPONENT_KODE = "SPKMOT"
 const val MOTTAKENDE_KOMPONENT_KODE = "OS"
 
 object AvstemmingConverter {
@@ -40,7 +40,7 @@ object AvstemmingConverter {
                     mottakendeKomponentKode = MOTTAKENDE_KOMPONENT_KODE
                     underkomponentKode = fagomrade
                     nokkelFom = fom
-                    nokkelFom = tom
+                    nokkelTom = tom
                     avleverendeAvstemmingId = UUID.randomUUID().toString()
                     brukerId = MOT
                 }
@@ -54,6 +54,7 @@ object AvstemmingConverter {
     fun Avstemmingsdata.sluttMelding() =
         this.copy().apply {
             aksjon = this.aksjon.copy().apply { aksjonType = AksjonType.AVSL }
+            detalj.clear()
         }
 
     fun Avstemmingsdata.dataMelding(oppsummeringList: List<TransaksjonOppsummering>): Avstemmingsdata {
@@ -93,6 +94,7 @@ object AvstemmingConverter {
                     manglerBelop = manglerList.sumOf { it.belop }
                     manglerFortegn = Fortegn.T
                 }
+            detalj.clear()
         }
     }
 
