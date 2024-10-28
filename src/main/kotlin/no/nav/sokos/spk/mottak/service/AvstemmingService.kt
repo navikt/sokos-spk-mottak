@@ -5,6 +5,7 @@ import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.config.MQ_BATCH_SIZE
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_AVSTEMMING
@@ -23,6 +24,7 @@ import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
+import java.util.LinkedList
 
 private val logger = KotlinLogging.logger { }
 private const val ANTALL_DETALJER_PER_MELDING = 70
@@ -51,11 +53,13 @@ class AvstemmingService(
                         fileInfoMap
                             .flatMap { transaksjonRepository.findTransaksjonOppsummeringByFilInfoId(it.key) }
                             .groupBy { it.fagomrade }
-                    logger.debug { "Transaksjonsoppsummering: $oppsummeringMap" }
+                    logger.info { "Transaksjonsoppsummering: $oppsummeringMap" }
 
                     val filInfoIdList = fileInfoMap.map { it.key }
                     val transaksjonDetaljer = transaksjonRepository.findTransaksjonDetaljerByFilInfoId(filInfoIdList)
-                    oppsummeringMap.forEach { oppsummering -> sendAvstemmingTilMQ(oppsummering.key, oppsummering.value, transaksjonDetaljer, filInfoIdList) }
+                    val payloadList = oppsummeringMap.flatMap { oppsummering -> populateAndTransformAvstemmingToXML(oppsummering.key, oppsummering.value, transaksjonDetaljer, filInfoIdList) }
+                    payloadList.chunked(MQ_BATCH_SIZE).forEach { payloadChunk -> producer.send(payloadChunk) }
+
                     dataSource.transaction { session ->
                         filInfoRepository.updateAvstemmingStatus(filInfoIdList, TRANS_TILSTAND_OPPDRAG_AVSTEMMING, session)
                     }
@@ -71,14 +75,14 @@ class AvstemmingService(
         }
     }
 
-    private fun sendAvstemmingTilMQ(
+    private fun populateAndTransformAvstemmingToXML(
         fagomrade: String,
         oppsummering: List<TransaksjonOppsummering>,
         transaksjonDetaljer: List<TransaksjonDetalj>,
         filInfoIdList: List<Int>,
-    ) {
+    ): LinkedList<String> {
         val avstemming = AvstemmingConverter.default(filInfoIdList.first().toString(), filInfoIdList.last().toString(), fagomrade)
-        val avstemmingList = mutableListOf<Avstemmingsdata>()
+        val avstemmingList = LinkedList<Avstemmingsdata>()
         avstemmingList.add(avstemming.startMelding())
 
         if (transaksjonDetaljer.isNotEmpty()) {
@@ -89,6 +93,7 @@ class AvstemmingService(
 
         avstemmingList.add(avstemming.dataMelding(oppsummering))
         avstemmingList.add(avstemming.sluttMelding())
-        avstemmingList.map { JaxbUtils.marshallAvstemmingsdata(it) }.run { producer.send(this) }
+
+        return avstemmingList.map { JaxbUtils.marshallAvstemmingsdata(it) }.toCollection(LinkedList())
     }
 }

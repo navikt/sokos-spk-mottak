@@ -260,11 +260,16 @@ class TransaksjonRepository(
                 session.list(
                     queryOf(
                         """
-                        SELECT t.TRANSAKSJON_ID, t.FNR_FK, k.K_FAGOMRADE, t.OS_STATUS, t.K_TRANS_TILST_T, tt.FEILKODE, tt.FEILKODEMELDING, t.DATO_OPPRETTET
+                        SELECT DISTINCT t.TRANSAKSJON_ID, t.FNR_FK, k.K_FAGOMRADE, t.OS_STATUS, t.K_TRANS_TILST_T, tt.FEILKODE, tt.FEILKODEMELDING, t.DATO_OPPRETTET
                         FROM T_TRANSAKSJON t 
                                     INNER JOIN T_K_GYLDIG_KOMBIN k ON k.K_ART = t.K_ART and k.K_BELOP_T = t.K_BELOP_T
-                                    INNER JOIN T_TRANS_TILSTAND tt ON t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID
-                        WHERE k.K_ANVISER = '$SPK' AND t.FIL_INFO_ID IN (${filInfoIdList.joinToString()}) AND tt.FEILKODE <> ''
+                                    INNER JOIN T_TRANS_TILSTAND tt ON t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID AND tt.TRANS_TILSTAND_ID = (
+                                        SELECT MAX(TRANS_TILSTAND_ID)
+                                        FROM T_TRANS_TILSTAND 
+                                        WHERE TRANSAKSJON_ID = t.TRANSAKSJON_ID
+                                    )
+                        WHERE k.K_ANVISER = '$SPK' AND t.FIL_INFO_ID IN (${filInfoIdList.joinToString()}) 
+                        AND tt.FEILKODE <> ''
                         ORDER BY t.TRANSAKSJON_ID;
                         """.trimIndent(),
                     ),
