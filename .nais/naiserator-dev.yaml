@@ -130,7 +130,7 @@ spec:
 
     # DB-SCHEDULER
     - name: SCHEDULER_ENABLED
-      value: "false"
+      value: "true"
     - name: READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN
       value: "0 0 7-17 * * *"
     - name: SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
