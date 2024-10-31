@@ -52,6 +52,7 @@ val natpryceVersion = "1.6.10.0"
 val kotestVersion = "6.0.0.M1"
 val wiremockVersion = "3.0.1"
 val kotlinxSerializationVersion = "1.7.3"
+val kotlinxDatetimeVersion = "0.6.1"
 val mockOAuth2ServerVersion = "2.1.9"
 val mockkVersion = "1.13.13"
 val hikariVersion = "6.0.0"
@@ -67,6 +68,7 @@ val tjenestespesifikasjonVersion = "1.0_20241021101018_2aa57cc"
 val ibmmqVersion = "9.4.1.0"
 val activemqVersion = "2.38.0"
 val graphqlClientVersion = "8.2.1"
+val jaxbVersion = "4.0.5"
 
 dependencies {
 
@@ -87,7 +89,8 @@ dependencies {
     // Serialization
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion")
-    implementation("org.glassfish.jaxb:jaxb-runtime:4.0.5")
+    implementation("org.glassfish.jaxb:jaxb-runtime:$jaxbVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:$kotlinxDatetimeVersion")
 
     // Monitorering
     implementation("io.ktor:ktor-server-metrics-micrometer-jvm:$ktorVersion")
