@@ -92,6 +92,7 @@ object OppdragConverter {
                                 when (art) {
                                     "ALP" -> "UTAP"
                                     "AFP" -> "AFPG"
+                                    "AFL" -> "AFPG"
                                     "UFO" -> "UFOR"
                                     "UFT" -> "UFOR"
                                     "U67" -> "UFOR"
