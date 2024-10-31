@@ -37,6 +37,15 @@ import no.nav.sokos.spk.mottak.listener.WiremockListener.wiremock
 import no.nav.sokos.spk.mottak.pdl.GraphQLResponse
 import no.nav.sokos.spk.mottak.pdl.PdlService
 import org.apache.http.entity.ContentType.APPLICATION_JSON
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_FNR
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.TRANS_ID_DUBLETT
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_DATO
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_BELOPSTYPE
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_ART
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_ANVISER_DATO
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_BELOP
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_KOMBINASJON_AV_ART_BELOPSTYPE
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.ART_MANGLER_GRAD
 import java.sql.SQLException
 import java.time.LocalDate
 
@@ -108,7 +117,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "01")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, TRANS_ID_DUBLETT.code)
                     }
                 }
             }
@@ -127,7 +136,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "01")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, TRANS_ID_DUBLETT.code)
                     }
                 }
             }
@@ -146,7 +155,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "01")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, TRANS_ID_DUBLETT.code)
                     }
                 }
             }
@@ -168,7 +177,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "03")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, UGYLDIG_DATO.code)
                     }
                 }
             }
@@ -190,7 +199,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "03")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, UGYLDIG_DATO.code)
                     }
                 }
             }
@@ -212,7 +221,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "03")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, UGYLDIG_DATO.code)
                     }
                 }
             }
@@ -234,7 +243,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "03")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, UGYLDIG_DATO.code)
                     }
                 }
             }
@@ -253,7 +262,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "04")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, UGYLDIG_BELOPSTYPE.code)
                     }
                 }
             }
@@ -272,7 +281,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "05")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, UGYLDIG_ART.code)
                     }
                 }
             }
@@ -291,7 +300,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "09")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, UGYLDIG_ANVISER_DATO.code)
                     }
                 }
             }
@@ -310,7 +319,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "10")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, UGYLDIG_BELOP.code)
                     }
                 }
             }
@@ -329,7 +338,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "11")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, UGYLDIG_KOMBINASJON_AV_ART_BELOPSTYPE.code)
                     }
                 }
             }
@@ -348,7 +357,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "16")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, ART_MANGLER_GRAD.code)
                     }
                 }
             }
@@ -367,7 +376,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "16")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, ART_MANGLER_GRAD.code)
                     }
                 }
             }
@@ -386,7 +395,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "16")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, ART_MANGLER_GRAD.code)
                     }
                 }
             }
@@ -548,7 +557,7 @@ internal class ValidateTransaksjonServiceTest :
                     innTransaksjonMap[false]!!.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
-                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, "02")
+                        verifyAvvikTransaksjonMedValideringsfeil(avvikTransaksjon, innTransaksjon, UGYLDIG_FNR.code)
                     }
                 }
             }
