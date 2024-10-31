@@ -50,7 +50,7 @@ internal class FileParserTest :
                 val sluttRecord = FileParser.parseSluttRecord(recordData.last())
 
                 Then("skal det returneres med EndRecord data") {
-                    sluttRecord.antallRecord shouldBe 8
+                    sluttRecord.antallRecord shouldBe 10
                     sluttRecord.totalBelop shouldBe 2775200
                 }
             }
