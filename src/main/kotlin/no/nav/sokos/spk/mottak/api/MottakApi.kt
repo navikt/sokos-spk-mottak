@@ -7,8 +7,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import java.time.Instant
 
@@ -17,34 +15,26 @@ private const val RECURRING = "recurring"
 fun Route.mottakApi(scheduler: Scheduler = JobTaskConfig.scheduler()) {
     route("api/v1") {
         post("readParseFileAndValidateTransactions") {
-            call.launch(Dispatchers.IO) {
-                val task = JobTaskConfig.recurringReadParseFileAndValidateTransactionsTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now())
-            }
+            val task = JobTaskConfig.recurringReadParseFileAndValidateTransactionsTask()
+            scheduler.reschedule(task.instance(RECURRING), Instant.now())
             call.respond(HttpStatusCode.Accepted, "ReadAndParseFile av filer har startet, sjekk logger for status")
         }
 
         post("sendUtbetalingTransaksjonToOppdragZ") {
-            call.launch(Dispatchers.IO) {
-                val task = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now())
-            }
+            val task = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask()
+            scheduler.reschedule(task.instance(RECURRING), Instant.now())
             call.respond(HttpStatusCode.Accepted, "SendUtbetalingTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
         post("sendTrekkTransaksjonToOppdragZ") {
-            call.launch(Dispatchers.IO) {
-                val task = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now())
-            }
+            val task = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask()
+            scheduler.reschedule(task.instance(RECURRING), Instant.now())
             call.respond(HttpStatusCode.Accepted, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
         post("avstemming") {
-            call.launch(Dispatchers.IO) {
-                val task = JobTaskConfig.recurringGrensesnittAvstemmingTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now())
-            }
+            val task = JobTaskConfig.recurringGrensesnittAvstemmingTask()
+            scheduler.reschedule(task.instance(RECURRING), Instant.now())
             call.respond(HttpStatusCode.Accepted, "GrensesnittAvstemming har startet, sjekk logger for status")
         }
 
