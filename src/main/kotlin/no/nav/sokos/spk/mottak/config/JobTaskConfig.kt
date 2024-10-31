@@ -1,6 +1,8 @@
 package no.nav.sokos.spk.mottak.config
 
+import com.github.kagkarlsson.scheduler.ScheduledExecutionsFilter
 import com.github.kagkarlsson.scheduler.Scheduler
+import com.github.kagkarlsson.scheduler.SchedulerClient
 import com.github.kagkarlsson.scheduler.logging.LogLevel
 import com.github.kagkarlsson.scheduler.task.ExecutionContext
 import com.github.kagkarlsson.scheduler.task.TaskInstance
@@ -8,7 +10,9 @@ import com.github.kagkarlsson.scheduler.task.helper.RecurringTask
 import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import com.github.kagkarlsson.scheduler.task.schedule.Schedules.cron
 import com.zaxxer.hikari.HikariDataSource
+import kotlinx.datetime.toKotlinInstant
 import mu.KotlinLogging
+import no.nav.sokos.spk.mottak.api.model.JobTask
 import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
 import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragZService
@@ -24,6 +28,8 @@ object JobTaskConfig {
     fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource()): Scheduler =
         Scheduler
             .create(dataSource)
+            .enableImmediateExecution()
+            .registerShutdownHook()
             .startTasks(
                 recurringReadParseFileAndValidateTransactionsTask(),
                 recurringSendUtbetalingTransaksjonToOppdragZTask(),
@@ -91,6 +97,23 @@ object JobTaskConfig {
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
                 avstemmingService.sendGrensesnittAvstemming()
+            }
+    }
+
+    internal fun schedulerWithTypeInformation(): List<JobTask> {
+        val schedulerClient = SchedulerClient.Builder.create(DatabaseConfig.postgresDataSource()).build()
+        return schedulerClient
+            .getScheduledExecutions(ScheduledExecutionsFilter.all())
+            .map {
+                JobTask(
+                    it.taskInstance.id,
+                    it.taskInstance.taskName,
+                    it.executionTime.toKotlinInstant(),
+                    it.isPicked,
+                    it.pickedBy,
+                    it.lastFailure?.toKotlinInstant(),
+                    it.lastSuccess?.toKotlinInstant(),
+                )
             }
     }
 
