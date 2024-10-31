@@ -52,7 +52,7 @@ class WriteToFileService(
                 antallTransaksjon++
                 sumBelop += innTransaksjon.belop
             }
-            anvisningFil += FileParser.createEndRecord(antallTransaksjon+2, sumBelop)
+            anvisningFil += FileParser.createEndRecord(antallTransaksjon + 2, sumBelop)
 
             filInfoRepository.insert(
                 filInfo.copy(

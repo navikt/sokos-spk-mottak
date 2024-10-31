@@ -29,6 +29,15 @@ import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_TREKK
 import no.nav.sokos.spk.mottak.domain.FNR_IKKE_ENDRET
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.ART_MANGLER_GRAD
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.TRANS_ID_DUBLETT
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_ANVISER_DATO
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_ART
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_BELOP
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_BELOPSTYPE
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_DATO
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_FNR
+import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_KOMBINASJON_AV_ART_BELOPSTYPE
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
@@ -37,15 +46,6 @@ import no.nav.sokos.spk.mottak.listener.WiremockListener.wiremock
 import no.nav.sokos.spk.mottak.pdl.GraphQLResponse
 import no.nav.sokos.spk.mottak.pdl.PdlService
 import org.apache.http.entity.ContentType.APPLICATION_JSON
-import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_FNR
-import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.TRANS_ID_DUBLETT
-import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_DATO
-import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_BELOPSTYPE
-import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_ART
-import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_ANVISER_DATO
-import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_BELOP
-import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_KOMBINASJON_AV_ART_BELOPSTYPE
-import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.ART_MANGLER_GRAD
 import java.sql.SQLException
 import java.time.LocalDate
 
