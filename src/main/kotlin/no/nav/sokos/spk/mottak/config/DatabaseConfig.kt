@@ -20,7 +20,7 @@ object DatabaseConfig {
         val db2Properties: PropertiesConfig.Db2Properties = PropertiesConfig.Db2Properties()
         return HikariConfig().apply {
             minimumIdle = 1
-            maximumPoolSize = 10
+            maximumPoolSize = 3
             connectionTestQuery = "select 1 from sysibm.sysdummy1"
             dataSource =
                 DB2SimpleDataSource().apply {
@@ -41,7 +41,7 @@ object DatabaseConfig {
     private fun postgresHikariConfig(): HikariConfig {
         val postgresProperties: PropertiesConfig.PostgresProperties = PropertiesConfig.PostgresProperties()
         return HikariConfig().apply {
-            maximumPoolSize = 5
+            maximumPoolSize = 3
             minimumIdle = 1
             dataSource =
                 PGSimpleDataSource().apply {
