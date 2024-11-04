@@ -27,7 +27,7 @@ import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
 import java.util.LinkedList
 
 private val logger = KotlinLogging.logger { }
-private const val ANTALL_DETALJER_PER_MELDING = 70
+private const val ANTALL_DETALJER_PER_MELDING = 65
 private const val ANTALL_IKKE_UTFORT_TRANSAKSJON = 500
 
 class AvstemmingService(
@@ -53,11 +53,15 @@ class AvstemmingService(
                         fileInfoMap
                             .flatMap { transaksjonRepository.findTransaksjonOppsummeringByFilInfoId(it.key) }
                             .groupBy { it.fagomrade }
-                    logger.info { "Transaksjonsoppsummering: $oppsummeringMap" }
+                    logger.debug { "Transaksjonsoppsummering: $oppsummeringMap" }
 
                     val filInfoIdList = fileInfoMap.map { it.key }
                     val transaksjonDetaljer = transaksjonRepository.findTransaksjonDetaljerByFilInfoId(filInfoIdList)
-                    val payloadList = oppsummeringMap.flatMap { oppsummering -> populateAndTransformAvstemmingToXML(oppsummering.key, oppsummering.value, transaksjonDetaljer, filInfoIdList) }
+                    val payloadList =
+                        oppsummeringMap.flatMap { oppsummering ->
+                            val detaljerList = transaksjonDetaljer.filter { oppsummering.key == it.fagsystemId }
+                            populateAndTransformAvstemmingToXML(oppsummering.key, oppsummering.value, detaljerList, filInfoIdList)
+                        }
                     payloadList.chunked(MQ_BATCH_SIZE).forEach { payloadChunk -> producer.send(payloadChunk) }
 
                     dataSource.transaction { session ->
@@ -66,7 +70,7 @@ class AvstemmingService(
                     logger.info { "Avstemming sendt OK for filInfoId: ${filInfoIdList.joinToString()}" }
                 }
             } else {
-                logger.info { "Ingen transaksjoner eller for mange transaksjoner som ikke har fått kvittering fra OppdragZ" }
+                logger.info { "Ingen avstemming blir sent til OppdragZ. Ingen transaksjoner eller for mange transaksjoner som ikke har fått kvittering fra OppdragZ." }
             }
         }.onFailure { exception ->
             val errorMessage = "Utsending av avstemming til OppdragZ feilet. Feilmelding: ${exception.message}"
@@ -86,8 +90,8 @@ class AvstemmingService(
         avstemmingList.add(avstemming.startMelding())
 
         if (transaksjonDetaljer.isNotEmpty()) {
-            transaksjonDetaljer.chunked(ANTALL_DETALJER_PER_MELDING).forEach {
-                avstemmingList.add(avstemming.avvikMelding(it))
+            transaksjonDetaljer.chunked(ANTALL_DETALJER_PER_MELDING).forEach { detaljer ->
+                avstemmingList.add(avstemming.avvikMelding(detaljer))
             }
         }
 

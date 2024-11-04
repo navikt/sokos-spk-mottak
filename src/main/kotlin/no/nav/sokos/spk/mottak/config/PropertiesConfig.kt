@@ -20,7 +20,7 @@ object PropertiesConfig {
                 "READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN" to "0 10 * * * *",
                 "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
                 "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
-                "GRENSESNITT_AVSTEMMING_CRON_PATTERN" to "0 0 * * * *",
+                "GRENSESNITT_AVSTEMMING_CRON_PATTERN" to "0 0 10 * * *",
                 "MQ_BATCH_SIZE" to "200",
             ),
         )
