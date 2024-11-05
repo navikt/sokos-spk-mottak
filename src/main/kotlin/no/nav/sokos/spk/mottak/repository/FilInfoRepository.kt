@@ -7,6 +7,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
@@ -55,7 +56,7 @@ class FilInfoRepository(
                             """
                             select t.FIL_INFO_ID, count(t.TRANSAKSJON_ID) AS ANTALL
                             from T_FIL_INFO fi INNER JOIN T_TRANSAKSJON t ON fi.FIL_INFO_ID = t.FIL_INFO_ID
-                            where fi.K_ANVISER = 'SPK' AND fi.K_AVSTEMMING_S = '$TRANS_TILSTAND_OPPDRAG_SENDT_OK' AND t.K_BELOP_T IN ('01', '02') AND t.OS_STATUS is not null
+                            where fi.K_ANVISER = 'SPK' AND fi.K_AVSTEMMING_S = '$TRANS_TILSTAND_OPPDRAG_SENDT_OK' AND t.K_BELOP_T IN ('01', '02') AND t.OS_STATUS is null
                             group by t.FIL_INFO_ID
                             having count(*) <= $antallUkjentOSZStatus
                             """.trimIndent(),
@@ -101,7 +102,7 @@ class FilInfoRepository(
         session.update(
             queryOf(
                 """
-                UPDATE T_FIL_INFO SET K_AVSTEMMING_S = '$avstemmingStatus'
+                UPDATE T_FIL_INFO SET K_AVSTEMMING_S = '$avstemmingStatus', DATO_ENDRET = CURRENT_TIMESTAMP, ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}'
                 WHERE FIL_INFO_ID IN (${filInfoIdList.joinToString()})
                 """.trimIndent(),
             ),
