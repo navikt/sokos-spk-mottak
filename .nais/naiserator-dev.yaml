@@ -134,8 +134,8 @@ spec:
     - name: READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN
       value: "0 0 7-17 * * *"
     - name: SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
-      value: "* * 7-17 * * *"
+      value: "0 0 7-17 * * *"
     - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
-      value: "* * 7-17 * * *"
+      value: "0 0 7-17 * * *"
     - name: GRENSESNITT_AVSTEMMING_CRON_PATTERN
       value: "0 0 5 * * *"
