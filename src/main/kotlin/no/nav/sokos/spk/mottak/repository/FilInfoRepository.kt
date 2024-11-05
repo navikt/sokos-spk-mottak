@@ -8,6 +8,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.AvstemmingInfo
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
@@ -47,22 +48,30 @@ class FilInfoRepository(
             }
         }
 
-    fun getByAvstemmingStatusIsOSO(antallUkjentOSZStatus: Int): Map<Int, Int> =
+    fun getByAvstemmingStatusIsOSO(antallUkjentOSZStatus: Int): List<AvstemmingInfo> =
         using(sessionOf(dataSource)) { session ->
             getByAvstemmingStatusIsOSOTimer.recordCallable {
                 session
                     .list(
                         queryOf(
                             """
-                            select t.FIL_INFO_ID, count(t.TRANSAKSJON_ID) AS ANTALL
+                            SELECT
+                                t.FIL_INFO_ID,
+                                COUNT(CASE WHEN t.OS_STATUS IS NOT NULL THEN 1 END) AS ANTALL,
+                                COUNT(CASE WHEN t.OS_STATUS IS NULL THEN 1 END) AS ANTALL_NULL    
                             from T_FIL_INFO fi INNER JOIN T_TRANSAKSJON t ON fi.FIL_INFO_ID = t.FIL_INFO_ID
-                            where fi.K_ANVISER = 'SPK' AND fi.K_AVSTEMMING_S = '$TRANS_TILSTAND_OPPDRAG_SENDT_OK' AND t.K_BELOP_T IN ('01', '02') AND t.OS_STATUS is null
+                            where fi.K_ANVISER = '$SPK' AND fi.K_AVSTEMMING_S = '$TRANS_TILSTAND_OPPDRAG_SENDT_OK' AND t.K_BELOP_T IN ('01', '02') 
                             group by t.FIL_INFO_ID
-                            having count(*) <= $antallUkjentOSZStatus
+                            having COUNT(CASE WHEN t.OS_STATUS IS NULL THEN 1 END) <= $antallUkjentOSZStatus
                             """.trimIndent(),
                         ),
-                    ) { row -> row.int("FIL_INFO_ID") to row.int("ANTALL") }
-                    .toMap()
+                    ) { row ->
+                        AvstemmingInfo(
+                            filInfoId = row.int("FIL_INFO_ID"),
+                            antallOSStatus = row.int("ANTALL"),
+                            antallIkkeOSStatus = row.int("ANTALL_NULL"),
+                        )
+                    }
             }
         }
 

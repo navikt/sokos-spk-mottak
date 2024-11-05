@@ -45,17 +45,17 @@ class AvstemmingService(
 ) {
     fun sendGrensesnittAvstemming() {
         runCatching {
-            val fileInfoMap = filInfoRepository.getByAvstemmingStatusIsOSO(ANTALL_IKKE_UTFORT_TRANSAKSJON)
+            val avstemmingInfoList = filInfoRepository.getByAvstemmingStatusIsOSO(ANTALL_IKKE_UTFORT_TRANSAKSJON)
 
-            if (fileInfoMap.isNotEmpty()) {
+            if (avstemmingInfoList.isNotEmpty()) {
                 Metrics.timer(SERVICE_CALL, "AvstemmingService", "sendGrensesnittAvstemming").recordCallable {
                     val oppsummeringMap =
-                        fileInfoMap
-                            .flatMap { transaksjonRepository.findTransaksjonOppsummeringByFilInfoId(it.key) }
+                        avstemmingInfoList
+                            .flatMap { info -> transaksjonRepository.findTransaksjonOppsummeringByFilInfoId(info.filInfoId) }
                             .groupBy { it.fagomrade }
                     logger.debug { "Transaksjonsoppsummering: $oppsummeringMap" }
 
-                    val filInfoIdList = fileInfoMap.map { it.key }
+                    val filInfoIdList = avstemmingInfoList.map { it.filInfoId }
                     val transaksjonDetaljer = transaksjonRepository.findTransaksjonDetaljerByFilInfoId(filInfoIdList)
                     val payloadList =
                         oppsummeringMap.flatMap { oppsummering ->
