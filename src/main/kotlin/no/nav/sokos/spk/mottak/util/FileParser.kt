@@ -121,7 +121,7 @@ object FileParser {
 
     fun createEndRecord(
         antallTransaksjon: Int,
-        sumBelop: Int,
+        sumBelop: Long,
     ): String {
         val stringBuilder = StringBuilder()
         stringBuilder
