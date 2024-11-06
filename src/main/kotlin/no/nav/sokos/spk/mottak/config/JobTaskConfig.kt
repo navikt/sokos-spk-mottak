@@ -93,7 +93,7 @@ object JobTaskConfig {
     ): RecurringTask<Void> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("grensesnittAvstemming", cron(schedulerProperties.sendTrekkTransaksjonToOppdragZCronPattern))
+            .recurring("grensesnittAvstemming", cron(schedulerProperties.grensesnittAvstemmingCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
                 avstemmingService.sendGrensesnittAvstemming()

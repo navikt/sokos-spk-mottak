@@ -45,12 +45,12 @@ class WriteToFileService(
             val returFilnavn = generateFileName()
             var anvisningFil = FileParser.createStartRecord(filInfo)
             var antallTransaksjon = 0
-            var sumBelop = 0
+            var sumBelop = 0L
 
             innTransaksjonList.map { innTransaksjon ->
                 anvisningFil += FileParser.createTransaksjonRecord(innTransaksjon)
                 antallTransaksjon++
-                sumBelop += innTransaksjon.belop
+                sumBelop += innTransaksjon.belop.toLong()
             }
             anvisningFil += FileParser.createEndRecord(antallTransaksjon + 2, sumBelop)
 
