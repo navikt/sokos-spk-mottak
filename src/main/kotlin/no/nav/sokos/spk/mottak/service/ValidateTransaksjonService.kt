@@ -1,6 +1,9 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.zaxxer.hikari.HikariDataSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
@@ -24,6 +27,7 @@ import java.time.Instant
 private val logger = KotlinLogging.logger {}
 private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
 private const val UGYLDIG_FNR = "02"
+private const val CHUNKED_SZIE = 1000
 
 class ValidateTransaksjonService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
@@ -56,12 +60,14 @@ class ValidateTransaksjonService(
                     }
                 }
 
+                logger.info { "Transaksjoner overført til T_TRANSAKSJON: $totalInnTransaksjoner og T_AVVIK_TRANSAKSJON: $avvikTransaksjonRepository" }
+
                 when {
                     totalInnTransaksjoner > 0 -> {
                         val transTolkningIsNyMap = transaksjonRepository.getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance()
                         if (transTolkningIsNyMap.isNotEmpty()) {
                             dataSource.transaction { session -> transaksjonRepository.updateAllWhereTranstolkningIsNyForMoreThanOneInstance(transTolkningIsNyMap.keys.toList(), session) }
-                            logger.info { "Oppdatert personIder: $transTolkningIsNyMap som har inn-transaksjoner med samme personId og transTolkning = 'NY'" }
+                            logger.info { "Oppdatert personIder: ${transTolkningIsNyMap.keys.toList()} som har inn-transaksjoner med samme personId og transTolkning = 'NY'" }
                         }
 
                         logger.info {
@@ -72,6 +78,7 @@ class ValidateTransaksjonService(
 
                     else -> logger.info { "Finner ingen innTransaksjoner som er ubehandlet" }
                 }
+                logger.info { "Transaksjonsvalidering jobben ferdig" }
             }
         }.onFailure { exception ->
             val errorMessage = "Feil under behandling av innTransaksjoner. Feilmelding: ${exception.message}"
@@ -87,7 +94,18 @@ class ValidateTransaksjonService(
             innTransaksjonMap[true]?.takeIf { it.isNotEmpty() }?.apply {
                 val personIdList = this.map { it.personId!! }
                 val lastFagomraadeMap = innTransaksjonRepository.findLastFagomraadeByPersonId(personIdList)
-                val lastTransaksjonMap = transaksjonRepository.findLastTransaksjonByPersonId(personIdList).associateBy { it.personId }
+                val lastTransaksjonMap =
+                    runBlocking {
+                        personIdList
+                            .chunked(CHUNKED_SZIE)
+                            .map { items ->
+                                async(Dispatchers.IO) {
+                                    transaksjonRepository.findLastTransaksjonByPersonId(items)
+                                }
+                            }.awaitAll()
+                            .flatten()
+                            .associateBy { it.personId }
+                    }
 
                 transaksjonRepository.insertBatch(this.map { it.mapToTransaksjon(lastTransaksjonMap[it.personId], lastFagomraadeMap) }, session)
 
