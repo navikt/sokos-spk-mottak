@@ -183,18 +183,21 @@ class TransaksjonRepository(
                 session.list(
                     queryOf(
                         """
+                        WITH LatestTransaksjon AS (
+                            SELECT t.PERSON_ID, MAX(t.DATO_TOM) AS LatestDatoTom
+                            FROM T_TRANSAKSJON t
+                            WHERE t.K_BELOP_T IN ('01', '02')
+                              AND t.K_ANVISER = 'SPK'
+                            GROUP BY t.PERSON_ID
+                        )
                         SELECT t.*
-                        FROM T_INN_TRANSAKSJON inn 
-                        INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK 
-                        INNER JOIN T_TRANSAKSJON t ON t.PERSON_ID = p.PERSON_ID
+                        FROM T_INN_TRANSAKSJON inn
+                                 INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK
+                                 INNER JOIN T_TRANSAKSJON t ON t.PERSON_ID = p.PERSON_ID
+                                 INNER JOIN LatestTransaksjon lt ON t.PERSON_ID = lt.PERSON_ID AND t.DATO_TOM = lt.LatestDatoTom
                         WHERE p.PERSON_ID IN (${personIdListe.joinToString()}) 
-                        AND inn.BELOPSTYPE IN ('01' ,'02') 
-                        AND t.K_ANVISER = 'SPK' 
-                        AND t.DATO_TOM IN 
-                            (SELECT MAX(t2.DATO_TOM) FROM T_TRANSAKSJON t2 
-                            WHERE t2.PERSON_ID = p.PERSON_ID 
-                            AND t2.K_BELOP_T IN ('01', '02')
-                            AND t2.K_ANVISER = 'SPK')
+                          AND inn.BELOPSTYPE IN ('01', '02')
+                          AND t.K_ANVISER = '$SPK';
                         """.trimIndent(),
                     ),
                     mapToTransaksjon,

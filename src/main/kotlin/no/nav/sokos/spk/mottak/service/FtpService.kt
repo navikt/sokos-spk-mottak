@@ -11,7 +11,7 @@ private val logger = KotlinLogging.logger {}
 enum class Directories(
     var value: String,
 ) {
-    INBOUND("/inbound"),
+    INBOUND("/inbound/anvisningsfil"),
     FERDIG("/inbound/ferdig"),
     ANVISNINGSRETUR("/outbound/anvisningsretur"),
 }
