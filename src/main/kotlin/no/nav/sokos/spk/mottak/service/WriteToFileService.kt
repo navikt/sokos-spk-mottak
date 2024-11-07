@@ -46,7 +46,7 @@ class WriteToFileService(
             var anvisningFil = StringBuilder(FileParser.createStartRecord(filInfo))
             var antallTransaksjon = 0
             var sumBelop = 0L
-            
+
             innTransaksjonList.forEach { innTransaksjon ->
                 anvisningFil.append(FileParser.createTransaksjonRecord(innTransaksjon))
                 antallTransaksjon++
