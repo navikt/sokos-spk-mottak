@@ -13,10 +13,10 @@ NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar dagl
 <br/> Tjeneste som genererer en returfil per anvisningsfil som sendes til SPK og som inneholder samme informasjon som anvisningsfilen men med tilleggsinformasjon om status på transaksjonsvalideringen.
 
 4. [SendUtbetalingTransaksjonToOppdragZService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/SendUtbetalingTransaksjonToOppdragZService.kt)
-<br/> Tjeneste som sender alle utbetalingstransaksjoner til Oppdragssystemet(OS) som ligger i `T_TRANSAKSJON` (dvs godkjente) men som ennå ikke er oversendt. I tillegg vil også transaksjoner som har feilet ved tidligere forsøk sendes til OS.
+<br/> Tjeneste som sender alle utbetalingstransaksjoner til Oppdragssystemet(OS) som ligger i `T_TRANSAKSJON` (dvs godkjente) men som ennå ikke er oversendt. I tillegg vil også transaksjoner som har feilet ved tidligere oversendelsesforsøk sendes til OS.
 
 5. [SendTrekkTransaksjonToOppdragZService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/SendTrekkTransaksjonToOppdragZService.kt)
-<br/> Tjeneste som sender alle trekktransaksjoner til Oppdragssystemet(OS) som ligger i `T_TRANSAKSJON` (dvs godkjente) men som ennå ikke er oversendt. I tillegg vil også transaksjoner som har feilet ved tidligere forsøk sendes til OS.
+<br/> Tjeneste som sender alle trekktransaksjoner til Oppdragssystemet(OS) som ligger i `T_TRANSAKSJON` (dvs godkjente) men som ennå ikke er oversendt. I tillegg vil også transaksjoner som har feilet ved tidligere oversendelsesforsøk sendes til OS.
 
 6. [JmsListenerService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/mq/JmsListenerService.kt) 
 <br/> Tjeneste som lytter til reply-meldinger fra OS og lagrer meldingstatus og annen informasjon i T_TRANSAKSJON. Reply-meldingene inneholder informasjon om status til behandlingen av transaksjonene i OS.
@@ -27,13 +27,14 @@ NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar dagl
 
 ### Kjøring av tjenester i scheduler [JobTaskConfig](../../../src/main/kotlin/no/nav/sokos/spk/mottak/config/JobTaskConfig.kt)
 <br/> Tjenestene 1-3 kjører i sekvensiell rekkefølge og startes daglig.
-<br/> Tjeneste 4 og 5 kjøres daglig etter at tjeneste 1-3 er ferdig.
+<br/> Tjeneste 4-5 kjøres daglig i sekvensiell rekkefølge og etter at tjeneste 1-3 er ferdig.
 <br/> Tjeneste 7 kjøres en gang daglig.
 
 ### Ytelse/volum 
-<br/> SPK sender månedlig filer på rundt 300000 transaksjoner. Daglig sendes det maks 2-3 filer med etterutbetalingstransaksjoner med størrelse på maks noen tusen transaksjoner.
-Ved den årlige G-reguleringen sendes det en større fil som kan inneholde ca 1 million transaksjoner.
+<br/> SPK sender månedlig filer på ca 300000 transaksjoner. Daglig sendes maks 2-3 filer med etterutbetalingstransaksjoner med maks noen tusen transaksjoner.
+Ved den årlige G-reguleringen sendes en større fil som kan inneholde ca 1 million transaksjoner.
 <br/>
 
 ### Feilhåndtering
-<br/> Feilhåndtering er avhengig av i hvilken tjeneste feilen oppstod. Dersom den oppstod i tjeneste 1-3, vil re-skeduleringen forsøke å rekjøre den feilede tjenesten. Det vil i tillegg bli sendt et varslet om feilen i en slack-kanal. Hver av tjenestene 1-3 har et initiell startkriterie som sørger for at tjenesten ikke kjører dersom dette ikke er oppfylt. Dersom re-skeduleringen ikke medfører at feilen forsvinner, kreves det en manuell analyse og behandling.
+<br/> Feilhåndtering er avhengig av i hvilken tjeneste feilen oppstod. Dersom den oppstod i tjeneste 1-3, vil re-skeduleringen forsøke å rekjøre den feilede tjenesten. Det vil i tillegg bli sendt et varslet om feilen i en slack-kanal. 
+<br/> Hver av tjenestene har et startkriterie som sørger for at tjenesten ikke kjører dersom dette ikke er oppfylt. Dersom re-skeduleringen ikke medfører at feilen forsvinner, kreves det en manuell analyse og behandling.
