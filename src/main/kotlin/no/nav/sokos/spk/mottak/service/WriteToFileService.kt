@@ -27,12 +27,12 @@ class WriteToFileService(
         runCatching {
             val filInfoList = filInfoRepository.getByFilTilstandAndAllInnTransaksjonIsBehandlet()
             if (filInfoList.isNotEmpty()) {
-                logger.info { "Skriv fil til SPK for filInfoId: ${filInfoList.map { it.filInfoId }.joinToString()}" }
+                logger.info { "Returfil produseres for filInfoId: ${filInfoList.map { it.filInfoId }.joinToString()}" }
                 filInfoList.forEach { createTempFileAndUploadToFtpServer(it) }
-                logger.info { "Filene er opprettet og lastes opp til FTP server" }
+                logger.info { "Returfil for filInfoId: ${filInfoList.map { it.filInfoId }.joinToString()} er produsert og lastet opp til FTP server" }
             }
         }.onFailure { exception ->
-            val errorMessage = "Feil under skriving returfil til SPK. Feilmelding: ${exception.message}"
+            val errorMessage = "Skriving av returfil feilet. Feilmelding: ${exception.message}"
             logger.error(exception) { errorMessage }
             throw MottakException(errorMessage)
         }
@@ -43,16 +43,16 @@ class WriteToFileService(
             val innTransaksjonList = innTransaksjonRepository.getByFilInfoId(filInfo.filInfoId!!)
 
             val returFilnavn = generateFileName()
-            var anvisningFil = FileParser.createStartRecord(filInfo)
+            var anvisningFil = StringBuilder(FileParser.createStartRecord(filInfo))
             var antallTransaksjon = 0
-            var sumBelop = 0
+            var sumBelop = 0L
 
-            innTransaksjonList.map { innTransaksjon ->
-                anvisningFil += FileParser.createTransaksjonRecord(innTransaksjon)
+            innTransaksjonList.forEach { innTransaksjon ->
+                anvisningFil.append(FileParser.createTransaksjonRecord(innTransaksjon))
                 antallTransaksjon++
-                sumBelop += innTransaksjon.belop
+                sumBelop += innTransaksjon.belop.toLong()
             }
-            anvisningFil += FileParser.createEndRecord(antallTransaksjon, sumBelop)
+            anvisningFil = anvisningFil.append(FileParser.createEndRecord(antallTransaksjon + 2, sumBelop))
 
             filInfoRepository.insert(
                 filInfo.copy(
@@ -68,8 +68,8 @@ class WriteToFileService(
             )
             innTransaksjonRepository.deleteByFilInfoId(filInfo.filInfoId, session)
 
-            ftpService.createFile(returFilnavn, Directories.ANVISNINGSRETUR, anvisningFil)
-            logger.info { "$returFilnavn med antall transaksjoner: $antallTransaksjon og beløp: $sumBelop opprettet og har lastet opp tilbake til SPK i ${Directories.ANVISNINGSRETUR}" }
+            ftpService.createFile(returFilnavn, Directories.ANVISNINGSRETUR, anvisningFil.toString())
+            logger.info { "$returFilnavn med antall transaksjoner: $antallTransaksjon og beløp: $sumBelop opprettet og har lastet opp til ${Directories.ANVISNINGSRETUR}" }
         }
     }
 

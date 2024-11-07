@@ -17,10 +17,10 @@ object PropertiesConfig {
                 "USE_AUTHENTICATION" to "true",
                 "SCHEDULER_ENABLED" to "true",
                 "MQ_LISTENER_ENABLED" to "true",
-                "READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN" to "0 10 * * * *",
-                "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
-                "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 * * * * *",
-                "GRENSESNITT_AVSTEMMING_CRON_PATTERN" to "0 0 * * * *",
+                "READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN" to "0 0 1 * * *",
+                "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 0 1 * * *",
+                "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 0 1 * * *",
+                "GRENSESNITT_AVSTEMMING_CRON_PATTERN" to "0 0 1 * * *",
                 "MQ_BATCH_SIZE" to "200",
             ),
         )
@@ -41,7 +41,7 @@ object PropertiesConfig {
                 "MQ_UTBETALING_REPLY_QUEUE_NAME" to "QA.Q1_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY",
                 "MQ_TREKK_QUEUE_NAME" to "QA.Q1_231.OB04_TREKK_MOT_JSON",
                 "MQ_TREKK_REPLY_QUEUE_NAME" to "QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY",
-                "MQ_AVSTEMMING_QUEUE_NAME" to "QA.Q1_231.OB04_AVSTEMMING_XML",
+                "MQ_AVSTEMMING_QUEUE_NAME" to "QA.Q1_234.OB29_AVSTEMMING_XML",
             ),
         )
 

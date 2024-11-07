@@ -25,7 +25,7 @@ object FileValidation {
             recordData.sluttRecord.totalBelop != recordData.totalBelop ->
                 throw FilValidationException(FilStatus.UGYLDIG_SUMBELOP.code, String.format(FilStatus.UGYLDIG_SUMBELOP.message, "${recordData.sluttRecord.totalBelop}", "${recordData.totalBelop}"))
 
-            recordData.sluttRecord.antallRecord != recordData.transaksjonRecordList.size ->
+            recordData.sluttRecord.antallRecord != (recordData.transaksjonRecordList.size + 2) ->
                 throw FilValidationException(
                     FilStatus.UGYLDIG_ANTRECORDS.code,
                     String.format(FilStatus.UGYLDIG_ANTRECORDS.message, "${recordData.sluttRecord.antallRecord}", "${recordData.transaksjonRecordList.size}"),

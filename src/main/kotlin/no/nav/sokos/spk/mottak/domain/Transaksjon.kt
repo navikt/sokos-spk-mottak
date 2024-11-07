@@ -28,7 +28,7 @@ data class Transaksjon(
     val transTolkning: String,
     val sendtTilOppdrag: String,
     val trekkvedtakId: String? = null,
-    val fnrEndret: Char,
+    val fnrEndret: String,
     val motId: String,
     val osStatus: String? = null,
     val datoOpprettet: LocalDateTime,
@@ -47,7 +47,7 @@ data class Transaksjon(
 fun Transaksjon.getTransTolkningOppdragKode(): String {
     if (transTolkning == TRANS_TOLKNING_NY) {
         return "NY"
-    } else if (transTolkning == TRANS_TOLKNING_NY_EKSIST && fnrEndret == '1') {
+    } else if (transTolkning == TRANS_TOLKNING_NY_EKSIST && fnrEndret == "1") {
         return "ENDR"
     }
     return "UEND"

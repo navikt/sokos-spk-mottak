@@ -22,6 +22,7 @@ import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
+import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
@@ -37,6 +38,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
     private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),
+    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource),
     private val mqBatchSize: Int = MQ_BATCH_SIZE,
     private val producer: JmsProducerService =
         JmsProducerService(
@@ -50,19 +52,24 @@ class SendUtbetalingTransaksjonToOppdragZService(
         ),
 ) {
     fun getUtbetalingTransaksjonAndSendToOppdragZ() {
+        if (innTransaksjonRepository.countByInnTransaksjon() > 0) {
+            logger.info { "InnTransaksjoner er ikke ferdig behandlet, ingen utbetalingstransaksjoner vil bli behandlet" }
+            return
+        }
+
         val timer = Instant.now()
         var totalTransaksjoner = 0
 
         Metrics.timer(SERVICE_CALL, "SendUtbetalingTransaksjonToOppdragServiceV2", "getUtbetalingTransaksjonAndSendToOppdragZ").recordCallable {
             runCatching {
                 val transaksjonList = transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
+                logger.info { "Starter sending av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
                 if (transaksjonList.isNotEmpty()) {
-                    logger.info { "Starter sending av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
                     val oppdragList =
                         transaksjonList
                             .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
                             .map { it.value.toUtbetalingsOppdrag() }
-                    logger.info { "Oppdragslistestørrelse ${oppdragList.size}" }
+                    logger.debug { "Oppdragslistestørrelse ${oppdragList.size}" }
 
                     oppdragList.chunked(mqBatchSize).forEach { oppdragChunk ->
                         val transaksjonIdList =
@@ -73,8 +80,8 @@ class SendUtbetalingTransaksjonToOppdragZService(
                         val oppdragXML = oppdragChunk.map { JaxbUtils.marshallOppdrag(it) }
 
                         sendToOppdragZ(oppdragXML, transaksjonIdList)
-                        logger.info { "Sender ${transaksjonIdList.size} utbetalingstransaksjoner " }
                         totalTransaksjoner += transaksjonIdList.size
+                        logger.info { "$totalTransaksjoner utbetalingstransaksjoner sendt av totalt ${oppdragList.size}" }
                     }
                     logger.info { "Fullført sending av $totalTransaksjoner utbetalingstransaksjoner til OppdragZ. Total tid: ${Duration.between(timer, Instant.now()).toSeconds()} sekunder." }
                     Metrics.utbetalingTransaksjonerTilOppdragCounter.inc(totalTransaksjoner.toLong())
@@ -84,7 +91,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
                     }
                 }
             }.onFailure { exception ->
-                val errorMessage = "Feil under sending av utbetalingstransaksjoner til OppdragZ. Feilmelding: ${exception.message}"
+                val errorMessage = "Sending av utbetalingstransaksjoner til OppdragZ feilet. Feilmelding: ${exception.message}"
                 logger.error(exception) { errorMessage }
                 throw MottakException(errorMessage)
             }
@@ -116,11 +123,11 @@ class SendUtbetalingTransaksjonToOppdragZService(
                     dataSource.transaction { session ->
                         updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
                     }
-                }.onFailure { exception ->
-                    logger.error(exception) { "DB2-feil: $exception" }
+                }.onFailure { databaseException ->
+                    logger.error(databaseException) { "DB2-feil: ${databaseException.message}" }
                 }
             }
-            logger.error(exception) { "Feiler ved utsending av utbetalingstransaksjonene: ${transaksjonIdList.joinToString()} : $exception" }
+            logger.error(exception) { "Utsending av utbetalingstransaksjonene: ${transaksjonIdList.joinToString()} feilet. $exception" }
         }
     }
 

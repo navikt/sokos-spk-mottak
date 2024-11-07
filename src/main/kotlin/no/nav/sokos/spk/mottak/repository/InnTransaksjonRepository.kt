@@ -43,6 +43,7 @@ class InnTransaksjonRepository(
     private val updateTransaksjonStatusTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "updateTransaksjonStatus")
     private val deleteByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "deleteByFilInfoId")
     private val findLastFagomraadeByPersonIdTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "findLastFagomraadeByPersonId")
+    private val countByInnTransaksjonTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "countByInnTransaksjon")
 
     fun getByFilInfoId(filInfoId: Int): List<InnTransaksjon> =
         using(sessionOf(dataSource)) { session ->
@@ -234,6 +235,20 @@ class InnTransaksjonRepository(
         }
         return fagomradeMap
     }
+
+    fun countByInnTransaksjon(): Int =
+        using(sessionOf(dataSource)) { session ->
+            countByInnTransaksjonTimer.recordCallable {
+                session.single(
+                    queryOf(
+                        """
+                        SELECT count(*) AS ANTALL 
+                        FROM T_INN_TRANSAKSJON             
+                        """.trimIndent(),
+                    ),
+                ) { row -> row.int("ANTALL") }
+            }
+        } ?: 0
 
     private fun List<TransaksjonRecord>.convertToListMap(filInfoId: Long): List<Map<String, Any?>> {
         val systemId = PropertiesConfig.Configuration().naisAppName

@@ -52,7 +52,7 @@ object FileParser {
         }
         return SluttRecord(
             antallRecord = record.getString(2, 11).toIntOrNull() ?: 0,
-            totalBelop = record.getString(11, 26).toLongOrNull() ?: 0,
+            totalBelop = record.getString(11, 25).toLongOrNull() ?: 0,
             filStatus = filStatus,
         )
     }
@@ -121,7 +121,7 @@ object FileParser {
 
     fun createEndRecord(
         antallTransaksjon: Int,
-        sumBelop: Int,
+        sumBelop: Long,
     ): String {
         val stringBuilder = StringBuilder()
         stringBuilder

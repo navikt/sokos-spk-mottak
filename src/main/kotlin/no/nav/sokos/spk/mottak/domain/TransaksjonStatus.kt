@@ -13,6 +13,7 @@ enum class TransaksjonStatus(
     UGYLDIG_ANVISER_DATO("09", "Ugyldig anviser-dato"),
     UGYLDIG_BELOP("10", "Ugyldig beløp"),
     UGYLDIG_KOMBINASJON_AV_ART_BELOPSTYPE("11", "Ugyldig kombinasjon av art og beløpstype"),
+    ART_MANGLER_GRAD("16", "Art-type mangler obligatorisk grad"),
     ;
 
     companion object {

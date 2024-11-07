@@ -3,6 +3,7 @@ package no.nav.sokos.spk.mottak.pdl
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.common.ContentTypes.APPLICATION_JSON
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -12,16 +13,18 @@ import no.nav.pdl.enums.IdentGruppe
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.listener.WiremockListener
 import no.nav.sokos.spk.mottak.listener.WiremockListener.wiremock
-import wiremock.org.apache.hc.core5.http.ContentType.APPLICATION_JSON
 
 internal class PdlServiceTest :
     FunSpec({
 
-        val pdlService =
+        extensions(listOf(WiremockListener))
+
+        val pdlService: PdlService by lazy {
             PdlService(
                 pdlUrl = wiremock.baseUrl(),
                 accessTokenClient = WiremockListener.accessTokenClient,
             )
+        }
 
         test("hent identer fra PDL gir respons med identer") {
 
@@ -32,7 +35,7 @@ internal class PdlServiceTest :
                     .post(urlEqualTo("/graphql"))
                     .willReturn(
                         aResponse()
-                            .withHeader(HttpHeaders.ContentType, APPLICATION_JSON.mimeType)
+                            .withHeader(HttpHeaders.ContentType, APPLICATION_JSON)
                             .withStatus(HttpStatusCode.OK.value)
                             .withBody(identerFunnetOkResponse),
                     ),
@@ -65,7 +68,7 @@ internal class PdlServiceTest :
                     .post(urlEqualTo("/graphql"))
                     .willReturn(
                         aResponse()
-                            .withHeader(HttpHeaders.ContentType, APPLICATION_JSON.mimeType)
+                            .withHeader(HttpHeaders.ContentType, APPLICATION_JSON)
                             .withStatus(HttpStatusCode.OK.value)
                             .withBody(identerFunnetFeilResponse),
                     ),
@@ -88,7 +91,7 @@ internal class PdlServiceTest :
                     .post(urlEqualTo("/graphql"))
                     .willReturn(
                         aResponse()
-                            .withHeader(HttpHeaders.ContentType, APPLICATION_JSON.mimeType)
+                            .withHeader(HttpHeaders.ContentType, APPLICATION_JSON)
                             .withStatus(HttpStatusCode.OK.value)
                             .withBody(ikkeAutentisertResponse),
                     ),

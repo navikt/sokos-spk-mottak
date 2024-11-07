@@ -63,7 +63,12 @@ class JmsListenerService(
             val transTilstandStatus =
                 when {
                     oppdrag.mmel.alvorlighetsgrad.toInt() < 5 -> TRANS_TILSTAND_OPPDRAG_RETUR_OK
-                    else -> TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
+                    else -> {
+                        if (oppdrag.mmel.alvorlighetsgrad.toInt() == 12) {
+                            logger.error { "Prosessering av returmelding feilet med alvorlighetsgrad 12. Feilmelding: ${message.jmsMessageID}" }
+                        }
+                        TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
+                    }
                 }
 
             val transaksjonIdList =
@@ -72,7 +77,7 @@ class JmsListenerService(
                     .map { it.delytelseId.toInt() }
 
             if (transaksjonIdList.isEmpty()) {
-                logger.warn { "Ingen nye transaksjoner å prosessere!" }
+                logger.info { "Ingen nye transaksjoner å prosessere" }
                 return
             }
 
@@ -97,18 +102,18 @@ class JmsListenerService(
             }
             mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
         }.onFailure { exception ->
-            logger.error(exception) { "Feil ved prosessering av oppdragsmelding : ${message.jmsMessageID}" }
+            logger.error(exception) { "Prosessering av retur-utbetalingsmelding feilet. ${message.jmsMessageID}" }
         }
     }
 
     private fun onTrekkMessage(message: Message) {
         runCatching {
             val jmsMessage = message.getBody(String::class.java)
-            logger.debug { "Mottatt trekkmelding fra OppdragZ, message content: $jmsMessage" }
+            logger.debug { "Mottatt trekkmelding fra OppdragZ. Meldingsinnhold: $jmsMessage" }
             val trekkWrapper = json.decodeFromString<DokumentWrapper>(jmsMessage)
             processTrekkMessage(trekkWrapper.dokument!!, trekkWrapper.mmel!!)
         }.onFailure { exception ->
-            logger.error(exception) { "Feil ved prosessering av trekkmelding : ${message.jmsMessageID}" }
+            logger.error(exception) { "Prosessering av retur-trekkmelding feilet. ${message.jmsMessageID}" }
         }
     }
 
@@ -133,7 +138,7 @@ class JmsListenerService(
                     listOf(transaksjonId),
                     transTilstandIdList,
                     trekkStatus,
-                    trekk.innrapporteringTrekk?.navTrekkId ?: null,
+                    trekk.innrapporteringTrekk.navTrekkId,
                     trekkInfo.alvorlighetsgrad,
                     session,
                 )
@@ -149,7 +154,7 @@ class JmsListenerService(
         return when {
             osStatus == OS_STATUS_OK -> false
             transaksjonRepository.getByTransaksjonId(transaksjonId)!!.osStatus == TRANSAKSJONSTATUS_OK -> {
-                logger.warn { "Transaksjon: $transaksjonId er allerede mottatt med OK-status" }
+                logger.info { "Transaksjon: $transaksjonId er allerede mottatt med OK-status" }
                 return true
             }
 

@@ -19,7 +19,7 @@ import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
 import no.nav.sokos.spk.mottak.util.SQLUtils.optionalOrNull
-import no.nav.sokos.spk.mottak.util.Utils.toChar
+import no.nav.sokos.spk.mottak.util.Utils.booleanToString
 
 class TransaksjonRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
@@ -150,10 +150,11 @@ class TransaksjonRepository(
                         SELECT DISTINCT t.PERSON_ID, k.K_FAGOMRADE
                         FROM T_TRANSAKSJON t
                                  INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER)
-                        WHERE t.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
+                        WHERE t.K_BELOP_T IN ('01', '02')
+                          AND t.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
                           AND t.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPPRETTET'
-                          AND t.K_ANVISER = '$SPK'
-                        GROUP BY t.PERSON_ID, t.K_TRANS_TOLKNING, k.K_FAGOMRADE
+                          AND t.K_ANVISER = '$SPK' 
+                        GROUP BY t.PERSON_ID, k.K_FAGOMRADE
                         HAVING COUNT(*) > 1
                         """.trimIndent(),
                     ),
@@ -183,18 +184,21 @@ class TransaksjonRepository(
                 session.list(
                     queryOf(
                         """
+                        WITH LatestTransaksjon AS (
+                            SELECT t.PERSON_ID, MAX(t.DATO_TOM) AS LatestDatoTom
+                            FROM T_TRANSAKSJON t
+                            WHERE t.K_BELOP_T IN ('01', '02')
+                              AND t.K_ANVISER = 'SPK'
+                            GROUP BY t.PERSON_ID
+                        )
                         SELECT t.*
-                        FROM T_INN_TRANSAKSJON inn 
-                        INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK 
-                        INNER JOIN T_TRANSAKSJON t ON t.PERSON_ID = p.PERSON_ID
+                        FROM T_INN_TRANSAKSJON inn
+                                 INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK
+                                 INNER JOIN T_TRANSAKSJON t ON t.PERSON_ID = p.PERSON_ID
+                                 INNER JOIN LatestTransaksjon lt ON t.PERSON_ID = lt.PERSON_ID AND t.DATO_TOM = lt.LatestDatoTom
                         WHERE p.PERSON_ID IN (${personIdListe.joinToString()}) 
-                        AND inn.BELOPSTYPE IN ('01' ,'02') 
-                        AND t.K_ANVISER = 'SPK' 
-                        AND t.DATO_TOM IN 
-                            (SELECT MAX(t2.DATO_TOM) FROM T_TRANSAKSJON t2 
-                            WHERE t2.PERSON_ID = p.PERSON_ID 
-                            AND t2.K_BELOP_T IN ('01', '02')
-                            AND t2.K_ANVISER = 'SPK')
+                          AND inn.BELOPSTYPE IN ('01', '02')
+                          AND t.K_ANVISER = '$SPK';
                         """.trimIndent(),
                     ),
                     mapToTransaksjon,
@@ -260,11 +264,16 @@ class TransaksjonRepository(
                 session.list(
                     queryOf(
                         """
-                        SELECT t.TRANSAKSJON_ID, t.FNR_FK, k.K_FAGOMRADE, t.OS_STATUS, t.K_TRANS_TILST_T, tt.FEILKODE, tt.FEILKODEMELDING, t.DATO_OPPRETTET
+                        SELECT DISTINCT t.TRANSAKSJON_ID, t.FNR_FK, k.K_FAGOMRADE, t.OS_STATUS, t.K_TRANS_TILST_T, tt.FEILKODE, tt.FEILKODEMELDING, t.DATO_OPPRETTET
                         FROM T_TRANSAKSJON t 
-                                    INNER JOIN T_K_GYLDIG_KOMBIN k ON k.K_ART = t.K_ART and k.K_BELOP_T = t.K_BELOP_T
-                                    INNER JOIN T_TRANS_TILSTAND tt ON t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID
-                        WHERE k.K_ANVISER = '$SPK' AND t.FIL_INFO_ID IN (${filInfoIdList.joinToString()}) AND tt.FEILKODE <> ''
+                                    INNER JOIN T_K_GYLDIG_KOMBIN k ON k.K_ART = t.K_ART AND k.K_BELOP_T = t.K_BELOP_T AND t.K_BELOP_T IN ('01', '02')
+                                    INNER JOIN T_TRANS_TILSTAND tt ON t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID AND tt.TRANS_TILSTAND_ID = (
+                                        SELECT MAX(TRANS_TILSTAND_ID)
+                                        FROM T_TRANS_TILSTAND 
+                                        WHERE TRANSAKSJON_ID = t.TRANSAKSJON_ID
+                                    )
+                        WHERE k.K_ANVISER = '$SPK' AND t.FIL_INFO_ID IN (${filInfoIdList.joinToString()}) 
+                        AND tt.FEILKODE <> '' AND t.OS_STATUS <> '00'
                         ORDER BY t.TRANSAKSJON_ID;
                         """.trimIndent(),
                     ),
@@ -342,7 +351,7 @@ class TransaksjonRepository(
             transTolkning = row.string("K_TRANS_TOLKNING"),
             sendtTilOppdrag = row.string("SENDT_TIL_OPPDRAG"),
             trekkvedtakId = row.stringOrNull("TREKKVEDTAK_ID_FK"),
-            fnrEndret = row.boolean("FNR_ENDRET").toChar(),
+            fnrEndret = row.boolean("FNR_ENDRET").booleanToString(),
             motId = row.string("MOT_ID"),
             osStatus = row.stringOrNull("OS_STATUS"),
             datoOpprettet = row.localDateTime("DATO_OPPRETTET"),

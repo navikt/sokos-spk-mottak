@@ -3,6 +3,7 @@ package no.nav.sokos.spk.mottak.domain
 const val SPK = "SPK"
 const val NAV = "NAV"
 const val MOT = "MOT"
+const val SPK_MOT = "SPK-MOT"
 const val SPK_TSS = "80000427901"
 
 // FILETYPE
@@ -39,8 +40,8 @@ const val TRANS_TOLKNING_NY = "NY"
 const val TRANS_TOLKNING_NY_EKSIST = "NY_EKSIST"
 
 // FNR ENDRET
-const val FNR_ENDRET = '1'
-const val FNR_IKKE_ENDRET = '0'
+const val FNR_ENDRET = "1"
+const val FNR_IKKE_ENDRET = "0"
 
 // TRANSAKSJON TILSTAND STATUS
 const val TRANS_TILSTAND_OPPRETTET = "OPR"

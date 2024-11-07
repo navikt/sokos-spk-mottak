@@ -85,23 +85,29 @@ object OppdragConverter {
             attestant180.addAll(listOf(Attestant180().apply { attestantId = SAKSBEHANDLER_ID }))
 
             grad?.let {
-                grad170.addAll(
-                    listOf(
+                if (skalHaGrad(art)) {
+                    grad170.add(
                         Grad170().apply {
-                            typeGrad =
-                                when (art) {
-                                    "ALP" -> "UTAP"
-                                    "AFP" -> "AFPG"
-                                    "UFO" -> "UFOR"
-                                    "UFT" -> "UFOR"
-                                    "U67" -> "UFOR"
-                                    "UFE" -> "UFOR"
-                                    else -> throw UnsupportedOperationException("Ukjent ART")
-                                }
+                            typeGrad = gradTypeMap[art] ?: throw UnsupportedOperationException("Ukjent ART")
                             grad = it.toBigInteger()
                         },
-                    ),
-                )
+                    )
+                }
             }
         }
+
+    private val gradArtSett = setOf("ALP", "AFP", "AFL", "UFO", "UFT", "U67", "UFE")
+
+    private fun skalHaGrad(art: String): Boolean = art in gradArtSett
+
+    private val gradTypeMap =
+        mapOf(
+            "ALP" to "UTAP",
+            "AFP" to "AFPG",
+            "AFL" to "AFPG",
+            "UFO" to "UFOR",
+            "UFT" to "UFOR",
+            "U67" to "UFOR",
+            "UFE" to "UFOR",
+        )
 }

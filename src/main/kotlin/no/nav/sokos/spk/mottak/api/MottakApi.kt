@@ -1,63 +1,55 @@
 package no.nav.sokos.spk.mottak.api
 
+import com.github.kagkarlsson.scheduler.Scheduler
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.service.AvstemmingService
-import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
-import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragZService
-import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragZService
-import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
-import no.nav.sokos.spk.mottak.service.WriteToFileService
+import no.nav.sokos.spk.mottak.config.JobTaskConfig
+import java.time.Instant
 
-fun Route.mottakApi(
-    readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
-    validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService(),
-    writeToFileService: WriteToFileService = WriteToFileService(),
-    sendUtbetalingTransaksjonToOppdragZService: SendUtbetalingTransaksjonToOppdragZService =
-        SendUtbetalingTransaksjonToOppdragZService(
-            mqBatchSize = PropertiesConfig.MQProperties().mqBatchSize,
-        ),
-    sendTrekkTransaksjonToOppdragZService: SendTrekkTransaksjonToOppdragZService =
-        SendTrekkTransaksjonToOppdragZService(
-            mqBatchSize = PropertiesConfig.MQProperties().mqBatchSize,
-        ),
-    avstemmingService: AvstemmingService = AvstemmingService(),
-) {
+private const val RECURRING = "recurring"
+
+fun Route.mottakApi(scheduler: Scheduler = JobTaskConfig.scheduler()) {
     route("api/v1") {
-        get("readParseFileAndValidateTransactions") {
+        post("readParseFileAndValidateTransactions") {
             call.launch(Dispatchers.IO) {
-                readAndParseFileService.readAndParseFile()
-                validateTransaksjonService.validateInnTransaksjon()
-                writeToFileService.writeReturnFile()
+                val task = JobTaskConfig.recurringReadParseFileAndValidateTransactionsTask()
+                scheduler.reschedule(task.instance(RECURRING), Instant.now())
             }
-            call.respond(HttpStatusCode.OK, "ReadAndParseFile av filer har startet, sjekk logger for status")
+            call.respond(HttpStatusCode.Accepted, "ReadAndParseFile av filer har startet, sjekk logger for status")
         }
 
-        get("sendUtbetalingTransaksjonToOppdragZ") {
+        post("sendUtbetalingTransaksjonToOppdragZ") {
             call.launch(Dispatchers.IO) {
-                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
+                val task = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask()
+                scheduler.reschedule(task.instance(RECURRING), Instant.now())
             }
-            call.respond(HttpStatusCode.OK, "SendUtbetalingTransaksjonTilOppdrag har startet, sjekk logger for status")
+            call.respond(HttpStatusCode.Accepted, "SendUtbetalingTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
-        get("sendTrekkTransaksjonToOppdragZ") {
+        post("sendTrekkTransaksjonToOppdragZ") {
             call.launch(Dispatchers.IO) {
-                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
+                val task = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask()
+                scheduler.reschedule(task.instance(RECURRING), Instant.now())
             }
-            call.respond(HttpStatusCode.OK, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
+            call.respond(HttpStatusCode.Accepted, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
-        get("avstemming") {
+        post("avstemming") {
             call.launch(Dispatchers.IO) {
-                avstemmingService.sendGrensesnittAvstemming()
+                val task = JobTaskConfig.recurringGrensesnittAvstemmingTask()
+                scheduler.reschedule(task.instance(RECURRING), Instant.now())
             }
-            call.respond(HttpStatusCode.OK, "GrensesnittAvstemming har startet, sjekk logger for status")
+            call.respond(HttpStatusCode.Accepted, "GrensesnittAvstemming har startet, sjekk logger for status")
+        }
+
+        get("jobTaskInfo") {
+            call.respond(HttpStatusCode.OK, JobTaskConfig.schedulerWithTypeInformation())
         }
     }
 }

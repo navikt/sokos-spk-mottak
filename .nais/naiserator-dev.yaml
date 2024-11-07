@@ -31,20 +31,32 @@ spec:
       memory: 4096Mi
   ingresses:
     - https://sokos-spk-mottak.intern.dev.nav.no
+    - https://sokos-spk-mottak.dev-fss-pub.nais.io
   prometheus:
     enabled: true
     path: /internal/metrics
   secureLogs:
     enabled: true
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
   azure:
     application:
       enabled: true
       tenant: trygdeetaten.no
+      allowAllUsers: true
+      claims:
+        extra:
+          - NAVident
   accessPolicy:
     inbound:
       rules:
         - application: azure-token-generator
           namespace: aura
+          cluster: dev-gcp
+        - application: sokos-utbetalingsportalen
+          namespace: okonomi
           cluster: dev-gcp
   webproxy: true
   vault:
@@ -61,18 +73,6 @@ spec:
   env:
     - name: USE_AUTHENTICATION
       value: "true"
-
-    # OpenTelemetry
-    - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "https://elastic-apm.adeo.no"
-    - name: OTEL_METRICS_EXPORTER
-      value: "otlp"
-    - name: OTEL_LOGS_EXPORTER
-      value: "none"
-    - name: OTEL_RESOURCE_ATTRIBUTES
-      value: "service.name=sokos-spk-mottak,service.version=sokos-spk-mottak,deployment.environment=q"
-    - name: OTEL_TRACES_EXPORTER
-      value: "otlp"
 
     # DB2
     - name: DATABASE_HOST
@@ -112,7 +112,7 @@ spec:
     - name: MQ_TREKK_REPLY_QUEUE_NAME
       value: QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY
     - name: MQ_AVSTEMMING_QUEUE_NAME
-      value: QA.Q1_231.OB04_AVSTEMMING_XML
+      value: QA.Q1_234.OB29_AVSTEMMING_XML
     - name: MQ_BATCH_SIZE
       value: "200"
     - name: MQ_LISTENER_ENABLED
@@ -134,12 +134,12 @@ spec:
 
     # DB-SCHEDULER
     - name: SCHEDULER_ENABLED
-      value: "false"
+      value: "true"
     - name: READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN
       value: "0 0 7-17 * * *"
     - name: SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
-      value: "* * 7-17 * * *"
+      value: "0 0 7-17 * * *"
     - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
-      value: "* * 7-17 * * *"
+      value: "0 0 7-17 * * *"
     - name: GRENSESNITT_AVSTEMMING_CRON_PATTERN
       value: "0 0 5 * * *"

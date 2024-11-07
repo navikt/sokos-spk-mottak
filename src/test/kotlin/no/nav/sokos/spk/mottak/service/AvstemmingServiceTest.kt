@@ -108,7 +108,7 @@ class AvstemmingServiceTest :
                 val exception = shouldThrow<MottakException> { avstemmingService.sendGrensesnittAvstemming() }
 
                 Then("skal det ikke sendes grensesnitt avstemming til OppdragZ og filInfo skal ikke bli oppdatert") {
-                    exception.message shouldBe "Feil under sending av avstemming til OppdragZ. Feilmelding: No database connection!"
+                    exception.message shouldBe "Utsending av avstemming til OppdragZ feilet. Feilmelding: No database connection!"
                     Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(34, FILTILSTANDTYPE_GOD)?.avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_OK
                 }
             }

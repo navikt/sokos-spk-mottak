@@ -15,11 +15,12 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.innrapporteringTrekk
+import no.nav.sokos.spk.mottak.exception.DatabaseException
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
-import no.nav.sokos.spk.mottak.metrics.Metrics.timer
 import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
+import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import java.time.Duration
@@ -31,6 +32,7 @@ class SendTrekkTransaksjonToOppdragZService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
+    private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource),
     private val mqBatchSize: Int = MQ_BATCH_SIZE,
     private val producer: JmsProducerService =
         JmsProducerService(
@@ -44,6 +46,11 @@ class SendTrekkTransaksjonToOppdragZService(
         ),
 ) {
     fun getTrekkTransaksjonAndSendToOppdrag() {
+        if (innTransaksjonRepository.countByInnTransaksjon() > 0) {
+            logger.info { "InnTransaksjoner er ikke ferdig behandlet, ingen trekktransaksjoner vil bli behandlet" }
+            return
+        }
+
         val timer = Instant.now()
         val transaksjoner = getTransaksjoner() ?: return
         Metrics.timer(SERVICE_CALL, "SendTrekkTransaksjonToOppdragZService", "getTrekkTransaksjonAndSendToOppdrag").recordCallable {
@@ -57,9 +64,10 @@ class SendTrekkTransaksjonToOppdragZService(
     private fun getTransaksjoner(): List<Transaksjon>? =
         runCatching {
             transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_TREKK, TRANS_TILSTAND_TIL_TREKK)
-        }.onFailure { exception ->
-            logger.error(exception) { "Fatal feil ved henting av trekktransaksjoner: ${exception.message}" }
-            throw RuntimeException("Fatal feil ved henting av trekktransaksjoner")
+        }.onFailure { databaseException ->
+            val errorMessage = "Db2-feil: + ${databaseException.message}"
+            logger.error(databaseException) { errorMessage }
+            throw DatabaseException(errorMessage, databaseException)
         }.getOrNull()
 
     private fun processTransaksjoner(
@@ -77,14 +85,14 @@ class SendTrekkTransaksjonToOppdragZService(
                     totalTransaksjoner += transaksjonIdList.size
                 }
             }.onFailure { exception ->
-                logger.error(exception) { "Feiler ved utsending av trekktransaksjonene: ${transaksjonIdList.joinToString()} : $exception" }
+                logger.error(exception) { "Utsending av trekktransaksjonene feilet. Feilmelding: ${exception.message}" }
                 if (exception is MottakException) {
                     runCatching {
                         dataSource.transaction { session ->
                             updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL, session)
                         }
-                    }.onFailure { exception ->
-                        logger.error(exception) { "DB2-feil: $exception" }
+                    }.onFailure { databaseException ->
+                        logger.error(databaseException) { "Db2-feil: + ${databaseException.message}" }
                     }
                 }
             }

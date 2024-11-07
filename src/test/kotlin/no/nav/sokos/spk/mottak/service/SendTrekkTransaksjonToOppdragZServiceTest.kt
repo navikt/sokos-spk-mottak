@@ -1,11 +1,11 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.zaxxer.hikari.HikariDataSource
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldStartWith
+import io.mockk.clearAllMocks
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -20,6 +20,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.innrapporteringTrekk
+import no.nav.sokos.spk.mottak.exception.DatabaseException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
@@ -28,6 +29,7 @@ import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
+import java.sql.SQLException
 
 const val TREKK_BATCH_SIZE = 2
 
@@ -96,9 +98,14 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
         }
 
         Given("det finnes trekk som skal sendes til oppdragZ med database nede") {
+            every { Db2Listener.innTransaksjonRepository.countByInnTransaksjon() }.returns(0)
+            every { Db2Listener.transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_TREKK, TRANS_TILSTAND_TIL_TREKK) } throws SQLException("No database connection!")
+
             val trekkTransaksjonTilOppdragService =
                 SendTrekkTransaksjonToOppdragZService(
-                    dataSource = mockk<HikariDataSource>(),
+                    dataSource = Db2Listener.dataSource,
+                    innTransaksjonRepository = Db2Listener.innTransaksjonRepository,
+                    transaksjonRepository = Db2Listener.transaksjonRepository,
                     producer =
                         JmsProducerService(
                             ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
@@ -109,10 +116,10 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                 )
 
             When("henter trekk og sender til OppdragZ") {
-                val exception = shouldThrow<RuntimeException> { trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag() }
-
+                val exception = shouldThrow<DatabaseException> { trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag() }
+                clearAllMocks()
                 Then("skal det kastes en feilmelding og SendTrekkTransaksjonToOppdragServiceV2 skal stoppes") {
-                    exception.message shouldContain "Fatal feil ved henting av trekktransaksjoner"
+                    exception.message shouldStartWith "Db2-feil: "
                 }
             }
         }
@@ -205,7 +212,8 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
                 clearMocks(Db2Listener.transaksjonRepository)
                 every {
                     Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_TREKK_SENDT_FEIL, any(), any(), any())
-                } throws Exception("Feiler ved opprettelse av transaksjoner med feilstatus i transaksjontilstand-tabellen!")
+                } throws DatabaseException("Feiler ved opprettelse av transaksjoner med feilstatus i transaksjontilstand-tabellen!")
+
                 trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag()
                 Then("skal ingen transaksjoner blir oppdatert med status TSF (Trekk Sendt Feil), men beholder status OPR (Opprettet)") {
                     verifyDatabaseState(TRANS_TILSTAND_OPPRETTET)
@@ -222,13 +230,13 @@ private fun setupDatabase(dbScript: String) {
 
 private fun verifyDatabaseState(
     status: String,
-    noOfTransactions: Int,
+    numberOfTransactions: Int,
 ) {
     val transaksjonList = Db2Listener.transaksjonRepository.findAllByFilInfoId(filInfoId = 20000402)
     transaksjonList.forEach { it.transTilstandType shouldBe status }
 
     val transaksjonTilstandList = Db2Listener.transaksjonTilstandRepository.findAllByTransaksjonId(transaksjonList.map { it.transaksjonId!! })
-    transaksjonTilstandList.size shouldBe noOfTransactions
+    transaksjonTilstandList.size shouldBe numberOfTransactions
     transaksjonTilstandList.map { it.transaksjonTilstandType shouldBe status }
 }
 

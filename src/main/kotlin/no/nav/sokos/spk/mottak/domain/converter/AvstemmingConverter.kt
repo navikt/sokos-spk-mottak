@@ -22,7 +22,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
-const val AVLEVERENDE_KOMPONENT_KODE = "MOTTKOMP"
+const val AVLEVERENDE_KOMPONENT_KODE = "SPKMOT"
 const val MOTTAKENDE_KOMPONENT_KODE = "OS"
 
 object AvstemmingConverter {
@@ -40,8 +40,8 @@ object AvstemmingConverter {
                     mottakendeKomponentKode = MOTTAKENDE_KOMPONENT_KODE
                     underkomponentKode = fagomrade
                     nokkelFom = fom
-                    nokkelFom = tom
-                    avleverendeAvstemmingId = UUID.randomUUID().toString()
+                    nokkelTom = tom
+                    avleverendeAvstemmingId = generateCustomUUID()
                     brukerId = MOT
                 }
         }
@@ -54,6 +54,7 @@ object AvstemmingConverter {
     fun Avstemmingsdata.sluttMelding() =
         this.copy().apply {
             aksjon = this.aksjon.copy().apply { aksjonType = AksjonType.AVSL }
+            detalj.clear()
         }
 
     fun Avstemmingsdata.dataMelding(oppsummeringList: List<TransaksjonOppsummering>): Avstemmingsdata {
@@ -62,7 +63,7 @@ object AvstemmingConverter {
         val avvistList = oppsummeringList.filter { it.transTilstandType == TRANS_TILSTAND_OPPDRAG_RETUR_FEIL }
         val manglerList = oppsummeringList.filter { it.osStatus == null && it.transTilstandType != TRANS_TILSTAND_OPPDRAG_SENDT_FEIL }
 
-        return copy().apply {
+        return this.copy().apply {
             aksjon = this.aksjon.copy().apply { aksjonType = AksjonType.DATA }
             total =
                 Totaldata().apply {
@@ -93,11 +94,12 @@ object AvstemmingConverter {
                     manglerBelop = manglerList.sumOf { it.belop }
                     manglerFortegn = Fortegn.T
                 }
+            detalj.clear()
         }
     }
 
     fun Avstemmingsdata.avvikMelding(transaksjonDetaljer: List<TransaksjonDetalj>): Avstemmingsdata =
-        this.apply {
+        this.copy().apply {
             aksjon = this.aksjon.apply { aksjonType = AksjonType.DATA }
             detalj.addAll(
                 transaksjonDetaljer.map { transaksjonDetalj ->
@@ -141,9 +143,14 @@ object AvstemmingConverter {
     private fun TransaksjonDetalj.detaljType(): DetaljType =
         osStatus?.let { status ->
             when (status.toInt()) {
-                0 -> throw IllegalStateException("Ukjent detalj type")
+                0 -> throw IllegalStateException("transaksjonId: $transaksjonId, ugyldig OS status type")
                 in 1..4 -> DetaljType.VARS
                 else -> DetaljType.AVVI
             }
         } ?: DetaljType.MANG
+
+    private fun generateCustomUUID(): String {
+        val uuid = UUID.randomUUID().toString().replace("-", "")
+        return if (uuid.length > 30) uuid.substring(0, 30) else uuid
+    }
 }

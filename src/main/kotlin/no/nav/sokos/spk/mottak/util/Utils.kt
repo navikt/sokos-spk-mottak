@@ -18,7 +18,7 @@ object Utils {
 
     fun LocalDate.toXMLGregorianCalendar(): XMLGregorianCalendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(this.toString())
 
-    fun Boolean.toChar(): Char = if (this) '1' else '0'
+    fun Boolean.booleanToString(): String = if (this) "1" else "0"
 
     fun LocalDateTime.toAvstemmingPeriode(): String = this.format(DateTimeFormatter.ofPattern("yyyyMMddHH"))
 }

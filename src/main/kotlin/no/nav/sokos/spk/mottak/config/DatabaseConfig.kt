@@ -41,7 +41,7 @@ object DatabaseConfig {
     private fun postgresHikariConfig(): HikariConfig {
         val postgresProperties: PropertiesConfig.PostgresProperties = PropertiesConfig.PostgresProperties()
         return HikariConfig().apply {
-            maximumPoolSize = 5
+            maximumPoolSize = 3
             minimumIdle = 1
             dataSource =
                 PGSimpleDataSource().apply {
