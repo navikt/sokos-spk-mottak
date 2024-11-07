@@ -2,52 +2,62 @@
 
 Tjenesten er ansvarlig for å sende grensesnittavstemming av utbetalingstransaksjoner til Oppdragssystemet (OS).
 
-**Startbetingelse:** T_FIL_INFO `K_AVSTEMMING_S` har status `OSO` (Oppdrag Sendt Ok) og T_TRANSAKSJON har under 500 utbetalingstransaksjoner som ikke har fått `OSO` (Oppdrag Sendt Ok) for en eller
-flere filinfoIder.
+**Startbetingelse:**
+T_FIL_INFO kolonne `K_AVSTEMMING_S` har status `OSO` (Oppdrag Sendt Ok) og T_TRANSAKSJON har færre enn 500 utbetalingstransaksjoner (tilknyttet en eller flere filinfoIder) som ikke har mottatt
+kvitteringsstatus fra OS.
 
-Først hentes alle filinfo som har oppfylt følgende krav:
+Først hentes alle filinfoIder som har oppfylt følgende krav:
 
-* T_FIL_INFO `K_AVSTEMMING_S` = `OSO`
-* T_TRANSAKSJON under 500 utbetalingstransaksjoner med `T_TRANS_TILST_T` = `OSO`
+* T_FIL_INFO kolonne `K_AVSTEMMING_S` = `OSO`
+* T_TRANSAKSJON har færre enn 500 utbetalingstransaksjoner som ikke har mottatt kvitteringsstatus fra OS
 
-T_FIL_INFO sin K_AVSTEMMING_S vil bli satt til `OSO` etter at *SendUtbetalingTransaksjonToOppdragZService* er kjørt ferdig for hver filinfoId. T_TRANSAKSJON under 500 utbetalingstransaksjoner brukes
-for å sikre at applikasjonen har nok tid til å motta kvitteringer gjennom *JmsListenerService*.
+T_FIL_INFO kolonne `K_AVSTEMMING_S` vil bli satt til `OSO` etter at *SendUtbetalingTransaksjonToOppdragZService* har kjørt ferdig for hver filinfoId.
 
 <span style="color: green">FilInfoRepository.getByAvstemmingStatusIsOSO</span><br>
 
 * filInfoId
-* antall transaksjoner
+* antall transaksjoner med mottatt OS-kvittering
+* antall transaksjoner uten mottatt OS-kvittering
 
-Dette skal returnere en Map som viser antall transaksjoner per filInfoId. Deretter vil det hente opp en liste av *Transaksjonoppsummering* basert på filInfoId.
+Spørringen returnerer en map som viser antall transaksjoner med og uten OS-kvittering per filInfoId.
+
+Deretter hentes det opp en liste av *Transaksjonoppsummering* basert på filInfoId.
 
 <span style="color: green">TransaksjonRepository.findTransaksjonOppsummeringByFilInfoId</span><br>
-*Transaksjonoppsummering* skal brukes til å summere opp antall og beløp for `godkjent`, `varsel`, `avvist` og `mangler` transaksjoner for hvert fagområde. *Transaksjonoppsummering* er en modell som
-inneholder følgende felter:
+*Transaksjonoppsummering* brukes til å summere opp antall og beløp for transaksjoner som har avstemmingstatus `godkjent`, `varsel`, `avvist` eller `mangler` for hvert fagområde.
+*Transaksjonoppsummering* inneholder følgende felter:
 
-* fagområde
+* fagområde (_PENSPK_ og _UFORESPK_)
 * filInfoId
-* osStatus (Oppdrag status)
-* transTilstandType (OSO, ORF, ORO)
-* antall (antall transaksjoner for osStatus)
-* beløp (summen av beløp for osStatus)
+* osStatus (OS-status)
+* transTilstandType (`OSO`, `OSF`, `ORO`, `ORF`)
+* antall (antall transaksjoner med OS-status)
+* beløp (beløpsum for transaksjoner med OS-status)
 
-*Transaksjonoppsummering* skal grupperes på fagområdene PENSPK og UFORESPK. Når det foretas grensesnittavstemming må det skilles med fagområde per avstemming. Etter gruppering trenger tjenesten å
-hente ut *Transaksjondetalj* per filInfoId.
+Mappingen mellom transaksjonens status og avstemmingstatus:
+
+* osStatus = 0 -> avstemmingstatus = `godkjent`
+* osStatus = 1..4 -> avstemmingstatus = `varsel`
+* transTilstandType = `ORF` (Oppdrag Retur Feil som betyr at osStatus > 4) -> avstemmingstatus = `avvist`
+* osStatus = null og transTilstandType != `OSF` (Oppdrag Sendt Feil) -> avstemmingstatus = `mangler`
+
+*Transaksjonoppsummering* grupperes på fagområdene _PENSPK_ og _UFORESPK_ siden grensesnittavstemmingen utføres per fagområde.
+
+Etter grupperingen henter tjenesten *Transaksjondetalj* per filInfoId.
 
 <span style="color: green">TransaksjonRepository.findTransaksjonDetaljerByFilInfoId</span><br>
-*Transaksjondetalj* skal brukes til å rapportere detaljer til `VARS` (Varsling), `AVVI` (Avvik) og `MANG` (Mangler) i grensesnittavstemming. *Transaksjondetalj* er en modell som inneholder følgende
-felter:
+*Transaksjondetalj* skal brukes til å rapportere detaljer til `VARS` (Varsling), `AVVI` (Avvist) og `MANG` (Mangler) i grensesnittavstemmingen. *Transaksjondetalj* inneholder følgende felter:
 
 * transaksjonId
-* fnr (fødselsnummer)
+* fnr
 * fagsystemId
-* osStatus (Oppdrag status)
-* transTilstandType (OSO, ORF, ORO)
-* feilkode (Feilkode fra Oppdrag)
-* feilkodeMelding (Feilmelding fra Oppdrag)
-* datoOpprettet (tidspunkt for opprettelse av transaksjon)
+* osStatus (OS-status)
+* transTilstandType (`OSO`, `OSF`, `ORO`, `ORF`)
+* feilkode (fra OS)
+* feilkodeMelding (fra OS)
+* datoOpprettet (opprettelse av transaksjon)
 
-For hvert fagområde vil det bli en liste av filInfoIder som brukes til å hente *Transaksjondetalj*.
+For hvert fagområde vil det bli generert en liste av filInfoIder som brukes til å hente *Transaksjondetalj*.
 
 #### Generering av Avstemming XML
 
@@ -71,34 +81,34 @@ For grensesnittavstemming benyttes XML-formaterte meldinger. Hver avstemming bes
 
 2) Datamelding
 
-| Element  | Antall  | Datafelt                     | Obligatorisk | Format      | Lengde | Verdi / Kilde                                                          | Kommentar                                        |
-|----------|---------|------------------------------|--------------|-------------|--------|------------------------------------------------------------------------|--------------------------------------------------|
-| aksjon   | 1       | aksjonType                   | Ja           | kode        | 8      | DATA                                                                   |                                                  |
-|          |         | øvrige felter                |              |             |        |                                                                        |                                                  |
-| total    | 1       | totalAntall                  | Ja           | int         |        | Totalt antall oppdragsmeldinger sendt i det intervallet man melder om. |                                                  |
-|          |         | totalBelop                   | Nei          | xsd:decimal |        | Sum av alle oppdrag innen tidsintervall                                |                                                  | 
-|          |         | fortegn                      | Nei          | string      | 1      | T for tillegg, F for fradrag                                           |                                                  |
-| periode  | 1       | datoAvstemtFom               | Ja           | ååååmmddhh  | 10     | Startdato for avstemmingen                                             |                                                  |
-|          |         | datoAvstemtTom               | Ja           | ååååmmddhh  | 10     | Sluttdato for avstemmingen                                             |                                                  |
-| grunnlag | 1       | godkjentAntall               | Ja           | int         |        | Antall godkjente meldinger                                             |                                                  |
-|          |         | godkjentBelop                | Nei          | xsd:decimal |        | Sumbeløp på disse                                                      |                                                  |
-|          |         | godkjentFortegn              | Nei          | string      | 1      | T/F                                                                    |                                                  |
-|          |         | varselAntall                 | Ja           | int         |        | Antall meldinger med varsel                                            |                                                  |
-|          |         | varselBelop                  | Nei          | xsd:decimal |        | Sumbeløp på disse                                                      |                                                  |
-|          |         | varselFortegn                | Nei          | string      | 1      | T/F                                                                    |                                                  |
-|          |         | avvistAntall                 | Ja           | int         |        | Antall avviste meldinger                                               |                                                  |
-|          |         | avvistBelop                  | Nei          | xsd:decimal |        | Sumbeløp på disse                                                      |                                                  |
-|          |         | avvistFortegn                | Nei          | string      | 1      | T/F                                                                    |                                                  |
-|          |         | manglerAntall                | Ja           | int         |        | Antall meldinger som mangler kvittering                                |                                                  |
-|          |         | manglerBelop                 | Nei          | xsd:decimal |        | Sumbeløp på disse                                                      |                                                  |
-|          |         | manglerFortegn               | Nei          | string      | 1      | T/F                                                                    |                                                  |
-| detalj   | 0..N *) | detaljType                   | Ja           | string      | 4      | VARS, AVVI, MANG                                                       |                                                  |
-|          |         | offnr                        | Ja           | string      | 11     | TRANSAKSJONDETALJ.FNR                                                  | fødselsnummer for bruker detaljmeldingen gjelder |
-|          |         | avleverendeTransaksjonNokkel | Ja           | string      | 30     | TRANSAKSJONDETALJ.FAGSYSTEM_ID                                         | Avleverende systems identifikasjon av vedtaket   |
-|          |         | meldingKode                  | Nei          | kode        | 8      | TRANSAKSJONDETALJ.FEILKODE                                             | Fra mottatt kvittering **)                       |
-|          |         | alvorlighetsgrad             | Nei          | string      | 2      | TRANSAKSJONDETALJ.OS_STATUS                                            | Fra mottatt kvittering **)                       |
-|          |         | tekstMelding                 | Nei          | string      | 70     | TRANSAKSJONDETALJ.FEILKODE_MELDING                                     | Fra mottatt kvittering **)                       |
-|          |         | tidspunkt                    | Ja           | string      | 26     | TRANSAKSJONDETALJ.DATO_OPPRETTET                                       | Format åååå-mm-dd-hh.mm.ss.nnnnnn                |                                                                                          |
+| Element  | Antall | Datafelt                     | Obligatorisk | Format      | Lengde | Verdi / Kilde                                                          | Kommentar                                        |
+|----------|--------|------------------------------|--------------|-------------|--------|------------------------------------------------------------------------|--------------------------------------------------|
+| aksjon   | 1      | aksjonType                   | Ja           | kode        | 8      | DATA                                                                   |                                                  |
+|          |        | øvrige felter                |              |             |        |                                                                        |                                                  |
+| total    | 1      | totalAntall                  | Ja           | int         |        | Totalt antall oppdragsmeldinger sendt i det intervallet man melder om. |                                                  |
+|          |        | totalBelop                   | Nei          | xsd:decimal |        | Sum av alle oppdrag innen tidsintervall                                |                                                  | 
+|          |        | fortegn                      | Nei          | string      | 1      | T for tillegg, F for fradrag                                           |                                                  |
+| periode  | 1      | datoAvstemtFom               | Ja           | ååååmmddhh  | 10     | Startdato for avstemmingen                                             |                                                  |
+|          |        | datoAvstemtTom               | Ja           | ååååmmddhh  | 10     | Sluttdato for avstemmingen                                             |                                                  |
+| grunnlag | 1      | godkjentAntall               | Ja           | int         |        | Antall godkjente meldinger                                             |                                                  |
+|          |        | godkjentBelop                | Nei          | xsd:decimal |        | Sumbeløp på disse                                                      |                                                  |
+|          |        | godkjentFortegn              | Nei          | string      | 1      | T/F                                                                    |                                                  |
+|          |        | varselAntall                 | Ja           | int         |        | Antall meldinger med varsel                                            |                                                  |
+|          |        | varselBelop                  | Nei          | xsd:decimal |        | Sumbeløp på disse                                                      |                                                  |
+|          |        | varselFortegn                | Nei          | string      | 1      | T/F                                                                    |                                                  |
+|          |        | avvistAntall                 | Ja           | int         |        | Antall avviste meldinger                                               |                                                  |
+|          |        | avvistBelop                  | Nei          | xsd:decimal |        | Sumbeløp på disse                                                      |                                                  |
+|          |        | avvistFortegn                | Nei          | string      | 1      | T/F                                                                    |                                                  |
+|          |        | manglerAntall                | Ja           | int         |        | Antall meldinger som mangler kvittering                                |                                                  |
+|          |        | manglerBelop                 | Nei          | xsd:decimal |        | Sumbeløp på disse                                                      |                                                  |
+|          |        | manglerFortegn               | Nei          | string      | 1      | T/F                                                                    |                                                  |
+| detalj   | 0..N   | detaljType                   | Ja           | string      | 4      | VARS, AVVI, MANG                                                       |                                                  |
+|          |        | offnr                        | Ja           | string      | 11     | TRANSAKSJONDETALJ.FNR                                                  | fødselsnummer for bruker detaljmeldingen gjelder |
+|          |        | avleverendeTransaksjonNokkel | Ja           | string      | 30     | TRANSAKSJONDETALJ.FAGSYSTEM_ID                                         | Avleverende systems identifikasjon av vedtaket   |
+|          |        | meldingKode                  | Nei          | kode        | 8      | TRANSAKSJONDETALJ.FEILKODE                                             | Fra mottatt kvittering                           |
+|          |        | alvorlighetsgrad             | Nei          | string      | 2      | TRANSAKSJONDETALJ.OS_STATUS                                            | Fra mottatt kvittering                           |
+|          |        | tekstMelding                 | Nei          | string      | 70     | TRANSAKSJONDETALJ.FEILKODE_MELDING                                     | Fra mottatt kvittering                           |
+|          |        | tidspunkt                    | Ja           | string      | 26     | TRANSAKSJONDETALJ.DATO_OPPRETTET                                       | Format åååå-mm-dd-hh.mm.ss.nnnnnn                |                                                                                          |
 
 3) Sluttmelding
 
@@ -129,9 +139,10 @@ Eksempel:
 </avstemmingsdata>
 ```
 
-2) Datamelding 
+2) Datamelding
 
 *Grunnlag*
+
 ```xml
 <?xml version='1.0' encoding='UTF-8'?>
 <avstemmingsdata>
@@ -174,6 +185,7 @@ Eksempel:
 ```
 
 *Detalj*
+
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:avstemmingsdata xmlns:ns2="http://nav.no/virksomhet/tjenester/avstemming/me
