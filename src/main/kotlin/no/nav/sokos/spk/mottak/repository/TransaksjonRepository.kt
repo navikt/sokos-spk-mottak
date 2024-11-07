@@ -150,10 +150,11 @@ class TransaksjonRepository(
                         SELECT DISTINCT t.PERSON_ID, k.K_FAGOMRADE
                         FROM T_TRANSAKSJON t
                                  INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER)
-                        WHERE t.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
+                        WHERE t.K_BELOP_T IN ('01', '02')
+                          AND t.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
                           AND t.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPPRETTET'
-                          AND t.K_ANVISER = '$SPK'
-                        GROUP BY t.PERSON_ID, t.K_TRANS_TOLKNING, k.K_FAGOMRADE
+                          AND t.K_ANVISER = '$SPK' 
+                        GROUP BY t.PERSON_ID, k.K_FAGOMRADE
                         HAVING COUNT(*) > 1
                         """.trimIndent(),
                     ),
