@@ -341,7 +341,7 @@ internal class TransaksjonstolkningTest :
 
         Given(
             "det finnes 4 innTransaksjoner med 4 ulike fnr hvor en har en ny art tilhørende et nytt fagområde, en har en ny art tilhørende et eksisterende fagområde, " +
-                    "en har en eksisterende art, og en har ingen tidligere art i T_TRANSAKSJON",
+                "en har en eksisterende art, og en har ingen tidligere art i T_TRANSAKSJON",
         ) {
             Db2Listener.dataSource.transaction { session ->
                 session.update(
@@ -375,7 +375,7 @@ internal class TransaksjonstolkningTest :
 
         Given(
             "det finnes 3 innTransaksjoner med 3 ulike fnr hvor en har en ny art tilhørende et nytt fagområde og endret fnr, en har en ny art tilhørende et eksisterende fagområde og endret fnr, " +
-                    "og en har en eksisterende art og endret fnr ",
+                "og en har en eksisterende art og endret fnr ",
         ) {
             Db2Listener.dataSource.transaction { session ->
                 session.update(
