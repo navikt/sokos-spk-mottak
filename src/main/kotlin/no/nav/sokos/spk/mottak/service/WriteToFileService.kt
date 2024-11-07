@@ -29,7 +29,7 @@ class WriteToFileService(
             if (filInfoList.isNotEmpty()) {
                 logger.info { "Returfil produseres for filInfoId: ${filInfoList.map { it.filInfoId }.joinToString()}" }
                 filInfoList.forEach { createTempFileAndUploadToFtpServer(it) }
-                logger.info { "Returfil er produsert og lastet opp til FTP server" }
+                logger.info { "Returfil for filInfoId: ${filInfoList.map { it.filInfoId }.joinToString()} er produsert og lastet opp til FTP server" }
             }
         }.onFailure { exception ->
             val errorMessage = "Skriving av returfil feilet. Feilmelding: ${exception.message}"
@@ -43,16 +43,16 @@ class WriteToFileService(
             val innTransaksjonList = innTransaksjonRepository.getByFilInfoId(filInfo.filInfoId!!)
 
             val returFilnavn = generateFileName()
-            var anvisningFil = FileParser.createStartRecord(filInfo)
+            var anvisningFil = StringBuilder(FileParser.createStartRecord(filInfo))
             var antallTransaksjon = 0
             var sumBelop = 0L
 
-            innTransaksjonList.map { innTransaksjon ->
-                anvisningFil += FileParser.createTransaksjonRecord(innTransaksjon)
+            innTransaksjonList.forEach { innTransaksjon ->
+                anvisningFil.append(FileParser.createTransaksjonRecord(innTransaksjon))
                 antallTransaksjon++
                 sumBelop += innTransaksjon.belop.toLong()
             }
-            anvisningFil += FileParser.createEndRecord(antallTransaksjon + 2, sumBelop)
+            anvisningFil = anvisningFil.append(FileParser.createEndRecord(antallTransaksjon + 2, sumBelop))
 
             filInfoRepository.insert(
                 filInfo.copy(
@@ -68,7 +68,7 @@ class WriteToFileService(
             )
             innTransaksjonRepository.deleteByFilInfoId(filInfo.filInfoId, session)
 
-            ftpService.createFile(returFilnavn, Directories.ANVISNINGSRETUR, anvisningFil)
+            ftpService.createFile(returFilnavn, Directories.ANVISNINGSRETUR, anvisningFil.toString())
             logger.info { "$returFilnavn med antall transaksjoner: $antallTransaksjon og beløp: $sumBelop opprettet og har lastet opp til ${Directories.ANVISNINGSRETUR}" }
         }
     }
