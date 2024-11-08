@@ -42,7 +42,7 @@ Eksempel:
 			"aksjonskode": "NY",
 			"kreditorIdTss": "80000427901",
 			"kreditorTrekkId": "115371378",
-			"debitorId": "01093340562",
+			"debitorId": "12345678901",
 			"kodeTrekktype": "SPK1",
 			"kodeTrekkAlternativ": "LOPM",
 			"perioder": {

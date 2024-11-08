@@ -66,7 +66,7 @@ Eksempel:
         <fagsystemId>600079</fagsystemId>
         <utbetFrekvens>MND</utbetFrekvens>
         <stonadId>20240501</stonadId>
-        <oppdragGjelderId>01010042859</oppdragGjelderId>
+        <oppdragGjelderId>12345678901</oppdragGjelderId>
         <datoOppdragGjelderFom>1900-01-01</datoOppdragGjelderFom>
         <saksbehId>MOT</saksbehId>
         <avstemming-115>
@@ -89,10 +89,10 @@ Eksempel:
             <sats>3055</sats>
             <fradragTillegg>T</fradragTillegg>
             <typeSats>MND</typeSats>
-            <skyldnerId>01010042859</skyldnerId>
+            <skyldnerId>12345678901</skyldnerId>
             <brukKjoreplan>N</brukKjoreplan>
             <saksbehId>MOT</saksbehId>
-            <utbetalesTilId>01010042859</utbetalesTilId>
+            <utbetalesTilId>12345678901</utbetalesTilId>
             <attestant-180>
                 <attestantId>MOT</attestantId>
             </attestant-180>
@@ -107,10 +107,10 @@ Eksempel:
             <sats>3055</sats>
             <fradragTillegg>T</fradragTillegg>
             <typeSats>MND</typeSats>
-            <skyldnerId>01010042859</skyldnerId>
+            <skyldnerId>12345678901</skyldnerId>
             <brukKjoreplan>N</brukKjoreplan>
             <saksbehId>MOT</saksbehId>
-            <utbetalesTilId>01010042859</utbetalesTilId>
+            <utbetalesTilId>12345678901</utbetalesTilId>
             <attestant-180>
                 <attestantId>MOT</attestantId>
             </attestant-180>
