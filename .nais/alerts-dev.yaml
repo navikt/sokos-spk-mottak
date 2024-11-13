@@ -65,6 +65,78 @@ spec:
             sokos_spk_mottak_type: sokos-spk-mottak
             alert_type: custom
 
+        - alert: Avstemming ikke sendt
+          expr: sokos_spk_mottak_avstemming_ikke_sendt == 1
+          for: 1m
+          annotations:
+            action: "Sjekk loggene i sokos-spk-mottak"
+            summary: "`kubectl logs <podname> -n okonomi`"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_spk_mottak_type: sokos-spk-mottak
+            alert_type: custom
+
+        - alert: Transaksjonsvalidering feiler
+          expr: sokos_spk_mottak_transaksjon_valideringsfeil == 1
+          for: 1m
+          annotations:
+            action: "Sjekk loggene i sokos-spk-mottak"
+            summary: "`kubectl logs <podname> -n okonomi`"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_spk_mottak_type: sokos-spk-mottak
+            alert_type: custom
+
+        - alert: Anvisningsfilvalidering feiler
+          expr: sokos_spk_mottak_anvisningsfil_valideringsfeil == 1
+          for: 1m
+          annotations:
+            action: "Sjekk loggene i sokos-spk-mottak"
+            summary: "`kubectl logs <podname> -n okonomi`"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_spk_mottak_type: sokos-spk-mottak
+            alert_type: custom
+
+        - alert: Returfilgenerering feiler
+          expr: sokos_spk_mottak_returfil_produksjonsfeil == 1
+          for: 1m
+          annotations:
+            action: "Sjekk loggene i sokos-spk-mottak"
+            summary: "`kubectl logs <podname> -n okonomi`"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_spk_mottak_type: sokos-spk-mottak
+            alert_type: custom
+
+        - alert: Utbetalingsutsendelse feiler
+          expr: sokos_spk_mottak_utbetaling_utsendelsesfeil == 1
+          for: 1m
+          annotations:
+            action: "Sjekk loggene i sokos-spk-mottak"
+            summary: "`kubectl logs <podname> -n okonomi`"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_spk_mottak_type: sokos-spk-mottak
+            alert_type: custom
+
+        - alert: Trekkutsendelse feiler
+          expr: sokos_spk_mottak_trekk_utsendelsesfeil == 1
+          for: 1m
+          annotations:
+            action: "Sjekk loggene i sokos-spk-mottak"
+            summary: "`kubectl logs <podname> -n okonomi`"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_spk_mottak_type: sokos-spk-mottak
+            alert_type: custom
+
 ---
 
 apiVersion: monitoring.coreos.com/v1alpha1

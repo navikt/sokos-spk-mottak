@@ -17,6 +17,7 @@ import no.nav.sokos.spk.mottak.domain.record.toFileInfo
 import no.nav.sokos.spk.mottak.exception.FilValidationException
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
+import no.nav.sokos.spk.mottak.metrics.Metrics.anvisningsfilValideringsfeilGauge
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.LopenummerRepository
@@ -36,6 +37,7 @@ class ReadAndParseFileService(
     private val ftpService: FtpService = FtpService(),
 ) {
     fun readAndParseFile() {
+        var fileValidationFault = false
         if (innTransaksjonRepository.countByInnTransaksjon() > 0) {
             logger.info { "Forrige InnTransaksjoner er ikke ferdig behandlet, ingen innlesning prosess vil starte" }
             return
@@ -68,16 +70,20 @@ class ReadAndParseFileService(
                         throw FilValidationException(recordData.filStatus)
                     }
                 }
+                anvisningsfilValideringsfeilGauge.set(if (fileValidationFault) 1.0 else 0.0)
             }.onFailure { exception ->
                 when {
                     exception is FilValidationException ->
                         dataSource.transaction { session ->
+                            fileValidationFault = true
                             updateFileStatusAndUploadAvviksFil(recordData, exception, session)
                         }
 
                     else -> {
                         val errorMessage = "Ukjent feil ved innlesing av fil: $filename. Feilmelding: ${exception.message}"
                         logger.error { errorMessage }
+                        fileValidationFault = true
+                        anvisningsfilValideringsfeilGauge.set(1.0)
                         throw MottakException(errorMessage)
                     }
                 }
@@ -136,8 +142,10 @@ class ReadAndParseFileService(
             createAvviksFil(recordData.startRecord.kildeData, exception)
             ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.FERDIG)
             logger.error { "Avviksfil er opprettet for fil: ${recordData.filNavn} med status: ${exception.statusCode} med løpenummer: ${recordData.startRecord.filLopenummer}" }
+            anvisningsfilValideringsfeilGauge.set(1.0)
         }.onFailure {
             logger.error { "Feil ved opprettelse av avviksfil: ${recordData.filNavn}. Feilmelding: ${it.message}" }
+            anvisningsfilValideringsfeilGauge.set(1.0)
             throw MottakException("Feil ved opprettelse av avviksfil: ${recordData.filNavn}. Feilmelding: ${it.message}")
         }
     }
