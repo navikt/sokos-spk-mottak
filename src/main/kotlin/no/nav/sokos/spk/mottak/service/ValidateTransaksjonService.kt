@@ -14,6 +14,7 @@ import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.domain.mapToTransaksjon
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
+import no.nav.sokos.spk.mottak.metrics.Metrics.transaksjonValideringsfeilGauge
 import no.nav.sokos.spk.mottak.pdl.PdlService
 import no.nav.sokos.spk.mottak.repository.AvvikTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
@@ -44,6 +45,7 @@ class ValidateTransaksjonService(
         var totalAvvikTransaksjoner = 0
 
         runCatching {
+            transaksjonValideringsfeilGauge.set(0.0)
             if (innTransaksjonRepository.getByBehandlet(rows = 1).isNotEmpty()) {
                 logger.info { "Transaksjonsvalidering jobben startet" }
                 validatePersonAndUpdateFnr()
@@ -83,6 +85,7 @@ class ValidateTransaksjonService(
         }.onFailure { exception ->
             val errorMessage = "Feil under behandling av innTransaksjoner. Feilmelding: ${exception.message}"
             logger.error(exception) { errorMessage }
+            transaksjonValideringsfeilGauge.set(1.0)
             throw MottakException(errorMessage)
         }
     }

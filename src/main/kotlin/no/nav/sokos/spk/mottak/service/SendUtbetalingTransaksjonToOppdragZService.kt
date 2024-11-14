@@ -19,6 +19,7 @@ import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdrag110
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdragsLinje150
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
+import no.nav.sokos.spk.mottak.metrics.Metrics.utbetalingsutsendelsesfeilGauge
 import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
@@ -58,10 +59,12 @@ class SendUtbetalingTransaksjonToOppdragZService(
         }
 
         val timer = Instant.now()
-        var totalTransaksjoner = 0
+        var transaksjonerSendt = 0
+        var oppdragsmeldingerSendt = 0
 
         Metrics.timer(SERVICE_CALL, "SendUtbetalingTransaksjonToOppdragServiceV2", "getUtbetalingTransaksjonAndSendToOppdragZ").recordCallable {
             runCatching {
+                utbetalingsutsendelsesfeilGauge.set(0.0)
                 val transaksjonList = transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
                 logger.info { "Starter sending av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
                 if (transaksjonList.isNotEmpty()) {
@@ -80,11 +83,19 @@ class SendUtbetalingTransaksjonToOppdragZService(
                         val oppdragXML = oppdragChunk.map { JaxbUtils.marshallOppdrag(it) }
 
                         sendToOppdragZ(oppdragXML, transaksjonIdList)
-                        totalTransaksjoner += transaksjonIdList.size
-                        logger.info { "$totalTransaksjoner utbetalingstransaksjoner sendt av totalt ${oppdragList.size}" }
+                        oppdragsmeldingerSendt += oppdragXML.size
+                        transaksjonerSendt += transaksjonIdList.size
+                        logger.info { "$oppdragsmeldingerSendt utbetalingsmeldinger sendt av totalt ${transaksjonList.size} ($transaksjonerSendt transaksjoner av totalt ${oppdragList.size}) " }
                     }
-                    logger.info { "Fullført sending av $totalTransaksjoner utbetalingstransaksjoner til OppdragZ. Total tid: ${Duration.between(timer, Instant.now()).toSeconds()} sekunder." }
-                    Metrics.utbetalingTransaksjonerTilOppdragCounter.inc(totalTransaksjoner.toLong())
+                    logger.info {
+                        "Fullført sending av $oppdragsmeldingerSendt utbetalingsmeldinger ($transaksjonerSendt transaksjoner) til OppdragZ. Total tid: ${
+                            Duration.between(
+                                timer,
+                                Instant.now(),
+                            ).toSeconds()
+                        } sekunder."
+                    }
+                    Metrics.utbetalingTransaksjonerTilOppdragCounter.inc(transaksjonerSendt.toLong())
 
                     dataSource.transaction { session ->
                         filInfoRepository.updateAvstemmingStatus(transaksjonList.distinctBy { it.filInfoId }.map { it.filInfoId }, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
@@ -93,6 +104,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
             }.onFailure { exception ->
                 val errorMessage = "Sending av utbetalingstransaksjoner til OppdragZ feilet. Feilmelding: ${exception.message}"
                 logger.error(exception) { errorMessage }
+                utbetalingsutsendelsesfeilGauge.set(1.0)
                 throw MottakException(errorMessage)
             }
         }
@@ -124,6 +136,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
                         updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
                     }
                 }.onFailure { databaseException ->
+                    utbetalingsutsendelsesfeilGauge.set(1.0)
                     logger.error(databaseException) { "DB2-feil: ${databaseException.message}" }
                 }
             }

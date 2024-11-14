@@ -48,7 +48,10 @@ class FilInfoRepository(
             }
         }
 
-    fun getByAvstemmingStatusIsOSO(antallUkjentOSZStatus: Int): List<AvstemmingInfo> =
+    fun getByAvstemmingStatusIsOSO(
+        antallUkjentOSZStatus: Int,
+        statusFilter: Boolean = true,
+    ): List<AvstemmingInfo> =
         using(sessionOf(dataSource)) { session ->
             getByAvstemmingStatusIsOSOTimer.recordCallable {
                 session
@@ -62,7 +65,7 @@ class FilInfoRepository(
                             from T_FIL_INFO fi INNER JOIN T_TRANSAKSJON t ON fi.FIL_INFO_ID = t.FIL_INFO_ID
                             where fi.K_ANVISER = '$SPK' AND fi.K_AVSTEMMING_S = '$TRANS_TILSTAND_OPPDRAG_SENDT_OK' AND t.K_BELOP_T IN ('01', '02') 
                             group by t.FIL_INFO_ID
-                            having COUNT(CASE WHEN t.OS_STATUS IS NULL THEN 1 END) <= $antallUkjentOSZStatus
+                            ${if (statusFilter) " having COUNT(CASE WHEN t.OS_STATUS IS NULL THEN 1 END) <= $antallUkjentOSZStatus" else ""}
                             """.trimIndent(),
                         ),
                     ) { row ->
