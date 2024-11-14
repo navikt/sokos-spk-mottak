@@ -4,7 +4,6 @@ import io.micrometer.core.instrument.Timer
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.prometheus.metrics.core.metrics.Counter
-import io.prometheus.metrics.core.metrics.Gauge
 
 private const val METRICS_NAMESPACE = "sokos_spk_mottak"
 const val DATABASE_CALL = "database_call"
@@ -99,54 +98,6 @@ object Metrics {
             .builder()
             .name("${METRICS_NAMESPACE}_trekk_mq_listener")
             .help("Counts the number of trekk receive from OppdragZ through MQ")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-
-    val avstemmingIkkeSendtGauge: Gauge =
-        Gauge
-            .builder()
-            .name("${METRICS_NAMESPACE}_avstemming_ikke_sendt")
-            .help("Alerts if avstemming not sent")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-
-    val transaksjonValideringsfeilGauge: Gauge =
-        Gauge
-            .builder()
-            .name("${METRICS_NAMESPACE}_transaksjon_valideringsfeil")
-            .help("Alerts if transaksjonsvalidering feiler")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-
-    val anvisningsfilValideringsfeilGauge: Gauge =
-        Gauge
-            .builder()
-            .name("${METRICS_NAMESPACE}_anvisningsfil_valideringsfeil")
-            .help("Alerts if anvisningsfilvalidering feiler")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-
-    val returfilGenereringsfeilGauge: Gauge =
-        Gauge
-            .builder()
-            .name("${METRICS_NAMESPACE}_returfil_produksjonsfeil")
-            .help("Alerts if returfilgenerering feiler")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-
-    val utbetalingsutsendelsesfeilGauge: Gauge =
-        Gauge
-            .builder()
-            .name("${METRICS_NAMESPACE}_utbetaling_utsendelsesfeil")
-            .help("Alerts if utbetalingsutsendelse feiler")
-            .withoutExemplars()
-            .register(prometheusMeterRegistry.prometheusRegistry)
-
-    val trekkutsendelsesfeilGauge: Gauge =
-        Gauge
-            .builder()
-            .name("${METRICS_NAMESPACE}_trekk_utsendelsesfeil")
-            .help("Alerts if trekkutsendelse feiler")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 }

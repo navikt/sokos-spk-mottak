@@ -8,7 +8,6 @@ import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_RET
 import no.nav.sokos.spk.mottak.domain.FILTYPE_INNLEST
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.exception.MottakException
-import no.nav.sokos.spk.mottak.metrics.Metrics.returfilGenereringsfeilGauge
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.util.FileParser
@@ -26,7 +25,6 @@ class WriteToFileService(
 ) {
     fun writeReturnFile() {
         runCatching {
-            returfilGenereringsfeilGauge.set(0.0)
             val filInfoList = filInfoRepository.getByFilTilstandAndAllInnTransaksjonIsBehandlet()
             if (filInfoList.isNotEmpty()) {
                 logger.info { "Returfil produseres for filInfoId: ${filInfoList.map { it.filInfoId }.joinToString()}" }
@@ -36,7 +34,6 @@ class WriteToFileService(
         }.onFailure { exception ->
             val errorMessage = "Skriving av returfil feilet. Feilmelding: ${exception.message}"
             logger.error(exception) { errorMessage }
-            returfilGenereringsfeilGauge.set(1.0)
             throw MottakException(errorMessage)
         }
     }
