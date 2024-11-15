@@ -18,7 +18,6 @@ import no.nav.sokos.spk.mottak.domain.converter.AvstemmingConverter.sluttMelding
 import no.nav.sokos.spk.mottak.domain.converter.AvstemmingConverter.startMelding
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
-import no.nav.sokos.spk.mottak.metrics.Metrics.avstemmingIkkeSendtGauge
 import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
@@ -45,12 +44,10 @@ class AvstemmingService(
         ),
 ) {
     fun sendGrensesnittAvstemming() {
-        var avstemmingNotSent = false
         runCatching {
             val avstemmingInfoList = filInfoRepository.getByAvstemmingStatusIsOSO(ANTALL_IKKE_UTFORT_TRANSAKSJON)
 
             if (avstemmingInfoList.isNotEmpty()) {
-                avstemmingIkkeSendtGauge.set(0.0)
                 Metrics.timer(SERVICE_CALL, "AvstemmingService", "sendGrensesnittAvstemming").recordCallable {
                     val oppsummeringMap =
                         avstemmingInfoList
@@ -81,17 +78,13 @@ class AvstemmingService(
                                 "${avstemmingInfo.antallOSStatus} transaksjoner med kjent OS-status"
                         }
                     }
-                    avstemmingNotSent = true
                 } else {
                     logger.info { "Ingen avstemming sendt til OppdragZ da det ikke er mottatt nye filer siden forrige kjøring." }
                 }
-                avstemmingIkkeSendtGauge.set(if (avstemmingNotSent) 1.0 else 0.0)
             }
         }.onFailure { exception ->
             val errorMessage = "Utsending av avstemming til OppdragZ feilet. Feilmelding: ${exception.message}"
             logger.error(exception) { errorMessage }
-            avstemmingNotSent = true
-            avstemmingIkkeSendtGauge.set(1.0)
             throw MottakException(errorMessage)
         }
     }

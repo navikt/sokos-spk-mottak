@@ -19,7 +19,6 @@ import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdrag110
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdragsLinje150
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
-import no.nav.sokos.spk.mottak.metrics.Metrics.utbetalingsutsendelsesfeilGauge
 import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
@@ -64,7 +63,6 @@ class SendUtbetalingTransaksjonToOppdragZService(
 
         Metrics.timer(SERVICE_CALL, "SendUtbetalingTransaksjonToOppdragServiceV2", "getUtbetalingTransaksjonAndSendToOppdragZ").recordCallable {
             runCatching {
-                utbetalingsutsendelsesfeilGauge.set(0.0)
                 val transaksjonList = transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
                 logger.info { "Starter sending av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
                 if (transaksjonList.isNotEmpty()) {
@@ -104,7 +102,6 @@ class SendUtbetalingTransaksjonToOppdragZService(
             }.onFailure { exception ->
                 val errorMessage = "Sending av utbetalingstransaksjoner til OppdragZ feilet. Feilmelding: ${exception.message}"
                 logger.error(exception) { errorMessage }
-                utbetalingsutsendelsesfeilGauge.set(1.0)
                 throw MottakException(errorMessage)
             }
         }
@@ -136,7 +133,6 @@ class SendUtbetalingTransaksjonToOppdragZService(
                         updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
                     }
                 }.onFailure { databaseException ->
-                    utbetalingsutsendelsesfeilGauge.set(1.0)
                     logger.error(databaseException) { "DB2-feil: ${databaseException.message}" }
                 }
             }

@@ -18,7 +18,6 @@ import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.innrapporteringTr
 import no.nav.sokos.spk.mottak.exception.DatabaseException
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
-import no.nav.sokos.spk.mottak.metrics.Metrics.trekkutsendelsesfeilGauge
 import no.nav.sokos.spk.mottak.metrics.SERVICE_CALL
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
@@ -47,7 +46,6 @@ class SendTrekkTransaksjonToOppdragZService(
         ),
 ) {
     fun getTrekkTransaksjonAndSendToOppdrag() {
-        trekkutsendelsesfeilGauge.set(0.0)
         if (innTransaksjonRepository.countByInnTransaksjon() > 0) {
             logger.info { "InnTransaksjoner er ikke ferdig behandlet, ingen trekktransaksjoner vil bli behandlet" }
             return
@@ -69,7 +67,6 @@ class SendTrekkTransaksjonToOppdragZService(
         }.onFailure { databaseException ->
             val errorMessage = "Db2-feil: + ${databaseException.message}"
             logger.error(databaseException) { errorMessage }
-            trekkutsendelsesfeilGauge.set(1.0)
             throw DatabaseException(errorMessage, databaseException)
         }.getOrNull()
 
@@ -95,7 +92,6 @@ class SendTrekkTransaksjonToOppdragZService(
                             updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_TREKK_SENDT_FEIL, session)
                         }
                     }.onFailure { databaseException ->
-                        trekkutsendelsesfeilGauge.set(1.0)
                         logger.error(databaseException) { "Db2-feil: + ${databaseException.message}" }
                     }
                 }
