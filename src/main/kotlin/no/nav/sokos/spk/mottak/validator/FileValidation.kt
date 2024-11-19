@@ -28,7 +28,7 @@ object FileValidation {
             recordData.sluttRecord.antallRecord != (recordData.transaksjonRecordList.size + 2) ->
                 throw FilValidationException(
                     FilStatus.UGYLDIG_ANTRECORDS.code,
-                    String.format(FilStatus.UGYLDIG_ANTRECORDS.message, "${recordData.sluttRecord.antallRecord}", "${recordData.transaksjonRecordList.size}"),
+                    String.format(FilStatus.UGYLDIG_ANTRECORDS.message, "${recordData.sluttRecord.antallRecord}", "${recordData.transaksjonRecordList.size + 2}"),
                 )
 
             else -> logger.debug { "Status på filen: ${FilStatus.OK}" }

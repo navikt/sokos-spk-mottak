@@ -245,7 +245,7 @@ internal class ReadParseFileServiceTest :
                 Then("skal fil info inneholde en filestatus UGYLDIG_ANTRECORDS") {
                     val lopeNummerFraFil = 34
                     val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_ANTRECORDS, FILTILSTANDTYPE_AVV, "Oppsumert antall records 8 stemmer ikke med det faktiske antallet 1")
+                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_ANTRECORDS, FILTILSTANDTYPE_AVV, "Oppsummert antall records oppgitt i sluttrecord er 8 og stemmer ikke med det faktiske antallet 3")
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }
