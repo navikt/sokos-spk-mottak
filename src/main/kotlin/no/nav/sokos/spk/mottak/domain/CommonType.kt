@@ -4,7 +4,6 @@ const val SPK = "SPK"
 const val NAV = "NAV"
 const val MOT = "MOT"
 const val SPKMOT = "SPKMOT"
-const val SPK_MOT = "SPK-MOT"
 const val SPK_TSS = "80000427901"
 
 // FILETYPE
