@@ -44,7 +44,7 @@ jobs:
 
   deploy-qx:
     needs: [build, deploy-dev]
-    name: Deploy to dev-fss
+    name: Deploy to dev-fss-qx
     uses: navikt/moby-gha-workflows/.github/workflows/nais-app-deploy.yaml@main
     with:
       cluster: dev-fss
