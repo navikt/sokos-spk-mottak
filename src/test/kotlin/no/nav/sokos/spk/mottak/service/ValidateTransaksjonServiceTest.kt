@@ -420,7 +420,7 @@ internal class ValidateTransaksjonServiceTest :
                 val exception = shouldThrow<MottakException> { validateTransaksjonServiceMock.validateInnTransaksjon() }
 
                 Then("skal det kastet en MottakException med databasefeil") {
-                    exception.message shouldBe "Feil under behandling av innTransaksjoner. Feilmelding: No database connection!"
+                    exception.message shouldBe "Feil under behandling av inntransaksjoner. Feilmelding: No database connection!"
                 }
             }
         }
