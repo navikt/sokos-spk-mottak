@@ -69,7 +69,7 @@ class WriteToFileService(
             innTransaksjonRepository.deleteByFilInfoId(filInfo.filInfoId, session)
 
             ftpService.createFile(returFilnavn, Directories.ANVISNINGSRETUR, anvisningFil.toString())
-            logger.info { "$returFilnavn med antall transaksjoner: $antallTransaksjon og beløp: $sumBelop opprettet og har lastet opp til ${Directories.ANVISNINGSRETUR}" }
+            logger.info { "$returFilnavn med $antallTransaksjon transaksjoner og beløp: $sumBelop er opprettet og lastet opp til ${Directories.ANVISNINGSRETUR}" }
         }
     }
 

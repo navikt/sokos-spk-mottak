@@ -44,8 +44,8 @@ class ValidateTransaksjonService(
         var totalAvvikTransaksjoner = 0
 
         runCatching {
+            logger.info { "Transaksjonsvalidering starter" }
             if (innTransaksjonRepository.getByBehandlet(rows = 1).isNotEmpty()) {
-                logger.info { "Transaksjonsvalidering jobben startet" }
                 validatePersonAndUpdateFnr()
                 executeInntransaksjonValidation()
 
@@ -53,35 +53,35 @@ class ValidateTransaksjonService(
                     val innTransaksjonList = innTransaksjonRepository.getByBehandlet()
                     totalInnTransaksjoner += innTransaksjonList.size
                     totalAvvikTransaksjoner += innTransaksjonList.filter { !it.isTransaksjonStatusOk() }.size
-                    logger.debug { "Henter inn ${innTransaksjonList.size} innTransaksjoner fra databasen" }
+                    logger.debug { "Henter ${innTransaksjonList.size} inntransaksjoner fra databasen" }
                     when {
                         innTransaksjonList.isNotEmpty() -> saveTransaksjonAndAvvikTransaksjon(innTransaksjonList)
                         else -> break
                     }
                 }
 
-                logger.info { "Transaksjoner overført til T_TRANSAKSJON: $totalInnTransaksjoner og T_AVVIK_TRANSAKSJON: $avvikTransaksjonRepository" }
-
                 when {
                     totalInnTransaksjoner > 0 -> {
                         val transTolkningIsNyMap = transaksjonRepository.getAllPersonIdWhereTranstolkningIsNyForMoreThanOneInstance()
                         if (transTolkningIsNyMap.isNotEmpty()) {
                             dataSource.transaction { session -> transaksjonRepository.updateAllWhereTranstolkningIsNyForMoreThanOneInstance(transTolkningIsNyMap.keys.toList(), session) }
-                            logger.info { "Oppdatert personIder: ${transTolkningIsNyMap.keys.toList()} som har inn-transaksjoner med samme personId og transTolkning = 'NY'" }
+                            logger.info { "Oppdatert personIder: ${transTolkningIsNyMap.keys.toList()} som har inntransaksjoner med samme personId og transTolkning = 'NY'" }
                         }
 
                         logger.info {
-                            "$totalInnTransaksjoner innTransaksjoner validert på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " +
+                            "$totalInnTransaksjoner inntransaksjoner validert på ${Duration.between(timer, Instant.now()).toSeconds()} sekunder. " +
                                 "Opprettet ${totalInnTransaksjoner.minus(totalAvvikTransaksjoner)} transaksjoner og $totalAvvikTransaksjoner avvikstransaksjoner "
                         }
                     }
 
-                    else -> logger.info { "Finner ingen innTransaksjoner som er ubehandlet" }
+                    else -> logger.info { "Finner ingen inntransaksjoner som er ubehandlet" }
                 }
-                logger.info { "Transaksjonsvalidering jobben ferdig" }
+                logger.info { "Transaksjonsvalidering avsluttet" }
+            } else {
+                logger.info { "Ingen inntransaksjoner å behandle" }
             }
         }.onFailure { exception ->
-            val errorMessage = "Feil under behandling av innTransaksjoner. Feilmelding: ${exception.message}"
+            val errorMessage = "Feil under behandling av inntransaksjoner. Feilmelding: ${exception.message}"
             logger.error(exception) { errorMessage }
             throw MottakException(errorMessage)
         }
@@ -118,7 +118,7 @@ class ValidateTransaksjonService(
 
             innTransaksjonMap[false]?.takeIf { it.isNotEmpty() }?.apply {
                 val avvikTransaksjonIdList = avvikTransaksjonRepository.insertBatch(this, session)
-                logger.debug { "${avvikTransaksjonIdList.size} avvikstransaksjoner opprettet: " }
+                logger.debug { "${avvikTransaksjonIdList.size} avvikstransaksjoner opprettet" }
             }
 
             innTransaksjonRepository.updateBehandletStatusBatch(innTransaksjonList.map { it.innTransaksjonId!! }, session = session)

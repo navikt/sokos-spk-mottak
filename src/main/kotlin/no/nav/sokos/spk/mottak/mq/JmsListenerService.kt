@@ -57,7 +57,7 @@ class JmsListenerService(
     private fun onUtbetalingMessage(message: Message) {
         runCatching {
             val jmsMessage = message.getBody(String::class.java)
-            logger.debug { "Mottatt oppdragsmelding fra OppdragZ, message content: $jmsMessage" }
+            logger.debug { "Mottatt oppdragsmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
             val oppdrag = JaxbUtils.unmarshallOppdrag(jmsMessage)
 
             val transTilstandStatus =
@@ -77,7 +77,7 @@ class JmsListenerService(
                     .map { it.delytelseId.toInt() }
 
             if (transaksjonIdList.isEmpty()) {
-                logger.info { "Ingen nye transaksjoner å prosessere" }
+                logger.info { "Ingen nye oppdragsmeldingreturer å prosessere" }
                 return
             }
 
@@ -102,18 +102,18 @@ class JmsListenerService(
             }
             mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
         }.onFailure { exception ->
-            logger.error(exception) { "Prosessering av retur-utbetalingsmelding feilet. ${message.jmsMessageID}" }
+            logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
         }
     }
 
     private fun onTrekkMessage(message: Message) {
         runCatching {
             val jmsMessage = message.getBody(String::class.java)
-            logger.debug { "Mottatt trekkmelding fra OppdragZ. Meldingsinnhold: $jmsMessage" }
+            logger.debug { "Mottatt trekkmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
             val trekkWrapper = json.decodeFromString<DokumentWrapper>(jmsMessage)
             processTrekkMessage(trekkWrapper.dokument!!, trekkWrapper.mmel!!)
         }.onFailure { exception ->
-            logger.error(exception) { "Prosessering av retur-trekkmelding feilet. ${message.jmsMessageID}" }
+            logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
         }
     }
 

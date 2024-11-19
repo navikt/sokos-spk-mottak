@@ -37,7 +37,7 @@ class ReadAndParseFileService(
 ) {
     fun readAndParseFile() {
         if (innTransaksjonRepository.countByInnTransaksjon() > 0) {
-            logger.info { "Forrige kjøring av inn-transaksjoner er ikke ferdig og derfor vil ikke innlesingsprosessen starte" }
+            logger.info { "Forrige kjøring av inntransaksjoner er ikke ferdig og derfor vil ikke innlesningsprosessen starte" }
             return
         }
 
