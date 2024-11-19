@@ -30,7 +30,7 @@ oppdrag.oppdrag-110.kodeAksjon = "1"
 <br/>oppdrag.oppdrag-110.oppdragGjelderId = T_TRANSAKSJON.fnr_fk
 <br/>oppdrag.oppdrag-110.datoOppdragGjelderFom = 1900-01-01
 <br/>oppdrag.oppdrag-110.saksbehId = "MOT"
-<br/>&emsp;oppdrag.oppdrag-110.avstemming-115.kodeKomponent = "MOT"
+<br/>&emsp;oppdrag.oppdrag-110.avstemming-115.kodeKomponent = "SPKMOT"
 <br/>&emsp;oppdrag.oppdrag-110.avstemming-115.nokkelAvstemming = T_TRANSAKSJON.fil_info_id
 <br/>&emsp;oppdrag.oppdrag-110.avstemming-115.tidspktMelding = T_TRANSAKSJON.dato_opprettet
 <br/>&emsp;oppdrag.oppdrag-110.oppdrags-enhet-120.typeEnhet = "BOS" (hvis transTolkning = "NY")
@@ -70,7 +70,7 @@ Eksempel:
         <datoOppdragGjelderFom>1900-01-01</datoOppdragGjelderFom>
         <saksbehId>MOT</saksbehId>
         <avstemming-115>
-            <kodeKomponent>MOT</kodeKomponent>
+            <kodeKomponent>SPKMOT</kodeKomponent>
             <nokkelAvstemming>20039237</nokkelAvstemming>
             <tidspktMelding>2024-08-21T16:13:14.641291</tidspktMelding>
         </avstemming-115>
