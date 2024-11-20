@@ -70,12 +70,20 @@ val activemqVersion = "2.38.0"
 val graphqlClientVersion = "8.2.1"
 val jaxbVersion = "4.0.5"
 
+// Due to vulnerabilities
+val nettyCommonVersion = "4.1.115.Final"
+
 dependencies {
 
     // Ktor server
     implementation("io.ktor:ktor-server-call-logging-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-call-id-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
+    constraints {
+        implementation("io.netty:netty-common:$nettyCommonVersion") {
+            because("override transient from io.ktor:ktor-server-netty-jvm")
+        }
+    }
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
 
     // Ktor client
@@ -142,7 +150,12 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("com.h2database:h2:$h2Version")
     testImplementation("org.apache.activemq:artemis-jakarta-server:$activemqVersion")
-    testImplementation("com.github.tomakehurst:wiremock:$wiremockVersion")
+    testImplementation("org.wiremock:wiremock:$wiremockVersion")
+}
+
+// Vulnerability fix because of id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
+configurations.ktlint {
+    resolutionStrategy.force("ch.qos.logback:logback-classic:$logbackVersion")
 }
 
 sourceSets {
