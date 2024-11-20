@@ -75,7 +75,7 @@ spec:
 
     # Postgres
     - name: POSTGRES_HOST
-      value: A01DBVL009.adeo.no
+      value: A01DBVL036.adeo.no
     - name: POSTGRES_PORT
       value: "5432"
     - name: POSTGRES_NAME
