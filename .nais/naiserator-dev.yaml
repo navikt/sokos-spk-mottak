@@ -126,7 +126,7 @@ spec:
 
     # SFTP
     - name: SFTP_SERVER
-      value: b31apvl069.oera-q.local
+      value: sftp.oera-q.local
     - name: SFTP_PORT
       value: "22"
     - name: SFTP_PRIVATE_KEY_FILE_PATH

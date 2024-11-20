@@ -56,32 +56,32 @@ spec:
     - secret: spk-sftp-private-key
       mountPath: /var/run/secrets/spk-sftp-private-key
   envFrom:
-    - secret: spk-sftp-q-creds
-    - secret: oppdrag-q1-credentials
-    - secret: sokos-spk-mottak-mq-credentials
+    - secret: spk-sftp-credentials
+    - secret: oppdrag-credentials
+    - secret: sokos-spk-mottak-mq-credentials # Må oppdateres
   env:
     - name: USE_AUTHENTICATION
       value: "true"
 
     # DB2
     - name: DATABASE_HOST
-      value: "155.55.1.82"
+      value: "155.55.1.78"
     - name: DATABASE_PORT
-      value: "5025"
+      value: "5021"
     - name: DATABASE_NAME
-      value: "QDB2"
+      value: "DB2"
     - name: DATABASE_SCHEMA
-      value: "MO611Q1"
+      value: "MO611P"
 
     # Postgres
     - name: POSTGRES_HOST
-      value: b27dbvl034.preprod.local
+      value: A01DBVL009.adeo.no
     - name: POSTGRES_PORT
       value: "5432"
     - name: POSTGRES_NAME
       value: sokos-spk-mottak
     - name: VAULT_MOUNTPATH
-      value: postgresql/preprod-fss/
+      value: postgresql/prod-fss/
 
     # MQ
     - name: MQ_HOSTNAME
@@ -93,15 +93,15 @@ spec:
     - name: MQ_CHANNEL_NAME
       value: Q1_MOT
     - name: MQ_UTBETALING_QUEUE_NAME
-      value: QA.Q1_231.OB04_OPPDRAG_MOT_XML
-    - name: MQ_UTBETALING_REPLY_QUEUE_NAME
+      value: QA.P231.OB04_OPPDRAG_MOT_XML
+    - name: MQ_UTBETALING_REPLY_QUEUE_NAME # Må bestilles og oppdateres
       value: QA.Q1_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY
     - name: MQ_TREKK_QUEUE_NAME
-      value: QA.Q1_231.OB04_TREKK_MOT_JSON
-    - name: MQ_TREKK_REPLY_QUEUE_NAME
+      value: QA.P231.OB04_TREKK_MOT_JSON
+    - name: MQ_TREKK_REPLY_QUEUE_NAME # Må bestilles og oppdateres
       value: QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY
     - name: MQ_AVSTEMMING_QUEUE_NAME
-      value: QA.Q1_234.OB29_AVSTEMMING_XML
+      value: QA.P234.OB29_AVSTEMMING_XML
     - name: MQ_BATCH_SIZE
       value: "200"
     - name: MQ_LISTENER_ENABLED
@@ -109,21 +109,21 @@ spec:
 
     # PDL
     - name: PDL_URL
-      value: "https://pdl-api-q1.dev.intern.nav.no"
+      value: "https://pdl-api.intern.nav.no/"
     - name: PDL_SCOPE
-      value: "api://dev-fss.pdl.pdl-api-q1/.default"
+      value: "api://prod-fss.pdl.pdl-api/.default"
 
     # SFTP
     - name: SFTP_SERVER
-      value: b31apvl069.oera-q.local
+      value: sftp.oera.no
     - name: SFTP_PORT
       value: "22"
     - name: SFTP_PRIVATE_KEY_FILE_PATH
       value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
 
     # DB-SCHEDULER
-    - name: SCHEDULER_ENABLED
-      value: "true"
+    - name: SCHEDULER_ENABLED # Settes til true for å aktivere scheduler
+      value: "false"
     - name: READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN
       value: "0 0 7-17 * * *"
     - name: SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
