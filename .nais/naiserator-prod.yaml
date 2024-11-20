@@ -37,4 +37,98 @@ spec:
   azure:
     application:
       enabled: true
+      allowAllUsers: true
+      claims:
+        extra:
+          - NAVident
+  accessPolicy:
+    inbound:
+      rules:
+        - application: sokos-utbetalingsportalen
+          namespace: okonomi
+          cluster: prod-gcp
   webproxy: true
+  vault:
+    enabled: true
+  filesFrom:
+    - secret: db2license
+      mountPath: /var/run/secrets/db2license
+    - secret: spk-sftp-private-key
+      mountPath: /var/run/secrets/spk-sftp-private-key
+  envFrom:
+    - secret: spk-sftp-q-creds
+    - secret: oppdrag-q1-credentials
+    - secret: sokos-spk-mottak-mq-credentials
+  env:
+    - name: USE_AUTHENTICATION
+      value: "true"
+
+    # DB2
+    - name: DATABASE_HOST
+      value: "155.55.1.82"
+    - name: DATABASE_PORT
+      value: "5025"
+    - name: DATABASE_NAME
+      value: "QDB2"
+    - name: DATABASE_SCHEMA
+      value: "MO611Q1"
+
+    # Postgres
+    - name: POSTGRES_HOST
+      value: b27dbvl034.preprod.local
+    - name: POSTGRES_PORT
+      value: "5432"
+    - name: POSTGRES_NAME
+      value: sokos-spk-mottak
+    - name: VAULT_MOUNTPATH
+      value: postgresql/preprod-fss/
+
+    # MQ
+    - name: MQ_HOSTNAME
+      value: mqls02.preprod.local
+    - name: MQ_PORT
+      value: "1413"
+    - name: MQ_QUEUE_MANAGER_NAME
+      value: MQLS02
+    - name: MQ_CHANNEL_NAME
+      value: Q1_MOT
+    - name: MQ_UTBETALING_QUEUE_NAME
+      value: QA.Q1_231.OB04_OPPDRAG_MOT_XML
+    - name: MQ_UTBETALING_REPLY_QUEUE_NAME
+      value: QA.Q1_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY
+    - name: MQ_TREKK_QUEUE_NAME
+      value: QA.Q1_231.OB04_TREKK_MOT_JSON
+    - name: MQ_TREKK_REPLY_QUEUE_NAME
+      value: QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY
+    - name: MQ_AVSTEMMING_QUEUE_NAME
+      value: QA.Q1_234.OB29_AVSTEMMING_XML
+    - name: MQ_BATCH_SIZE
+      value: "200"
+    - name: MQ_LISTENER_ENABLED
+      value: "true"
+
+    # PDL
+    - name: PDL_URL
+      value: "https://pdl-api-q1.dev.intern.nav.no"
+    - name: PDL_SCOPE
+      value: "api://dev-fss.pdl.pdl-api-q1/.default"
+
+    # SFTP
+    - name: SFTP_SERVER
+      value: b31apvl069.oera-q.local
+    - name: SFTP_PORT
+      value: "22"
+    - name: SFTP_PRIVATE_KEY_FILE_PATH
+      value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
+
+    # DB-SCHEDULER
+    - name: SCHEDULER_ENABLED
+      value: "true"
+    - name: READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN
+      value: "0 0 7-17 * * *"
+    - name: SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
+      value: "0 0 7-17 * * *"
+    - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
+      value: "0 0 7-17 * * *"
+    - name: GRENSESNITT_AVSTEMMING_CRON_PATTERN
+      value: "0 0 5 * * *"
