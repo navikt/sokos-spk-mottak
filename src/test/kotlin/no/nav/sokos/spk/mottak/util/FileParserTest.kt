@@ -19,7 +19,7 @@ internal class FileParserTest :
                 then("skal det returneres med StartRecord data") {
                     startRecord.avsender shouldBe "SPK"
                     startRecord.mottager shouldBe "NAV"
-                    startRecord.filLopenummer shouldBe 34
+                    startRecord.filLopenummer shouldBe "000034"
                     startRecord.filType shouldBe "ANV"
                     startRecord.produsertDato.toString() shouldBe "2024-01-31"
                     startRecord.beskrivelse shouldBe "ANVISNINGSFIL"

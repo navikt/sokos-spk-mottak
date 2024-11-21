@@ -125,7 +125,7 @@ class FilInfoRepository(
      * Bruker kun for testing
      */
     fun getByLopenummerAndFilTilstand(
-        lopeNummer: Int,
+        lopeNummer: String,
         filTilstandType: String,
     ): FilInfo? =
         using(sessionOf(dataSource)) { session ->
@@ -153,7 +153,7 @@ class FilInfoRepository(
             row.string("K_FIL_T"),
             row.string("K_FIL_TILSTAND_T"),
             row.string("FIL_NAVN"),
-            row.int("LOPENR"),
+            row.string("LOPENR"),
             row.stringOrNull("FEILTEKST"),
             row.localDateOrNull("DATO_MOTTATT"),
             row.localDateOrNull("DATO_SENDT"),

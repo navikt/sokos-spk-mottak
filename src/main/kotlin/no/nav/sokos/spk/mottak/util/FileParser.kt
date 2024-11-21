@@ -36,7 +36,7 @@ object FileParser {
         return StartRecord(
             avsender = record.getString(2, 13),
             mottager = record.getString(13, 24),
-            filLopenummer = record.getString(24, 30).toIntOrNull() ?: 0,
+            filLopenummer = record.getString(24, 30),
             filType = record.getString(30, 33),
             produsertDato = record.getString(33, 41).toLocalDate(),
             beskrivelse = record.getString(41, 75),
@@ -85,7 +85,7 @@ object FileParser {
             .append(RECTYPE_STARTRECORD)
             .append(NAV.padEnd(11, ' '))
             .append(filInfo.anviser.padEnd(11, ' '))
-            .append(filInfo.lopeNr.toString().padEnd(6, ' '))
+            .append(filInfo.lopeNr.toString().padStart(6, '0'))
             .append(filInfo.filType.padEnd(3, ' '))
             .append(filInfo.datoMottatt!!.toLocalDateString().padEnd(6, ' '))
             .append(ANVISER_FIL_BESKRIVELSE.padEnd(35, ' '))

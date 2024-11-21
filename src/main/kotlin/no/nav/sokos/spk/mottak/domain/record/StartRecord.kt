@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 data class StartRecord(
     val avsender: String,
     val mottager: String,
-    val filLopenummer: Int,
+    val filLopenummer: String,
     val filType: String,
     val produsertDato: LocalDate? = null,
     val beskrivelse: String,
