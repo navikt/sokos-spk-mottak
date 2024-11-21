@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.sokos.spk.mottak.TestData
 import no.nav.sokos.spk.mottak.domain.MOT
+import no.nav.sokos.spk.mottak.domain.SPKMOT
 import no.nav.sokos.spk.mottak.domain.SPK_TSS
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdrag110
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdragsLinje150
@@ -32,7 +33,7 @@ class OppdragConverterTest :
                 oppdrag110.datoOppdragGjelderFom shouldBe LocalDate.of(1900, 1, 1).toXMLGregorianCalendar()
                 oppdrag110.saksbehId shouldBe MOT
 
-                oppdrag110.avstemming115.kodeKomponent shouldBe MOT
+                oppdrag110.avstemming115.kodeKomponent shouldBe SPKMOT
                 oppdrag110.avstemming115.nokkelAvstemming shouldBe transaksjon.filInfoId.toString()
                 oppdrag110.avstemming115.tidspktMelding shouldNotBe null
 

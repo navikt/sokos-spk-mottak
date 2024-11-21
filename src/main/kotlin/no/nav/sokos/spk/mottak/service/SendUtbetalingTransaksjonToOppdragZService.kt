@@ -53,7 +53,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
 ) {
     fun getUtbetalingTransaksjonAndSendToOppdragZ() {
         if (innTransaksjonRepository.countByInnTransaksjon() > 0) {
-            logger.info { "InnTransaksjoner er ikke ferdig behandlet, ingen utbetalingstransaksjoner vil bli behandlet" }
+            logger.info { "Eksisterer innTransaksjoner som ikke er ferdig behandlet og derfor blir ingen utbetalingstransaksjoner behandlet" }
             return
         }
 

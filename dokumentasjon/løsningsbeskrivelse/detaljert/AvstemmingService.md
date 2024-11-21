@@ -70,7 +70,7 @@ For grensesnittavstemming benyttes XML-formaterte meldinger. Hver avstemming bes
 | aksjon  | 1      | aksjonType               | kode   | 8      | START           | Første melding                                        |   
 |         |        | kildeType                | kode   | 8      | AVLEV           | Vedtaksløsning skal alltid være avleverende komponent |   
 |         |        | avstemmingType           | kode   | 4      | GRSN            | Skal bare lage grensesnittavstemming                  |   
-|         |        | avleverendeKomponentKode | kode   | 8      | MOTTKOMP        | Vedtaksløsningen                                      |   
+|         |        | avleverendeKomponentKode | kode   | 8      | SPKMOT          | Vedtaksløsningen                                      |   
 |         |        | mottakendeKomponentKode  | kode   | 8      | OS              | Oppdragssystemet                                      |   
 |         |        | underkomponentKode       | kode   | 8      | PENSPK/UFORESPK | Fagområde                                             |   
 |         |        | nokkelFom                | string | 30     | FOM DATO OG TID | Fra første melding som avstemmes (FilInfoId)          |   
@@ -128,7 +128,7 @@ Eksempel:
         <aksjonType>START</aksjonType>
         <kildeType>AVLEV</kildeType>
         <avstemmingType>GRSN</avstemmingType>
-        <avleverendeKomponentKode>MOTTKOMP</avleverendeKomponentKode>
+        <avleverendeKomponentKode>SPKMOT</avleverendeKomponentKode>
         <mottakendeKomponentKode>OS</mottakendeKomponentKode>
         <underkomponentKode>PENSPK</underkomponentKode>
         <nokkelFom>17301</nokkelFom>
@@ -150,7 +150,7 @@ Eksempel:
         <aksjonType>DATA</aksjonType>
         <kildeType>AVLEV</kildeType>
         <avstemmingType>GRSN</avstemmingType>
-        <avleverendeKomponentKode>MOTTKOMP</avleverendeKomponentKode>
+        <avleverendeKomponentKode>SPKMOT</avleverendeKomponentKode>
         <mottakendeKomponentKode>OS</mottakendeKomponentKode>
         <underkomponentKode>PENSPK</underkomponentKode>
         <nokkelFom>17301</nokkelFom>
@@ -194,7 +194,7 @@ ldinger/v1">
         <aksjonType>DATA</aksjonType>
         <kildeType>AVLEV</kildeType>
         <avstemmingType>GRSN</avstemmingType>
-        <avleverendeKomponentKode>MOTTKOMP</avleverendeKomponentKode>
+        <avleverendeKomponentKode>SPKMOT</avleverendeKomponentKode>
         <mottakendeKomponentKode>OS</mottakendeKomponentKode>
         <underkomponentKode>PENSPK</underkomponentKode>
         <nokkelFom>17301</nokkelFom>
@@ -246,7 +246,7 @@ ldinger/v1">
         <aksjonType>AVSL</aksjonType>
         <kildeType>AVLEV</kildeType>
         <avstemmingType>GRSN</avstemmingType>
-        <avleverendeKomponentKode>MOTTKOMP</avleverendeKomponentKode>
+        <avleverendeKomponentKode>SPKMOT</avleverendeKomponentKode>
         <mottakendeKomponentKode>OS</mottakendeKomponentKode>
         <underkomponentKode>PENSPK</underkomponentKode>
         <nokkelFom>17301</nokkelFom>

@@ -27,7 +27,7 @@ private const val BRUK_KJOREPLAN = "N"
 private const val ART_UFE = "UFE"
 private const val TYPE_SOKNAD = "EO"
 private const val SAKSBEHANDLER_ID = "MOT" // Oppdrag system tillater maks 8 bytes
-private const val KODE_KOMPONENT = "MOT"
+private const val KODE_KOMPONENT = "SPKMOT"
 
 object OppdragConverter {
     /**
