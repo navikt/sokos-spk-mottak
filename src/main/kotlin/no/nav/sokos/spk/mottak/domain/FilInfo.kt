@@ -10,7 +10,7 @@ data class FilInfo(
     val filType: String,
     val filTilstandType: String,
     val filNavn: String,
-    val lopeNr: Int,
+    val lopeNr: String,
     val feilTekst: String?,
     val datoMottatt: LocalDate?,
     val datoSendt: LocalDate?,

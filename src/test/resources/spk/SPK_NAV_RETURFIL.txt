@@ -1,4 +1,4 @@
-01NAV        SPK        34    ANV20240131Innlesingsretur                    00
+01NAV        SPK        000034ANV20240131Innlesingsretur                    00
 02111517616   66043800214           2023052520230601202306300100001151600ETT                  00Ok                                 
 02111517616   66043800214           2023052520230601202306300100001151600ETT                  01Trans-id dublett                   
 02111517616   66043800214           2023052520230601202306300100001151600ETT                  02Ugyldig fødselsnummer / fødselsnummer finnes ikke
