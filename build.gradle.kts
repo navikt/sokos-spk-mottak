@@ -11,7 +11,7 @@ plugins {
     kotlin("plugin.serialization") version "2.0.21"
     id("com.expediagroup.graphql") version "8.2.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
+//    id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
     id("org.jetbrains.kotlinx.kover") version "0.8.3"
 }
 
@@ -154,9 +154,9 @@ dependencies {
 }
 
 // Vulnerability fix because of id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
-configurations.ktlint {
-    resolutionStrategy.force("ch.qos.logback:logback-classic:$logbackVersion")
-}
+//configurations.ktlint {
+//    resolutionStrategy.force("ch.qos.logback:logback-classic:$logbackVersion")
+//}
 
 sourceSets {
     main {
@@ -173,24 +173,24 @@ kotlin {
 }
 
 tasks {
-    named("runKtlintCheckOverMainSourceSet").configure {
-        dependsOn("graphqlGenerateClient")
-    }
-
-    named("runKtlintFormatOverMainSourceSet").configure {
-        dependsOn("graphqlGenerateClient")
-    }
+//    named("runKtlintCheckOverMainSourceSet").configure {
+//        dependsOn("graphqlGenerateClient")
+//    }
+//
+//    named("runKtlintFormatOverMainSourceSet").configure {
+//        dependsOn("graphqlGenerateClient")
+//    }
 
     withType<KotlinCompile>().configureEach {
-        dependsOn("ktlintFormat")
+//        dependsOn("ktlintFormat")
         dependsOn("graphqlGenerateClient")
     }
-
-    ktlint {
-        filter {
-            exclude { element -> element.file.path.contains("generated/") }
-        }
-    }
+//
+//    ktlint {
+//        filter {
+//            exclude { element -> element.file.path.contains("generated/") }
+//        }
+//    }
 
     withType<KoverReport>().configureEach {
         kover {

@@ -1,7 +1,7 @@
 insert into T_INN_TRANSAKSJON (FIL_INFO_ID, K_TRANSAKSJON_S, FNR_FK, BELOPSTYPE, ART, AVSENDER, UTBETALES_TIL, DATO_FOM_STR, DATO_TOM_STR, DATO_ANVISER_STR, BELOP_STR, REF_TRANS_ID, TEKSTKODE,
                                RECTYPE, TRANS_ID_FK, DATO_FOM, DATO_TOM, DATO_ANVISER, BELOP, BEHANDLET, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, GRAD, GRAD_STR)
 values (20000816, null, '66043800214', '01', 'ETT', 'SPK', null, '20230601', '20230630', '20230525', '00001151600', null, null, '02', '111517616', '2023-06-01', '2023-06-30', '2023-05-25', 1151600,
-        'N', '2024-04-10 09:28:50.816459', 'sokos-spk-mottak', '2024-04-10 09:28:50.816542', 'sokos-spk-mottak', 1, null, null),
+        'N', '2024-04-10 09:28:50.816459', 'sokos-spk-mottak', '2024-04-10 09:28:50.816542', 'sokos-spk-mottak', 1, 100, '100'),
        (20000816, null, '66043800214', '01', 'UFT', 'SPK', null, '20230601', '20230630', '20230525', '00001151600', null, null, '02', '111517617', '2023-06-01', '2023-06-30', '2023-05-25', 1151600,
         'N', '2024-04-10 09:28:50.816459', 'sokos-spk-mottak', '2024-04-10 09:28:50.816542', 'sokos-spk-mottak', 1, 100, '100');
 
@@ -13,4 +13,4 @@ insert into T_TRANSAKSJON (TRANSAKSJON_ID, TRANS_TILSTAND_ID, FIL_INFO_ID, K_TRA
                            MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, K_TREKKANSVAR, K_TRANS_TILST_T, GRAD)
 values (99, null, 20000816, '00', 1, '01', 'UFE', 'SPK', '66043800214', null, null, null, '2023-05-01', '2023-05-31', '2023-04-25', '1900-01-01',
         '1900-01-01', 51700, null, null, '02', '6666666666', 'NY', '0', null, '0', '99', null, '2024-04-24 08:45:08.998930', 'sokos-spk-mottak', '2024-04-24 08:45:08.999190',
-        'sokos-spk-mottak', 1, '4819', 'ORO', null)
+        'sokos-spk-mottak', 1, '4819', 'ORO', 100)
