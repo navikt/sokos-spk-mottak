@@ -135,7 +135,7 @@ class ReadAndParseFileService(
 
             createAvviksFil(recordData.startRecord.kildeData, exception)
             ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.FERDIG)
-            logger.info { "Avviksfil er opprettet for fil: ${recordData.filNavn} med status: ${exception.statusCode} med løpenummer: ${recordData.startRecord.filLopenummer}" }
+            logger.info { "Avviksfil er opprettet for fil: ${recordData.filNavn} med status: ${exception.statusCode} og løpenummer: ${recordData.startRecord.filLopenummer}" }
         }.onFailure {
             logger.error { "Feil ved opprettelse av avviksfil: ${recordData.filNavn}. Feilmelding: ${it.message}" }
             throw MottakException("Feil ved opprettelse av avviksfil: ${recordData.filNavn}. Feilmelding: ${it.message}")

@@ -102,12 +102,19 @@ object OppdragConverter {
 
     private val gradTypeMap =
         mapOf(
-            "ALP" to "UTAP",
             "AFP" to "AFPG",
-            "AFL" to "AFPG",
+            "ALD" to "UTAP",
+            "BPE" to "UBGR",
+            "ETT" to "UBGR",
+            "RNT" to "UBGR",
             "UFO" to "UFOR",
             "UFT" to "UFOR",
             "U67" to "UFOR",
             "UFE" to "UFOR",
+            "ALP" to "UTAP",
+            "PSL" to "UTAP",
+            "AFL" to "AFPG",
+            "BTP" to "UBGR",
+            "OVT" to "UBGR",
         )
 }

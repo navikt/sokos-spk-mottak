@@ -51,7 +51,7 @@ oppdrag.oppdrag-110.kodeAksjon = "1"
 <br/>&emsp;oppdrag.oppdrag-110.oppdrags-linje-150.utbetalesTilId = T_TRANSAKSJON.fnr_fk
 <br/>&emsp;oppdrag.oppdrag-110.oppdrags-linje-150.typeSoknad = "EO" (hvis art = "UFE")
 <br/>&emsp;&emsp;oppdrag.oppdrag-110.oppdrags-linje-150.attestant-180.attestantId = "MOT"
-<br/>&emsp;&emsp;oppdrag.oppdrag-110.oppdrags-linje-150.grad-170.typeGrad = "UTAP", "AFPG" eller "UFOR" (avhengig av art)
+<br/>&emsp;&emsp;oppdrag.oppdrag-110.oppdrags-linje-150.grad-170.typeGrad = "UTAP", "AFPG", "UBGR" eller "UFOR" (avhengig av art)
 <br/>&emsp;&emsp;oppdrag.oppdrag-110.oppdrags-linje-150.grad-170.grad = T_TRANSAKSJON.grad
 
 Eksempel:
