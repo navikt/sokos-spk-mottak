@@ -60,8 +60,8 @@ spec:
       mountPath: /var/run/secrets/spk-sftp-private-key
   envFrom:
     - secret: spk-sftp-qx-creds
-    - secret: oppdrag-qx-credentials
-    - secret: sokos-spk-mottak-mq-credentials
+    - secret: spk-mottak-oppdrag-qx-credentials
+    - secret: spk-mottak-mq-credentials
   env:
     - name: USE_AUTHENTICATION
       value: "false"
