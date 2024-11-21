@@ -16,10 +16,10 @@ object FileValidation {
             recordData.startRecord.avsender != SPK -> throw FilValidationException(FilStatus.UGYLDIG_ANVISER)
             recordData.startRecord.mottager != NAV -> throw FilValidationException(FilStatus.UGYLDIG_MOTTAKER)
             recordData.startRecord.filType != FILTYPE_ANVISER -> throw FilValidationException(FilStatus.UGYLDIG_FILTYPE)
-            recordData.maxLopenummer?.let { max -> max >= recordData.startRecord.filLopenummer } ?: false ->
+            recordData.maxLopenummer?.let { max -> max >= recordData.startRecord.filLopenummer.toInt() } ?: false ->
                 throw FilValidationException(FilStatus.FILLOPENUMMER_I_BRUK.code, String.format(FilStatus.FILLOPENUMMER_I_BRUK.message, "${recordData.startRecord.filLopenummer}"))
 
-            recordData.maxLopenummer?.let { max -> (max + 1) != recordData.startRecord.filLopenummer } ?: false ->
+            recordData.maxLopenummer?.let { max -> (max + 1) != recordData.startRecord.filLopenummer.toInt() } ?: false ->
                 throw FilValidationException(FilStatus.FORVENTET_FILLOPENUMMER.code, String.format(FilStatus.FORVENTET_FILLOPENUMMER.message, "${recordData.maxLopenummer!! + 1}"))
 
             recordData.sluttRecord.totalBelop != recordData.totalBelop ->

@@ -36,7 +36,7 @@ class LopenummerRepository(
         }
 
     fun updateLopeNummer(
-        lopeNummer: Int,
+        lopeNummer: String,
         filType: String,
         session: Session,
     ) {
@@ -61,7 +61,7 @@ class LopenummerRepository(
     /**
      * Bruker kun for testing
      */
-    fun getLopeNummer(sisteLopeNummer: Int): LopeNummer? =
+    fun getLopeNummer(sisteLopeNummer: String): LopeNummer? =
         using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
