@@ -4,6 +4,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import kotlinx.kover.gradle.plugin.dsl.tasks.KoverReport
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -11,7 +12,7 @@ plugins {
     kotlin("plugin.serialization") version "2.0.21"
     id("com.expediagroup.graphql") version "8.2.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-//    id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
     id("org.jetbrains.kotlinx.kover") version "0.8.3"
 }
 
@@ -154,9 +155,9 @@ dependencies {
 }
 
 // Vulnerability fix because of id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
-//configurations.ktlint {
-//    resolutionStrategy.force("ch.qos.logback:logback-classic:$logbackVersion")
-//}
+configurations.ktlint {
+    resolutionStrategy.force("ch.qos.logback:logback-classic:$logbackVersion")
+}
 
 sourceSets {
     main {
@@ -173,24 +174,24 @@ kotlin {
 }
 
 tasks {
-//    named("runKtlintCheckOverMainSourceSet").configure {
-//        dependsOn("graphqlGenerateClient")
-//    }
-//
-//    named("runKtlintFormatOverMainSourceSet").configure {
-//        dependsOn("graphqlGenerateClient")
-//    }
-
-    withType<KotlinCompile>().configureEach {
-//        dependsOn("ktlintFormat")
+    named("runKtlintCheckOverMainSourceSet").configure {
         dependsOn("graphqlGenerateClient")
     }
-//
-//    ktlint {
-//        filter {
-//            exclude { element -> element.file.path.contains("generated/") }
-//        }
-//    }
+
+    named("runKtlintFormatOverMainSourceSet").configure {
+        dependsOn("graphqlGenerateClient")
+    }
+
+    withType<KotlinCompile>().configureEach {
+        dependsOn("ktlintFormat")
+        dependsOn("graphqlGenerateClient")
+    }
+
+    ktlint {
+        filter {
+            exclude { element -> element.file.path.contains("generated/") }
+        }
+    }
 
     withType<KoverReport>().configureEach {
         kover {
