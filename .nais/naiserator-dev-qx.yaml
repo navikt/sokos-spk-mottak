@@ -94,7 +94,7 @@ spec:
     - name: MQ_QUEUE_MANAGER_NAME
       value: MQLS02
     - name: MQ_CHANNEL_NAME
-      value: Q1_MOT
+      value: QX_MOT
     - name: MQ_UTBETALING_QUEUE_NAME
       value: QA.QX_231.OB04_OPPDRAG_MOT_XML
     - name: MQ_UTBETALING_REPLY_QUEUE_NAME
