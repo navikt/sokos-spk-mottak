@@ -354,7 +354,6 @@ internal class ValidateTransaksjonServiceTest :
                 Then("skal det opprettes 1 avvikstransaksjon med valideringsfeil 16") {
                     val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
                     innTransaksjonList.filter { !it.isTransaksjonStatusOk() }.size shouldBe 1
-                    innTransaksjonList.filter { !it.isTransaksjonStatusOk() }.size shouldBe 1
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
