@@ -348,12 +348,12 @@ internal class ValidateTransaksjonServiceTest :
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(readFromResource("/database/validering/innTransaksjon_med_art_og_manglende_grad.sql")))
             }
-            Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 7
+            Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 1
             When("det valideres ") {
                 validateTransaksjonService.validateInnTransaksjon()
-                Then("skal det opprettes 7 avvikstransaksjoner med valideringsfeil 16") {
+                Then("skal det opprettes 1 avvikstransaksjon med valideringsfeil 16") {
                     val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
-                    innTransaksjonList.filter { !it.isTransaksjonStatusOk() }.size shouldBe 7
+                    innTransaksjonList.filter { !it.isTransaksjonStatusOk() }.size shouldBe 1
                     innTransaksjonList.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!

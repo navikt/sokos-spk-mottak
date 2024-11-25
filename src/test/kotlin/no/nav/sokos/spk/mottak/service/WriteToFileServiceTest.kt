@@ -47,7 +47,7 @@ internal class WriteToFileServiceTest :
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(readFromResource("/database/skrivreturfil/inntTransaksjon_ferdig_behandlet.sql")))
             }
-            Db2Listener.innTransaksjonRepository.getByBehandlet(behandlet = BEHANDLET_JA).size shouldBe 9
+            Db2Listener.innTransaksjonRepository.getByBehandlet(behandlet = BEHANDLET_JA).size shouldBe 10
             When("skriving av returfil starter") {
                 writeToFileService.writeReturnFile()
                 Then("skal det opprettes en returfil til SPK som lastes opp til Ftp outbound/anvisningsretur") {
@@ -84,7 +84,7 @@ internal class WriteToFileServiceTest :
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(readFromResource("/database/skrivreturfil/inntTransaksjon_ferdig_behandlet.sql")))
             }
-            Db2Listener.innTransaksjonRepository.getByBehandlet(behandlet = BEHANDLET_JA).size shouldBe 9
+            Db2Listener.innTransaksjonRepository.getByBehandlet(behandlet = BEHANDLET_JA).size shouldBe 10
 
             When("skriv retur filen prosess starter") {
                 val ftpServiceMock = mockk<FtpService>()
@@ -101,7 +101,7 @@ internal class WriteToFileServiceTest :
 
 private fun List<String>.convertArrayListToString(): String {
     val stringBuilder = StringBuilder()
-    this.forEach { stringBuilder.append(it).appendLine() }
+    this.forEach { stringBuilder.append(it.trim()).appendLine() }
     stringBuilder.setLength(stringBuilder.length - 1)
     return stringBuilder.toString()
 }
