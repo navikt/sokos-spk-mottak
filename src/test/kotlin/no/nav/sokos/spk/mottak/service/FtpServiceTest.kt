@@ -28,10 +28,11 @@ internal class FtpServiceTest :
             ftpService.createFile("P611.ANV.NAV.HUB.SPK.L004005.D240907.T004221", Directories.INBOUND, "content3")
             val downloadFiles = ftpService.downloadFiles(Directories.INBOUND)
             downloadFiles.size shouldBe 3
-            downloadFiles.keys.toList() shouldBe listOf(
-                "P611.ANV.NAV.ETT.SPK.L004001.D240701.T190116",
-                "P611.ANV.NAV.HUB.SPK.L004005.D240907.T004221",
-                "P611.ANV.NAV.HVD.SPK.L004009.D240701.T185923",
-            )
+            downloadFiles.keys.toList() shouldBe
+                listOf(
+                    "P611.ANV.NAV.ETT.SPK.L004001.D240701.T190116",
+                    "P611.ANV.NAV.HUB.SPK.L004005.D240907.T004221",
+                    "P611.ANV.NAV.HVD.SPK.L004009.D240701.T185923",
+                )
         }
     })
