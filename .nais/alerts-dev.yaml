@@ -42,7 +42,7 @@ spec:
           for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-spk-mottak"
-            summary: "`kubectl logs -f deployment/{{ $labels.container }} --all-containers=true`"
+            summary: "`kubectl logs <podname> -n okonomi`"
           labels:
             namespace: okonomi
             severity: danger
@@ -58,7 +58,7 @@ spec:
           for: 2m
           annotations:
             action: "Sjekk warning loggene i sokos-spk-mottak"
-            summary: "`kubectl logs -f deployment/{{ $labels.container }} --all-containers=true`"
+            summary: "`kubectl logs <podname> -n okonomi`"
           labels:
             namespace: okonomi
             severity: warning
