@@ -35,11 +35,11 @@ spec:
 
         - alert: Applikasjonen logger høy andel errors
           expr:
-            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Error"}[1m])
+            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Error"}[5m])
               or vector(0)) -
-              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Error"}[1m]
-              offset 1m) or vector(0)) > 0'
-          for: 1m
+              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Error"}[5m]
+              offset 5m) or vector(0)) > 0'
+          for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-spk-mottak"
             summary: "`kubectl logs <podname> -n okonomi`"
@@ -108,4 +108,4 @@ spec:
     groupInterval: 10s
     groupWait: 5s
     receiver: sokos-spk-mottak-receiver
-    repeatInterval: 2m
+    repeatInterval: 10m
