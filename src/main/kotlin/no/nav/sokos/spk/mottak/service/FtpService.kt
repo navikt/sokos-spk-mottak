@@ -63,7 +63,7 @@ class FtpService(
                     .ls("${directory.value}/*")
                     .filter { !it.attrs.isDir }
                     .map { it.filename }
-                    .sorted()
+                    .sortedWith(compareBy { it.split(".").getOrNull(5) ?: "" })
                     .associateWith {
                         fileName = "${directory.value}/$it"
                         val outputStream = ByteArrayOutputStream()
