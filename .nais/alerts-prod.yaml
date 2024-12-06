@@ -35,14 +35,14 @@ spec:
 
         - alert: Applikasjonen logger høy andel errors
           expr:
-            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Error"}[15m])
+            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Error"}[5m])
               or vector(0)) -
-              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Error"}[15m]
-              offset 15m) or vector(0)) > 0'
+              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Error"}[5m]
+              offset 5m) or vector(0)) > 0'
           for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-spk-mottak"
-            summary: "`kubectl logs <podname> -n okonomi`"
+            summary: "`kubectl logs -f deployment/{{ $labels.container }} --all-containers=true`"
           labels:
             namespace: okonomi
             severity: danger
@@ -51,14 +51,14 @@ spec:
 
         - alert: Applikasjonen logger høy andel warnings
           expr:
-            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Warning"}[15m])
+            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Warning"}[5m])
               or vector(0)) -
-              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Warning"}[15m]
-              offset 15m) or vector(0)) > 5'
+              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Warning"}[5m]
+              offset 5m) or vector(0)) > 5'
           for: 2m
           annotations:
             action: "Sjekk warning loggene i sokos-spk-mottak"
-            summary: "`kubectl logs <podname> -n okonomi`"
+            summary: "`kubectl logs -f deployment/{{ $labels.container }} --all-containers=true`"
           labels:
             namespace: okonomi
             severity: warning
@@ -83,7 +83,9 @@ spec:
           channel: '#team-moby-alerts-prod'
           iconEmoji: ':alert:'
           username: 'Alert prod-fss'
-          sendResolved: true
+          sendResolved: false
+          httpConfig:
+            proxyUrl: http://webproxy.nais:8088
           title: |-
             [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
           text: >-
@@ -106,4 +108,4 @@ spec:
     groupInterval: 10s
     groupWait: 5s
     receiver: sokos-spk-mottak-receiver
-    repeatInterval: 2m
+    repeatInterval: 10m

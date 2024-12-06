@@ -42,7 +42,7 @@ spec:
           for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-spk-mottak"
-            summary: "`kubectl logs <podname> -n okonomi`"
+            summary: "`kubectl logs -f deployment/{{ $labels.container }} --all-containers=true`"
           labels:
             namespace: okonomi
             severity: danger
@@ -51,14 +51,14 @@ spec:
 
         - alert: Applikasjonen logger høy andel warnings
           expr:
-            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Warning"}[15m])
+            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Warning"}[5m])
               or vector(0)) -
-              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Warning"}[15m]
-              offset 15m) or vector(0)) > 5'
+              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Warning"}[5m]
+              offset 5m) or vector(0)) > 5'
           for: 2m
           annotations:
             action: "Sjekk warning loggene i sokos-spk-mottak"
-            summary: "`kubectl logs <podname> -n okonomi`"
+            summary: "`kubectl logs -f deployment/{{ $labels.container }} --all-containers=true`"
           labels:
             namespace: okonomi
             severity: warning
