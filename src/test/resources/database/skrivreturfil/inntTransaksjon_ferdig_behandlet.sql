@@ -19,6 +19,8 @@ values (20000816, '00', '66043800214', '01', 'ETT', 'SPK', null, '20230601', '20
        (20000816, '11', '66043800214', '01', 'ETT', 'SPK', null, '20230601', '20230630', '20230525', '00001151600', null, null, '02', '111517616', '2023-06-01', '2023-06-30', '2023-05-25', 1151600,
         'J', '2024-04-10 09:28:50.816459', 'sokos-spk-mottak', '2024-04-10 09:28:50.816542', 'sokos-spk-mottak', 1, 100, '100'),
        (20000816, '16', '66043800214', '01', 'ETT', 'SPK', null, '20230601', '20230630', '20230525', '00001151600', null, null, '02', '111517616', '2023-06-01', '2023-06-30', '2023-05-25', 1151600,
+        'J', '2024-04-10 09:28:50.816459', 'sokos-spk-mottak', '2024-04-10 09:28:50.816542', 'sokos-spk-mottak', 1, 100, '100'),
+       (20000817, '00', '66043800214', '01', 'ETT', 'SPK', null, '20230601', '20230630', '20230525', '00001151600', null, null, '02', '111517616', '2023-06-01', '2023-06-30', '2023-05-25', 1151600,
         'J', '2024-04-10 09:28:50.816459', 'sokos-spk-mottak', '2024-04-10 09:28:50.816542', 'sokos-spk-mottak', 1, 100, '100');
 
 insert into T_PERSON (FNR_FK, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON)
@@ -28,4 +30,6 @@ values ('66043800214', '2008-12-01 15:42:58.000000', 'KF37/T_PERSON', '1900-01-0
 insert into T_FIL_INFO (FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV,
                         VERSJON)
 values (20000816, '00', 'SPK', 'ANV', 'GOD', 'SPK_NAV_20242503_070026814_INL.txt', '000034', null, '2024-01-31', null, '2024-04-10 09:28:49.749039', 'sokos-spk-mottak', '2024-04-10 09:28:49.749137',
+        'sokos-spk-mottak', 1),
+       (20000817, '00', 'SPK', 'ANV', 'GOD', 'SPK_NAV_20242503_070026814_INL.txt', '000035', null, '2024-01-31', null, '2024-04-10 09:28:49.749039', 'sokos-spk-mottak', '2024-04-10 09:28:49.749137',
         'sokos-spk-mottak', 1);

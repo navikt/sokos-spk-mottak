@@ -73,5 +73,5 @@ class WriteToFileService(
         }
     }
 
-    private fun generateFileName(): String = OUTPUT_FILE_NAME.format(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")))
+    private fun generateFileName(): String = OUTPUT_FILE_NAME.format(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS")))
 }

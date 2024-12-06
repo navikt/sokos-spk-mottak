@@ -5,6 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import kotliquery.queryOf
@@ -47,23 +48,36 @@ internal class WriteToFileServiceTest :
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(readFromResource("/database/skrivreturfil/inntTransaksjon_ferdig_behandlet.sql")))
             }
-            Db2Listener.innTransaksjonRepository.getByBehandlet(behandlet = BEHANDLET_JA).size shouldBe 10
-            When("skriving av returfil starter") {
+            Db2Listener.innTransaksjonRepository.getByBehandlet(behandlet = BEHANDLET_JA).size shouldBe 11
+            When("skriving av returfiler starter") {
                 writeToFileService.writeReturnFile()
-                Then("skal det opprettes en returfil til SPK som lastes opp til Ftp outbound/anvisningsretur") {
+                Then("skal det opprettes to returfiler til SPK som lastes opp til Ftp outbound/anvisningsretur") {
                     Db2Listener.innTransaksjonRepository.getByBehandlet().shouldBeEmpty()
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand("000034", FILTILSTANDTYPE_RET)!!
+                    val filInfo1 = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand("000034", FILTILSTANDTYPE_RET)!!
                     verifyFilInfo(
-                        filInfo = filInfo,
+                        filInfo = filInfo1,
                         filStatus = FilStatus.OK,
                         filTilstandType = FILTILSTANDTYPE_RET,
                         fileType = FILTYPE_INNLEST,
                     )
+                    val filInfo2 = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand("000035", FILTILSTANDTYPE_RET)!!
+                    verifyFilInfo(
+                        filInfo = filInfo2,
+                        filStatus = FilStatus.OK,
+                        filTilstandType = FILTILSTANDTYPE_RET,
+                        fileType = FILTYPE_INNLEST,
+                    )
+                    filInfo1.filNavn shouldNotBe filInfo2.filNavn
                     val downloadFile = ftpService.downloadFiles(Directories.ANVISNINGSRETUR)
-                    downloadFile.size shouldBe 1
+                    downloadFile.size shouldBe 2
                     downloadFile.forEach { (filename, content) ->
-                        filename shouldBe filInfo.filNavn
-                        content.convertArrayListToString() shouldBe readFromResource("/spk/SPK_NAV_RETURFIL.txt")
+                        if (filename.equals(filInfo1.filNavn)) {
+                            content.convertArrayListToString() shouldBe readFromResource("/spk/SPK_NAV_RETURFIL1.txt")
+                        } else if (filename.equals(filInfo2.filNavn)) {
+                            content.convertArrayListToString() shouldBe readFromResource("/spk/SPK_NAV_RETURFIL2.txt")
+                        } else {
+                            throw Exception("Unexpected file name: $filename")
+                        }
                     }
                 }
             }
@@ -84,7 +98,7 @@ internal class WriteToFileServiceTest :
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(readFromResource("/database/skrivreturfil/inntTransaksjon_ferdig_behandlet.sql")))
             }
-            Db2Listener.innTransaksjonRepository.getByBehandlet(behandlet = BEHANDLET_JA).size shouldBe 10
+            Db2Listener.innTransaksjonRepository.getByBehandlet(behandlet = BEHANDLET_JA).size shouldBe 11
 
             When("skriv retur filen prosess starter") {
                 val ftpServiceMock = mockk<FtpService>()
