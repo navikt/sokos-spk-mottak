@@ -14,6 +14,7 @@ on:
       - 'dokumentasjon/**'
       - '.github/workflows/build-pr.yaml'
       - '.github/workflows/manual-deploy-dev.yaml'
+      - '.github/workflows/manual-deploy-dev-qx.yaml'
       - '.github/workflows/security.yaml'
       - '.github/workflows/alerts.yaml'
       - '.nais/alerts-dev.yaml'

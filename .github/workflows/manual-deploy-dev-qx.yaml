@@ -1,4 +1,4 @@
-name: Deploy application manual to dev
+name: Deploy application manual to dev-qx
 
 on:
   workflow_dispatch:
