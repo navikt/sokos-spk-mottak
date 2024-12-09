@@ -202,5 +202,5 @@ class ReadAndParseFileService(
             .replaceRange(76, 78, exception.statusCode)
             .replaceRange(78, 78 + exception.message.length, exception.message)
 
-    private fun createFileName(): String = "SPK_NAV_${SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())}_INL"
+    private fun createFileName(): String = "SPK_NAV_${SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(Date())}_INL"
 }
