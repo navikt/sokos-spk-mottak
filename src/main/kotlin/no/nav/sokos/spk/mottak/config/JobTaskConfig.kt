@@ -101,20 +101,22 @@ object JobTaskConfig {
     }
 
     internal fun schedulerWithTypeInformation(): List<JobTask> {
-        val schedulerClient = SchedulerClient.Builder.create(DatabaseConfig.postgresDataSource()).build()
-        return schedulerClient
-            .getScheduledExecutions(ScheduledExecutionsFilter.all())
-            .map {
-                JobTask(
-                    it.taskInstance.id,
-                    it.taskInstance.taskName,
-                    it.executionTime.toKotlinInstant(),
-                    it.isPicked,
-                    it.pickedBy,
-                    it.lastFailure?.toKotlinInstant(),
-                    it.lastSuccess?.toKotlinInstant(),
-                )
-            }
+        DatabaseConfig.postgresDataSource().use { dataSource ->
+            val schedulerClient = SchedulerClient.Builder.create(dataSource).build()
+            return schedulerClient
+                .getScheduledExecutions(ScheduledExecutionsFilter.all())
+                .map {
+                    JobTask(
+                        it.taskInstance.id,
+                        it.taskInstance.taskName,
+                        it.executionTime.toKotlinInstant(),
+                        it.isPicked,
+                        it.pickedBy,
+                        it.lastFailure?.toKotlinInstant(),
+                        it.lastSuccess?.toKotlinInstant(),
+                    )
+                }
+        }
     }
 
     private fun showLog(
