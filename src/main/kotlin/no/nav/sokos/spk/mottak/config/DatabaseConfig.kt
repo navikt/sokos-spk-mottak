@@ -48,6 +48,8 @@ object DatabaseConfig {
             poolName = "postgres-pool"
             maximumPoolSize = 5
             minimumIdle = 1
+            idleTimeout = Duration.ofMinutes(4).toMillis()
+            maxLifetime = Duration.ofMinutes(5).toMillis()
             dataSource =
                 PGSimpleDataSource().apply {
                     if (PropertiesConfig.isLocal()) {
@@ -58,7 +60,6 @@ object DatabaseConfig {
                     databaseName = postgresProperties.databaseName
                     portNumbers = intArrayOf(postgresProperties.port.toInt())
                     connectionTimeout = Duration.ofSeconds(10).toMillis()
-                    maxLifetime = Duration.ofMinutes(5).toMillis()
                     initializationFailTimeout = Duration.ofMinutes(5).toMillis()
                 }
             metricsTrackerFactory = MicrometerMetricsTrackerFactory(prometheusMeterRegistry)
