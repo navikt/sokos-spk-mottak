@@ -148,12 +148,25 @@ dependencies {
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
+    constraints {
+        implementation("org.apache.commons:commons-compress:1.26.0") {
+            because("override transient from org.testcontainers:testcontainers")
+        }
+    }
     testImplementation("com.h2database:h2:$h2Version")
     testImplementation("org.apache.activemq:artemis-jakarta-server:$activemqVersion")
     testImplementation("org.wiremock:wiremock:$wiremockVersion")
+    constraints {
+        implementation("org.eclipse.jetty:jetty-http:12.0.12") {
+            because("override transient from org.wiremock:wiremock")
+        }
+        implementation("commons-io:commons-io:2.14.0") {
+            because("override transient from org.wiremock:wiremock")
+        }
+    }
 }
 
-// Vulnerability fix because of id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
+// Vulnerability fix because of id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
 configurations.ktlint {
     resolutionStrategy.force("ch.qos.logback:logback-classic:$logbackVersion")
 }
