@@ -83,7 +83,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
                         sendToOppdragZ(oppdragXML, transaksjonIdList)
                         oppdragsmeldingerSendt += oppdragXML.size
                         transaksjonerSendt += transaksjonIdList.size
-                        logger.info { "$oppdragsmeldingerSendt utbetalingsmeldinger sendt av totalt ${transaksjonList.size} ($transaksjonerSendt transaksjoner av totalt ${oppdragList.size}) " }
+                        logger.info { "$oppdragsmeldingerSendt utbetalingsmeldinger sendt av totalt ${oppdragList.size} ($transaksjonerSendt transaksjoner av totalt ${transaksjonList.size}) " }
                     }
                     logger.info {
                         "Fullført sending av $oppdragsmeldingerSendt utbetalingsmeldinger ($transaksjonerSendt transaksjoner) til OppdragZ. Total tid: ${
