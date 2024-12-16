@@ -120,5 +120,5 @@ Alarmene blir publisert i Slack kanalen [#team-moby-alerts-dev](https://nav-it.s
 # 8. Henvendelser
 
 Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på Github.
-Interne henvendelser kan sendes via Slack i kanalen #po-utbetaling
+Interne henvendelser kan sendes via Slack i kanalen [#po-utbetaling](https://nav-it.slack.com/archives/CKZADNFBP)
 
