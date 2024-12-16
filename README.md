@@ -53,7 +53,7 @@ For å kjøre applikasjonen lokalt må du gjøre følgende:
 
 # 4. Programvarearkitektur
 
-Legg ved skissediagram for hvordan arkitekturen er bygget
+TODO
 
 # 5. Deployment
 
@@ -69,6 +69,10 @@ Har også mulighet for å deploye manuelt til testmiljø ved å deploye PR.
 Applikasjonen bruker [AzureAD](https://docs.nais.io/security/auth/azure-ad/) for å sikre at kun autoriserte brukere har tilgang til tjenesten.
 
 # 7. Drift og støtte
+
+Du kan trigge jobber fra et skjermbilde i Utbetalingsportalen. For å gjøre dette kreves det at du har tilgang til riktig AD-gruppe for skjermbildet.
+- [Utbetalingsportalen i test](https://utbetalingsportalen.intern.dev.nav.no/spk-mottak)
+- [Utbetalingsportalen i prod](https://utbetalingsportalen.intern.nav.no/spk-mottak)
 
 ### Logging
 
@@ -105,7 +109,7 @@ kubectl logs -f sokos-spk-mottak-<POD-ID> --namespace okonomi -c sokos-spk-motta
 
 Vi bruker [nais-alerts](https://doc.nais.io/observability/alerts) for å sette opp alarmer.
 Disse finner man konfigurert i [.nais/alerts-dev.yaml](.nais/alerts-dev.yaml) filen og [.nais/alerts-prod.yaml](.nais/alerts-prod.yaml).
-Alarmene blir publisert i Slack kanalen #team-moby-alerts-dev og #team-moby-alerts-prod.
+Alarmene blir publisert i Slack kanalen [#team-moby-alerts-dev](https://nav-it.slack.com/archives/C0707TP7JEN) og [#team-moby-alerts-prod](https://nav-it.slack.com/archives/C0707TQQT0S).
 
 ### Grafana
 
