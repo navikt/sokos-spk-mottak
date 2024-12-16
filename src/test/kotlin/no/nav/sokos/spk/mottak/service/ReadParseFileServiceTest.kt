@@ -82,12 +82,12 @@ internal class ReadParseFileServiceTest :
                     val lopeNummer = Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil)
                     verifyLopenummer(lopeNummer)
 
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_GOD)
-                    verifyFilInfo(filInfo, FilStatus.OK, FILTILSTANDTYPE_GOD)
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_GOD, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.OK, FILTILSTANDTYPE_GOD)
 
-                    val inntransaksjonList = Db2Listener.innTransaksjonRepository.getByFilInfoId(filInfo?.filInfoId!!)
+                    val inntransaksjonList = Db2Listener.innTransaksjonRepository.getByFilInfoId(filInfoList.first().filInfoId!!)
                     inntransaksjonList.size shouldBe 8
-                    verifyInntransaksjon(inntransaksjonList.first(), filInfo.filInfoId!!)
+                    verifyInntransaksjon(inntransaksjonList.first(), filInfoList.first().filInfoId!!)
                 }
             }
         }
@@ -107,11 +107,11 @@ internal class ReadParseFileServiceTest :
                     val lopenummer = Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil)
                     verifyLopenummer(lopenummer)
 
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
                     val feiltekst = "Total beløp 2775100 stemmer ikke med summeringen av enkelt beløpene 2775200"
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, feiltekst)
+                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, feiltekst)
 
-                    val inntransaksjonList = Db2Listener.innTransaksjonRepository.getByFilInfoId(filInfo?.filInfoId!!)
+                    val inntransaksjonList = Db2Listener.innTransaksjonRepository.getByFilInfoId(filInfoList.first().filInfoId!!)
                     inntransaksjonList.shouldBeEmpty()
                 }
             }
@@ -161,8 +161,8 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_ANVISER") {
                     val lopeNummerFraFil = "000034"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_ANVISER, FILTILSTANDTYPE_AVV, "Ugyldig anviser")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_ANVISER, FILTILSTANDTYPE_AVV, "Ugyldig anviser")
                     Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_ANVISER) shouldBe MAX_LOPENUMMER
                 }
             }
@@ -175,8 +175,8 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_MOTTAKER") {
                     val lopeNummerFraFil = "000034"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_MOTTAKER, FILTILSTANDTYPE_AVV, "Ugyldig mottaker")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_MOTTAKER, FILTILSTANDTYPE_AVV, "Ugyldig mottaker")
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }
@@ -189,8 +189,8 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus FILLOPENUMMER_I_BRUK") {
                     val lopeNummerFraFil = "000032"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.FILLOPENUMMER_I_BRUK, FILTILSTANDTYPE_AVV, "Filløpenummer $lopeNummerFraFil allerede i bruk")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.FILLOPENUMMER_I_BRUK, FILTILSTANDTYPE_AVV, "Filløpenummer $lopeNummerFraFil allerede i bruk")
                     Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_ANVISER) shouldBe MAX_LOPENUMMER
                 }
             }
@@ -202,8 +202,8 @@ internal class ReadParseFileServiceTest :
                 readAndParseFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_FILLOPENUMMER") {
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand("00004X", FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_FILLOPENUMMER, FILTILSTANDTYPE_AVV, "Filløpenummer format er ikke gyldig")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf("00004X"))
+                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_FILLOPENUMMER, FILTILSTANDTYPE_AVV, "Filløpenummer format er ikke gyldig")
                     Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_ANVISER) shouldBe MAX_LOPENUMMER
                 }
             }
@@ -216,8 +216,8 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus FORVENTET_FILLOPENUMMER") {
                     val lopeNummerFraFil = "000099"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.FORVENTET_FILLOPENUMMER, FILTILSTANDTYPE_AVV, "Forventet lopenummer 34")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.FORVENTET_FILLOPENUMMER, FILTILSTANDTYPE_AVV, "Forventet lopenummer 34")
                     Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_ANVISER) shouldBe MAX_LOPENUMMER
                 }
             }
@@ -230,8 +230,8 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_FILTYPE") {
                     val lopeNummerFraFil = "000034"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_FILTYPE, FILTILSTANDTYPE_AVV, "Ugyldig filtype", "ANX", "SPK")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_FILTYPE, FILTILSTANDTYPE_AVV, "Ugyldig filtype", "ANX", "SPK")
                     Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_ANVISER) shouldBe MAX_LOPENUMMER
                 }
             }
@@ -244,8 +244,13 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_ANTRECORDS") {
                     val lopeNummerFraFil = "000034"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_ANTRECORDS, FILTILSTANDTYPE_AVV, "Oppsummert antall records oppgitt i sluttrecord er 8 og stemmer ikke med det faktiske antallet 3")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(
+                        filInfoList.first(),
+                        FilStatus.UGYLDIG_ANTRECORDS,
+                        FILTILSTANDTYPE_AVV,
+                        "Oppsummert antall records oppgitt i sluttrecord er 8 og stemmer ikke med det faktiske antallet 3",
+                    )
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }
@@ -258,8 +263,8 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_SUMBELOP") {
                     val lopeNummerFraFil = "000034"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, "Total beløp 2775100 stemmer ikke med summeringen av enkelt beløpene 346900")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, "Total beløp 2775100 stemmer ikke med summeringen av enkelt beløpene 346900")
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }
@@ -272,8 +277,8 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_PRODDATO") {
                     val lopeNummerFraFil = "000034"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_PRODDATO, FILTILSTANDTYPE_AVV, "Prod-dato (yyyymmdd) har ugyldig format")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_PRODDATO, FILTILSTANDTYPE_AVV, "Prod-dato (yyyymmdd) har ugyldig format")
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }
@@ -286,8 +291,8 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_RECTYPE") {
                     val lopeNummerFraFil = "000034"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_RECTYPE, FILTILSTANDTYPE_AVV, "Ugyldig recordtype")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_RECTYPE, FILTILSTANDTYPE_AVV, "Ugyldig recordtype")
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }
@@ -300,8 +305,8 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_RECTYPE") {
                     val lopeNummerFraFil = "000034"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_RECTYPE, FILTILSTANDTYPE_AVV, "Ugyldig recordtype")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_RECTYPE, FILTILSTANDTYPE_AVV, "Ugyldig recordtype")
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }
@@ -314,8 +319,8 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_SUMBELOP") {
                     val lopeNummerFraFil = "000034"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, "Total beløp 346900 stemmer ikke med summeringen av enkelt beløpene 0")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, "Total beløp 346900 stemmer ikke med summeringen av enkelt beløpene 0")
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }
@@ -328,8 +333,8 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_RECTYPE") {
                     val lopeNummerFraFil = "000034"
-                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(lopeNummerFraFil, FILTILSTANDTYPE_AVV)
-                    verifyFilInfo(filInfo, FilStatus.UGYLDIG_RECTYPE, FILTILSTANDTYPE_AVV, "Ugyldig recordtype")
+                    val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
+                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_RECTYPE, FILTILSTANDTYPE_AVV, "Ugyldig recordtype")
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }

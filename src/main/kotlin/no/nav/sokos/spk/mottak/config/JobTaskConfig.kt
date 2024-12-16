@@ -11,7 +11,10 @@ import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import com.github.kagkarlsson.scheduler.task.schedule.Schedules.cron
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.datetime.toKotlinInstant
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import mu.KotlinLogging
+import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.api.model.JobTask
 import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
@@ -90,13 +93,14 @@ object JobTaskConfig {
     internal fun recurringGrensesnittAvstemmingTask(
         avstemmingService: AvstemmingService = AvstemmingService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
-    ): RecurringTask<Void> {
+    ): RecurringTask<String> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("grensesnittAvstemming", cron(schedulerProperties.grensesnittAvstemmingCronPattern))
-            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
+            .recurring("grensesnittAvstemming", cron(schedulerProperties.grensesnittAvstemmingCronPattern), String::class.java)
+            .execute { instance: TaskInstance<String>, context: ExecutionContext ->
                 showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                avstemmingService.sendGrensesnittAvstemming()
+                val request = instance.data?.let { Json.decodeFromString<AvstemmingRequest>(instance.data) }
+                avstemmingService.sendGrensesnittAvstemming(request)
             }
     }
 
@@ -119,9 +123,9 @@ object JobTaskConfig {
         }
     }
 
-    private fun showLog(
+    private fun <T> showLog(
         localtime: LocalDateTime,
-        instance: TaskInstance<Void>,
+        instance: TaskInstance<T>,
         context: ExecutionContext,
     ): LocalDateTime {
         if (localtime.plusMinutes(Duration.ofMinutes(5).toMinutes()).isBefore(LocalDateTime.now())) {

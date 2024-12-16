@@ -2,6 +2,7 @@ package no.nav.sokos.spk.mottak.api
 
 import com.github.kagkarlsson.scheduler.Scheduler
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -9,6 +10,9 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import java.time.Instant
 
@@ -41,9 +45,11 @@ fun Route.mottakApi(scheduler: Scheduler = JobTaskConfig.scheduler()) {
         }
 
         post("avstemming") {
+            val request = call.receive<AvstemmingRequest>()
             call.launch(Dispatchers.IO) {
                 val task = JobTaskConfig.recurringGrensesnittAvstemmingTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now())
+                val requestData = Json.encodeToString(request)
+                scheduler.reschedule(task.instance(RECURRING), Instant.now(), requestData)
             }
             call.respond(HttpStatusCode.Accepted, "GrensesnittAvstemming har startet, sjekk logger for status")
         }

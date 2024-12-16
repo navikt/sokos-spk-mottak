@@ -3,12 +3,15 @@ package no.nav.sokos.spk.mottak.service
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
+import kotlinx.datetime.toJavaLocalDate
 import mu.KotlinLogging
+import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQ_BATCH_SIZE
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.transaction
-import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_AVSTEMMING
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.TransaksjonDetalj
 import no.nav.sokos.spk.mottak.domain.TransaksjonOppsummering
 import no.nav.sokos.spk.mottak.domain.converter.AvstemmingConverter
@@ -43,9 +46,20 @@ class AvstemmingService(
             metricCounter = Metrics.mqUtbetalingProducerMetricCounter,
         ),
 ) {
-    fun sendGrensesnittAvstemming() {
+    fun sendGrensesnittAvstemming(avstemmingRequest: AvstemmingRequest? = null) {
         runCatching {
-            val avstemmingInfoList = filInfoRepository.getByAvstemmingStatusIsOSO(ANTALL_IKKE_UTFORT_TRANSAKSJON)
+            val avstemmingInfoList =
+                when {
+                    avstemmingRequest?.fromDate != null && avstemmingRequest.toDate != null ->
+                        filInfoRepository.getByAvstemmingStatus(
+                            antallUkjentOSZStatus = ANTALL_IKKE_UTFORT_TRANSAKSJON,
+                            avstemmingStatus = listOf(TRANS_TILSTAND_OPPDRAG_SENDT_OK, TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK),
+                            fromDate = avstemmingRequest.fromDate.toJavaLocalDate(),
+                            toDate = avstemmingRequest.toDate.toJavaLocalDate(),
+                        )
+
+                    else -> filInfoRepository.getByAvstemmingStatus(ANTALL_IKKE_UTFORT_TRANSAKSJON)
+                }
 
             if (avstemmingInfoList.isNotEmpty()) {
                 Metrics.timer(SERVICE_CALL, "AvstemmingService", "sendGrensesnittAvstemming").recordCallable {
@@ -65,14 +79,14 @@ class AvstemmingService(
                     payloadList.chunked(MQ_BATCH_SIZE).forEach { payloadChunk -> producer.send(payloadChunk) }
 
                     dataSource.transaction { session ->
-                        filInfoRepository.updateAvstemmingStatus(filInfoIdList, TRANS_TILSTAND_OPPDRAG_AVSTEMMING, session)
+                        filInfoRepository.updateAvstemmingStatus(filInfoIdList, TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK, session)
                     }
                     logger.info { "Avstemming sendt OK for filInfoId: ${filInfoIdList.joinToString()}" }
                 }
             } else {
-                val avstemmingInfoList = filInfoRepository.getByAvstemmingStatusIsOSO(ANTALL_IKKE_UTFORT_TRANSAKSJON, statusFilter = false)
-                if (avstemmingInfoList.isNotEmpty()) {
-                    avstemmingInfoList.forEach { avstemmingInfo ->
+                val avstemmingInfoNotStartedList = filInfoRepository.getByAvstemmingStatus(ANTALL_IKKE_UTFORT_TRANSAKSJON, statusFilter = false)
+                if (avstemmingInfoNotStartedList.isNotEmpty()) {
+                    avstemmingInfoNotStartedList.forEach { avstemmingInfo ->
                         logger.error {
                             "FilInfoId: ${avstemmingInfo.filInfoId} har ${avstemmingInfo.antallIkkeOSStatus} transaksjoner som ikke har mottatt status fra OS og " +
                                 "${avstemmingInfo.antallOSStatus} transaksjoner med kjent OS-status"

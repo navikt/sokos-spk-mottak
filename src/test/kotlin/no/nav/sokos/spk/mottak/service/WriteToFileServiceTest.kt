@@ -53,14 +53,14 @@ internal class WriteToFileServiceTest :
                 writeToFileService.writeReturnFile()
                 Then("skal det opprettes to returfiler til SPK som lastes opp til Ftp outbound/anvisningsretur") {
                     Db2Listener.innTransaksjonRepository.getByBehandlet().shouldBeEmpty()
-                    val filInfo1 = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand("000034", FILTILSTANDTYPE_RET)!!
+                    val filInfo1 = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_RET, listOf("000034")).first()
                     verifyFilInfo(
                         filInfo = filInfo1,
                         filStatus = FilStatus.OK,
                         filTilstandType = FILTILSTANDTYPE_RET,
                         fileType = FILTYPE_INNLEST,
                     )
-                    val filInfo2 = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand("000035", FILTILSTANDTYPE_RET)!!
+                    val filInfo2 = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_RET, listOf("000035")).first()
                     verifyFilInfo(
                         filInfo = filInfo2,
                         filStatus = FilStatus.OK,

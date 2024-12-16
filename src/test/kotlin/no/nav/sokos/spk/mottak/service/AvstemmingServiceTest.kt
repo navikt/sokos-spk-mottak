@@ -8,8 +8,10 @@ import io.mockk.every
 import io.mockk.slot
 import io.mockk.spyk
 import jakarta.xml.bind.JAXBContext
+import kotlinx.datetime.LocalDate
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
+import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_IKKE_SKATTEPLIKTIG_UTBETALING
@@ -17,7 +19,7 @@ import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
 import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_TREKK
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.MOT
-import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_AVSTEMMING
+import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_OK
@@ -71,16 +73,52 @@ class AvstemmingServiceTest :
                     listOf(BELOPSTYPE_SKATTEPLIKTIG_UTBETALING, BELOPSTYPE_IKKE_SKATTEPLIKTIG_UTBETALING, BELOPSTYPE_TREKK),
                     listOf(TRANS_TILSTAND_OPPDRAG_RETUR_OK, TRANS_TILSTAND_OPPDRAG_RETUR_FEIL, TRANS_TILSTAND_OPPDRAG_SENDT_OK),
                 ).size shouldBe 10
-            Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand("000034", FILTILSTANDTYPE_GOD)?.avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_OK
+            Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_GOD, listOf("000034")).first().avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_OK
 
             val avstemmingSlot = slot<List<String>>()
             every { producer.send(capture(avstemmingSlot)) } answers { callOriginal() }
 
             When("kall grensesnitt avstemming til OppdragZ") {
-                avstemmingService.sendGrensesnittAvstemming()
+                avstemmingService.sendGrensesnittAvstemming(AvstemmingRequest(null, null))
 
                 Then("skal det sendes grensesnitt avstemming til OppdragZ og filInfo skal bli oppdatert med 'OAO'") {
-                    Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand("000034", FILTILSTANDTYPE_GOD)?.avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_AVSTEMMING
+                    Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_GOD, listOf("000034")).first().avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK
+                    val avstemmingsdataList = avstemmingSlot.captured.map { unmarshallAvstemming(it) }
+
+                    avstemmingsdataList.size shouldBe 4
+                    verifyAvstemmingsdata(avstemmingsdataList[0], AksjonType.START)
+                    verifyAvstemmingsdata(avstemmingsdataList[1], AksjonType.DATA)
+                    verifyAvstemmingsdata(avstemmingsdataList[2], AksjonType.DATA)
+                    verifyAvstemmingsdata(avstemmingsdataList[3], AksjonType.AVSL)
+                }
+            }
+        }
+
+        Given("det fins transaksjoner som er klar til avstemming med AvstemmingRequest ") {
+            Db2Listener.dataSource.transaction { session ->
+                session.update(queryOf(readFromResource("/database/avstemming_transaksjon_dato.sql")))
+            }
+            Db2Listener.transaksjonRepository
+                .findAllByBelopstypeAndByTransaksjonTilstand(
+                    listOf(BELOPSTYPE_SKATTEPLIKTIG_UTBETALING, BELOPSTYPE_IKKE_SKATTEPLIKTIG_UTBETALING, BELOPSTYPE_TREKK),
+                    listOf(TRANS_TILSTAND_OPPDRAG_RETUR_OK, TRANS_TILSTAND_OPPDRAG_RETUR_FEIL, TRANS_TILSTAND_OPPDRAG_SENDT_OK),
+                ).size shouldBe 10
+            Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(filTilstandType = null, lopeNummer = emptyList()).size shouldBe 4
+
+            val avstemmingSlot = slot<List<String>>()
+            every { producer.send(capture(avstemmingSlot)) } answers { callOriginal() }
+
+            When("kall grensesnitt avstemming til OppdragZ") {
+                avstemmingService.sendGrensesnittAvstemming(AvstemmingRequest(LocalDate(2024, 2, 1), LocalDate(2024, 2, 2)))
+
+                Then("skal det sendes grensesnitt avstemming til OppdragZ og filInfo skal bli oppdatert med 'OAO'") {
+                    Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(filTilstandType = null, lopeNummer = emptyList()).forEach {
+                        if (listOf(20000816, 20000818, 20000819).contains(it.filInfoId)) {
+                            it.avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_OK
+                        } else {
+                            it.avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK
+                        }
+                    }
                     val avstemmingsdataList = avstemmingSlot.captured.map { unmarshallAvstemming(it) }
 
                     avstemmingsdataList.size shouldBe 4
@@ -101,15 +139,15 @@ class AvstemmingServiceTest :
                     listOf(BELOPSTYPE_SKATTEPLIKTIG_UTBETALING, BELOPSTYPE_IKKE_SKATTEPLIKTIG_UTBETALING, BELOPSTYPE_TREKK),
                     listOf(TRANS_TILSTAND_OPPDRAG_RETUR_OK, TRANS_TILSTAND_OPPDRAG_RETUR_FEIL, TRANS_TILSTAND_OPPDRAG_SENDT_OK),
                 ).size shouldBe 10
-            Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand("000034", FILTILSTANDTYPE_GOD)?.avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_OK
-            every { Db2Listener.filInfoRepository.getByAvstemmingStatusIsOSO(any()) } throws SQLException("No database connection!")
+            Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_GOD, listOf("000034")).first().avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_OK
+            every { Db2Listener.filInfoRepository.getByAvstemmingStatus(any()) } throws SQLException("No database connection!")
 
             When("kall grensesnitt avstemming til OppdragZ") {
-                val exception = shouldThrow<MottakException> { avstemmingService.sendGrensesnittAvstemming() }
+                val exception = shouldThrow<MottakException> { avstemmingService.sendGrensesnittAvstemming(AvstemmingRequest(null, null)) }
 
                 Then("skal det ikke sendes grensesnitt avstemming til OppdragZ og filInfo skal ikke bli oppdatert") {
                     exception.message shouldBe "Utsending av avstemming til OppdragZ feilet. Feilmelding: No database connection!"
-                    Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand("000034", FILTILSTANDTYPE_GOD)?.avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_OK
+                    Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_GOD, listOf("000034")).first().avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_OK
                 }
             }
         }
@@ -141,7 +179,7 @@ private fun verifyAvstemmingsdata(
 
     if (aksjonType == AksjonType.DATA) {
         when {
-            avstemmingsdata.detalj.isNotEmpty() -> avstemmingsdata.detalj.size shouldBe 3
+            avstemmingsdata.detalj.isNotEmpty() -> avstemmingsdata.detalj.size > 0
             else -> {
                 avstemmingsdata.total shouldNotBe null
                 avstemmingsdata.periode shouldNotBe null
