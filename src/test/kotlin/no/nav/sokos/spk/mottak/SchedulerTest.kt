@@ -35,7 +35,7 @@ internal class SchedulerTest :
             every { writeToFileService.writeReturnFile() } returns Unit
             every { sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ() } returns Unit
             every { sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag() } returns Unit
-            every { avstemmingService.sendGrensesnittAvstemming() } returns Unit
+            every { avstemmingService.sendGrensesnittAvstemming(any()) } returns Unit
 
             val schedulerProperties =
                 PropertiesConfig
@@ -78,6 +78,6 @@ internal class SchedulerTest :
             verify { validateTransaksjonService.validateInnTransaksjon() }
             verify { sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ() }
             verify { sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag() }
-            verify { avstemmingService.sendGrensesnittAvstemming() }
+            verify { avstemmingService.sendGrensesnittAvstemming(any()) }
         }
     })
