@@ -4,7 +4,6 @@ import com.ibm.db2.jcc.DB2BaseDataSource
 import com.ibm.db2.jcc.DB2SimpleDataSource
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import java.time.Duration
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
@@ -12,6 +11,7 @@ import mu.KotlinLogging
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
+import java.time.Duration
 
 private val logger = KotlinLogging.logger {}
 
