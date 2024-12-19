@@ -4,16 +4,14 @@ import com.ibm.db2.jcc.DB2BaseDataSource
 import com.ibm.db2.jcc.DB2SimpleDataSource
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory
+import java.time.Duration
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
-import no.nav.sokos.spk.mottak.metrics.Metrics.prometheusMeterRegistry
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
-import java.time.Duration
 
 private val logger = KotlinLogging.logger {}
 
@@ -21,7 +19,6 @@ object DatabaseConfig {
     private fun db2HikariConfig(): HikariConfig {
         val db2Properties: PropertiesConfig.Db2Properties = PropertiesConfig.Db2Properties()
         return HikariConfig().apply {
-            poolName = "db2-pool"
             minimumIdle = 1
             maximumPoolSize = 10
             connectionTestQuery = "select 1 from sysibm.sysdummy1"
@@ -38,14 +35,12 @@ object DatabaseConfig {
                     user = db2Properties.username
                     setPassword(db2Properties.password)
                 }
-            metricsTrackerFactory = MicrometerMetricsTrackerFactory(prometheusMeterRegistry)
         }
     }
 
     private fun postgresHikariConfig(): HikariConfig {
         val postgresProperties: PropertiesConfig.PostgresProperties = PropertiesConfig.PostgresProperties()
         return HikariConfig().apply {
-            poolName = "postgres-pool"
             maximumPoolSize = 5
             minimumIdle = 1
             idleTimeout = Duration.ofMinutes(4).toMillis()
@@ -62,7 +57,6 @@ object DatabaseConfig {
                     connectionTimeout = Duration.ofSeconds(10).toMillis()
                     initializationFailTimeout = Duration.ofMinutes(5).toMillis()
                 }
-            metricsTrackerFactory = MicrometerMetricsTrackerFactory(prometheusMeterRegistry)
         }
     }
 
