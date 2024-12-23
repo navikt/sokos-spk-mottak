@@ -40,9 +40,9 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "3.0.2"
+val ktorVersion = "3.0.3"
 val jschVersion = "0.2.21"
-val logbackVersion = "1.5.12"
+val logbackVersion = "1.5.15"
 val logstashVersion = "8.0"
 val jacksonVersion = "2.15.3"
 val micrometerVersion = "1.14.2"
@@ -54,7 +54,7 @@ val wiremockVersion = "3.10.0"
 val kotlinxSerializationVersion = "1.7.3"
 val kotlinxDatetimeVersion = "0.6.1"
 val mockOAuth2ServerVersion = "2.1.10"
-val mockkVersion = "1.13.13"
+val mockkVersion = "1.13.14"
 val hikariVersion = "6.2.1"
 val db2JccVersion = "11.5.9.0"
 val kotliqueryVersion = "1.9.0"
@@ -65,13 +65,13 @@ val postgresVersion = "42.7.4"
 val dbSchedulerVersion = "15.1.1"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20241021101018_2aa57cc"
-val ibmmqVersion = "9.4.1.0"
-val activemqVersion = "2.38.0"
+val ibmmqVersion = "9.4.1.1"
+val activemqVersion = "2.39.0"
 val graphqlClientVersion = "8.2.1"
 val jaxbVersion = "4.0.5"
 
 // Due to vulnerabilities
-val nettyCommonVersion = "4.1.115.Final"
+val nettyCommonVersion = "4.1.116.Final"
 
 dependencies {
 
