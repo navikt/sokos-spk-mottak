@@ -14,48 +14,57 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
+import no.nav.sokos.spk.mottak.security.AuthToken
+import no.nav.sokos.spk.mottak.service.ScheduledTaskService
 import java.time.Instant
 
 private const val RECURRING = "recurring"
 
-fun Route.mottakApi(scheduler: Scheduler = JobTaskConfig.scheduler()) {
+fun Route.mottakApi(
+    scheduler: Scheduler = JobTaskConfig.scheduler(),
+    scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
+) {
     route("api/v1") {
         post("readParseFileAndValidateTransactions") {
+            val ident = AuthToken.getSaksbehandler(call)
             call.launch(Dispatchers.IO) {
                 val task = JobTaskConfig.recurringReadParseFileAndValidateTransactionsTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now())
+                scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
             }
             call.respond(HttpStatusCode.Accepted, "ReadAndParseFile av filer har startet, sjekk logger for status")
         }
 
         post("sendUtbetalingTransaksjonToOppdragZ") {
+            val ident = AuthToken.getSaksbehandler(call)
             call.launch(Dispatchers.IO) {
                 val task = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now())
+                scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
             }
             call.respond(HttpStatusCode.Accepted, "SendUtbetalingTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
         post("sendTrekkTransaksjonToOppdragZ") {
+            val ident = AuthToken.getSaksbehandler(call)
             call.launch(Dispatchers.IO) {
                 val task = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now())
+                scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
             }
             call.respond(HttpStatusCode.Accepted, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
         }
 
         post("avstemming") {
+            val ident = AuthToken.getSaksbehandler(call)
             val request = call.receive<AvstemmingRequest>()
             call.launch(Dispatchers.IO) {
                 val task = JobTaskConfig.recurringGrensesnittAvstemmingTask()
-                val requestData = Json.encodeToString(request)
+                val requestData = Json.encodeToString(Pair(ident, request))
                 scheduler.reschedule(task.instance(RECURRING), Instant.now(), requestData)
             }
             call.respond(HttpStatusCode.Accepted, "GrensesnittAvstemming har startet, sjekk logger for status")
         }
 
         get("jobTaskInfo") {
-            call.respond(HttpStatusCode.OK, JobTaskConfig.schedulerWithTypeInformation())
+            call.respond(HttpStatusCode.OK, scheduledTaskService.getScheduledTaskInformation())
         }
     }
 }

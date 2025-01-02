@@ -13,6 +13,7 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.listener.PostgresListener
 import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
+import no.nav.sokos.spk.mottak.service.ScheduledTaskService
 import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragZService
 import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragZService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
@@ -28,6 +29,7 @@ internal class SchedulerTest :
         val sendUtbetalingTransaksjonToOppdragZService = mockk<SendUtbetalingTransaksjonToOppdragZService>()
         val sendTrekkTransaksjonToOppdragZService = mockk<SendTrekkTransaksjonToOppdragZService>()
         val avstemmingService = mockk<AvstemmingService>()
+        val scheduledTaskService = mockk<ScheduledTaskService>()
 
         should("skal starte skedulering og trigge jobber") {
             every { readAndParseFileService.readAndParseFile() } returns Unit
@@ -36,6 +38,7 @@ internal class SchedulerTest :
             every { sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ() } returns Unit
             every { sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag() } returns Unit
             every { avstemmingService.sendGrensesnittAvstemming(any()) } returns Unit
+            every { scheduledTaskService.insertScheduledTaskHistory(any(), any()) } returns Unit
 
             val schedulerProperties =
                 PropertiesConfig
@@ -51,11 +54,13 @@ internal class SchedulerTest :
                     readAndParseFileService,
                     validateTransaksjonService,
                     writeToFileService,
+                    scheduledTaskService,
                     schedulerProperties,
                 )
-            val sendUtbetalingTransaksjonTilOppdragTask = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask(sendUtbetalingTransaksjonToOppdragZService, schedulerProperties)
-            val sendTrekkTransaksjonTilOppdragTask = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask(sendTrekkTransaksjonToOppdragZService, schedulerProperties)
-            val avstemmingTask = JobTaskConfig.recurringGrensesnittAvstemmingTask(avstemmingService, schedulerProperties)
+            val sendUtbetalingTransaksjonTilOppdragTask =
+                JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask(sendUtbetalingTransaksjonToOppdragZService, scheduledTaskService, schedulerProperties)
+            val sendTrekkTransaksjonTilOppdragTask = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask(sendTrekkTransaksjonToOppdragZService, scheduledTaskService, schedulerProperties)
+            val avstemmingTask = JobTaskConfig.recurringGrensesnittAvstemmingTask(avstemmingService, scheduledTaskService, schedulerProperties)
 
             val scheduler =
                 Scheduler
@@ -79,5 +84,6 @@ internal class SchedulerTest :
             verify { sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ() }
             verify { sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag() }
             verify { avstemmingService.sendGrensesnittAvstemming(any()) }
+            verify { scheduledTaskService.insertScheduledTaskHistory(any(), any()) }
         }
     })

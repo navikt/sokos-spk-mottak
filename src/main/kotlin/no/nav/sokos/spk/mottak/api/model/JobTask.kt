@@ -12,4 +12,5 @@ data class JobTask(
     val pickedBy: String?,
     val lastFailure: Instant?,
     val lastSuccess: Instant?,
+    val ident: String?,
 )

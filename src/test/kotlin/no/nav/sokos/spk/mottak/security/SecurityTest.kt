@@ -14,26 +14,24 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
 import kotlinx.serialization.json.Json
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.mock.oauth2.withMockOAuth2Server
 import no.nav.sokos.spk.mottak.api.mottakApi
 import no.nav.sokos.spk.mottak.config.AUTHENTICATION_NAME
-import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.authenticate
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.securityConfig
+import no.nav.sokos.spk.mottak.service.ScheduledTaskService
 
 private const val API_BASE_PATH = "/api/v1"
 
-private val scheduler = mockk<Scheduler>()
-
 internal class SecurityTest :
     FunSpec({
+        val scheduler = mockk<Scheduler>()
+        val scheduledTaskService = mockk<ScheduledTaskService>()
 
         test("http GET endepunkt uten token bør returnere 401 - Unauthorized") {
             withMockOAuth2Server {
@@ -42,7 +40,7 @@ internal class SecurityTest :
                         securityConfig(true, authConfig())
                         routing {
                             authenticate(true, AUTHENTICATION_NAME) {
-                                mottakApi(scheduler)
+                                mottakApi(scheduler, scheduledTaskService)
                             }
                         }
                     }
@@ -53,8 +51,7 @@ internal class SecurityTest :
         }
 
         test("http GET endepunkt med token bør returnere 200 - OK") {
-            mockkObject(JobTaskConfig)
-            every { JobTaskConfig.schedulerWithTypeInformation() } returns emptyList()
+            every { scheduledTaskService.getScheduledTaskInformation() } returns emptyList()
 
             withMockOAuth2Server {
                 val mockOAuth2Server = this
@@ -77,7 +74,7 @@ internal class SecurityTest :
                         securityConfig(true, authConfig())
                         routing {
                             authenticate(true, AUTHENTICATION_NAME) {
-                                mottakApi(scheduler)
+                                mottakApi(scheduler, scheduledTaskService)
                             }
                         }
                     }
@@ -91,7 +88,6 @@ internal class SecurityTest :
                     response.status shouldBe HttpStatusCode.OK
                 }
             }
-            unmockkObject(JobTaskConfig)
         }
     })
 
