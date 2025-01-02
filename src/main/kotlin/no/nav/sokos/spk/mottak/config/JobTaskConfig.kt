@@ -11,7 +11,6 @@ import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import com.github.kagkarlsson.scheduler.task.schedule.Schedules.cron
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.datetime.toKotlinInstant
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
@@ -22,6 +21,7 @@ import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragZService
 import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragZService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 import no.nav.sokos.spk.mottak.service.WriteToFileService
+import no.nav.sokos.spk.mottak.util.CallIdUtils.withCallId
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -51,10 +51,12 @@ object JobTaskConfig {
         return Tasks
             .recurring("readParseFileAndValidateTransactions", cron(schedulerProperties.readParseFileAndValidateTransactionsCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
-                showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                readAndParseFileService.readAndParseFile()
-                validateTransaksjonService.validateInnTransaksjon()
-                writeToFileService.writeReturnFile()
+                withCallId {
+                    showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                    readAndParseFileService.readAndParseFile()
+                    validateTransaksjonService.validateInnTransaksjon()
+                    writeToFileService.writeReturnFile()
+                }
             }
     }
 
@@ -69,8 +71,10 @@ object JobTaskConfig {
         return Tasks
             .recurring("sendUtbetalingTransaksjonToOppdragZ", cron(schedulerProperties.sendUtbetalingTransaksjonToOppdragZCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
-                showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
+                withCallId {
+                    showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                    sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
+                }
             }
     }
 
@@ -85,8 +89,10 @@ object JobTaskConfig {
         return Tasks
             .recurring("sendTrekkTransaksjonToOppdragZ", cron(schedulerProperties.sendTrekkTransaksjonToOppdragZCronPattern))
             .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
-                showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
+                withCallId {
+                    showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                    sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
+                }
             }
     }
 
@@ -98,9 +104,11 @@ object JobTaskConfig {
         return Tasks
             .recurring("grensesnittAvstemming", cron(schedulerProperties.grensesnittAvstemmingCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
-                showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                val request = instance.data?.let { Json.decodeFromString<AvstemmingRequest>(instance.data) }
-                avstemmingService.sendGrensesnittAvstemming(request)
+                withCallId {
+                    showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                    val request = instance.data?.let { Json.decodeFromString<AvstemmingRequest>(instance.data) }
+                    avstemmingService.sendGrensesnittAvstemming(request)
+                }
             }
     }
 
