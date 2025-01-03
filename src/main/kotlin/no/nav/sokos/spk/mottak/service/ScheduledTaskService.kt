@@ -4,8 +4,8 @@ import com.github.kagkarlsson.scheduler.ScheduledExecutionsFilter
 import com.github.kagkarlsson.scheduler.SchedulerClient
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.datetime.toKotlinInstant
-import no.nav.sokos.spk.mottak.dto.JobTaskInfo
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.dto.JobTaskInfo
 import no.nav.sokos.spk.mottak.repository.ScheduledTaskRepository
 
 class ScheduledTaskService(
