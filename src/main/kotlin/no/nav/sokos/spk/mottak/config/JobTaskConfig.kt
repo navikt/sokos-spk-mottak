@@ -1,8 +1,6 @@
 package no.nav.sokos.spk.mottak.config
 
-import com.github.kagkarlsson.scheduler.ScheduledExecutionsFilter
 import com.github.kagkarlsson.scheduler.Scheduler
-import com.github.kagkarlsson.scheduler.SchedulerClient
 import com.github.kagkarlsson.scheduler.logging.LogLevel
 import com.github.kagkarlsson.scheduler.task.ExecutionContext
 import com.github.kagkarlsson.scheduler.task.TaskInstance
@@ -10,13 +8,12 @@ import com.github.kagkarlsson.scheduler.task.helper.RecurringTask
 import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import com.github.kagkarlsson.scheduler.task.schedule.Schedules.cron
 import com.zaxxer.hikari.HikariDataSource
-import kotlinx.datetime.toKotlinInstant
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
-import no.nav.sokos.spk.mottak.api.model.JobTask
 import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
+import no.nav.sokos.spk.mottak.service.ScheduledTaskService
 import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragZService
 import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragZService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
@@ -26,6 +23,11 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
+
+private const val JOB_TASK_GRENSESNITT_AVSTEMMING = "grensesnittAvstemming"
+private const val JOB_TASK_SEND_TREKK_TRANSAKSJON_TO_OPPDRAGZ = "sendTrekkTransaksjonToOppdragZ"
+private const val JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ = "sendUtbetalingTransaksjonToOppdragZ"
+private const val JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS = "readParseFileAndValidateTransactions"
 
 object JobTaskConfig {
     fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource()): Scheduler =
@@ -45,14 +47,17 @@ object JobTaskConfig {
         readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
         validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService(),
         writeToFileService: WriteToFileService = WriteToFileService(),
+        scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
-    ): RecurringTask<Void> {
+    ): RecurringTask<String> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("readParseFileAndValidateTransactions", cron(schedulerProperties.readParseFileAndValidateTransactionsCronPattern))
-            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
+            .recurring(JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS, cron(schedulerProperties.readParseFileAndValidateTransactionsCronPattern), String::class.java)
+            .execute { instance: TaskInstance<String>, context: ExecutionContext ->
                 withCallId {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                    val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
+                    scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS)
                     readAndParseFileService.readAndParseFile()
                     validateTransaksjonService.validateInnTransaksjon()
                     writeToFileService.writeReturnFile()
@@ -65,14 +70,17 @@ object JobTaskConfig {
             SendUtbetalingTransaksjonToOppdragZService(
                 mqBatchSize = PropertiesConfig.MQProperties().mqBatchSize,
             ),
+        scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
-    ): RecurringTask<Void> {
+    ): RecurringTask<String> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("sendUtbetalingTransaksjonToOppdragZ", cron(schedulerProperties.sendUtbetalingTransaksjonToOppdragZCronPattern))
-            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
+            .recurring(JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ, cron(schedulerProperties.sendUtbetalingTransaksjonToOppdragZCronPattern), String::class.java)
+            .execute { instance: TaskInstance<String>, context: ExecutionContext ->
                 withCallId {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                    val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
+                    scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ)
                     sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
                 }
             }
@@ -83,14 +91,17 @@ object JobTaskConfig {
             SendTrekkTransaksjonToOppdragZService(
                 mqBatchSize = PropertiesConfig.MQProperties().mqBatchSize,
             ),
+        scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
-    ): RecurringTask<Void> {
+    ): RecurringTask<String> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("sendTrekkTransaksjonToOppdragZ", cron(schedulerProperties.sendTrekkTransaksjonToOppdragZCronPattern))
-            .execute { instance: TaskInstance<Void>, context: ExecutionContext ->
+            .recurring(JOB_TASK_SEND_TREKK_TRANSAKSJON_TO_OPPDRAGZ, cron(schedulerProperties.sendTrekkTransaksjonToOppdragZCronPattern), String::class.java)
+            .execute { instance: TaskInstance<String>, context: ExecutionContext ->
                 withCallId {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
+                    val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
+                    scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_SEND_TREKK_TRANSAKSJON_TO_OPPDRAGZ)
                     sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
                 }
             }
@@ -98,37 +109,20 @@ object JobTaskConfig {
 
     internal fun recurringGrensesnittAvstemmingTask(
         avstemmingService: AvstemmingService = AvstemmingService(),
+        scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<String> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
-            .recurring("grensesnittAvstemming", cron(schedulerProperties.grensesnittAvstemmingCronPattern), String::class.java)
+            .recurring(JOB_TASK_GRENSESNITT_AVSTEMMING, cron(schedulerProperties.grensesnittAvstemmingCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
                 withCallId {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
-                    val request = instance.data?.let { Json.decodeFromString<AvstemmingRequest>(instance.data) }
-                    avstemmingService.sendGrensesnittAvstemming(request)
+                    val taskData = instance.data?.let { Json.decodeFromString<Pair<String, AvstemmingRequest>>(it) }
+                    scheduledTaskService.insertScheduledTaskHistory(taskData?.first ?: PropertiesConfig.Configuration().naisAppName, JOB_TASK_GRENSESNITT_AVSTEMMING)
+                    avstemmingService.sendGrensesnittAvstemming(taskData?.second)
                 }
             }
-    }
-
-    internal fun schedulerWithTypeInformation(): List<JobTask> {
-        DatabaseConfig.postgresDataSource().use { dataSource ->
-            val schedulerClient = SchedulerClient.Builder.create(dataSource).build()
-            return schedulerClient
-                .getScheduledExecutions(ScheduledExecutionsFilter.all())
-                .map {
-                    JobTask(
-                        it.taskInstance.id,
-                        it.taskInstance.taskName,
-                        it.executionTime.toKotlinInstant(),
-                        it.isPicked,
-                        it.pickedBy,
-                        it.lastFailure?.toKotlinInstant(),
-                        it.lastSuccess?.toKotlinInstant(),
-                    )
-                }
-        }
     }
 
     private fun <T> showLog(

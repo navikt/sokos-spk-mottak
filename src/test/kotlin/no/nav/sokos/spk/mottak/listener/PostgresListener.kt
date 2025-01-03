@@ -7,9 +7,9 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
-import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.DatabaseTestConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import org.flywaydb.core.Flyway
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
 
@@ -26,12 +26,20 @@ object PostgresListener : TestListener {
             .waitingFor(Wait.forLogMessage(".*ready to accept connections*\\n", 1))
 
     val dataSource: HikariDataSource by lazy {
-        DatabaseConfig.postgresDataSource(DatabaseTestConfig.hikariPostgresConfig(container.host))
+        HikariDataSource(DatabaseTestConfig.hikariPostgresConfig(container.host))
     }
 
     override suspend fun beforeTest(testCase: TestCase) {
         container.start()
-        DatabaseConfig.postgresMigrate(dataSource)
+        Flyway
+            .configure()
+            .dataSource(dataSource)
+            .initSql("""SET ROLE "${PropertiesConfig.PostgresProperties().adminUser}"""")
+            .lockRetryCount(-1)
+            .validateMigrationNaming(true)
+            .load()
+            .migrate()
+            .migrationsExecuted
     }
 
     override suspend fun afterTest(
