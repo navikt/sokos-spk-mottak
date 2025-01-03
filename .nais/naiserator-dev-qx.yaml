@@ -31,6 +31,7 @@ spec:
       memory: 4096Mi
   ingresses:
     - https://sokos-spk-mottak-qx.intern.dev.nav.no
+    - https://sokos-spk-mottak-qx.dev-fss-pub.nais.io
   prometheus:
     enabled: true
     path: /internal/metrics
@@ -44,11 +45,18 @@ spec:
     application:
       enabled: true
       tenant: trygdeetaten.no
+      allowAllUsers: true
+      claims:
+        extra:
+          - NAVident
   accessPolicy:
     inbound:
       rules:
         - application: azure-token-generator
           namespace: aura
+          cluster: dev-gcp
+        - application: sokos-utbetalingsportalen-qx
+          namespace: okonomi
           cluster: dev-gcp
   webproxy: true
   vault:
