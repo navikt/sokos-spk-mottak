@@ -16,6 +16,20 @@ import java.time.Duration
 private val logger = KotlinLogging.logger {}
 
 object DatabaseConfig {
+    private val db2UserDataSource: HikariDataSource = HikariDataSource(db2HikariConfig())
+    private val postgresUserDataSource: HikariDataSource = createPostgresDataSource()
+    private val postgresAdminDataSource: HikariDataSource = createPostgresDataSource(role = PropertiesConfig.PostgresProperties().adminUser)
+
+    init {
+        Runtime.getRuntime().addShutdownHook(
+            Thread {
+                db2UserDataSource.close()
+                postgresAdminDataSource.close()
+                postgresUserDataSource.close()
+            },
+        )
+    }
+
     private fun db2HikariConfig(): HikariConfig {
         val db2Properties: PropertiesConfig.Db2Properties = PropertiesConfig.Db2Properties()
         return HikariConfig().apply {
@@ -60,9 +74,24 @@ object DatabaseConfig {
         }
     }
 
-    fun db2DataSource(): HikariDataSource = HikariDataSource(db2HikariConfig())
+    fun db2DataSource(): HikariDataSource = db2UserDataSource
 
-    fun postgresDataSource(
+    fun postgresDataSource(): HikariDataSource = postgresUserDataSource
+
+    fun postgresMigrate(dataSource: HikariDataSource = postgresAdminDataSource) {
+        Flyway
+            .configure()
+            .dataSource(dataSource)
+            .initSql("""SET ROLE "${PropertiesConfig.PostgresProperties().adminUser}"""")
+            .lockRetryCount(-1)
+            .validateMigrationNaming(true)
+            .load()
+            .migrate()
+            .migrationsExecuted
+        logger.info { "Migration finished" }
+    }
+
+    fun createPostgresDataSource(
         hikariConfig: HikariConfig = postgresHikariConfig(),
         role: String = PropertiesConfig.PostgresProperties().user,
     ): HikariDataSource =
@@ -75,19 +104,6 @@ object DatabaseConfig {
                     role,
                 )
         }
-
-    fun postgresMigrate(dataSource: HikariDataSource = postgresDataSource(role = PropertiesConfig.PostgresProperties().adminUser)) {
-        Flyway
-            .configure()
-            .dataSource(dataSource)
-            .initSql("""SET ROLE "${PropertiesConfig.PostgresProperties().adminUser}"""")
-            .lockRetryCount(-1)
-            .validateMigrationNaming(true)
-            .load()
-            .migrate()
-            .migrationsExecuted
-        logger.info { "Migration finished" }
-    }
 }
 
 fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A =

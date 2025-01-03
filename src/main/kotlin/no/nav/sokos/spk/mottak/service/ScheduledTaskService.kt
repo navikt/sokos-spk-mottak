@@ -1,7 +1,5 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.github.kagkarlsson.scheduler.ScheduledExecutionsFilter
-import com.github.kagkarlsson.scheduler.SchedulerClient
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.datetime.toKotlinInstant
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
@@ -14,22 +12,17 @@ class ScheduledTaskService(
 ) {
     fun getScheduledTaskInformation(): List<JobTaskInfo> {
         val scheduledTaskMap = scheduledTaskRepository.getLastScheduledTask()
-        return dataSource.use { dataSource ->
-            val schedulerClient = SchedulerClient.Builder.create(dataSource).build()
-            schedulerClient
-                .getScheduledExecutions(ScheduledExecutionsFilter.all())
-                .map {
-                    JobTaskInfo(
-                        it.taskInstance.id,
-                        it.taskInstance.taskName,
-                        it.executionTime.toKotlinInstant(),
-                        it.isPicked,
-                        it.pickedBy,
-                        it.lastFailure?.toKotlinInstant(),
-                        it.lastSuccess?.toKotlinInstant(),
-                        scheduledTaskMap[it.taskInstance.taskName]?.ident,
-                    )
-                }
+        return scheduledTaskRepository.getAllScheduledTasks().map {
+            JobTaskInfo(
+                it.taskInstance,
+                it.taskName,
+                it.executionTime.toInstant().toKotlinInstant(),
+                it.picked,
+                it.pickedBy,
+                it.lastSuccess?.toInstant()?.toKotlinInstant(),
+                it.lastFailure?.toInstant()?.toKotlinInstant(),
+                scheduledTaskMap[it.taskName]?.ident,
+            )
         }
     }
 

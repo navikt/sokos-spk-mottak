@@ -8,6 +8,7 @@ import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.ScheduledTask
+import no.nav.sokos.spk.mottak.domain.ScheduledTaskHistory
 
 class ScheduledTaskRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.postgresDataSource(),
@@ -32,7 +33,7 @@ class ScheduledTaskRepository(
         }
     }
 
-    fun getLastScheduledTask(): Map<String, ScheduledTask> {
+    fun getLastScheduledTask(): Map<String, ScheduledTaskHistory> {
         return using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
@@ -48,13 +49,35 @@ class ScheduledTaskRepository(
                 ),
             ) { row ->
                 row.string("task_name") to
-                    ScheduledTask(
+                    ScheduledTaskHistory(
                         id = row.string("id"),
                         ident = row.string("ident"),
                         timestamp = row.localDateTime("timestamp").toKotlinLocalDateTime(),
                         taskName = row.string("task_name"),
                     )
             }.toMap()
+        }
+    }
+
+    fun getAllScheduledTasks(): List<ScheduledTask> {
+        return using(sessionOf(dataSource)) { session ->
+            session.list(
+                queryOf(
+                    """
+                    select task_name,task_instance, execution_time, picked, picked_by, last_success, last_failure from scheduled_tasks
+                    """.trimIndent(),
+                ),
+            ) { row ->
+                ScheduledTask(
+                    taskName = row.string("task_name"),
+                    taskInstance = row.string("task_instance"),
+                    executionTime = row.zonedDateTime("execution_time"),
+                    picked = row.boolean("picked"),
+                    pickedBy = row.stringOrNull("picked_by"),
+                    lastSuccess = row.zonedDateTimeOrNull("last_success"),
+                    lastFailure = row.zonedDateTimeOrNull("last_failure"),
+                )
+            }
         }
     }
 }

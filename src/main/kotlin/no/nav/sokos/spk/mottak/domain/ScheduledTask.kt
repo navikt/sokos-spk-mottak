@@ -1,12 +1,13 @@
 package no.nav.sokos.spk.mottak.domain
 
-import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.Serializable
+import java.time.ZonedDateTime
 
-@Serializable
 data class ScheduledTask(
-    val id: String,
-    val ident: String,
-    val timestamp: LocalDateTime,
     val taskName: String,
+    val taskInstance: String,
+    val executionTime: ZonedDateTime,
+    val picked: Boolean,
+    val pickedBy: String?,
+    val lastSuccess: ZonedDateTime?,
+    val lastFailure: ZonedDateTime?,
 )
