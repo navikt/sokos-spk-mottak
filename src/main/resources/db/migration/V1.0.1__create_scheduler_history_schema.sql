@@ -4,7 +4,7 @@ drop table if exists scheduled_tasks_history;
 create table scheduled_tasks_history
 (
     id        uuid                     not null DEFAULT gen_random_uuid(),
-    ident     varchar(10)              not null,
+    ident     varchar(50)              not null,
     timestamp timestamp with time zone not null,
     task_name varchar(100)             not null,
     PRIMARY KEY (id)
