@@ -1,10 +1,10 @@
-package no.nav.sokos.spk.mottak.api.model
+package no.nav.sokos.spk.mottak.dto
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class JobTask(
+data class JobTaskInfo(
     val taskId: String,
     val taskName: String,
     val executionTime: Instant,
