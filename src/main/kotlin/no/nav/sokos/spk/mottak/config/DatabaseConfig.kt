@@ -5,9 +5,6 @@ import com.ibm.db2.jcc.DB2SimpleDataSource
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory
-import kotliquery.TransactionalSession
-import kotliquery.sessionOf
-import kotliquery.using
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.metrics.Metrics.prometheusMeterRegistry
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
@@ -117,10 +114,3 @@ object DatabaseConfig {
                 )
         }
 }
-
-fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A =
-    using(sessionOf(this, returnGeneratedKey = true)) { session ->
-        session.transaction { tx ->
-            operation(tx)
-        }
-    }

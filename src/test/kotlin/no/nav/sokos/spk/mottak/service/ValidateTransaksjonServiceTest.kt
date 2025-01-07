@@ -21,7 +21,6 @@ import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.TestHelper.verifyTransaksjon
 import no.nav.sokos.spk.mottak.TestHelper.verifyTransaksjonTilstand
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.AvvikTransaksjon
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_JA
 import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
@@ -45,6 +44,7 @@ import no.nav.sokos.spk.mottak.listener.WiremockListener
 import no.nav.sokos.spk.mottak.listener.WiremockListener.wiremock
 import no.nav.sokos.spk.mottak.pdl.GraphQLResponse
 import no.nav.sokos.spk.mottak.pdl.PdlService
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import org.apache.http.entity.ContentType.APPLICATION_JSON
 import java.sql.SQLException
 import java.time.LocalDate

@@ -8,7 +8,6 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
-import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.domain.mapToTransaksjon
@@ -21,6 +20,7 @@ import no.nav.sokos.spk.mottak.repository.PersonRepository
 import no.nav.sokos.spk.mottak.repository.READ_ROWS
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import java.time.Duration
 import java.time.Instant
 

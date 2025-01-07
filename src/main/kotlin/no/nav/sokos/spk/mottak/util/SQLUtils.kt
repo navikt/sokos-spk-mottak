@@ -1,6 +1,10 @@
 package no.nav.sokos.spk.mottak.util
 
+import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
+import kotliquery.TransactionalSession
+import kotliquery.sessionOf
+import kotliquery.using
 import kotlin.reflect.full.memberProperties
 
 object SQLUtils {
@@ -14,4 +18,11 @@ object SQLUtils {
         val props = T::class.memberProperties.associateBy { it.name }
         return props.keys.associateWith { props[it]?.get(this) }
     }
+
+    fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A =
+        using(sessionOf(this, returnGeneratedKey = true)) { session ->
+            session.transaction { tx ->
+                operation(tx)
+            }
+        }
 }

@@ -10,7 +10,6 @@ import io.mockk.spyk
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.DatabaseTestConfig
-import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
 import no.nav.sokos.spk.mottak.repository.AvvikTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
@@ -19,6 +18,7 @@ import no.nav.sokos.spk.mottak.repository.LopenummerRepository
 import no.nav.sokos.spk.mottak.repository.PersonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 object Db2Listener : TestListener {
     val dataSource = HikariDataSource(DatabaseTestConfig.hikariConfig())

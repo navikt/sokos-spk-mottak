@@ -8,7 +8,6 @@ import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper
 import no.nav.sokos.spk.mottak.TestHelper.verifyTransaksjon
 import no.nav.sokos.spk.mottak.TestHelper.verifyTransaksjonTilstand
-import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_JA
 import no.nav.sokos.spk.mottak.domain.FNR_ENDRET
 import no.nav.sokos.spk.mottak.domain.FNR_IKKE_ENDRET
@@ -17,6 +16,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.pdl.PdlService
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 internal class TransaksjonstolkningTest :
     BehaviorSpec({

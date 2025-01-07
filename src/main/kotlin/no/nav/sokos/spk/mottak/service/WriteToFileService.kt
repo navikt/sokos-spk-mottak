@@ -3,7 +3,6 @@ package no.nav.sokos.spk.mottak.service
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_RET
 import no.nav.sokos.spk.mottak.domain.FILTYPE_INNLEST
 import no.nav.sokos.spk.mottak.domain.FilInfo
@@ -11,6 +10,7 @@ import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.util.FileParser
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

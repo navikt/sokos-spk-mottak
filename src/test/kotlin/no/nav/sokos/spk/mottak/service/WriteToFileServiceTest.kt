@@ -12,7 +12,6 @@ import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.TestHelper.verifyFilInfo
 import no.nav.sokos.spk.mottak.config.SftpConfig
-import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_JA
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_RET
 import no.nav.sokos.spk.mottak.domain.FILTYPE_INNLEST
@@ -20,6 +19,7 @@ import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.SftpListener
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import java.io.IOException
 import java.sql.SQLException
 
