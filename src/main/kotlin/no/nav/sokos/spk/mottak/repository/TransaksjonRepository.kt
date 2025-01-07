@@ -103,7 +103,7 @@ class TransaksjonRepository(
                         "transaksjonId" to it.first,
                         "transTilstandId" to it.second,
                         "transaksjonTilstandType" to transaksjonTilstandType,
-                        "vedtaksId" to (vedtaksId?.trimStart { it == '0' } ),
+                        "vedtaksId" to (vedtaksId?.trimStart { it == '0' }),
                         "osStatus" to osStatus,
                     )
                 },
