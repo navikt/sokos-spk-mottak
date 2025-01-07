@@ -5,10 +5,15 @@ import com.github.dockerjava.api.model.PortBinding
 import com.github.dockerjava.api.model.Ports
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.listeners.TestListener
+import io.kotest.core.spec.Spec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
+import io.mockk.spyk
+import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.config.DatabaseTestConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.repository.ScheduledTaskRepository
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
@@ -29,7 +34,11 @@ object PostgresListener : TestListener {
         HikariDataSource(DatabaseTestConfig.hikariPostgresConfig(container.host))
     }
 
-    override suspend fun beforeTest(testCase: TestCase) {
+    val scheduledTaskRepository: ScheduledTaskRepository by lazy {
+        spyk(ScheduledTaskRepository(dataSource))
+    }
+
+    override suspend fun beforeSpec(spec: Spec) {
         container.start()
         Flyway
             .configure()
@@ -42,10 +51,17 @@ object PostgresListener : TestListener {
             .migrationsExecuted
     }
 
-    override suspend fun afterTest(
+    override suspend fun afterEach(
         testCase: TestCase,
         result: TestResult,
     ) {
+        dataSource.transaction { session ->
+            session.update(queryOf("DELETE FROM SCHEDULED_TASKS_HISTORY"))
+            session.update(queryOf("DELETE FROM SCHEDULED_TASKS"))
+        }
+    }
+
+    override suspend fun afterSpec(spec: Spec) {
         container.stop()
     }
 }

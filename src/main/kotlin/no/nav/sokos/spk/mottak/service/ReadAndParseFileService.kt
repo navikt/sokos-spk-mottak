@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariDataSource
 import kotliquery.TransactionalSession
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_AVV
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
@@ -21,6 +20,7 @@ import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.LopenummerRepository
 import no.nav.sokos.spk.mottak.util.FileParser
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndSluttRecord
 import java.text.SimpleDateFormat
 import java.util.Date

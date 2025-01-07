@@ -13,7 +13,6 @@ import io.mockk.verify
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_TREKK
@@ -28,6 +27,7 @@ import no.nav.sokos.spk.mottak.listener.MQListener.replyQueueMock
 import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 import java.sql.SQLException
 

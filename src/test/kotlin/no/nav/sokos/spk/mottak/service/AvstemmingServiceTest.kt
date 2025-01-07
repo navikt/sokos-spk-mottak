@@ -13,7 +13,6 @@ import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_IKKE_SKATTEPLIKTIG_UTBETALING
 import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
 import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_TREKK
@@ -31,6 +30,7 @@ import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingProducerMetricCounter
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.AksjonType
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.AvstemmingType
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata

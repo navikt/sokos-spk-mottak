@@ -1,0 +1,2 @@
+insert into public.scheduled_tasks_history (id, ident, timestamp, task_name)
+values ('bfe25258-a43c-457c-88d0-c9c26c9b0e9e', 'W12345', '2025-01-03 15:00:06.771784 +00:00', 'readParseFileAndValidateTransactions');

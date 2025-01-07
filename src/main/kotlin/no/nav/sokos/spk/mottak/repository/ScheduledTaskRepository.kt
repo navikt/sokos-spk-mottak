@@ -6,9 +6,9 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.ScheduledTask
 import no.nav.sokos.spk.mottak.domain.ScheduledTaskHistory
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 class ScheduledTaskRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.postgresDataSource(),

@@ -14,7 +14,6 @@ import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.TestHelper.toUtbetalingsOppdrag
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.config.transaction
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_OPPDRAG
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_OK
@@ -30,6 +29,7 @@ import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingProducerMetricCounter
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.util.JaxbUtils
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 import java.sql.SQLException
 
