@@ -41,7 +41,7 @@ spec:
               offset 5m) or vector(0)) > 0'
           for: 2m
           annotations:
-            action: "<https://logs.adeo.no/app/discover#/?_g=(time:(from:now-1d,to:now))&_a=(filters:!((query:(match_phrase:(application:'sokos-spk-mottak'))),(query:(match_phrase:(cluster:'dev-fss'))),(query:(match_phrase:(level:'error')))))|Check logs>"
+            action: "<https://logs.adeo.no/app/discover#/?_g=(time:(from:now-1d,to:now))&_a=(filters:!((query:(match_phrase:(application:'sokos-spk-mottak'))),(query:(match_phrase:(cluster:'dev-fss'))),(query:(match_phrase:(level:'Error')))))|Check logs>"
             summary: "`kubectl logs <podname> -n okonomi`"
           labels:
             namespace: okonomi
@@ -57,7 +57,7 @@ spec:
               offset 5m) or vector(0)) > 5'
           for: 2m
           annotations:
-            action: "Sjekk warning loggene i sokos-spk-mottak"
+            action: "<https://logs.adeo.no/app/discover#/?_g=(time:(from:now-1d,to:now))&_a=(filters:!((query:(match_phrase:(application:'sokos-spk-mottak'))),(query:(match_phrase:(cluster:'dev-fss'))),(query:(match_phrase:(level:'Warning')))))|Check logs>"
             summary: "`kubectl logs <podname> -n okonomi`"
           labels:
             namespace: okonomi
