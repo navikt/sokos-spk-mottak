@@ -217,10 +217,6 @@ tasks {
         }
     }
 
-    ("jar") {
-        enabled = false
-    }
-
     withType<Test>().configureEach {
         useJUnitPlatform()
 
@@ -236,5 +232,32 @@ tasks {
 
     withType<Wrapper> {
         gradleVersion = "8.11"
+    }
+
+    ("jar") {
+        enabled = false
+    }
+
+    ("build") {
+        dependsOn("copyPreCommitHook")
+    }
+
+    register<Copy>("copyPreCommitHook") {
+        from(".scripts/pre-commit")
+        into(".git/hooks")
+        filePermissions {
+            user {
+                execute = true
+            }
+        }
+        doFirst {
+            println("Installing git hooks...")
+        }
+        doLast {
+            println("Git hooks installed successfully.")
+        }
+        description = "Copy pre-commit hook to .git/hooks"
+        group = "git hooks"
+        outputs.upToDateWhen { false }
     }
 }
