@@ -31,6 +31,7 @@ spec:
       memory: 4096Mi
   ingresses:
     - https://sokos-spk-mottak.intern.nav.no
+    - https://sokos-spk-mottak.prod-fss-pub.nais.io
   prometheus:
     enabled: true
     path: /internal/metrics
@@ -44,6 +45,9 @@ spec:
   accessPolicy:
     inbound:
       rules:
+        - application: sokos-utbetalingsportalen
+          namespace: okonomi
+          cluster: prod-gcp
         - application: sokos-utbetalingsportalen
           namespace: okonomi
           cluster: prod-gcp
