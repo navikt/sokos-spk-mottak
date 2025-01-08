@@ -142,7 +142,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("com.h2database:h2:$h2Version")
     testImplementation("org.apache.activemq:artemis-jakarta-server:$activemqVersion")
-    testImplementation("org.wiremock:wiremock:$wiremockVersion")
+    testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")
 }
 
 // Vulnerability fix because of id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
