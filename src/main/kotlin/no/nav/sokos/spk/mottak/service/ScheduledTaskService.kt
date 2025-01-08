@@ -19,8 +19,8 @@ class ScheduledTaskService(
                 it.executionTime.toInstant().toKotlinInstant(),
                 it.picked,
                 it.pickedBy,
-                it.lastSuccess?.toInstant()?.toKotlinInstant(),
                 it.lastFailure?.toInstant()?.toKotlinInstant(),
+                it.lastSuccess?.toInstant()?.toKotlinInstant(),
                 scheduledTaskMap[it.taskName]?.ident,
             )
         }
