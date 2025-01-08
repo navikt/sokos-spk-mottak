@@ -35,6 +35,12 @@ spec:
   prometheus:
     enabled: true
     path: /internal/metrics
+  secureLogs:
+    enabled: true
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
   azure:
     application:
       enabled: true
@@ -45,9 +51,6 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: sokos-utbetalingsportalen
-          namespace: okonomi
-          cluster: prod-gcp
         - application: sokos-utbetalingsportalen
           namespace: okonomi
           cluster: prod-gcp
@@ -87,15 +90,15 @@ spec:
     - name: VAULT_MOUNTPATH
       value: postgresql/prod-fss/
 
-    # MQ
+    # MQ Sjekk om alle disse verdiene er riktig
     - name: MQ_HOSTNAME
-      value: mqls02.preprod.local
+      value: mpls02.adeo.no
     - name: MQ_PORT
-      value: "1413"
+      value: "1414"
     - name: MQ_QUEUE_MANAGER_NAME
-      value: MQLS02
+      value: MPLS02
     - name: MQ_CHANNEL_NAME
-      value: Q1_MOT
+      value: P_MOT
     - name: MQ_UTBETALING_QUEUE_NAME
       value: QA.P231.OB04_OPPDRAG_MOT_XML
     - name: MQ_UTBETALING_REPLY_QUEUE_NAME
@@ -109,7 +112,7 @@ spec:
     - name: MQ_BATCH_SIZE
       value: "200"
     - name: MQ_LISTENER_ENABLED
-      value: "true"
+      value: "false"
 
     # PDL
     - name: PDL_URL
