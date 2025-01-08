@@ -40,7 +40,7 @@ object JobTaskConfig {
                 recurringSendUtbetalingTransaksjonToOppdragZTask(),
                 recurringSendTrekkTransaksjonToOppdragZTask(),
                 recurringGrensesnittAvstemmingTask(),
-            ).failureLogging(LogLevel.ERROR, true)
+            ).failureLogging(LogLevel.ERROR, false)
             .build()
 
     internal fun recurringReadParseFileAndValidateTransactionsTask(
