@@ -52,11 +52,11 @@ jobs:
       resource: .nais/naiserator-dev-qx.yaml
       image: ${{ needs.build.outputs.image }}
 
-#  deploy-prod:
-#    needs: [build, deploy-dev, deploy-qx]
-#    name: Deploy to prod-gcp
-#    uses: navikt/monster-gha-workflows/.github/workflows/nais-app-deploy.yaml@main
-#    with:
-#      cluster: prod-fss
-#      resource: .nais/naiserator-prod.yaml
-#      image: ${{ needs.build.outputs.image }}
+  deploy-prod:
+    needs: [build, deploy-dev, deploy-qx]
+    name: Deploy to prod-gcp
+    uses: navikt/monster-gha-workflows/.github/workflows/nais-app-deploy.yaml@main
+    with:
+      cluster: prod-fss
+      resource: .nais/naiserator-prod.yaml
+      image: ${{ needs.build.outputs.image }}
