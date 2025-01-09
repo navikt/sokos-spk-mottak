@@ -54,7 +54,7 @@ jobs:
 
   deploy-prod:
     needs: [build, deploy-dev, deploy-qx]
-    name: Deploy to prod-gcp
+    name: Deploy to prod-fss
     uses: navikt/monster-gha-workflows/.github/workflows/nais-app-deploy.yaml@main
     with:
       cluster: prod-fss
