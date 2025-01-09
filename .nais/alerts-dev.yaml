@@ -41,8 +41,8 @@ spec:
               offset 5m) or vector(0)) > 0'
           for: 2m
           annotations:
-            action: "<https://logs.adeo.no/app/discover#/?_g=(time:(from:now-1d,to:now))&_a=(filters:!((query:(match_phrase:(application:'{{ $labels.app }}'))),(query:(match_phrase:(cluster:'dev-fss'))),(query:(match_phrase:(level:'Error')))))|Sjekk loggene>"
-            summary: "`kubectl logs {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for logger"
+            action: "<https://logs.adeo.no/app/discover#/?_g=(time:(from:now-1d,to:now))&_a=(filters:!((query:(match_phrase:(application:'sokos-spk-mottak'))),(query:(match_phrase:(cluster:'dev-fss'))),(query:(match_phrase:(level:'Error')))))|Sjekk loggene>"
+            summary: "`kubectl logs -l app=sokos-spk-mottak -n okonomi` for logger"
           labels:
             namespace: okonomi
             severity: danger
@@ -57,8 +57,8 @@ spec:
               offset 5m) or vector(0)) > 5'
           for: 2m
           annotations:
-            action: "<https://logs.adeo.no/app/discover#/?_g=(time:(from:now-1d,to:now))&_a=(filters:!((query:(match_phrase:(application:'{{ $labels.app }}'))),(query:(match_phrase:(cluster:'dev-fss'))),(query:(match_phrase:(level:'Warning')))))|Sjekk loggene>"
-            summary: "`kubectl logs {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for logger"
+            action: "<https://logs.adeo.no/app/discover#/?_g=(time:(from:now-1d,to:now))&_a=(filters:!((query:(match_phrase:(application:'sokos-spk-mottak'))),(query:(match_phrase:(cluster:'dev-fss'))),(query:(match_phrase:(level:'Warning')))))|Sjekk loggene>"
+            summary: "`kubectl logs -l app=sokos-spk-mottak -n okonomi` for logger"
           labels:
             namespace: okonomi
             severity: warning
