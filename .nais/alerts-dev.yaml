@@ -34,7 +34,11 @@ spec:
             alert_type: custom
 
         - alert: Applikasjonen logger høy andel errors
-          expr: sum(max_over_time(log_messages_errors{namespace="{{ $labels.namespace }}",app="{{ $labels.app }}",level="Error"}[5m]) or vector(0)) - sum(max_over_time(log_messages_errors{namespace="{{ $labels.namespace }}",app="{{ $labels.app }}",level="Error"}[5m] offset 5m) or vector(0)) > 0'
+          expr:
+            'sum(max_over_time(log_messages_errors{namespace="{{ $labels.kubernetes_namespace }}",app="{{ $labels.app }}",level="Error"}[5m])
+              or vector(0)) -
+              sum(max_over_time(log_messages_errors{namespace="{{ $labels.kubernetes_namespace }}",app="{{ $labels.app }}",level="Error"}[5m]
+              offset 5m) or vector(0)) > 0'
           for: 2m
           annotations:
             action: "<https://logs.adeo.no/app/discover#/?_g=(time:(from:now-1d,to:now))&_a=(filters:!((query:(match_phrase:(application:'{{ $labels.app }}'))),(query:(match_phrase:(cluster:'dev-fss'))),(query:(match_phrase:(level:'Error')))))|Sjekk loggene>"
@@ -46,7 +50,11 @@ spec:
             alert_type: custom
 
         - alert: Applikasjonen logger høy andel warnings
-          expr: sum(max_over_time(log_messages_errors{namespace="{{ $labels.namespace }}",app="{{ $labels.app }}",level="Warning"}[5m]) or vector(0)) - sum(max_over_time(log_messages_errors{namespace="{{ $labels.namespace }}",app="{{ $labels.app }}",level="Warning"}[5m] offset 5m) or vector(0)) > 5'
+          expr:
+            'sum(max_over_time(log_messages_errors{namespace="{{ $labels.kubernetes_namespace }}",app="{{ $labels.app }}",level="Warning"}[5m])
+              or vector(0)) -
+              sum(max_over_time(log_messages_errors{namespace="{{ $labels.kubernetes_namespace }}",app="{{ $labels.app }}",level="Warning"}[5m]
+              offset 5m) or vector(0)) > 5'
           for: 2m
           annotations:
             action: "<https://logs.adeo.no/app/discover#/?_g=(time:(from:now-1d,to:now))&_a=(filters:!((query:(match_phrase:(application:'{{ $labels.app }}'))),(query:(match_phrase:(cluster:'dev-fss'))),(query:(match_phrase:(level:'Warning')))))|Sjekk loggene>"
