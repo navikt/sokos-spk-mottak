@@ -29,15 +29,15 @@ spec:
             summary: "{{ $labels.container }} restarter mange ganger"
           labels:
             namespace: okonomi
-            severity: danger
+            severity: critical
             sokos_spk_mottak_type: sokos-spk-mottak
             alert_type: custom
 
         - alert: Applikasjonen logger høy andel errors
           expr:
-            'sum(max_over_time(log_messages_errors{namespace="{{ $labels.kubernetes_namespace }}",app="{{ $labels.app }}",level="Error"}[5m])
+            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Error"}[5m])
               or vector(0)) -
-              sum(max_over_time(log_messages_errors{namespace="{{ $labels.kubernetes_namespace }}",app="{{ $labels.app }}",level="Error"}[5m]
+              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Error"}[5m]
               offset 5m) or vector(0)) > 0'
           for: 2m
           annotations:
@@ -51,9 +51,9 @@ spec:
 
         - alert: Applikasjonen logger høy andel warnings
           expr:
-            'sum(max_over_time(log_messages_errors{namespace="{{ $labels.kubernetes_namespace }}",app="{{ $labels.app }}",level="Warning"}[5m])
+            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Warning"}[5m])
               or vector(0)) -
-              sum(max_over_time(log_messages_errors{namespace="{{ $labels.kubernetes_namespace }}",app="{{ $labels.app }}",level="Warning"}[5m]
+              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-spk-mottak",level="Warning"}[5m]
               offset 5m) or vector(0)) > 5'
           for: 2m
           annotations:
@@ -82,7 +82,7 @@ spec:
             name: slack-webhook
           channel: '#team-moby-alerts-dev'
           iconEmoji: ':alert:'
-          username: 'Alert dev-fss ({{ $labels.app }})'
+          username: 'Alert dev-fss (sokos-spk-mottak)'
           sendResolved: false
           httpConfig:
             proxyUrl: http://webproxy.nais:8088

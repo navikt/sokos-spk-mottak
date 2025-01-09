@@ -77,7 +77,6 @@ class ReadAndParseFileService(
 
                     else -> {
                         val errorMessage = "Ukjent feil ved innlesing av fil: $filename. Feilmelding: ${exception.message}"
-                        logger.error { errorMessage }
                         throw MottakException(errorMessage)
                     }
                 }
