@@ -231,7 +231,7 @@ tasks {
     }
 
     withType<Wrapper> {
-        gradleVersion = "8.11"
+        gradleVersion = "8.12"
     }
 
     ("jar") {
