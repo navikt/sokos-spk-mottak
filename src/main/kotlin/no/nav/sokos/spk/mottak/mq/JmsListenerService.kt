@@ -32,7 +32,7 @@ class JmsListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
     utbetalingReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
     trekkReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)
     private val utbetalingMQListener = jmsContext.createConsumer(utbetalingReplyQueue)

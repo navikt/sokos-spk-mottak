@@ -13,7 +13,7 @@ import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 
 class PersonRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val findByFnrTimer = Metrics.timer(DATABASE_CALL, "PersonRepository", "findByFnr")
     private val insertTimer = Metrics.timer(DATABASE_CALL, "PersonRepository", "insert")

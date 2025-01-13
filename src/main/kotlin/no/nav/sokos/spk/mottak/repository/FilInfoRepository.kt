@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak.repository
 
 import com.zaxxer.hikari.HikariDataSource
+import java.time.LocalDate
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
@@ -17,10 +18,9 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_OK
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
-import java.time.LocalDate
 
 class FilInfoRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val getByFilTilstandAndAllInnTransaksjonIsBehandletTimer = Metrics.timer(DATABASE_CALL, "FilInfoRepository", "getByFilTilstandAndAllInnTransaksjonIsBehandlet")
     private val getByAvstemmingStatusIsOSOTimer = Metrics.timer(DATABASE_CALL, "FilInfoRepository", "getByAvstemmingStatusIsOSO")

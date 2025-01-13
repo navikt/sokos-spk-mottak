@@ -1,11 +1,11 @@
 package no.nav.sokos.spk.mottak.util
 
 import com.zaxxer.hikari.HikariDataSource
+import kotlin.reflect.full.memberProperties
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
-import kotlin.reflect.full.memberProperties
 
 object SQLUtils {
     inline fun <reified T : Any> Row.optionalOrNull(columnLabel: String): T? {

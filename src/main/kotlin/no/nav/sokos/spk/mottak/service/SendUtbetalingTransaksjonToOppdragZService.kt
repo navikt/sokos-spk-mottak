@@ -4,6 +4,8 @@ import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.xml.bind.JAXBElement
+import java.time.Duration
+import java.time.Instant
 import kotliquery.Session
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
@@ -28,13 +30,11 @@ import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import no.trygdeetaten.skjema.oppdrag.ObjectFactory
 import no.trygdeetaten.skjema.oppdrag.Oppdrag
-import java.time.Duration
-import java.time.Instant
 
 private val logger = KotlinLogging.logger { }
 
 class SendUtbetalingTransaksjonToOppdragZService(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
     private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),

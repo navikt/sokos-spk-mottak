@@ -1,6 +1,8 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.zaxxer.hikari.HikariDataSource
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_RET
@@ -11,14 +13,12 @@ import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.util.FileParser
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 private val logger = KotlinLogging.logger {}
 private const val OUTPUT_FILE_NAME = "SPK_NAV_%s_ANV"
 
 class WriteToFileService(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource),
     private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),
     private val ftpService: FtpService = FtpService(),

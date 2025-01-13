@@ -5,26 +5,52 @@ import com.ibm.db2.jcc.DB2SimpleDataSource
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory
+import java.time.Duration
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.metrics.Metrics.prometheusMeterRegistry
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
-import java.time.Duration
 
 private val logger = KotlinLogging.logger {}
 
 object DatabaseConfig {
-    private val db2UserDataSource: HikariDataSource = HikariDataSource(db2HikariConfig())
-    private val postgresUserDataSource: HikariDataSource = createPostgresDataSource()
+    val db2DataSource: HikariDataSource by lazy {
+        HikariDataSource(db2HikariConfig())
+    }
+
+    val postgresDataSource: HikariDataSource by lazy {
+        HikariDataSource(postgresHikariConfig())
+    }
 
     init {
         Runtime.getRuntime().addShutdownHook(
             Thread {
-                db2UserDataSource.close()
-                postgresUserDataSource.close()
+                db2DataSource.close()
+                postgresDataSource.close()
             },
         )
+    }
+
+    fun postgresMigrate(
+        dataSource: HikariDataSource =
+            createPostgresDataSource(
+                hikariConfig = postgresHikariConfig("postgres-admin-pool"),
+                role = PropertiesConfig.PostgresProperties().adminUser,
+            ),
+    ) {
+        dataSource.use { connection ->
+            Flyway
+                .configure()
+                .dataSource(connection)
+                .initSql("""SET ROLE "${PropertiesConfig.PostgresProperties().adminUser}"""")
+                .lockRetryCount(-1)
+                .validateMigrationNaming(true)
+                .load()
+                .migrate()
+                .migrationsExecuted
+            logger.info { "Migration finished" }
+        }
     }
 
     private fun db2HikariConfig(): HikariConfig {
@@ -72,31 +98,6 @@ object DatabaseConfig {
                     initializationFailTimeout = Duration.ofMinutes(5).toMillis()
                 }
             metricsTrackerFactory = MicrometerMetricsTrackerFactory(prometheusMeterRegistry)
-        }
-    }
-
-    fun db2DataSource(): HikariDataSource = db2UserDataSource
-
-    fun postgresDataSource(): HikariDataSource = postgresUserDataSource
-
-    fun postgresMigrate(
-        dataSource: HikariDataSource =
-            createPostgresDataSource(
-                hikariConfig = postgresHikariConfig("postgres-admin-pool"),
-                role = PropertiesConfig.PostgresProperties().adminUser,
-            ),
-    ) {
-        dataSource.use { connection ->
-            Flyway
-                .configure()
-                .dataSource(connection)
-                .initSql("""SET ROLE "${PropertiesConfig.PostgresProperties().adminUser}"""")
-                .lockRetryCount(-1)
-                .validateMigrationNaming(true)
-                .load()
-                .migrate()
-                .migrationsExecuted
-            logger.info { "Migration finished" }
         }
     }
 

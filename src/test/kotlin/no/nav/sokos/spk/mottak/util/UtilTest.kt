@@ -2,15 +2,15 @@ package no.nav.sokos.spk.mottak.util
 
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
+import java.time.LocalDate
+import java.time.LocalDateTime
+import javax.xml.datatype.DatatypeFactory
 import no.nav.sokos.spk.mottak.util.Utils.booleanToString
 import no.nav.sokos.spk.mottak.util.Utils.toAvstemmingPeriode
 import no.nav.sokos.spk.mottak.util.Utils.toISOString
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateString
 import no.nav.sokos.spk.mottak.util.Utils.toXMLGregorianCalendar
-import java.time.LocalDate
-import java.time.LocalDateTime
-import javax.xml.datatype.DatatypeFactory
 
 internal class UtilTest :
     ExpectSpec({

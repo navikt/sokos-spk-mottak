@@ -14,7 +14,7 @@ import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 
 class TransaksjonTilstandRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "insertBatch")
     private val getByTransaksjonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonTilstandRepository", "getByTransaksjonId")

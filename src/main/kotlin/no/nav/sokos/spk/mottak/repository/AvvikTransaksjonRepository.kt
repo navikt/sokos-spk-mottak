@@ -15,7 +15,7 @@ import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
 
 class AvvikTransaksjonRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val insertBatchTimer = Metrics.timer(DATABASE_CALL, "AvvikTransaksjonRepository", "insertBatch")
 

@@ -10,6 +10,7 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.sql.SQLException
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
@@ -29,7 +30,6 @@ import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
-import java.sql.SQLException
 
 const val TREKK_BATCH_SIZE = 2
 

@@ -1,6 +1,8 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.zaxxer.hikari.HikariDataSource
+import java.text.SimpleDateFormat
+import java.util.Date
 import kotliquery.TransactionalSession
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
@@ -22,14 +24,12 @@ import no.nav.sokos.spk.mottak.repository.LopenummerRepository
 import no.nav.sokos.spk.mottak.util.FileParser
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndSluttRecord
-import java.text.SimpleDateFormat
-import java.util.Date
 
 private const val BATCH_SIZE: Int = 20000
 private val logger = KotlinLogging.logger {}
 
 class ReadAndParseFileService(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource),
     private val lopenummerRepository: LopenummerRepository = LopenummerRepository(dataSource),
     private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),

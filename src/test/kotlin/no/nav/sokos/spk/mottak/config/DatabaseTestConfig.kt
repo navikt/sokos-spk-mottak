@@ -1,8 +1,8 @@
 package no.nav.sokos.spk.mottak.config
 
 import com.zaxxer.hikari.HikariConfig
-import org.postgresql.ds.PGSimpleDataSource
 import java.time.Duration
+import org.postgresql.ds.PGSimpleDataSource
 
 object DatabaseTestConfig {
     fun hikariConfig() =

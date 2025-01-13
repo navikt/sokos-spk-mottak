@@ -22,7 +22,7 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.optionalOrNull
 import no.nav.sokos.spk.mottak.util.Utils.booleanToString
 
 class TransaksjonRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val findTransaksjonDetaljerByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonDetaljerByFilInfoId")
     private val findTransaksjonOppsummeringByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonOppsummeringByFilInfoId")

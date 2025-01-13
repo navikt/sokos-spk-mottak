@@ -5,6 +5,12 @@ import com.github.dockerjava.api.model.PortBinding
 import com.github.dockerjava.api.model.Ports
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.OutputStreamWriter
+import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
+import java.util.Base64
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpConfig
@@ -21,12 +27,6 @@ import org.testcontainers.shaded.org.bouncycastle.crypto.util.OpenSSHPrivateKeyU
 import org.testcontainers.shaded.org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemObject
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.OutputStreamWriter
-import java.nio.charset.StandardCharsets
-import java.security.SecureRandom
-import java.util.Base64
 
 private val logger = KotlinLogging.logger {}
 

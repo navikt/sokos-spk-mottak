@@ -1,5 +1,7 @@
 package no.nav.sokos.spk.mottak
 
+import java.time.LocalDate
+import java.time.LocalDateTime
 import no.nav.pdl.enums.IdentGruppe
 import no.nav.pdl.hentidenterbolk.HentIdenterBolkResult
 import no.nav.pdl.hentidenterbolk.IdentInformasjon
@@ -12,8 +14,6 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.TransaksjonStatus
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 const val SPK_OK = "P611.ANV.NAV.HUB.SPK.L000034.D240104.T003017_OK.txt"
 const val SPK_FEIL_UGYLDIG_ANVISER = "P611.ANV.NAV.HUB.SPK.L003919.D240104.T003017_UGYLDIG_ANVISER.txt"
