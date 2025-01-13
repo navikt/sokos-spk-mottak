@@ -3,6 +3,7 @@ package no.nav.sokos.spk.mottak.domain.converter
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import java.time.LocalDate
 import no.nav.sokos.spk.mottak.TestData
 import no.nav.sokos.spk.mottak.domain.MOT
 import no.nav.sokos.spk.mottak.domain.SPKMOT
@@ -12,7 +13,6 @@ import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdragsLinje15
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateString
 import no.nav.sokos.spk.mottak.util.Utils.toXMLGregorianCalendar
 import no.trygdeetaten.skjema.oppdrag.TfradragTillegg
-import java.time.LocalDate
 
 class OppdragConverterTest :
     ExpectSpec({

@@ -1,6 +1,8 @@
 package no.nav.sokos.spk.mottak.service
 
 import com.zaxxer.hikari.HikariDataSource
+import java.time.Duration
+import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -21,8 +23,6 @@ import no.nav.sokos.spk.mottak.repository.READ_ROWS
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
-import java.time.Duration
-import java.time.Instant
 
 private val logger = KotlinLogging.logger {}
 private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
@@ -30,7 +30,7 @@ private const val UGYLDIG_FNR = "02"
 private const val CHUNKED_SZIE = 1000
 
 class ValidateTransaksjonService(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource),
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),

@@ -7,7 +7,7 @@ import no.nav.sokos.spk.mottak.dto.JobTaskInfo
 import no.nav.sokos.spk.mottak.repository.ScheduledTaskRepository
 
 class ScheduledTaskService(
-    private val dataSource: HikariDataSource = DatabaseConfig.postgresDataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.postgresDataSource,
     private val scheduledTaskRepository: ScheduledTaskRepository = ScheduledTaskRepository(dataSource),
 ) {
     fun getScheduledTaskInformation(): List<JobTaskInfo> {

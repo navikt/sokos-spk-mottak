@@ -11,6 +11,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
+import java.sql.SQLException
+import java.time.LocalDate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotliquery.queryOf
@@ -46,8 +48,6 @@ import no.nav.sokos.spk.mottak.pdl.GraphQLResponse
 import no.nav.sokos.spk.mottak.pdl.PdlService
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import org.apache.http.entity.ContentType.APPLICATION_JSON
-import java.sql.SQLException
-import java.time.LocalDate
 
 internal class ValidateTransaksjonServiceTest :
     BehaviorSpec({

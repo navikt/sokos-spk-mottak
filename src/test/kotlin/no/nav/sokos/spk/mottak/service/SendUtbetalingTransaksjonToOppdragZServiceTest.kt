@@ -10,6 +10,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import java.sql.SQLException
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.TestHelper.toUtbetalingsOppdrag
@@ -31,7 +32,6 @@ import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue
-import java.sql.SQLException
 
 const val UTBETALING_BATCH_SIZE = 2
 

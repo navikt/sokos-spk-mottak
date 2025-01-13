@@ -8,6 +8,8 @@ import com.github.kagkarlsson.scheduler.task.helper.RecurringTask
 import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import com.github.kagkarlsson.scheduler.task.schedule.Schedules.cron
 import com.zaxxer.hikari.HikariDataSource
+import java.time.Duration
+import java.time.LocalDateTime
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
@@ -19,8 +21,6 @@ import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragZServic
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 import no.nav.sokos.spk.mottak.service.WriteToFileService
 import no.nav.sokos.spk.mottak.util.CallIdUtils.withCallId
-import java.time.Duration
-import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -30,7 +30,7 @@ private const val JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ = "sendUtbeta
 private const val JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS = "readParseFileAndValidateTransactions"
 
 object JobTaskConfig {
-    fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource()): Scheduler =
+    fun scheduler(dataSource: HikariDataSource = DatabaseConfig.postgresDataSource): Scheduler =
         Scheduler
             .create(dataSource)
             .enableImmediateExecution()

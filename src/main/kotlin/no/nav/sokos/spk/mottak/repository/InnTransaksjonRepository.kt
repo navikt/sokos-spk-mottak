@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak.repository
 
 import com.zaxxer.hikari.HikariDataSource
+import java.time.LocalDateTime
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
@@ -27,12 +28,11 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_11
 import no.nav.sokos.spk.mottak.repository.TransaksjonValidatorQuery.VALIDATOR_16_GYLDIG_GRAD
 import no.nav.sokos.spk.mottak.util.SQLUtils.optionalOrNull
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
-import java.time.LocalDateTime
 
 const val READ_ROWS: Int = 10000
 
 class InnTransaksjonRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val getByFilInfoIdTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "getByFilInfoId")
     private val findAllFnrWithoutPersonIdTimer = Metrics.timer(DATABASE_CALL, "InnTransaksjonRepository", "findAllFnrWithoutPersonId")

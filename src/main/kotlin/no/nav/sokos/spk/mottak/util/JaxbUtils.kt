@@ -2,13 +2,13 @@ package no.nav.sokos.spk.mottak.util
 
 import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.Marshaller
-import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
-import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.ObjectFactory
-import no.trygdeetaten.skjema.oppdrag.Oppdrag
 import java.io.StringReader
 import java.io.StringWriter
 import javax.xml.stream.XMLInputFactory
 import javax.xml.transform.stream.StreamSource
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.ObjectFactory
+import no.trygdeetaten.skjema.oppdrag.Oppdrag
 
 object JaxbUtils {
     private val jaxbContextOppdrag = JAXBContext.newInstance(Oppdrag::class.java)

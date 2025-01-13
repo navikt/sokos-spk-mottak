@@ -1,8 +1,8 @@
 package no.nav.sokos.spk.mottak.util
 
 import io.ktor.http.HttpHeaders
-import org.slf4j.MDC
 import java.util.UUID
+import org.slf4j.MDC
 
 object CallIdUtils {
     fun withCallId(block: () -> Unit) {

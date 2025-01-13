@@ -13,7 +13,7 @@ import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 
 class LopenummerRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val findMaxLopeNummerTimer = Metrics.timer(DATABASE_CALL, "LopenummerRepository", "findMaxLopeNummer")
     private val updateLopeNummerTimer = Metrics.timer(DATABASE_CALL, "LopenummerRepository", "updateLopeNummer")

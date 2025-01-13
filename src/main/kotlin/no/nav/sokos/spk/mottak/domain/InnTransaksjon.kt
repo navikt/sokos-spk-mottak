@@ -1,9 +1,9 @@
 package no.nav.sokos.spk.mottak.domain
 
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.util.Utils.booleanToString
 import java.time.LocalDate
 import java.time.LocalDateTime
+import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.util.Utils.booleanToString
 
 data class InnTransaksjon(
     val innTransaksjonId: Int? = null,

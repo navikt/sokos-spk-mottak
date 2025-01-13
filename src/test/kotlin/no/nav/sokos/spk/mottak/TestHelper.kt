@@ -3,6 +3,10 @@ package no.nav.sokos.spk.mottak
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import jakarta.xml.bind.JAXBElement
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.time.LocalDate
+import java.util.stream.Collectors
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FilInfo
@@ -17,10 +21,6 @@ import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdrag110
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdragsLinje150
 import no.trygdeetaten.skjema.oppdrag.ObjectFactory
 import no.trygdeetaten.skjema.oppdrag.Oppdrag
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.time.LocalDate
-import java.util.stream.Collectors
 
 object TestHelper {
     fun readFromResource(filename: String): String {

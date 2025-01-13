@@ -1,5 +1,7 @@
 package no.nav.sokos.spk.mottak.domain.converter
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import no.nav.sokos.spk.mottak.domain.SPK_TSS
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY
 import no.nav.sokos.spk.mottak.domain.Transaksjon
@@ -13,8 +15,6 @@ import no.trygdeetaten.skjema.oppdrag.Oppdrag110
 import no.trygdeetaten.skjema.oppdrag.OppdragsEnhet120
 import no.trygdeetaten.skjema.oppdrag.OppdragsLinje150
 import no.trygdeetaten.skjema.oppdrag.TfradragTillegg
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 private const val DEFAULT_KODE_AKSJON = "1"
 private const val SATSTYOE_MND = "MND"

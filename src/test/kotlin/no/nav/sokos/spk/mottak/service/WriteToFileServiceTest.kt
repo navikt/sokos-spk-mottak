@@ -8,6 +8,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
+import java.io.IOException
+import java.sql.SQLException
 import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.TestHelper.verifyFilInfo
@@ -20,8 +22,6 @@ import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.SftpListener
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
-import java.io.IOException
-import java.sql.SQLException
 
 internal class WriteToFileServiceTest :
     BehaviorSpec({

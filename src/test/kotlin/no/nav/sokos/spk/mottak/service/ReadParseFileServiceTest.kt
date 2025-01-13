@@ -8,6 +8,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
+import java.io.IOException
+import java.time.LocalDate
 import no.nav.sokos.spk.mottak.SPK_FEIL_FILLOPENUMMER_I_BRUK
 import no.nav.sokos.spk.mottak.SPK_FEIL_FORVENTET_FILLOPENUMMER
 import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_ANTRECORDS
@@ -41,8 +43,6 @@ import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.Db2Listener.dataSource
 import no.nav.sokos.spk.mottak.listener.SftpListener
-import java.io.IOException
-import java.time.LocalDate
 
 private const val MAX_LOPENUMMER = 33
 

@@ -11,7 +11,7 @@ import no.nav.sokos.spk.mottak.domain.ScheduledTaskHistory
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 class ScheduledTaskRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.postgresDataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.postgresDataSource,
 ) {
     fun insert(
         ident: String,

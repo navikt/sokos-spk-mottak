@@ -3,6 +3,7 @@ package no.nav.sokos.spk.mottak.service
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
+import java.util.LinkedList
 import kotlinx.datetime.toJavaLocalDate
 import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
@@ -27,14 +28,13 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
-import java.util.LinkedList
 
 private val logger = KotlinLogging.logger { }
 private const val ANTALL_DETALJER_PER_MELDING = 65
 private const val ANTALL_IKKE_UTFORT_TRANSAKSJON = 500
 
 class AvstemmingService(
-    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource(),
+    private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
     private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val producer: JmsProducerService =
