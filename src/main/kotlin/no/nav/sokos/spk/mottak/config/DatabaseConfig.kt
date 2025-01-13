@@ -22,7 +22,7 @@ object DatabaseConfig {
     }
 
     val postgresDataSource: HikariDataSource by lazy {
-        HikariDataSource(postgresHikariConfig())
+        createPostgresDataSource()
     }
 
     init {
