@@ -2,6 +2,7 @@ package no.nav.sokos.spk.mottak.service
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+
 import no.nav.sokos.spk.mottak.config.SftpConfig
 import no.nav.sokos.spk.mottak.listener.SftpListener
 

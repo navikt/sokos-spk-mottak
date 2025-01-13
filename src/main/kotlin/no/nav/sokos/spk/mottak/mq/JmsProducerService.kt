@@ -7,6 +7,7 @@ import jakarta.jms.JMSContext
 import jakarta.jms.JMSProducer
 import jakarta.jms.Queue
 import mu.KotlinLogging
+
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.exception.MottakException
 

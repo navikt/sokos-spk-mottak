@@ -10,13 +10,14 @@ import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.mockk.spyk
 import kotliquery.queryOf
+import org.flywaydb.core.Flyway
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.containers.wait.strategy.Wait
+
 import no.nav.sokos.spk.mottak.config.DatabaseTestConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.repository.ScheduledTaskRepository
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
-import org.flywaydb.core.Flyway
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.wait.strategy.Wait
 
 object PostgresListener : TestListener {
     private val container =

@@ -1,13 +1,15 @@
 package no.nav.sokos.spk.mottak.mq
 
+import kotlinx.serialization.json.Json
+
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.jms.ConnectionFactory
 import jakarta.jms.JMSContext
 import jakarta.jms.Message
 import jakarta.jms.Queue
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
+
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig

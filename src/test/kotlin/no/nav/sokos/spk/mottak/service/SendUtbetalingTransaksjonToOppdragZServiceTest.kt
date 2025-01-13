@@ -1,5 +1,7 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.sql.SQLException
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContainExactly
@@ -10,8 +12,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import java.sql.SQLException
 import kotliquery.queryOf
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue
+
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.TestHelper.toUtbetalingsOppdrag
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
@@ -31,7 +34,6 @@ import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingProducerMetricCounter
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
-import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 const val UTBETALING_BATCH_SIZE = 2
 

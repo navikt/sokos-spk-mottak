@@ -1,7 +1,8 @@
 package no.nav.sokos.spk.mottak.util
 
-import io.ktor.http.HttpHeaders
 import java.util.UUID
+
+import io.ktor.http.HttpHeaders
 import org.slf4j.MDC
 
 object CallIdUtils {

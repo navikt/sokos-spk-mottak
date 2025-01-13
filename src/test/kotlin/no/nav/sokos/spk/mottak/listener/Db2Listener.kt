@@ -8,6 +8,7 @@ import io.kotest.core.test.TestResult
 import io.kotest.matchers.shouldNotBe
 import io.mockk.spyk
 import kotliquery.queryOf
+
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.DatabaseTestConfig
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER

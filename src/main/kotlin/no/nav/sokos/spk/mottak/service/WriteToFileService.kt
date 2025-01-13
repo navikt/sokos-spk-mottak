@@ -1,9 +1,11 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.zaxxer.hikari.HikariDataSource
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
+
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_RET
 import no.nav.sokos.spk.mottak.domain.FILTYPE_INNLEST

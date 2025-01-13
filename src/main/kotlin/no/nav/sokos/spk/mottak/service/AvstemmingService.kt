@@ -1,11 +1,14 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.util.LinkedList
+
+import kotlinx.datetime.toJavaLocalDate
+
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
-import java.util.LinkedList
-import kotlinx.datetime.toJavaLocalDate
 import mu.KotlinLogging
+
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQ_BATCH_SIZE

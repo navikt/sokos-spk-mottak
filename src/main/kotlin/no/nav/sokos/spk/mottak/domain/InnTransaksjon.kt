@@ -2,6 +2,7 @@ package no.nav.sokos.spk.mottak.domain
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.util.Utils.booleanToString
 

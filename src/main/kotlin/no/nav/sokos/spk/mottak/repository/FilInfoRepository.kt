@@ -1,12 +1,14 @@
 package no.nav.sokos.spk.mottak.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import java.time.LocalDate
+
+import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.AvstemmingInfo

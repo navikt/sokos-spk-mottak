@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import kotliquery.queryOf
+
 import no.nav.sokos.spk.mottak.TestHelper
 import no.nav.sokos.spk.mottak.TestHelper.verifyTransaksjon
 import no.nav.sokos.spk.mottak.TestHelper.verifyTransaksjonTilstand

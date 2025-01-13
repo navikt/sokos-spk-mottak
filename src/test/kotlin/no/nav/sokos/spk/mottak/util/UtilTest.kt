@@ -1,10 +1,12 @@
 package no.nav.sokos.spk.mottak.util
 
-import io.kotest.core.spec.style.ExpectSpec
-import io.kotest.matchers.shouldBe
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.xml.datatype.DatatypeFactory
+
+import io.kotest.core.spec.style.ExpectSpec
+import io.kotest.matchers.shouldBe
+
 import no.nav.sokos.spk.mottak.util.Utils.booleanToString
 import no.nav.sokos.spk.mottak.util.Utils.toAvstemmingPeriode
 import no.nav.sokos.spk.mottak.util.Utils.toISOString

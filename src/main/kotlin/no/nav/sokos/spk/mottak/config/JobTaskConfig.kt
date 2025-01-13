@@ -1,5 +1,10 @@
 package no.nav.sokos.spk.mottak.config
 
+import java.time.Duration
+import java.time.LocalDateTime
+
+import kotlinx.serialization.json.Json
+
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.logging.LogLevel
 import com.github.kagkarlsson.scheduler.task.ExecutionContext
@@ -8,10 +13,8 @@ import com.github.kagkarlsson.scheduler.task.helper.RecurringTask
 import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import com.github.kagkarlsson.scheduler.task.schedule.Schedules.cron
 import com.zaxxer.hikari.HikariDataSource
-import java.time.Duration
-import java.time.LocalDateTime
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
+
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.service.AvstemmingService
 import no.nav.sokos.spk.mottak.service.ReadAndParseFileService

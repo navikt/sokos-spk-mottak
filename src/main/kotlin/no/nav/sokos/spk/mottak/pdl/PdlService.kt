@@ -12,12 +12,13 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import mu.KotlinLogging
+import org.slf4j.MDC
+
 import no.nav.pdl.HentIdenterBolk
 import no.nav.pdl.hentidenterbolk.IdentInformasjon
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.httpClient
 import no.nav.sokos.spk.mottak.security.AccessTokenClient
-import org.slf4j.MDC
 
 private val logger = KotlinLogging.logger {}
 

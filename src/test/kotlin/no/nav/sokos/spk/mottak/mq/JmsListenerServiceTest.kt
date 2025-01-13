@@ -1,10 +1,13 @@
 package no.nav.sokos.spk.mottak.mq
 
-import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue
+
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
@@ -20,7 +23,6 @@ import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingListenerMetricCounter
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingProducerMetricCounter
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
-import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 internal class JmsListenerServiceTest :
     BehaviorSpec({

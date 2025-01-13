@@ -1,5 +1,7 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.sql.SQLException
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContain
@@ -10,8 +12,9 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.sql.SQLException
 import kotliquery.queryOf
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue
+
 import no.nav.sokos.spk.mottak.TestHelper
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_TREKK
@@ -29,7 +32,6 @@ import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
-import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 const val TREKK_BATCH_SIZE = 2
 

@@ -1,5 +1,11 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.sql.SQLException
+import java.time.LocalDate
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
@@ -11,11 +17,9 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
-import java.sql.SQLException
-import java.time.LocalDate
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotliquery.queryOf
+import org.apache.http.entity.ContentType.APPLICATION_JSON
+
 import no.nav.pdl.HentIdenterBolk
 import no.nav.sokos.spk.mottak.TestData.FNR_LIST
 import no.nav.sokos.spk.mottak.TestData.hentIdenterBolkResultMock
@@ -47,7 +51,6 @@ import no.nav.sokos.spk.mottak.listener.WiremockListener.wiremock
 import no.nav.sokos.spk.mottak.pdl.GraphQLResponse
 import no.nav.sokos.spk.mottak.pdl.PdlService
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
-import org.apache.http.entity.ContentType.APPLICATION_JSON
 
 internal class ValidateTransaksjonServiceTest :
     BehaviorSpec({

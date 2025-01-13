@@ -1,16 +1,18 @@
 package no.nav.sokos.spk.mottak.config
 
+import java.time.Duration
+
 import com.ibm.db2.jcc.DB2BaseDataSource
 import com.ibm.db2.jcc.DB2SimpleDataSource
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory
-import java.time.Duration
 import mu.KotlinLogging
-import no.nav.sokos.spk.mottak.metrics.Metrics.prometheusMeterRegistry
-import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
+
+import no.nav.sokos.spk.mottak.metrics.Metrics.prometheusMeterRegistry
+import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 
 private val logger = KotlinLogging.logger {}
 

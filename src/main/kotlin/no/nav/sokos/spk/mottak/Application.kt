@@ -3,6 +3,7 @@ package no.nav.sokos.spk.mottak
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+
 import no.nav.sokos.spk.mottak.config.ApplicationState
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.JobTaskConfig

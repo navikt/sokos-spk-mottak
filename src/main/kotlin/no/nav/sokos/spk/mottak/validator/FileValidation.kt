@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak.validator
 
 import mu.KotlinLogging
+
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.NAV

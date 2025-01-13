@@ -1,10 +1,12 @@
 package no.nav.sokos.spk.mottak.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import kotlinx.datetime.toKotlinLocalDateTime
+
+import com.zaxxer.hikari.HikariDataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.domain.ScheduledTask
 import no.nav.sokos.spk.mottak.domain.ScheduledTaskHistory

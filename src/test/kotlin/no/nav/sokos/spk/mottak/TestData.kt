@@ -2,6 +2,7 @@ package no.nav.sokos.spk.mottak
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+
 import no.nav.pdl.enums.IdentGruppe
 import no.nav.pdl.hentidenterbolk.HentIdenterBolkResult
 import no.nav.pdl.hentidenterbolk.IdentInformasjon

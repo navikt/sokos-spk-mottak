@@ -1,5 +1,7 @@
 package no.nav.sokos.spk.mottak
 
+import kotlinx.coroutines.delay
+
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.logging.LogLevel.ERROR
 import io.kotest.core.spec.style.ShouldSpec
@@ -7,7 +9,7 @@ import io.kotest.engine.runBlocking
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.delay
+
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.listener.PostgresListener

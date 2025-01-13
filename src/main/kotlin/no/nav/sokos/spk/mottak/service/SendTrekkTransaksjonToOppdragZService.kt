@@ -1,12 +1,14 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.time.Duration
+import java.time.Instant
+
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
-import java.time.Duration
-import java.time.Instant
 import kotliquery.Session
 import mu.KotlinLogging
+
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQ_BATCH_SIZE
 import no.nav.sokos.spk.mottak.config.PropertiesConfig

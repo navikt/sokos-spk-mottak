@@ -3,6 +3,7 @@ package no.nav.sokos.spk.mottak.util
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+
 import no.nav.sokos.spk.mottak.SPK_OK
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 

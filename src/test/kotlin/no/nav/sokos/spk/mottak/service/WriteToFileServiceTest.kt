@@ -1,5 +1,8 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.io.IOException
+import java.sql.SQLException
+
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
@@ -8,9 +11,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
-import java.io.IOException
-import java.sql.SQLException
 import kotliquery.queryOf
+
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.TestHelper.verifyFilInfo
 import no.nav.sokos.spk.mottak.config.SftpConfig

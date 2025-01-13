@@ -1,5 +1,12 @@
 package no.nav.sokos.spk.mottak.api
 
+import java.time.Instant
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
 import com.github.kagkarlsson.scheduler.Scheduler
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
@@ -8,11 +15,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import java.time.Instant
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import no.nav.sokos.spk.mottak.security.AuthToken

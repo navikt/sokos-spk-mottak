@@ -1,10 +1,12 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.zaxxer.hikari.HikariDataSource
 import java.text.SimpleDateFormat
 import java.util.Date
+
+import com.zaxxer.hikari.HikariDataSource
 import kotliquery.TransactionalSession
 import mu.KotlinLogging
+
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_AVV
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD

@@ -1,22 +1,18 @@
 package no.nav.sokos.spk.mottak.listener
 
-import com.github.dockerjava.api.model.ExposedPort
-import com.github.dockerjava.api.model.PortBinding
-import com.github.dockerjava.api.model.Ports
-import io.kotest.core.listeners.TestListener
-import io.kotest.core.spec.Spec
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.Base64
+
+import com.github.dockerjava.api.model.ExposedPort
+import com.github.dockerjava.api.model.PortBinding
+import com.github.dockerjava.api.model.Ports
+import io.kotest.core.listeners.TestListener
+import io.kotest.core.spec.Spec
 import mu.KotlinLogging
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.config.SftpConfig
-import no.nav.sokos.spk.mottak.service.Directories.ANVISNINGSRETUR
-import no.nav.sokos.spk.mottak.service.Directories.FERDIG
-import no.nav.sokos.spk.mottak.service.Directories.INBOUND
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.images.builder.Transferable
 import org.testcontainers.shaded.org.bouncycastle.crypto.AsymmetricCipherKeyPair
@@ -27,6 +23,12 @@ import org.testcontainers.shaded.org.bouncycastle.crypto.util.OpenSSHPrivateKeyU
 import org.testcontainers.shaded.org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemObject
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter
+
+import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.config.SftpConfig
+import no.nav.sokos.spk.mottak.service.Directories.ANVISNINGSRETUR
+import no.nav.sokos.spk.mottak.service.Directories.FERDIG
+import no.nav.sokos.spk.mottak.service.Directories.INBOUND
 
 private val logger = KotlinLogging.logger {}
 

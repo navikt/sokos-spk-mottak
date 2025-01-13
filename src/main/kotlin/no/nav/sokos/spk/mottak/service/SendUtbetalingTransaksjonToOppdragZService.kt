@@ -1,13 +1,17 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.time.Duration
+import java.time.Instant
+
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.xml.bind.JAXBElement
-import java.time.Duration
-import java.time.Instant
 import kotliquery.Session
 import mu.KotlinLogging
+import no.trygdeetaten.skjema.oppdrag.ObjectFactory
+import no.trygdeetaten.skjema.oppdrag.Oppdrag
+
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQ_BATCH_SIZE
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
@@ -28,8 +32,6 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
-import no.trygdeetaten.skjema.oppdrag.ObjectFactory
-import no.trygdeetaten.skjema.oppdrag.Oppdrag
 
 private val logger = KotlinLogging.logger { }
 

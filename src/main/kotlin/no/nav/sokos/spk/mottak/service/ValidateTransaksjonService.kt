@@ -1,13 +1,16 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.zaxxer.hikari.HikariDataSource
 import java.time.Duration
 import java.time.Instant
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
+
+import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
+
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon

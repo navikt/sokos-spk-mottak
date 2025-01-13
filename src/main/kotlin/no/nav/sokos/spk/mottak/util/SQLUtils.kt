@@ -1,7 +1,8 @@
 package no.nav.sokos.spk.mottak.util
 
-import com.zaxxer.hikari.HikariDataSource
 import kotlin.reflect.full.memberProperties
+
+import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf

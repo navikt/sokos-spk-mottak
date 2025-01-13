@@ -2,6 +2,7 @@ package no.nav.sokos.spk.mottak.domain.record
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus

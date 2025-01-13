@@ -1,7 +1,9 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.zaxxer.hikari.HikariDataSource
 import kotlinx.datetime.toKotlinInstant
+
+import com.zaxxer.hikari.HikariDataSource
+
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.dto.JobTaskInfo
 import no.nav.sokos.spk.mottak.repository.ScheduledTaskRepository

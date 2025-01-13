@@ -1,5 +1,12 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.io.StringReader
+import java.sql.SQLException
+import javax.xml.stream.XMLInputFactory
+import javax.xml.transform.stream.StreamSource
+
+import kotlinx.datetime.LocalDate
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -8,12 +15,9 @@ import io.mockk.every
 import io.mockk.slot
 import io.mockk.spyk
 import jakarta.xml.bind.JAXBContext
-import java.io.StringReader
-import java.sql.SQLException
-import javax.xml.stream.XMLInputFactory
-import javax.xml.transform.stream.StreamSource
-import kotlinx.datetime.LocalDate
 import kotliquery.queryOf
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue
+
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
@@ -39,7 +43,6 @@ import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.AksjonType
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.AvstemmingType
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.KildeType
-import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 class AvstemmingServiceTest :
     BehaviorSpec({

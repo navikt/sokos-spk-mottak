@@ -1,5 +1,8 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.io.IOException
+import java.time.LocalDate
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -8,8 +11,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
-import java.io.IOException
-import java.time.LocalDate
+
 import no.nav.sokos.spk.mottak.SPK_FEIL_FILLOPENUMMER_I_BRUK
 import no.nav.sokos.spk.mottak.SPK_FEIL_FORVENTET_FILLOPENUMMER
 import no.nav.sokos.spk.mottak.SPK_FEIL_UGYLDIG_ANTRECORDS

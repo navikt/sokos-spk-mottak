@@ -1,10 +1,11 @@
 package no.nav.sokos.spk.mottak.pdl
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+
 import com.expediagroup.graphql.client.types.GraphQLClientError
 import com.expediagroup.graphql.client.types.GraphQLClientResponse
 import com.expediagroup.graphql.client.types.GraphQLClientSourceLocation
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 
 @Serializable
 data class GraphQLResponse<T>(

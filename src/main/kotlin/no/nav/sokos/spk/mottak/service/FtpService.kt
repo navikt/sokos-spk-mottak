@@ -1,8 +1,10 @@
 package no.nav.sokos.spk.mottak.service
 
-import com.jcraft.jsch.SftpException
 import java.io.ByteArrayOutputStream
+
+import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
+
 import no.nav.sokos.spk.mottak.config.SftpConfig
 import no.nav.sokos.spk.mottak.exception.SFtpException
 
