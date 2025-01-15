@@ -51,6 +51,13 @@ For å kjøre applikasjonen lokalt må du gjøre følgende:
 -cp $Classpath$:path/db2jcc_license_cisuz.jar
 ```
 
+### Miljøer
+
+`sokos-spk-mottak` kjøres i følgende miljøer:
+- q1
+- qx
+- prod
+
 # 4. Programvarearkitektur
 
 TODO
@@ -70,9 +77,11 @@ Applikasjonen bruker [AzureAD](https://docs.nais.io/security/auth/azure-ad/) for
 
 # 7. Drift og støtte
 
-Du kan trigge jobber fra et skjermbilde i Utbetalingsportalen. For å gjøre dette kreves det at du har tilgang til riktig AD-gruppe for skjermbildet.
-- [Utbetalingsportalen i test](https://utbetalingsportalen.intern.dev.nav.no/spk-mottak)
-- [Utbetalingsportalen i prod](https://utbetalingsportalen.intern.nav.no/spk-mottak)
+Du kan trigge jobber fra Spk Mottak Dashboard i Utbetalingsportalen. For å gjøre dette kreves det at du har tilgang til riktig AD-gruppe for skjermbildet.
+- [Spk Mottak Dashboard i test](https://utbetalingsportalen.intern.dev.nav.no/spk-mottak)
+- [Spk Mottak Dashboard i prod](https://utbetalingsportalen.intern.nav.no/spk-mottak)
+
+Applikasjonen bruker sikker SFTP for filoverføring til/fra SPK. Problemer med SFTP kan kan henvendes til [#tech-linux](https://nav-it.slack.com/archives/CA2CM7QTX)
 
 ### Logging
 
