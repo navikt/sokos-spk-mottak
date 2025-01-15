@@ -66,7 +66,7 @@ internal class ReadParseFileServiceTest :
         afterEach {
             SftpListener.deleteFile(
                 Directories.INBOUND.value + "/P611*",
-                Directories.FERDIG.value + "/P611*",
+                Directories.ANVISNINGSFIL_BEHANDLET.value + "/P611*",
                 Directories.ANVISNINGSRETUR.value + "/SPK_NAV_*",
             )
         }
@@ -77,8 +77,8 @@ internal class ReadParseFileServiceTest :
             When("leser filen og parser") {
                 readAndParseFileService.readAndParseFile()
 
-                Then("skal filen bli flyttet fra \"inbound\" til \"inbound/ferdig\" og transaksjoner blir lagret i databasen.") {
-                    ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
+                Then("skal filen bli flyttet fra \"inbound\" til \"inbound/anvisningsfilbehandlet\" og transaksjoner blir lagret i databasen.") {
+                    ftpService.downloadFiles(Directories.ANVISNINGSFIL_BEHANDLET).size shouldBe 1
 
                     val lopeNummerFraFil = "000034"
                     val lopeNummer = Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil)
@@ -102,7 +102,7 @@ internal class ReadParseFileServiceTest :
                 readAndParseFileService.readAndParseFile()
 
                 Then("skal begge filene bli flyttet fra \"inbound\" til \"inbound/ferdig\", transaksjoner blir lagret i databasen og en avviksfil blir opprettet i \"inbound\\anvisningsretur\"") {
-                    ftpService.downloadFiles(Directories.FERDIG).size shouldBe 2
+                    ftpService.downloadFiles(Directories.ANVISNINGSFIL_BEHANDLET).size shouldBe 2
                     ftpService.downloadFiles(Directories.ANVISNINGSRETUR).size shouldBe 1
 
                     val lopeNummerFraFil = "000035"

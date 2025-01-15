@@ -24,7 +24,7 @@ Når filbehandlingen er over (uavhengig av om det oppstod en valideringsfeil), b
   Hvis løpenummer-oppdateringen ikke kan utføres, betyr det at anvisningsfilen kan gjenbruke samme løpenummer dersom filinnholdet korrigeres og filen sendes på nytt.
 * T_FIL_INFO blir oppdatert med informasjon om anvisningsfilen, slik som valideringstatus, anvisertype SPK, filtype ANV (anvisningsfil), filtilstand-status GOD (godkjent)  eller AVV (avvist), filnavn,
   løpenummer og feiltekst ved valideringsfeil.
-* Anvisningsfilen flyttes til katalogen **/inbound/ferdig** på SFTP-serveren.
+* Anvisningsfilen flyttes til katalogen **/inbound/anvisningsfilbehandlet** på SFTP-serveren.
 
 Dersom filparsingen ikke feiler, vil T_INN_TRANSAKSJON blir lastet med alle transaksjonene i filen.
 

@@ -14,13 +14,13 @@ internal class FtpServiceTest :
             FtpService(SftpConfig(SftpListener.sftpProperties))
         }
 
-        test("opprett fil i INBOUND, flytt til FERDIG og last ned fil fra FERDIG") {
+        test("opprett fil i INBOUND, flytt til ANVISNINGSFIL_BEHANDLET og last ned fil fra ANVISNINGSFIL_BEHANDLET") {
             ftpService.createFile("test.txt", Directories.INBOUND, "content")
             ftpService.downloadFiles(Directories.INBOUND).size shouldBe 1
 
-            ftpService.moveFile("test.txt", Directories.INBOUND, Directories.FERDIG)
+            ftpService.moveFile("test.txt", Directories.INBOUND, Directories.ANVISNINGSFIL_BEHANDLET)
             ftpService.downloadFiles(Directories.INBOUND).size shouldBe 0
-            ftpService.downloadFiles(Directories.FERDIG).size shouldBe 1
+            ftpService.downloadFiles(Directories.ANVISNINGSFIL_BEHANDLET).size shouldBe 1
         }
 
         test("opprett 3 filer i INBOUND, last ned filer til INBOUND og sjekk at de er listet i sortert rekkefølge") {

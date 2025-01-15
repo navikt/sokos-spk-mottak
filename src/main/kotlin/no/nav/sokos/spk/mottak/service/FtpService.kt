@@ -14,7 +14,7 @@ enum class Directories(
     var value: String,
 ) {
     INBOUND("/inbound/anvisningsfil"),
-    FERDIG("/inbound/ferdig"),
+    ANVISNINGSFIL_BEHANDLET("/inbound/anvisningsfilbehandlet"),
     ANVISNINGSRETUR("/outbound/anvisningsretur"),
 }
 

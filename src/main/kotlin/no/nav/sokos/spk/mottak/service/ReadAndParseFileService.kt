@@ -102,7 +102,7 @@ class ReadAndParseFileService(
             logger.debug { "$antallInnTransaksjon inntransaksjoner lagret i databasen" }
         }
         recordData.transaksjonRecordList.clear()
-        ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.FERDIG)
+        ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.ANVISNINGSFIL_BEHANDLET)
 
         logger.info { "${recordData.filNavn} med løpenummer: ${recordData.startRecord.filLopenummer} er ferdigbehandlet. $antallInnTransaksjon inntransaksjoner har blitt lagt inn fra fil" }
         Metrics.fileProcessedCounter.inc()
@@ -135,7 +135,7 @@ class ReadAndParseFileService(
             filInfoRepository.insert(filInfo, session)!!
 
             createAvviksFil(recordData.startRecord.kildeData, exception)
-            ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.FERDIG)
+            ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.ANVISNINGSFIL_BEHANDLET)
             logger.info { "Avviksfil er opprettet for fil: ${recordData.filNavn} med status: ${exception.statusCode} og løpenummer: ${recordData.startRecord.filLopenummer}" }
         }.onFailure {
             logger.error { "Feil ved opprettelse av avviksfil: ${recordData.filNavn}. Feilmelding: ${it.message}" }
