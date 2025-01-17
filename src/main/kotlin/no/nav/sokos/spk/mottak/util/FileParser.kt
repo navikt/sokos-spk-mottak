@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak.util
 
 import no.nav.sokos.spk.mottak.domain.ANVISER_FIL_BESKRIVELSE
+import no.nav.sokos.spk.mottak.domain.FILTYPE_INNLEST
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
@@ -85,8 +86,8 @@ object FileParser {
             .append(RECTYPE_STARTRECORD)
             .append(NAV.padEnd(11, ' '))
             .append(filInfo.anviser.padEnd(11, ' '))
-            .append(filInfo.lopeNr.toString().padStart(6, '0'))
-            .append(filInfo.filType.padEnd(3, ' '))
+            .append(filInfo.lopeNr.padStart(6, '0'))
+            .append(FILTYPE_INNLEST.padEnd(3, ' '))
             .append(filInfo.datoMottatt!!.toLocalDateString().padEnd(6, ' '))
             .append(ANVISER_FIL_BESKRIVELSE.padEnd(35, ' '))
             .append(FilStatus.OK.code)
