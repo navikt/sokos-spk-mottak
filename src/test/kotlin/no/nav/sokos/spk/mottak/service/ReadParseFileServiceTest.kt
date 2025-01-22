@@ -6,6 +6,7 @@ import java.time.LocalDate
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -103,7 +104,11 @@ internal class ReadParseFileServiceTest :
 
                 Then("skal begge filene bli flyttet fra \"inbound\" til \"inbound/ferdig\", transaksjoner blir lagret i databasen og en avviksfil blir opprettet i \"inbound\\anvisningsretur\"") {
                     ftpService.downloadFiles(Directories.ANVISNINGSFIL_BEHANDLET).size shouldBe 2
-                    ftpService.downloadFiles(Directories.ANVISNINGSRETUR).size shouldBe 1
+                    val anvisningFiler = ftpService.downloadFiles(Directories.ANVISNINGSRETUR)
+                    anvisningFiler.size shouldBe 1
+                    anvisningFiler.forEach { (_, value) ->
+                        value shouldContain "01SPK        NAV        000035ANV20240131ANVISNINGSFIL                      08Feil sumbeløp                      "
+                    }
 
                     val lopeNummerFraFil = "000035"
                     val lopenummer = Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil)

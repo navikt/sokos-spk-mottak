@@ -138,8 +138,9 @@ class ReadAndParseFileService(
             ftpService.moveFile(recordData.filNavn!!, Directories.INBOUND, Directories.ANVISNINGSFIL_BEHANDLET)
             logger.info { "Avviksfil er opprettet for fil: ${recordData.filNavn} med status: ${exception.statusCode} og løpenummer: ${recordData.startRecord.filLopenummer}" }
         }.onFailure {
-            logger.error { "Feil ved opprettelse av avviksfil: ${recordData.filNavn}. Feilmelding: ${it.message}" }
-            throw MottakException("Feil ved opprettelse av avviksfil: ${recordData.filNavn}. Feilmelding: ${it.message}")
+            val errorMessage = "Feil ved opprettelse av avviksfil: ${recordData.filNavn}. Feilmelding: ${it.message}"
+            logger.error { errorMessage }
+            throw MottakException(errorMessage)
         }
     }
 
@@ -199,9 +200,9 @@ class ReadAndParseFileService(
         exception: FilValidationException,
     ): String =
         startRecord
-            .padEnd(78 + exception.message.count(), ' ')
-            .replaceRange(76, 78, exception.statusCode)
-            .replaceRange(78, 78 + exception.message.length, exception.message)
+            .padEnd(113, ' ')
+            .replaceRange(76, 78, exception.filStatus.code)
+            .replaceRange(78, 113, exception.filStatus.decode.padEnd(35, ' '))
 
     private fun createFileName(): String = "SPK_NAV_${SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(Date())}_INL"
 }
