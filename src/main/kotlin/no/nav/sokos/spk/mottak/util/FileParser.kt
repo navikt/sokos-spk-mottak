@@ -91,6 +91,7 @@ object FileParser {
             .append(filInfo.datoMottatt!!.toLocalDateString().padEnd(6, ' '))
             .append(ANVISER_FIL_BESKRIVELSE.padEnd(35, ' '))
             .append(FilStatus.OK.code)
+            .append("".padEnd(35, ' '))
             .appendLine()
 
         return stringBuilder.toString()
