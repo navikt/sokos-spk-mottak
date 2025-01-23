@@ -113,7 +113,6 @@ object FileParser {
             .append(innTransaksjon.art.padEnd(4, ' '))
             .append(innTransaksjon.refTransId.orEmpty().padEnd(12, ' '))
             .append(innTransaksjon.tekstkode.orEmpty().padEnd(4, ' '))
-            .append(innTransaksjon.gradStr.orEmpty().padEnd(4, '0'))
             .append(transaksjonStatus.code.padEnd(2, ' '))
             .append(transaksjonStatus.message.padEnd(35, ' '))
             .appendLine()
