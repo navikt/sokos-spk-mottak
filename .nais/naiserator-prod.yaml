@@ -112,8 +112,7 @@ spec:
     - name: MQ_BATCH_SIZE
       value: "200"
     - name: MQ_LISTENER_ENABLED
-      value: "false"
-
+      value: "true"
     # PDL
     - name: PDL_URL
       value: "https://pdl-api.intern.nav.no/"
@@ -130,7 +129,7 @@ spec:
 
     # DB-SCHEDULER
     - name: SCHEDULER_ENABLED # Settes til true for å aktivere scheduler
-      value: "false"
+      value: "true"
     - name: READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN
       value: "0 0 7-17 * * *"
     - name: SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
