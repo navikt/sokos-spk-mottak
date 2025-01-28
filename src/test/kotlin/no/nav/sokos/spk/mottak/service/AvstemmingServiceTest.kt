@@ -88,11 +88,12 @@ class AvstemmingServiceTest :
                     Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_GOD, listOf("000034")).first().avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK
                     val avstemmingsdataList = avstemmingSlot.captured.map { unmarshallAvstemming(it) }
 
-                    avstemmingsdataList.size shouldBe 4
-                    verifyAvstemmingsdata(avstemmingsdataList[0], AksjonType.START)
-                    verifyAvstemmingsdata(avstemmingsdataList[1], AksjonType.DATA)
-                    verifyAvstemmingsdata(avstemmingsdataList[2], AksjonType.DATA)
-                    verifyAvstemmingsdata(avstemmingsdataList[3], AksjonType.AVSL)
+                    avstemmingsdataList.size shouldBe 10
+                    verifyAvstemmingsdata(avstemmingsdataList.first(), AksjonType.START)
+                    for (i in 1..8) {
+                        verifyAvstemmingsdata(avstemmingsdataList[i], AksjonType.DATA)
+                    }
+                    verifyAvstemmingsdata(avstemmingsdataList.last(), AksjonType.AVSL)
                 }
             }
         }
@@ -124,11 +125,12 @@ class AvstemmingServiceTest :
                     }
                     val avstemmingsdataList = avstemmingSlot.captured.map { unmarshallAvstemming(it) }
 
-                    avstemmingsdataList.size shouldBe 4
-                    verifyAvstemmingsdata(avstemmingsdataList[0], AksjonType.START)
-                    verifyAvstemmingsdata(avstemmingsdataList[1], AksjonType.DATA)
-                    verifyAvstemmingsdata(avstemmingsdataList[2], AksjonType.DATA)
-                    verifyAvstemmingsdata(avstemmingsdataList[3], AksjonType.AVSL)
+                    avstemmingsdataList.size shouldBe 6
+                    verifyAvstemmingsdata(avstemmingsdataList.first(), AksjonType.START)
+                    for (i in 1..4) {
+                        verifyAvstemmingsdata(avstemmingsdataList[i], AksjonType.DATA)
+                    }
+                    verifyAvstemmingsdata(avstemmingsdataList.last(), AksjonType.AVSL)
                 }
             }
         }

@@ -137,4 +137,4 @@ spec:
     - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
       value: "0 0 7-17 * * *"
     - name: GRENSESNITT_AVSTEMMING_CRON_PATTERN
-      value: "0 0 0 31 12 *"
+      value: "0 0 5 * * *"
