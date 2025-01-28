@@ -122,7 +122,12 @@ class AvstemmingService(
             }
         }
 
-        avstemmingList.add(avstemming.dataMelding(oppsummering))
+        if (oppsummering.isNotEmpty()) {
+            oppsummering.groupBy { it.personId }.forEach { (_, data) ->
+                avstemmingList.add(avstemming.dataMelding(data))
+            }
+        }
+
         avstemmingList.add(avstemming.sluttMelding())
 
         return avstemmingList.map { JaxbUtils.marshallAvstemmingsdata(it) }.toCollection(LinkedList())

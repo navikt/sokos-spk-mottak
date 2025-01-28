@@ -239,15 +239,16 @@ class TransaksjonRepository(
                 session.list(
                     queryOf(
                         """
-                        SELECT count(*) AS ANTALL, k.K_FAGOMRADE, t.FIL_INFO_ID, t.OS_STATUS, t.K_TRANS_TILST_T, SUM(CAST(t.BELOP/100 AS BIGINT)) AS BELOP
+                        SELECT count(*) AS ANTALL, t.PERSON_ID, k.K_FAGOMRADE, t.FIL_INFO_ID, t.OS_STATUS, t.K_TRANS_TILST_T, SUM(CAST(t.BELOP/100 AS BIGINT)) AS BELOP
                         FROM T_TRANSAKSJON t
                                  INNER JOIN T_K_GYLDIG_KOMBIN k ON k.K_ART = t.K_ART and k.K_BELOP_T = t.K_BELOP_T
                         WHERE k.K_FAGOMRADE IN ('PENSPK', 'UFORESPK', 'SPKBP') AND t.K_BELOP_T IN ('01','02') AND t.FIL_INFO_ID = $filInfoId
-                        group by k.K_FAGOMRADE, t.FIL_INFO_ID, t.K_TRANS_TILST_T, t.OS_STATUS
+                        group by t.PERSON_ID, k.K_FAGOMRADE, t.FIL_INFO_ID, t.K_TRANS_TILST_T, t.OS_STATUS
                         """.trimIndent(),
                     ),
                 ) { row ->
                     TransaksjonOppsummering(
+                        row.int("PERSON_ID"),
                         row.string("K_FAGOMRADE"),
                         row.int("FIL_INFO_ID"),
                         row.intOrNull("OS_STATUS"),
