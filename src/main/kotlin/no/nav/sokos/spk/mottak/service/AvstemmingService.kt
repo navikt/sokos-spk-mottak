@@ -1,5 +1,6 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.time.LocalDate
 import java.util.LinkedList
 
 import kotlinx.datetime.toJavaLocalDate
@@ -49,16 +50,16 @@ class AvstemmingService(
             metricCounter = Metrics.mqUtbetalingProducerMetricCounter,
         ),
 ) {
-    fun sendGrensesnittAvstemming(avstemmingRequest: AvstemmingRequest? = null) {
+    fun sendGrensesnittAvstemming(request: AvstemmingRequest? = null) {
         runCatching {
             val avstemmingInfoList =
                 when {
-                    avstemmingRequest?.fromDate != null && avstemmingRequest.toDate != null ->
+                    request?.fromDate != null && request.toDate != null ->
                         filInfoRepository.getByAvstemmingStatus(
                             antallUkjentOSZStatus = ANTALL_IKKE_UTFORT_TRANSAKSJON,
                             avstemmingStatus = listOf(TRANS_TILSTAND_OPPDRAG_SENDT_OK, TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK),
-                            fromDate = avstemmingRequest.fromDate.toJavaLocalDate(),
-                            toDate = avstemmingRequest.toDate.toJavaLocalDate(),
+                            fromDate = request.fromDate.toJavaLocalDate(),
+                            toDate = request.toDate.toJavaLocalDate(),
                         )
 
                     else -> filInfoRepository.getByAvstemmingStatus(ANTALL_IKKE_UTFORT_TRANSAKSJON)
@@ -77,7 +78,14 @@ class AvstemmingService(
                     val payloadList =
                         oppsummeringMap.flatMap { oppsummering ->
                             val detaljerList = transaksjonDetaljer.filter { oppsummering.key == it.fagsystemId }
-                            populateAndTransformAvstemmingToXML(oppsummering.key, oppsummering.value, detaljerList, filInfoIdList)
+                            populateAndTransformAvstemmingToXML(
+                                oppsummering.key,
+                                oppsummering.value,
+                                detaljerList,
+                                filInfoIdList,
+                                request?.fromDate?.toJavaLocalDate(),
+                                request?.toDate?.toJavaLocalDate(),
+                            )
                         }
                     payloadList.chunked(MQ_BATCH_SIZE).forEach { payloadChunk -> producer.send(payloadChunk) }
 
@@ -111,6 +119,8 @@ class AvstemmingService(
         oppsummering: List<TransaksjonOppsummering>,
         transaksjonDetaljer: List<TransaksjonDetalj>,
         filInfoIdList: List<Int>,
+        periodeFom: LocalDate?,
+        periodeTom: LocalDate?,
     ): LinkedList<String> {
         val avstemming = AvstemmingConverter.default(filInfoIdList.first().toString(), filInfoIdList.last().toString(), fagomrade)
         val avstemmingList = LinkedList<Avstemmingsdata>()
@@ -124,7 +134,7 @@ class AvstemmingService(
 
         if (oppsummering.isNotEmpty()) {
             oppsummering.groupBy { it.personId }.forEach { (_, data) ->
-                avstemmingList.add(avstemming.dataMelding(data))
+                avstemmingList.add(avstemming.dataMelding(data, periodeFom, periodeTom))
             }
         }
 
