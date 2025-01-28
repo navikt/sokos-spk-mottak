@@ -58,7 +58,11 @@ object AvstemmingConverter {
             detalj.clear()
         }
 
-    fun Avstemmingsdata.dataMelding(oppsummeringList: List<TransaksjonOppsummering>): Avstemmingsdata {
+    fun Avstemmingsdata.dataMelding(
+        oppsummeringList: List<TransaksjonOppsummering>,
+        periodeFom: LocalDate?,
+        periodeTom: LocalDate?,
+    ): Avstemmingsdata {
         val godkjentList = oppsummeringList.filter { it.osStatus == 0 }
         val varselList = oppsummeringList.filter { it.osStatus in 1..4 }
         val avvistList = oppsummeringList.filter { it.transTilstandType == TRANS_TILSTAND_OPPDRAG_RETUR_FEIL }
@@ -74,8 +78,8 @@ object AvstemmingConverter {
                 }
             periode =
                 Periodedata().apply {
-                    datoAvstemtFom = LocalDate.now().atStartOfDay().toAvstemmingPeriode()
-                    datoAvstemtTom = LocalTime.MAX.atDate(LocalDate.now()).toAvstemmingPeriode()
+                    datoAvstemtFom = (periodeFom ?: LocalDate.now()).atStartOfDay().toAvstemmingPeriode()
+                    datoAvstemtTom = (periodeTom ?: LocalDate.now()).atTime(LocalTime.MAX).toAvstemmingPeriode()
                 }
             grunnlag =
                 Grunnlagsdata().apply {
