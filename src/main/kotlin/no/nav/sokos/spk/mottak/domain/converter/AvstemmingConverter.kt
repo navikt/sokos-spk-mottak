@@ -60,8 +60,8 @@ object AvstemmingConverter {
 
     fun Avstemmingsdata.dataMelding(
         oppsummeringList: List<TransaksjonOppsummering>,
-        periodeFom: LocalDate?,
-        periodeTom: LocalDate?,
+        periodeFom: LocalDate,
+        periodeTom: LocalDate,
     ): Avstemmingsdata {
         val godkjentList = oppsummeringList.filter { it.osStatus == 0 }
         val varselList = oppsummeringList.filter { it.osStatus in 1..4 }
@@ -72,30 +72,30 @@ object AvstemmingConverter {
             aksjon = this.aksjon.copy().apply { aksjonType = AksjonType.DATA }
             total =
                 Totaldata().apply {
-                    totalAntall = oppsummeringList.sumOf { it.antall }
+                    totalAntall = oppsummeringList.groupBy { it.personId }.size
                     totalBelop = oppsummeringList.sumOf { it.belop }
                     fortegn = Fortegn.T
                 }
             periode =
                 Periodedata().apply {
-                    datoAvstemtFom = (periodeFom ?: LocalDate.now()).atStartOfDay().toAvstemmingPeriode()
-                    datoAvstemtTom = (periodeTom ?: LocalDate.now()).atTime(LocalTime.MAX).toAvstemmingPeriode()
+                    datoAvstemtFom = periodeFom.atStartOfDay().toAvstemmingPeriode()
+                    datoAvstemtTom = periodeTom.atTime(LocalTime.MAX).toAvstemmingPeriode()
                 }
             grunnlag =
                 Grunnlagsdata().apply {
-                    godkjentAntall = godkjentList.sumOf { it.antall }
+                    godkjentAntall = godkjentList.groupBy { it.personId }.size
                     godkjentBelop = godkjentList.sumOf { it.belop }
                     godkjentFortegn = Fortegn.T
 
-                    varselAntall = varselList.sumOf { it.antall }
+                    varselAntall = varselList.groupBy { it.personId }.size
                     varselBelop = varselList.sumOf { it.belop }
                     varselFortegn = Fortegn.T
 
-                    avvistAntall = avvistList.sumOf { it.antall }
+                    avvistAntall = avvistList.groupBy { it.personId }.size
                     avvistBelop = avvistList.sumOf { it.belop }
                     avvistFortegn = Fortegn.T
 
-                    manglerAntall = manglerList.sumOf { it.antall }
+                    manglerAntall = manglerList.groupBy { it.personId }.size
                     manglerBelop = manglerList.sumOf { it.belop }
                     manglerFortegn = Fortegn.T
                 }

@@ -47,12 +47,12 @@ values (20569297, 20025925, 'ORO', null, null, '2008-12-21 11:03:28.145000', 'BM
        (20572960, 20025934, 'ORF', 'BB50019F', '1DELYTELSE-ID/LINJE-ID ved endring finnes ikke: 20025934', '2008-12-21 11:03:28.467000', 'BMOT002', '2008-12-21 11:03:28.467000', 'BMOT002', 0);
 
 insert into T_FIL_INFO (FIL_INFO_ID, K_FIL_S, K_ANVISER, K_FIL_T, K_FIL_TILSTAND_T, FIL_NAVN, LOPENR, FEILTEKST, DATO_MOTTATT, DATO_SENDT, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV,
-                        VERSJON, K_AVSTEMMING_S)
+                        VERSJON, K_AVSTEMMING_S, DATO_TRANSAKSJON_SENDT)
 values (20000816, '00', 'SPK', 'ANV', 'GOD', 'SPK_NAV_20242503_070026814_INL.txt', '000034', null, '2024-01-31', null, '2024-01-31 09:28:49.749039', 'sokos-spk-mottak', '2024-04-10 09:28:49.749137',
-        'sokos-spk-mottak', 1, 'OSO'),
+        'sokos-spk-mottak', 1, 'OSO', '2024-01-31'),
        (20000817, '00', 'SPK', 'ANV', 'GOD', 'SPK_NAV_20242503_070026815_INL.txt', '000035', null, '2024-02-01', null, '2024-02-01 09:28:49.749039', 'sokos-spk-mottak', '2024-04-10 09:28:49.749137',
-        'sokos-spk-mottak', 1, 'OSO'),
+        'sokos-spk-mottak', 1, 'OSO', '2024-02-01'),
        (20000818, '00', 'SPK', 'ANV', 'GOD', 'SPK_NAV_20242503_070026816_INL.txt', '000036', null, '2024-02-02', null, '2024-02-02 09:28:49.749039', 'sokos-spk-mottak', '2024-04-10 09:28:49.749137',
-        'sokos-spk-mottak', 1, 'OSO'),
+        'sokos-spk-mottak', 1, 'OSO', '2024-02-02'),
        (20000819, '00', 'SPK', 'ANV', 'GOD', 'SPK_NAV_20242503_070026817_INL.txt', '000037', null, '2024-02-03', null, '2024-02-03 09:28:49.749039', 'sokos-spk-mottak', '2024-04-10 09:28:49.749137',
-        'sokos-spk-mottak', 1, 'OSO');
+        'sokos-spk-mottak', 1, 'OSO', '2024-02-03');
