@@ -73,6 +73,7 @@ class AvstemmingService(
                             .groupBy { it.fagomrade }
                     logger.debug { "Transaksjonsoppsummering: $oppsummeringMap" }
 
+                    val filInfoList = avstemmingInfoList.map { Pair(it.filInfoId, it.datoTransaksjonSendt) }
                     val filInfoIdList = avstemmingInfoList.map { it.filInfoId }
                     val transaksjonDetaljer = transaksjonRepository.findTransaksjonDetaljerByFilInfoId(filInfoIdList)
                     val payloadList =
@@ -82,15 +83,13 @@ class AvstemmingService(
                                 oppsummering.key,
                                 oppsummering.value,
                                 detaljerList,
-                                filInfoIdList,
-                                request?.fromDate?.toJavaLocalDate(),
-                                request?.toDate?.toJavaLocalDate(),
+                                filInfoList,
                             )
                         }
                     payloadList.chunked(MQ_BATCH_SIZE).forEach { payloadChunk -> producer.send(payloadChunk) }
 
                     dataSource.transaction { session ->
-                        filInfoRepository.updateAvstemmingStatus(filInfoIdList, TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK, session)
+                        filInfoRepository.updateAvstemmingStatus(filInfoIdList, TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK, null, session)
                     }
                     logger.info { "Avstemming sendt OK for filInfoId: ${filInfoIdList.joinToString()}" }
                 }
@@ -118,11 +117,9 @@ class AvstemmingService(
         fagomrade: String,
         oppsummering: List<TransaksjonOppsummering>,
         transaksjonDetaljer: List<TransaksjonDetalj>,
-        filInfoIdList: List<Int>,
-        periodeFom: LocalDate?,
-        periodeTom: LocalDate?,
+        filInfoList: List<Pair<Int, LocalDate>>,
     ): LinkedList<String> {
-        val avstemming = AvstemmingConverter.default(filInfoIdList.first().toString(), filInfoIdList.last().toString(), fagomrade)
+        val avstemming = AvstemmingConverter.default(filInfoList.first().first.toString(), filInfoList.last().first.toString(), fagomrade)
         val avstemmingList = LinkedList<Avstemmingsdata>()
         avstemmingList.add(avstemming.startMelding())
 
@@ -133,9 +130,7 @@ class AvstemmingService(
         }
 
         if (oppsummering.isNotEmpty()) {
-            oppsummering.groupBy { it.personId }.forEach { (_, data) ->
-                avstemmingList.add(avstemming.dataMelding(data, periodeFom, periodeTom))
-            }
+            avstemmingList.add(avstemming.dataMelding(oppsummering, filInfoList.first().second, filInfoList.last().second))
         }
 
         avstemmingList.add(avstemming.sluttMelding())

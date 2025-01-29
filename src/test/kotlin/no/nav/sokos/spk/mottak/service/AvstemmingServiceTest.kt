@@ -88,11 +88,14 @@ class AvstemmingServiceTest :
                     Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_GOD, listOf("000034")).first().avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK
                     val avstemmingsdataList = avstemmingSlot.captured.map { unmarshallAvstemming(it) }
 
-                    avstemmingsdataList.size shouldBe 10
+                    avstemmingsdataList.size shouldBe 4
                     verifyAvstemmingsdata(avstemmingsdataList.first(), AksjonType.START)
-                    for (i in 1..8) {
-                        verifyAvstemmingsdata(avstemmingsdataList[i], AksjonType.DATA)
-                    }
+                    verifyAvstemmingsdata(avstemmingsdataList[1], AksjonType.DATA)
+                    verifyAvstemmingsdata(avstemmingsdataList[2], AksjonType.DATA)
+                    avstemmingsdataList[2].total.totalAntall shouldBe 7
+                    avstemmingsdataList[2].grunnlag.godkjentAntall shouldBe 4
+                    avstemmingsdataList[2].grunnlag.varselAntall shouldBe 1
+                    avstemmingsdataList[2].grunnlag.avvistAntall shouldBe 2
                     verifyAvstemmingsdata(avstemmingsdataList.last(), AksjonType.AVSL)
                 }
             }
@@ -125,11 +128,14 @@ class AvstemmingServiceTest :
                     }
                     val avstemmingsdataList = avstemmingSlot.captured.map { unmarshallAvstemming(it) }
 
-                    avstemmingsdataList.size shouldBe 6
+                    avstemmingsdataList.size shouldBe 4
                     verifyAvstemmingsdata(avstemmingsdataList.first(), AksjonType.START)
-                    for (i in 1..4) {
-                        verifyAvstemmingsdata(avstemmingsdataList[i], AksjonType.DATA)
-                    }
+                    verifyAvstemmingsdata(avstemmingsdataList[1], AksjonType.DATA)
+                    verifyAvstemmingsdata(avstemmingsdataList[2], AksjonType.DATA)
+                    avstemmingsdataList[2].total.totalAntall shouldBe 3
+                    avstemmingsdataList[2].grunnlag.godkjentAntall shouldBe 1
+                    avstemmingsdataList[2].grunnlag.varselAntall shouldBe 0
+                    avstemmingsdataList[2].grunnlag.avvistAntall shouldBe 2
                     verifyAvstemmingsdata(avstemmingsdataList.last(), AksjonType.AVSL)
                 }
             }

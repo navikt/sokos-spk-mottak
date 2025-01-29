@@ -2,6 +2,8 @@ package no.nav.sokos.spk.mottak.service
 
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
+import java.util.concurrent.atomic.AtomicInteger
 
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
@@ -53,7 +55,11 @@ class SendUtbetalingTransaksjonToOppdragZService(
             Metrics.mqUtbetalingProducerMetricCounter,
         ),
 ) {
+    private val errorCounter = AtomicInteger(0)
+
     fun getUtbetalingTransaksjonAndSendToOppdragZ() {
+        errorCounter.set(0)
+
         if (innTransaksjonRepository.countByInnTransaksjon() > 0) {
             logger.info { "Eksisterer innTransaksjoner som ikke er ferdig behandlet og derfor blir ingen utbetalingstransaksjoner behandlet" }
             return
@@ -97,8 +103,10 @@ class SendUtbetalingTransaksjonToOppdragZService(
                     }
                     Metrics.utbetalingTransaksjonerTilOppdragCounter.inc(transaksjonerSendt.toLong())
 
-                    dataSource.transaction { session ->
-                        filInfoRepository.updateAvstemmingStatus(transaksjonList.distinctBy { it.filInfoId }.map { it.filInfoId }, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
+                    if (errorCounter.get() == 0) {
+                        dataSource.transaction { session ->
+                            filInfoRepository.updateAvstemmingStatus(transaksjonList.distinctBy { it.filInfoId }.map { it.filInfoId }, TRANS_TILSTAND_OPPDRAG_SENDT_OK, LocalDate.now(), session)
+                        }
                     }
                 }
             }.onFailure { exception ->
@@ -131,6 +139,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
         }.onFailure { exception ->
             if (exception is MottakException) {
                 runCatching {
+                    errorCounter.incrementAndGet()
                     dataSource.transaction { session ->
                         updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
                     }
