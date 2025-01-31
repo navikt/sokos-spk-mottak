@@ -148,11 +148,10 @@ class ValidateTransaksjonService(
                                 identInformasjon.size == 1 -> personRepository.insert(ident, session)
                                 else -> {
                                     val personList = personRepository.findByFnr(identInformasjon.filter { it.historisk }.map { it.ident })
-                                    if (personList.size == 1) {
+                                    if (personList.isNotEmpty()) {
                                         personRepository.update(personList.first().personId!!, ident, session)
                                     } else {
-                                        secureLogger.error { "Ingen person funnet i database for fnr: $fnr, ingen fnr oppdateres" }
-                                        innTransaksjonRepository.updateTransaksjonStatus(fnr, UGYLDIG_FNR, session)
+                                        personRepository.insert(ident, session)
                                     }
                                 }
                             }
