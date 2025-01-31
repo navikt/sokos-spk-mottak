@@ -550,13 +550,13 @@ internal class ValidateTransaksjonServiceTest :
                         ),
                 )
 
-                Then("skal ingen personer opprettes eller oppdateres og 8 ok-transaksjoner blir validert") {
+                Then("skal ingen personer opprettes eller oppdateres og 9 ok-transaksjoner blir validert") {
                     validateTransaksjonService.validateInnTransaksjon()
-                    Db2Listener.personRepository.findByFnr(FNR_LIST).size shouldBe 9
+                    Db2Listener.personRepository.findByFnr(FNR_LIST).size shouldBe 10
 
                     val innTransaksjonMap = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA).groupBy { it.isTransaksjonStatusOk() }
-                    innTransaksjonMap[true]!!.size shouldBe 8
-                    innTransaksjonMap[false]!!.size shouldBe 2
+                    innTransaksjonMap[true]!!.size shouldBe 9
+                    innTransaksjonMap[false]!!.size shouldBe 1
                     innTransaksjonMap[false]!!.forEach { innTransaksjon ->
                         val avvikTransaksjon =
                             Db2Listener.avvikTransaksjonRepository.getByAvvTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
