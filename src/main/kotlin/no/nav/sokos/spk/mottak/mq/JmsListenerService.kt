@@ -68,9 +68,7 @@ class JmsListenerService(
                 when {
                     oppdrag.mmel.alvorlighetsgrad.toInt() < 5 -> TRANS_TILSTAND_OPPDRAG_RETUR_OK
                     else -> {
-                        if (oppdrag.mmel.alvorlighetsgrad.toInt() == 12) {
-                            logger.error { "Prosessering av returmelding feilet med alvorlighetsgrad 12. Feilmelding: ${message.jmsMessageID}" }
-                        }
+                        logger.error { "Prosessering av returmelding feilet med alvorlighetsgrad ${oppdrag.mmel.alvorlighetsgrad}. Feilmelding: ${message.jmsMessageID}" }
                         TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
                     }
                 }
