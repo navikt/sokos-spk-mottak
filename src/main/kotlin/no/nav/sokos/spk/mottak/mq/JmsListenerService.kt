@@ -38,7 +38,7 @@ class JmsListenerService(
     trekkReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
-    private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)
+    private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.CLIENT_ACKNOWLEDGE)
     private val utbetalingMQListener = jmsContext.createConsumer(utbetalingReplyQueue)
     private val trekkMQListener = jmsContext.createConsumer(trekkReplyQueue)
 
@@ -105,6 +105,7 @@ class JmsListenerService(
                 )
             }
             mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
+            message.acknowledge()
         }.onFailure { exception ->
             secureLogger.error { "Utbetalingsmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
@@ -117,6 +118,7 @@ class JmsListenerService(
             logger.debug { "Mottatt trekkmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
             val trekkWrapper = json.decodeFromString<DokumentWrapper>(jmsMessage)
             processTrekkMessage(trekkWrapper.dokument!!, trekkWrapper.mmel!!)
+            message.acknowledge()
         }.onFailure { exception ->
             logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
         }
