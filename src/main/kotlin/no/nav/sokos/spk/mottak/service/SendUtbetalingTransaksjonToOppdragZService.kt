@@ -77,7 +77,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
                     val oppdragList =
                         transaksjonList
                             .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
-                            .map { it.value.toUtbetalingsOppdrag() }
+                            .map { it.value.sortedBy { transaksjon -> transaksjon.transaksjonId }.toUtbetalingsOppdragXML() }
                     logger.debug { "Oppdragslistestørrelse ${oppdragList.size}" }
 
                     oppdragList.chunked(mqBatchSize).forEach { oppdragChunk ->
@@ -117,7 +117,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
         }
     }
 
-    private fun List<Transaksjon>.toUtbetalingsOppdrag(): JAXBElement<Oppdrag> =
+    private fun List<Transaksjon>.toUtbetalingsOppdragXML(): JAXBElement<Oppdrag> =
         ObjectFactory().createOppdrag(
             Oppdrag().apply {
                 oppdrag110 =

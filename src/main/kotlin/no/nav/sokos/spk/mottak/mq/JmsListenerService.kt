@@ -13,6 +13,7 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
 import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
@@ -28,6 +29,7 @@ import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 private val logger = KotlinLogging.logger {}
+private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
 private const val OS_STATUS_OK = "00"
 
 class JmsListenerService(
@@ -57,8 +59,8 @@ class JmsListenerService(
     }
 
     private fun onUtbetalingMessage(message: Message) {
+        val jmsMessage = message.getBody(String::class.java)
         runCatching {
-            val jmsMessage = message.getBody(String::class.java)
             logger.debug { "Mottatt oppdragsmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
             val oppdrag = JaxbUtils.unmarshallOppdrag(jmsMessage)
 
@@ -104,6 +106,7 @@ class JmsListenerService(
             }
             mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
         }.onFailure { exception ->
+            secureLogger.error { "Utbetalingsmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
         }
     }
