@@ -225,7 +225,7 @@ class TransaksjonRepository(
                         AND k.ER_GYLDIG = 1
                         AND t.K_BELOP_T IN (${belopstype.joinToString(separator = "','", prefix = "'", postfix = "'")}) 
                         AND t.K_TRANS_TILST_T IN (${transaksjonTilstand.joinToString(separator = "','", prefix = "'", postfix = "'")})
-                        ORDER BY t.PERSON_ID, t.DATO_FOM, t.DATO_TOM, t.K_ART, t.K_BELOP_T, t.K_TRANS_TOLKNING
+                        ORDER BY t.PERSON_ID, t.TRANSAKSJON_ID, t.K_ART, t.K_BELOP_T
                         """.trimIndent(),
                     ),
                     mapToTransaksjon,
