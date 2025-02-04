@@ -116,7 +116,7 @@ class FilInfoRepository(
         }
 
     fun updateAvstemmingStatus(
-        filInfoIdList: List<Int?>,
+        filInfoIdList: List<Int>,
         avstemmingStatus: String,
         datoTransaksjonSendt: LocalDate? = null,
         session: Session,
