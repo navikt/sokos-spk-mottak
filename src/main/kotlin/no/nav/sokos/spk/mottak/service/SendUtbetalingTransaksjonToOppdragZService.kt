@@ -66,8 +66,6 @@ class SendUtbetalingTransaksjonToOppdragZService(
         }
 
         val timer = Instant.now()
-        var transaksjonerSendt = 0
-        var oppdragsmeldingerSendt = 0
 
         Metrics.timer(SERVICE_CALL, "SendUtbetalingTransaksjonToOppdragServiceV2", "getUtbetalingTransaksjonAndSendToOppdragZ").recordCallable {
             runCatching {
@@ -77,6 +75,9 @@ class SendUtbetalingTransaksjonToOppdragZService(
                         .toSortedMap()
 
                 transaksjonMap.forEach { (filInfoId, transaksjonList) ->
+                    var transaksjonerSendt = 0
+                    var oppdragsmeldingerSendt = 0
+
                     logger.info { "Starter sending fileInfoId: $filInfoId av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
                     if (transaksjonList.isNotEmpty()) {
                         val oppdragList =

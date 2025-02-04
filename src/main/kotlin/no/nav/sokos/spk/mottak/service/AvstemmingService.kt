@@ -67,30 +67,30 @@ class AvstemmingService(
 
             if (avstemmingInfoList.isNotEmpty()) {
                 Metrics.timer(SERVICE_CALL, "AvstemmingService", "sendGrensesnittAvstemming").recordCallable {
-                    val oppsummeringMap =
-                        avstemmingInfoList
-                            .flatMap { info -> transaksjonRepository.findTransaksjonOppsummeringByFilInfoId(info.filInfoId) }
-                            .groupBy { it.fagomrade }
-                    logger.debug { "Transaksjonsoppsummering: $oppsummeringMap" }
+                    avstemmingInfoList.forEach { info ->
+                        val oppsummeringMap = transaksjonRepository.findTransaksjonOppsummeringByFilInfoId(info.filInfoId).groupBy { it.fagomrade }
+                        logger.debug { "Transaksjonsoppsummering: $oppsummeringMap" }
 
-                    val filInfoList = avstemmingInfoList.map { Pair(it.filInfoId, it.datoTransaksjonSendt) }
+                        val transaksjonDetaljer = transaksjonRepository.findTransaksjonDetaljerByFilInfoId(listOf(info.filInfoId))
+                        val payloadList =
+                            oppsummeringMap.flatMap { oppsummering ->
+                                val detaljerList = transaksjonDetaljer.filter { oppsummering.key == it.fagsystemId }
+                                populateAndTransformAvstemmingToXML(
+                                    oppsummering.key,
+                                    oppsummering.value,
+                                    detaljerList,
+                                    info.filInfoId,
+                                    info.datoTransaksjonSendt,
+                                )
+                            }
+                        payloadList.chunked(MQ_BATCH_SIZE).forEach { payloadChunk -> producer.send(payloadChunk) }
+                    }
+
                     val filInfoIdList = avstemmingInfoList.map { it.filInfoId }
-                    val transaksjonDetaljer = transaksjonRepository.findTransaksjonDetaljerByFilInfoId(filInfoIdList)
-                    val payloadList =
-                        oppsummeringMap.flatMap { oppsummering ->
-                            val detaljerList = transaksjonDetaljer.filter { oppsummering.key == it.fagsystemId }
-                            populateAndTransformAvstemmingToXML(
-                                oppsummering.key,
-                                oppsummering.value,
-                                detaljerList,
-                                filInfoList,
-                            )
-                        }
-                    payloadList.chunked(MQ_BATCH_SIZE).forEach { payloadChunk -> producer.send(payloadChunk) }
-
                     dataSource.transaction { session ->
                         filInfoRepository.updateAvstemmingStatus(filInfoIdList, TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK, null, session)
                     }
+
                     logger.info { "Avstemming sendt OK for filInfoId: ${filInfoIdList.joinToString()}" }
                 }
             } else {
@@ -117,9 +117,10 @@ class AvstemmingService(
         fagomrade: String,
         oppsummering: List<TransaksjonOppsummering>,
         transaksjonDetaljer: List<TransaksjonDetalj>,
-        filInfoList: List<Pair<Int, LocalDate>>,
+        filInfoId: Int,
+        periode: LocalDate,
     ): LinkedList<String> {
-        val avstemming = AvstemmingConverter.default(filInfoList.first().first.toString(), filInfoList.last().first.toString(), fagomrade)
+        val avstemming = AvstemmingConverter.default(filInfoId.toString(), filInfoId.toString(), fagomrade)
         val avstemmingList = LinkedList<Avstemmingsdata>()
         avstemmingList.add(avstemming.startMelding())
 
@@ -130,7 +131,7 @@ class AvstemmingService(
         }
 
         if (oppsummering.isNotEmpty()) {
-            avstemmingList.add(avstemming.dataMelding(oppsummering, filInfoList.first().second, filInfoList.last().second))
+            avstemmingList.add(avstemming.dataMelding(oppsummering, periode, periode))
         }
 
         avstemmingList.add(avstemming.sluttMelding())
