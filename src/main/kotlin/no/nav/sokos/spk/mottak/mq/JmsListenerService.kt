@@ -13,6 +13,7 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
 import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
@@ -33,6 +34,7 @@ import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 private val logger = KotlinLogging.logger {}
+private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
 private const val OS_STATUS_OK = "00"
 
 class JmsListenerService(
@@ -42,7 +44,7 @@ class JmsListenerService(
     avregningsgrunnlagQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
-    private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)
+    private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.CLIENT_ACKNOWLEDGE)
     private val utbetalingMQListener = jmsContext.createConsumer(utbetalingReplyQueue)
     private val trekkMQListener = jmsContext.createConsumer(trekkReplyQueue)
     private val avregningsgrunnlagMQListener = jmsContext.createConsumer(avregningsgrunnlagQueue)
@@ -66,8 +68,8 @@ class JmsListenerService(
     }
 
     private fun onUtbetalingMessage(message: Message) {
+        val jmsMessage = message.getBody(String::class.java)
         runCatching {
-            val jmsMessage = message.getBody(String::class.java)
             logger.debug { "Mottatt oppdragsmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
             val oppdrag = JaxbUtils.unmarshallOppdrag(jmsMessage)
 
@@ -75,9 +77,7 @@ class JmsListenerService(
                 when {
                     oppdrag.mmel.alvorlighetsgrad.toInt() < 5 -> TRANS_TILSTAND_OPPDRAG_RETUR_OK
                     else -> {
-                        if (oppdrag.mmel.alvorlighetsgrad.toInt() == 12) {
-                            logger.error { "Prosessering av returmelding feilet med alvorlighetsgrad 12. Feilmelding: ${message.jmsMessageID}" }
-                        }
+                        logger.error { "Prosessering av returmelding feilet med alvorlighetsgrad ${oppdrag.mmel.alvorlighetsgrad}. Feilmelding: ${message.jmsMessageID}" }
                         TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
                     }
                 }
@@ -112,7 +112,9 @@ class JmsListenerService(
                 )
             }
             mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
+            message.acknowledge()
         }.onFailure { exception ->
+            secureLogger.error { "Utbetalingsmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
         }
     }
@@ -148,6 +150,7 @@ class JmsListenerService(
             logger.debug { "Mottatt trekkmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
             val trekkWrapper = json.decodeFromString<DokumentWrapper>(jmsMessage)
             processTrekkMessage(trekkWrapper.dokument!!, trekkWrapper.mmel!!)
+            message.acknowledge()
         }.onFailure { exception ->
             logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
         }

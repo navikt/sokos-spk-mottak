@@ -2,6 +2,8 @@ package no.nav.sokos.spk.mottak.service
 
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
+import java.util.concurrent.atomic.AtomicInteger
 
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
@@ -53,52 +55,65 @@ class SendUtbetalingTransaksjonToOppdragZService(
             Metrics.mqUtbetalingProducerMetricCounter,
         ),
 ) {
+    private val errorCounter = AtomicInteger(0)
+
     fun getUtbetalingTransaksjonAndSendToOppdragZ() {
+        errorCounter.set(0)
+
         if (innTransaksjonRepository.countByInnTransaksjon() > 0) {
             logger.info { "Eksisterer innTransaksjoner som ikke er ferdig behandlet og derfor blir ingen utbetalingstransaksjoner behandlet" }
             return
         }
 
         val timer = Instant.now()
-        var transaksjonerSendt = 0
-        var oppdragsmeldingerSendt = 0
 
         Metrics.timer(SERVICE_CALL, "SendUtbetalingTransaksjonToOppdragServiceV2", "getUtbetalingTransaksjonAndSendToOppdragZ").recordCallable {
             runCatching {
-                val transaksjonList = transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
-                logger.info { "Starter sending av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
-                if (transaksjonList.isNotEmpty()) {
-                    val oppdragList =
-                        transaksjonList
-                            .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
-                            .map { it.value.toUtbetalingsOppdrag() }
-                    logger.debug { "Oppdragslistestørrelse ${oppdragList.size}" }
+                val transaksjonMap =
+                    transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
+                        .groupBy { it.filInfoId }
+                        .toSortedMap()
 
-                    oppdragList.chunked(mqBatchSize).forEach { oppdragChunk ->
-                        val transaksjonIdList =
-                            oppdragChunk.flatMap { oppdrag ->
-                                oppdrag.value.oppdrag110.oppdragsLinje150
-                                    .map { it.delytelseId.toInt() }
+                transaksjonMap.forEach { (filInfoId, transaksjonList) ->
+                    var transaksjonerSendt = 0
+                    var oppdragsmeldingerSendt = 0
+
+                    logger.info { "Starter sending fileInfoId: $filInfoId av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
+                    if (transaksjonList.isNotEmpty()) {
+                        val oppdragList =
+                            transaksjonList
+                                .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
+                                .map { it.value.toUtbetalingsOppdragXML() }
+                        logger.debug { "Oppdragslistestørrelse ${oppdragList.size}" }
+
+                        oppdragList.chunked(mqBatchSize).forEach { oppdragChunk ->
+                            val transaksjonIdList =
+                                oppdragChunk.flatMap { oppdrag ->
+                                    oppdrag.value.oppdrag110.oppdragsLinje150
+                                        .map { it.delytelseId.toInt() }
+                                }
+                            val oppdragXML = oppdragChunk.map { JaxbUtils.marshallOppdrag(it) }
+
+                            sendToOppdragZ(oppdragXML, transaksjonIdList)
+                            oppdragsmeldingerSendt += oppdragXML.size
+                            transaksjonerSendt += transaksjonIdList.size
+                            logger.info { "$oppdragsmeldingerSendt utbetalingsmeldinger sendt av totalt ${oppdragList.size} ($transaksjonerSendt transaksjoner av totalt ${transaksjonList.size}) " }
+                        }
+                        logger.info {
+                            "Fullført sending av $oppdragsmeldingerSendt utbetalingsmeldinger ($transaksjonerSendt transaksjoner) til OppdragZ. Total tid: ${
+                                Duration.between(
+                                    timer,
+                                    Instant.now(),
+                                ).toSeconds()
+                            } sekunder."
+                        }
+                        Metrics.utbetalingTransaksjonerTilOppdragCounter.inc(transaksjonerSendt.toLong())
+
+                        if (errorCounter.get() == 0) {
+                            dataSource.transaction { session ->
+                                filInfoRepository.updateAvstemmingStatus(transaksjonList.distinctBy { it.filInfoId }.map { it.filInfoId }, TRANS_TILSTAND_OPPDRAG_SENDT_OK, LocalDate.now(), session)
                             }
-                        val oppdragXML = oppdragChunk.map { JaxbUtils.marshallOppdrag(it) }
-
-                        sendToOppdragZ(oppdragXML, transaksjonIdList)
-                        oppdragsmeldingerSendt += oppdragXML.size
-                        transaksjonerSendt += transaksjonIdList.size
-                        logger.info { "$oppdragsmeldingerSendt utbetalingsmeldinger sendt av totalt ${oppdragList.size} ($transaksjonerSendt transaksjoner av totalt ${transaksjonList.size}) " }
-                    }
-                    logger.info {
-                        "Fullført sending av $oppdragsmeldingerSendt utbetalingsmeldinger ($transaksjonerSendt transaksjoner) til OppdragZ. Total tid: ${
-                            Duration.between(
-                                timer,
-                                Instant.now(),
-                            ).toSeconds()
-                        } sekunder."
-                    }
-                    Metrics.utbetalingTransaksjonerTilOppdragCounter.inc(transaksjonerSendt.toLong())
-
-                    dataSource.transaction { session ->
-                        filInfoRepository.updateAvstemmingStatus(transaksjonList.distinctBy { it.filInfoId }.map { it.filInfoId }, TRANS_TILSTAND_OPPDRAG_SENDT_OK, session)
+                        }
                     }
                 }
             }.onFailure { exception ->
@@ -109,7 +124,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
         }
     }
 
-    private fun List<Transaksjon>.toUtbetalingsOppdrag(): JAXBElement<Oppdrag> =
+    private fun List<Transaksjon>.toUtbetalingsOppdragXML(): JAXBElement<Oppdrag> =
         ObjectFactory().createOppdrag(
             Oppdrag().apply {
                 oppdrag110 =
@@ -131,6 +146,7 @@ class SendUtbetalingTransaksjonToOppdragZService(
         }.onFailure { exception ->
             if (exception is MottakException) {
                 runCatching {
+                    errorCounter.incrementAndGet()
                     dataSource.transaction { session ->
                         updateTransaksjonAndTransaksjonTilstand(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, session)
                     }

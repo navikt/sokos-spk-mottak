@@ -65,13 +65,14 @@ class FilInfoRepository(
                         queryOf(
                             """
                             SELECT
-                                t.FIL_INFO_ID,
+                                fi.FIL_INFO_ID,
                                 COUNT(CASE WHEN t.OS_STATUS IS NOT NULL THEN 1 END) AS ANTALL,
-                                COUNT(CASE WHEN t.OS_STATUS IS NULL THEN 1 END) AS ANTALL_NULL    
+                                COUNT(CASE WHEN t.OS_STATUS IS NULL THEN 1 END) AS ANTALL_NULL,
+                                fi.DATO_TRANSAKSJON_SENDT
                             from T_FIL_INFO fi INNER JOIN T_TRANSAKSJON t ON fi.FIL_INFO_ID = t.FIL_INFO_ID
                             where fi.K_ANVISER = '$SPK' AND fi.K_AVSTEMMING_S IN (${avstemmingStatus.joinToString(separator = "','", prefix = "'", postfix = "'")}) AND t.K_BELOP_T IN ('01', '02') 
-                            ${fromDate?.let { " AND CAST(fi.DATO_OPPRETTET AS DATE) >= '$fromDate' AND CAST(fi.DATO_OPPRETTET AS DATE) <= '$toDate' " } ?: ""}
-                            group by t.FIL_INFO_ID
+                            ${fromDate?.let { " AND fi.DATO_TRANSAKSJON_SENDT >= '$fromDate' AND fi.DATO_TRANSAKSJON_SENDT <= '$toDate' " } ?: ""}
+                            group by fi.FIL_INFO_ID, fi.DATO_TRANSAKSJON_SENDT
                             ${if (statusFilter) " having COUNT(CASE WHEN t.OS_STATUS IS NULL THEN 1 END) <= $antallUkjentOSZStatus" else ""}
                             """.trimIndent(),
                         ),
@@ -80,6 +81,7 @@ class FilInfoRepository(
                             filInfoId = row.int("FIL_INFO_ID"),
                             antallOSStatus = row.int("ANTALL"),
                             antallIkkeOSStatus = row.int("ANTALL_NULL"),
+                            datoTransaksjonSendt = row.localDate("DATO_TRANSAKSJON_SENDT"),
                         )
                     }
             }
@@ -114,14 +116,17 @@ class FilInfoRepository(
         }
 
     fun updateAvstemmingStatus(
-        filInfoIdList: List<Int?>,
+        filInfoIdList: List<Int>,
         avstemmingStatus: String,
+        datoTransaksjonSendt: LocalDate? = null,
         session: Session,
     ) {
         session.update(
             queryOf(
                 """
-                UPDATE T_FIL_INFO SET K_AVSTEMMING_S = '$avstemmingStatus', DATO_ENDRET = CURRENT_TIMESTAMP, ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}'
+                UPDATE T_FIL_INFO SET K_AVSTEMMING_S = '$avstemmingStatus', 
+                    ${datoTransaksjonSendt?.let { " DATO_TRANSAKSJON_SENDT = '$datoTransaksjonSendt', " } ?: ""} 
+                    DATO_ENDRET = CURRENT_TIMESTAMP, ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}'
                 WHERE FIL_INFO_ID IN (${filInfoIdList.joinToString()})
                 """.trimIndent(),
             ),

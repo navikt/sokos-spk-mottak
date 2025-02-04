@@ -89,10 +89,14 @@ class AvstemmingServiceTest :
                     val avstemmingsdataList = avstemmingSlot.captured.map { unmarshallAvstemming(it) }
 
                     avstemmingsdataList.size shouldBe 4
-                    verifyAvstemmingsdata(avstemmingsdataList[0], AksjonType.START)
+                    verifyAvstemmingsdata(avstemmingsdataList.first(), AksjonType.START)
                     verifyAvstemmingsdata(avstemmingsdataList[1], AksjonType.DATA)
                     verifyAvstemmingsdata(avstemmingsdataList[2], AksjonType.DATA)
-                    verifyAvstemmingsdata(avstemmingsdataList[3], AksjonType.AVSL)
+                    avstemmingsdataList[2].total.totalAntall shouldBe 7
+                    avstemmingsdataList[2].grunnlag.godkjentAntall shouldBe 4
+                    avstemmingsdataList[2].grunnlag.varselAntall shouldBe 1
+                    avstemmingsdataList[2].grunnlag.avvistAntall shouldBe 2
+                    verifyAvstemmingsdata(avstemmingsdataList.last(), AksjonType.AVSL)
                 }
             }
         }
@@ -125,10 +129,14 @@ class AvstemmingServiceTest :
                     val avstemmingsdataList = avstemmingSlot.captured.map { unmarshallAvstemming(it) }
 
                     avstemmingsdataList.size shouldBe 4
-                    verifyAvstemmingsdata(avstemmingsdataList[0], AksjonType.START)
+                    verifyAvstemmingsdata(avstemmingsdataList.first(), AksjonType.START)
                     verifyAvstemmingsdata(avstemmingsdataList[1], AksjonType.DATA)
                     verifyAvstemmingsdata(avstemmingsdataList[2], AksjonType.DATA)
-                    verifyAvstemmingsdata(avstemmingsdataList[3], AksjonType.AVSL)
+                    avstemmingsdataList[2].total.totalAntall shouldBe 3
+                    avstemmingsdataList[2].grunnlag.godkjentAntall shouldBe 1
+                    avstemmingsdataList[2].grunnlag.varselAntall shouldBe 0
+                    avstemmingsdataList[2].grunnlag.avvistAntall shouldBe 2
+                    verifyAvstemmingsdata(avstemmingsdataList.last(), AksjonType.AVSL)
                 }
             }
         }

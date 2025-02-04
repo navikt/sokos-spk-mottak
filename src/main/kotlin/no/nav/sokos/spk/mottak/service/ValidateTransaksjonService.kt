@@ -134,7 +134,12 @@ class ValidateTransaksjonService(
         dataSource.transaction { session ->
             innTransaksjonRepository.findAllFnrWithoutPersonId().chunked(READ_ROWS).forEach { fnrList ->
                 runBlocking {
-                    val identInformasjonMap = pdlService.getIdenterBolk(fnrList)
+                    val identInformasjonMap =
+                        fnrList.chunked(CHUNKED_SZIE)
+                            .flatMap { chunk -> pdlService.getIdenterBolk(chunk).entries }
+                            .groupBy({ it.key }, { it.value })
+                            .mapValues { entry -> entry.value.flatten() }
+
                     fnrList.forEach { fnr ->
                         val identInformasjon = identInformasjonMap[fnr]
                         if (!identInformasjon.isNullOrEmpty()) {
@@ -143,11 +148,10 @@ class ValidateTransaksjonService(
                                 identInformasjon.size == 1 -> personRepository.insert(ident, session)
                                 else -> {
                                     val personList = personRepository.findByFnr(identInformasjon.filter { it.historisk }.map { it.ident })
-                                    if (personList.size == 1) {
+                                    if (personList.isNotEmpty()) {
                                         personRepository.update(personList.first().personId!!, ident, session)
                                     } else {
-                                        secureLogger.error { "Ingen person funnet i database for fnr: $fnr, ingen fnr oppdateres" }
-                                        innTransaksjonRepository.updateTransaksjonStatus(fnr, UGYLDIG_FNR, session)
+                                        personRepository.insert(ident, session)
                                     }
                                 }
                             }

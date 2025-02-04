@@ -1,5 +1,6 @@
 package no.nav.sokos.spk.mottak.service
 
+import java.time.LocalDate
 import java.util.LinkedList
 
 import kotlinx.datetime.toJavaLocalDate
@@ -49,16 +50,16 @@ class AvstemmingService(
             metricCounter = Metrics.mqUtbetalingProducerMetricCounter,
         ),
 ) {
-    fun sendGrensesnittAvstemming(avstemmingRequest: AvstemmingRequest? = null) {
+    fun sendGrensesnittAvstemming(request: AvstemmingRequest? = null) {
         runCatching {
             val avstemmingInfoList =
                 when {
-                    avstemmingRequest?.fromDate != null && avstemmingRequest.toDate != null ->
+                    request?.fromDate != null && request.toDate != null ->
                         filInfoRepository.getByAvstemmingStatus(
                             antallUkjentOSZStatus = ANTALL_IKKE_UTFORT_TRANSAKSJON,
                             avstemmingStatus = listOf(TRANS_TILSTAND_OPPDRAG_SENDT_OK, TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK),
-                            fromDate = avstemmingRequest.fromDate.toJavaLocalDate(),
-                            toDate = avstemmingRequest.toDate.toJavaLocalDate(),
+                            fromDate = request.fromDate.toJavaLocalDate(),
+                            toDate = request.toDate.toJavaLocalDate(),
                         )
 
                     else -> filInfoRepository.getByAvstemmingStatus(ANTALL_IKKE_UTFORT_TRANSAKSJON)
@@ -66,24 +67,30 @@ class AvstemmingService(
 
             if (avstemmingInfoList.isNotEmpty()) {
                 Metrics.timer(SERVICE_CALL, "AvstemmingService", "sendGrensesnittAvstemming").recordCallable {
-                    val oppsummeringMap =
-                        avstemmingInfoList
-                            .flatMap { info -> transaksjonRepository.findTransaksjonOppsummeringByFilInfoId(info.filInfoId) }
-                            .groupBy { it.fagomrade }
-                    logger.debug { "Transaksjonsoppsummering: $oppsummeringMap" }
+                    avstemmingInfoList.forEach { info ->
+                        val oppsummeringMap = transaksjonRepository.findTransaksjonOppsummeringByFilInfoId(info.filInfoId).groupBy { it.fagomrade }
+                        logger.debug { "Transaksjonsoppsummering: $oppsummeringMap" }
+
+                        val transaksjonDetaljer = transaksjonRepository.findTransaksjonDetaljerByFilInfoId(listOf(info.filInfoId))
+                        val payloadList =
+                            oppsummeringMap.flatMap { oppsummering ->
+                                val detaljerList = transaksjonDetaljer.filter { oppsummering.key == it.fagsystemId }
+                                populateAndTransformAvstemmingToXML(
+                                    oppsummering.key,
+                                    oppsummering.value,
+                                    detaljerList,
+                                    info.filInfoId,
+                                    info.datoTransaksjonSendt,
+                                )
+                            }
+                        payloadList.chunked(MQ_BATCH_SIZE).forEach { payloadChunk -> producer.send(payloadChunk) }
+                    }
 
                     val filInfoIdList = avstemmingInfoList.map { it.filInfoId }
-                    val transaksjonDetaljer = transaksjonRepository.findTransaksjonDetaljerByFilInfoId(filInfoIdList)
-                    val payloadList =
-                        oppsummeringMap.flatMap { oppsummering ->
-                            val detaljerList = transaksjonDetaljer.filter { oppsummering.key == it.fagsystemId }
-                            populateAndTransformAvstemmingToXML(oppsummering.key, oppsummering.value, detaljerList, filInfoIdList)
-                        }
-                    payloadList.chunked(MQ_BATCH_SIZE).forEach { payloadChunk -> producer.send(payloadChunk) }
-
                     dataSource.transaction { session ->
-                        filInfoRepository.updateAvstemmingStatus(filInfoIdList, TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK, session)
+                        filInfoRepository.updateAvstemmingStatus(filInfoIdList, TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK, null, session)
                     }
+
                     logger.info { "Avstemming sendt OK for filInfoId: ${filInfoIdList.joinToString()}" }
                 }
             } else {
@@ -110,9 +117,10 @@ class AvstemmingService(
         fagomrade: String,
         oppsummering: List<TransaksjonOppsummering>,
         transaksjonDetaljer: List<TransaksjonDetalj>,
-        filInfoIdList: List<Int>,
+        filInfoId: Int,
+        periode: LocalDate,
     ): LinkedList<String> {
-        val avstemming = AvstemmingConverter.default(filInfoIdList.first().toString(), filInfoIdList.last().toString(), fagomrade)
+        val avstemming = AvstemmingConverter.default(filInfoId.toString(), filInfoId.toString(), fagomrade)
         val avstemmingList = LinkedList<Avstemmingsdata>()
         avstemmingList.add(avstemming.startMelding())
 
@@ -122,7 +130,10 @@ class AvstemmingService(
             }
         }
 
-        avstemmingList.add(avstemming.dataMelding(oppsummering))
+        if (oppsummering.isNotEmpty()) {
+            avstemmingList.add(avstemming.dataMelding(oppsummering, periode, periode))
+        }
+
         avstemmingList.add(avstemming.sluttMelding())
 
         return avstemmingList.map { JaxbUtils.marshallAvstemmingsdata(it) }.toCollection(LinkedList())
