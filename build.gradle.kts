@@ -179,12 +179,6 @@ tasks {
         dependsOn("graphqlGenerateClient")
     }
 
-    ktlint {
-        filter {
-            exclude { element -> element.file.path.contains("generated/") || element.file.extension == "txt" }
-        }
-    }
-
     withType<KoverReport>().configureEach {
         kover {
             reports {
