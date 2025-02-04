@@ -16,12 +16,17 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
+import no.nav.sokos.spk.mottak.domain.avregning.Avregningsgrunnlag
+import no.nav.sokos.spk.mottak.domain.avregning.AvregningsgrunnlagWrapper
+import no.nav.sokos.spk.mottak.domain.converter.AvregningConverter.avregningsretur
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.trekkTilstandStatus
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.domain.oppdrag.DokumentWrapper
 import no.nav.sokos.spk.mottak.domain.oppdrag.Mmel
+import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkListenerMetricCounter
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingListenerMetricCounter
+import no.nav.sokos.spk.mottak.repository.AvregningsreturRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
@@ -34,20 +39,24 @@ class JmsListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
     utbetalingReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
     trekkReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+    avregningsgrunnlagQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)
     private val utbetalingMQListener = jmsContext.createConsumer(utbetalingReplyQueue)
     private val trekkMQListener = jmsContext.createConsumer(trekkReplyQueue)
+    private val avregningsgrunnlagMQListener = jmsContext.createConsumer(avregningsgrunnlagQueue)
 
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
+    private val avregningsreturRepository: AvregningsreturRepository = AvregningsreturRepository(dataSource)
 
     private val json = Json { ignoreUnknownKeys = true }
 
     init {
         utbetalingMQListener.setMessageListener { onUtbetalingMessage(it) }
         trekkMQListener.setMessageListener { onTrekkMessage(it) }
+        avregningsgrunnlagMQListener.setMessageListener { onAvregningsgrunnlagMessage(it) }
 
         jmsContext.setExceptionListener { logger.error("Feil på MQ-kommunikasjon", it) }
     }
@@ -105,6 +114,31 @@ class JmsListenerService(
             mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
         }.onFailure { exception ->
             logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
+        }
+    }
+
+    private fun onAvregningsgrunnlagMessage(message: Message) {
+        runCatching {
+            val jmsMessage = message.getBody(String::class.java)
+            logger.debug { "Mottatt avregningsgrunnlag fra UR. Meldingsinnhold: $jmsMessage" }
+            val avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
+            processAvregningsgrunnlagMessage(avregningsgrunnlagWrapper.avregningsgrunnlag)
+        }.onFailure { exception ->
+            logger.error(exception) { "Prosessering av avregningsgrunnlag feilet. ${message.jmsMessageID}" }
+        }
+    }
+
+    private fun processAvregningsgrunnlagMessage(avregningsgrunnlag: Avregningsgrunnlag) {
+        val avregningstransaksjon: Avregningstransaksjon? =
+            avregningsgrunnlag.delytelseId?.let { delytelseId ->
+                transaksjonRepository.findTransaksjonByMotIdAndTomDatoAndTomDato(delytelseId, avregningsgrunnlag.tomdato)
+            }
+        val avregningsretur = avregningsgrunnlag.avregningsretur(avregningstransaksjon!!)
+        dataSource.transaction { session ->
+            avregningsreturRepository.insert(
+                avregningsretur,
+                session,
+            )
         }
     }
 

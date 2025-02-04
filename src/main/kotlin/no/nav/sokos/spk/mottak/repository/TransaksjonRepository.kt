@@ -16,6 +16,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.TransaksjonDetalj
 import no.nav.sokos.spk.mottak.domain.TransaksjonOppsummering
+import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
@@ -34,6 +35,8 @@ class TransaksjonRepository(
     private val findLastTransaksjonByPersonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findLastTransaksjonByPersonId")
     private val findAllByBelopstypeAndByTransaksjonTilstandTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findAllByBelopstypeAndByTransaksjonTilstand")
     private val updateBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandStatus")
+    private val findTransaksjonByMotIdAndTomDatoAndTomDatoTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonByMotIdAndTomDatoAndTomDato")
+    private val findTransaksjonByTrekkvedtakIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonByTrekkvedtakId")
 
     fun insertBatch(
         transaksjonList: List<Transaksjon>,
@@ -293,6 +296,41 @@ class TransaksjonRepository(
             }
         }
 
+    fun findTransaksjonByMotIdAndTomDatoAndTomDato(
+        motId: String,
+        tomDato: String,
+    ): Avregningstransaksjon? =
+        using(sessionOf(dataSource)) { session ->
+            findTransaksjonByMotIdAndTomDatoAndTomDatoTimer.recordCallable {
+                session.single(
+                    queryOf(
+                        """
+                        SELECT t.TRANSAKSJON_ID, t.FNR_FK, t.TRANS_EKS_ID_FK, t.DATO_ANVISER
+                        FROM T_TRANSAKSJON t
+                        WHERE t.MOT_ID = '$motId' AND t.DATO_TOM = '$tomDato'
+                        """.trimIndent(),
+                    ),
+                    mapToAvregningstransaksjon,
+                )
+            }
+        }
+
+    fun findTransaksjonByTrekkvedtakId(trekkvedtakId: String): Avregningstransaksjon? =
+        using(sessionOf(dataSource)) { session ->
+            findTransaksjonByTrekkvedtakIdTimer.recordCallable {
+                session.single(
+                    queryOf(
+                        """
+                        SELECT t.TRANSAKSJON_ID, t.FNR_FK, t.TRANS_EKS_ID_FK, t.DATO_ANVISER
+                        FROM T_TRANSAKSJON t
+                        WHERE t.TREKKVEDTAK_ID_FK = '$trekkvedtakId'
+                        """.trimIndent(),
+                    ),
+                    mapToAvregningstransaksjon,
+                )
+            }
+        }
+
     /** Bruker kun for testing */
     fun getByTransaksjonId(transaksjonId: Int): Transaksjon? =
         using(sessionOf(dataSource)) { session ->
@@ -325,6 +363,15 @@ class TransaksjonRepository(
                 mapToTransaksjon,
             )
         }
+
+    private val mapToAvregningstransaksjon: (Row) -> Avregningstransaksjon = { row ->
+        Avregningstransaksjon(
+            row.int("TRANSAKSJON_ID"),
+            row.string("FNR_FK"),
+            row.string("TRANS_EKS_ID_FK"),
+            row.localDate("DATO_ANVISER"),
+        )
+    }
 
     private val mapToTransaksjon: (Row) -> Transaksjon = { row ->
         Transaksjon(

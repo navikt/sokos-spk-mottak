@@ -1,0 +1,43 @@
+package no.nav.sokos.spk.mottak.domain.avregning
+
+import java.time.LocalDate
+import java.time.LocalDateTime
+
+data class Avregningsretur(
+    val returTilAnviserId: Int? = null,
+    val rectype: String? = "02",
+    val returtype: String? = "AVR",
+    val anviser: String? = "SPK",
+    val osId: String? = null,
+    val osLinjeId: String? = null,
+    val trekkvedtakId: String? = null,
+    val gjelderId: String,
+    val fnr: String? = null,
+    val datoStatus: LocalDate,
+    val status: String,
+    val bilagsNrSerie: String? = null,
+    val bilagsNr: String? = null,
+    val datoFom: LocalDate,
+    val datoTom: LocalDate,
+    val belop: String,
+    val debetKredit: String,
+    val utbetalingType: String? = null,
+    val transaksjonTekst: String? = null,
+    val transEksId: String? = null,
+    val datoAvsender: LocalDate,
+    val utbetalesTil: String,
+    val statusTekst: String? = null,
+    val returtypeKode: String? = null,
+    val duplikat: String? = "0",
+    val transaksjonId: Int? = null,
+    val filInfoInnId: Int? = 0,
+    val filInfoUtId: Int? = null,
+    val datoValutering: String? = null,
+    val konto: String? = null,
+    val motId: String? = null,
+    val datoOpprettet: LocalDateTime,
+    val opprettetAv: String,
+    val datoEndret: LocalDateTime,
+    val endretAv: String,
+    val versjon: Int? = 1,
+)

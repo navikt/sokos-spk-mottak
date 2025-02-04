@@ -42,6 +42,7 @@ object PropertiesConfig {
                 "MQ_UTBETALING_REPLY_QUEUE_NAME" to "QA.Q1_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY",
                 "MQ_TREKK_QUEUE_NAME" to "QA.Q1_231.OB04_TREKK_MOT_JSON",
                 "MQ_TREKK_REPLY_QUEUE_NAME" to "QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY",
+                "MQ_AVREGNINGSGRUNNLAG_QUEUE_NAME" to "QA.Q1_MOT.AVREGNINGSGRUNNLAG_MOT_JSON",
                 "MQ_AVSTEMMING_QUEUE_NAME" to "QA.Q1_234.OB29_AVSTEMMING_XML",
             ),
         )
@@ -129,6 +130,7 @@ object PropertiesConfig {
         val trekkReplyQueueName: String = getOrEmpty("MQ_TREKK_REPLY_QUEUE_NAME"),
         val utbetalingQueueName: String = getOrEmpty("MQ_UTBETALING_QUEUE_NAME"),
         val utbetalingReplyQueueName: String = getOrEmpty("MQ_UTBETALING_REPLY_QUEUE_NAME"),
+        val avregningsgrunnlagQueueName: String = getOrEmpty("MQ_AVREGNINGSGRUNNLAG_QUEUE_NAME"),
         val avstemmingQueueName: String = getOrEmpty("MQ_AVSTEMMING_QUEUE_NAME"),
         val mqBatchSize: Int = get("MQ_BATCH_SIZE").toInt(),
         val mqListenerEnabled: Boolean = get("MQ_LISTENER_ENABLED").toBoolean(),
