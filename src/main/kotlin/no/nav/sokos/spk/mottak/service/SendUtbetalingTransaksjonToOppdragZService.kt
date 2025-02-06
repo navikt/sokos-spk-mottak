@@ -69,45 +69,36 @@ class SendUtbetalingTransaksjonToOppdragZService(
 
         Metrics.timer(SERVICE_CALL, "SendUtbetalingTransaksjonToOppdragServiceV2", "getUtbetalingTransaksjonAndSendToOppdragZ").recordCallable {
             runCatching {
-                val transaksjonMap =
-                    transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG)
-                        .groupBy { it.filInfoId }
-                        .toSortedMap()
+                val transaksjonMap = transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG).groupBy { it.filInfoId }.toSortedMap()
 
                 transaksjonMap.forEach { (filInfoId, transaksjonList) ->
-                    var transaksjonerSendt = 0
                     var oppdragsmeldingerSendt = 0
 
-                    logger.info { "Starter sending fileInfoId: $filInfoId av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
+                    logger.info { "Starter sending av ${transaksjonList.size} utbetalingstransaksjoner for fileInfoId: $filInfoId til OppdragZ" }
                     if (transaksjonList.isNotEmpty()) {
-                        val oppdragList =
-                            transaksjonList
-                                .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
-                                .map { it.value.toUtbetalingsOppdragXML() }
+                        val oppdragList = transaksjonList.map { it.toUtbetalingsOppdragXML() }
                         logger.debug { "Oppdragslistestørrelse ${oppdragList.size}" }
 
                         oppdragList.chunked(mqBatchSize).forEach { oppdragChunk ->
                             val transaksjonIdList =
                                 oppdragChunk.flatMap { oppdrag ->
-                                    oppdrag.value.oppdrag110.oppdragsLinje150
-                                        .map { it.delytelseId.toInt() }
+                                    oppdrag.value.oppdrag110.oppdragsLinje150.map { it.delytelseId.toInt() }
                                 }
                             val oppdragXML = oppdragChunk.map { JaxbUtils.marshallOppdrag(it) }
 
                             sendToOppdragZ(oppdragXML, transaksjonIdList)
                             oppdragsmeldingerSendt += oppdragXML.size
-                            transaksjonerSendt += transaksjonIdList.size
-                            logger.info { "$oppdragsmeldingerSendt utbetalingsmeldinger sendt av totalt ${oppdragList.size} ($transaksjonerSendt transaksjoner av totalt ${transaksjonList.size}) " }
+                            logger.info { "$oppdragsmeldingerSendt utbetalingsmeldinger sendt av totalt ${oppdragList.size}" }
                         }
                         logger.info {
-                            "Fullført sending av $oppdragsmeldingerSendt utbetalingsmeldinger ($transaksjonerSendt transaksjoner) til OppdragZ. Total tid: ${
+                            "Fullført sending av $oppdragsmeldingerSendt utbetalingsmeldinger til OppdragZ. Total tid: ${
                                 Duration.between(
                                     timer,
                                     Instant.now(),
                                 ).toSeconds()
                             } sekunder."
                         }
-                        Metrics.utbetalingTransaksjonerTilOppdragCounter.inc(transaksjonerSendt.toLong())
+                        Metrics.utbetalingTransaksjonerTilOppdragCounter.inc(oppdragsmeldingerSendt.toLong())
 
                         if (errorCounter.get() == 0) {
                             dataSource.transaction { session ->
@@ -124,12 +115,12 @@ class SendUtbetalingTransaksjonToOppdragZService(
         }
     }
 
-    private fun List<Transaksjon>.toUtbetalingsOppdragXML(): JAXBElement<Oppdrag> =
+    private fun Transaksjon.toUtbetalingsOppdragXML(): JAXBElement<Oppdrag> =
         ObjectFactory().createOppdrag(
             Oppdrag().apply {
                 oppdrag110 =
-                    first().oppdrag110().apply {
-                        oppdragsLinje150.addAll(map { it.oppdragsLinje150() })
+                    oppdrag110().apply {
+                        oppdragsLinje150.add(oppdragsLinje150())
                     }
             },
         )

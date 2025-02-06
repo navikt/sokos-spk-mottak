@@ -236,10 +236,10 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
 
             When("hent utbetalinger og send til OppdragZ") {
                 utbetalingTransaksjonTilOppdragService.getUtbetalingTransaksjonAndSendToOppdragZ()
-                Then("skal alle utbetalinger blir sent i en batch-chunk") {
+                Then("skal alle utbetalinger bli sent i en batch-chunk") {
                     verify(exactly = 1) { producer.send(capture(slot)) }
                     val sentMessages = slot.captured
-                    sentMessages.size shouldBe 2
+                    sentMessages.size shouldBe 5
                     sentMessages.first().contains("<kodeEndring>NY</kodeEndring>") shouldBe true
                     sentMessages.last().contains("<kodeEndring>UEND</kodeEndring>") shouldBe true
 
@@ -312,6 +312,5 @@ private fun verifyDatabaseState(status: String) {
 
 private fun List<Transaksjon>.toExpectedMessages(): List<String> =
     this
-        .groupBy { Pair(it.personId, it.gyldigKombinasjon!!.fagomrade) }
-        .map { it.value.toUtbetalingsOppdrag() }
+        .map { it.toUtbetalingsOppdrag() }
         .map { JaxbUtils.marshallOppdrag(it) }

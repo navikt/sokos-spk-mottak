@@ -117,12 +117,12 @@ object TestHelper {
         transaksjonTilstand.versjon shouldBe 1
     }
 
-    fun List<Transaksjon>.toUtbetalingsOppdrag(): JAXBElement<Oppdrag> =
+    fun Transaksjon.toUtbetalingsOppdrag(): JAXBElement<Oppdrag> =
         ObjectFactory().createOppdrag(
             Oppdrag().apply {
                 oppdrag110 =
-                    first().oppdrag110().apply {
-                        oppdragsLinje150.addAll(map { it.oppdragsLinje150() })
+                    oppdrag110().apply {
+                        oppdragsLinje150.add(oppdragsLinje150())
                     }
             },
         )
