@@ -13,7 +13,7 @@ on:
       - 'setupLocalEnvironment.sh'
       - 'dokumentasjon/**'
       - '.github/workflows/build-pr.yaml'
-      - 'manual-deploy.yaml'
+      - '.github/workflows/manual-deploy.yaml'
       - '.github/workflows/manual-deploy-dev-qx.yaml'
       - '.github/workflows/security.yaml'
       - '.github/workflows/alerts.yaml'
