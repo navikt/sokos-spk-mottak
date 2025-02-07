@@ -65,7 +65,7 @@ val flywayVersion = "11.3.0"
 val postgresVersion = "42.7.5"
 val dbSchedulerVersion = "15.2.0"
 val vaultVersion = "1.3.10"
-val tjenestespesifikasjonVersion = "1.0_20250103091213_2eaa779"
+val tjenestespesifikasjonVersion = "1.0_20250207093735_3b7cb5e"
 val ibmmqVersion = "9.4.1.1"
 val activemqVersion = "2.39.0"
 val graphqlClientVersion = "8.3.0"
@@ -126,8 +126,8 @@ dependencies {
     implementation("com.ibm.mq:com.ibm.mq.jakarta.client:$ibmmqVersion")
 
     // Oppdrag
-    implementation("no.nav.familie.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
-    implementation("no.nav.familie.tjenestespesifikasjoner:avstemming-v1-tjenestespesifikasjon:$tjenestespesifikasjonVersion")
+    implementation("no.nav.sokos.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
+    implementation("no.nav.sokos.tjenestespesifikasjoner:avstemming-v1-tjenestespesifikasjon:$tjenestespesifikasjonVersion")
 
     // GraphQL
     implementation("com.expediagroup:graphql-kotlin-ktor-client:$graphqlClientVersion") {
