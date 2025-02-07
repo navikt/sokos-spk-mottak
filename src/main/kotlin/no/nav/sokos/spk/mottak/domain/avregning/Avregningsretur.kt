@@ -24,7 +24,7 @@ data class Avregningsretur(
     val utbetalingType: String? = null,
     val transaksjonTekst: String? = null,
     val transEksId: String? = null,
-    val datoAvsender: LocalDate,
+    val datoAvsender: LocalDate? = null,
     val utbetalesTil: String,
     val statusTekst: String? = null,
     val returtypeKode: String? = null,

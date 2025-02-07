@@ -33,6 +33,7 @@ internal class JmsListenerServiceTest :
                 connectionFactory,
                 ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
                 ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                ActiveMQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
                 Db2Listener.dataSource,
             )
         }

@@ -19,6 +19,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
 import no.nav.sokos.spk.mottak.domain.avregning.Avregningsgrunnlag
 import no.nav.sokos.spk.mottak.domain.avregning.AvregningsgrunnlagWrapper
+import no.nav.sokos.spk.mottak.domain.avregning.Avregningsretur
 import no.nav.sokos.spk.mottak.domain.converter.AvregningConverter.avregningsretur
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.trekkTilstandStatus
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
@@ -32,6 +33,7 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
+import no.nav.sokos.spk.mottak.util.Utils.toIsoDate
 
 private val logger = KotlinLogging.logger {}
 private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
@@ -41,7 +43,7 @@ class JmsListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
     utbetalingReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
     trekkReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-    avregningsgrunnlagQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+    avregningsgrunnlagQueue: Queue = MQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.CLIENT_ACKNOWLEDGE)
@@ -120,38 +122,51 @@ class JmsListenerService(
     }
 
     private fun onAvregningsgrunnlagMessage(message: Message) {
+        val jmsMessage = message.getBody(String::class.java)
         runCatching {
-            val jmsMessage = message.getBody(String::class.java)
             logger.debug { "Mottatt avregningsgrunnlag fra UR. Meldingsinnhold: $jmsMessage" }
             val avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
             processAvregningsgrunnlagMessage(avregningsgrunnlagWrapper.avregningsgrunnlag)
+            message.acknowledge()
         }.onFailure { exception ->
+            secureLogger.error { "Avregningsgrunnlagmelding fra UR: $jmsMessage" }
             logger.error(exception) { "Prosessering av avregningsgrunnlag feilet. ${message.jmsMessageID}" }
         }
     }
 
     private fun processAvregningsgrunnlagMessage(avregningsgrunnlag: Avregningsgrunnlag) {
         val avregningstransaksjon: Avregningstransaksjon? =
-            avregningsgrunnlag.delytelseId?.let { delytelseId ->
-                transaksjonRepository.findTransaksjonByMotIdAndTomDatoAndTomDato(delytelseId, avregningsgrunnlag.tomdato)
+            avregningsgrunnlag.delytelseId?.let {
+                transaksjonRepository.findTransaksjonByMotIdAndTomDatoAndTomDato(it, avregningsgrunnlag.tomdato)
+            } ?: transaksjonRepository.findTransaksjonByTrekkvedtakId(avregningsgrunnlag.trekkvedtakId!!)
+
+        val avregningsretur =
+            avregningstransaksjon?.let {
+                avregningsgrunnlag.avregningsretur(it)
+            } ?: avregningsgrunnlag.trekkvedtakId?.let { findKreditorRef(it) }
+
+        avregningsretur?.datoAvsender ?: "1900-01-01".toIsoDate()
+
+        avregningsretur?.let {
+            dataSource.transaction { session ->
+                avregningsreturRepository.insert(it, session)
             }
-        val avregningsretur = avregningsgrunnlag.avregningsretur(avregningstransaksjon!!)
-        dataSource.transaction { session ->
-            avregningsreturRepository.insert(
-                avregningsretur,
-                session,
-            )
-        }
+        } ?: logger.error { "Feilet i prosessering av avregningsgrunnlag: avregningsretur er null" }
+    }
+
+    private fun findKreditorRef(trekkvedtakId: String?): Avregningsretur? {
+        throw NotImplementedError("Mangler implementasjon for å finne kreditorRef for trekkvedtakId: $trekkvedtakId")
     }
 
     private fun onTrekkMessage(message: Message) {
+        val jmsMessage = message.getBody(String::class.java)
         runCatching {
-            val jmsMessage = message.getBody(String::class.java)
             logger.debug { "Mottatt trekkmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
             val trekkWrapper = json.decodeFromString<DokumentWrapper>(jmsMessage)
             processTrekkMessage(trekkWrapper.dokument!!, trekkWrapper.mmel!!)
             message.acknowledge()
         }.onFailure { exception ->
+            secureLogger.error { "Trekkmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
         }
     }
@@ -194,7 +209,7 @@ class JmsListenerService(
             osStatus == OS_STATUS_OK -> false
             transaksjonRepository.getByTransaksjonId(transaksjonId)!!.osStatus == TRANSAKSJONSTATUS_OK -> {
                 logger.info { "Transaksjon: $transaksjonId er allerede mottatt med OK-status" }
-                return true
+                true
             }
 
             else -> false

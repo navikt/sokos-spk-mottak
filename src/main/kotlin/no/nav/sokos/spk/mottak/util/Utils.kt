@@ -12,6 +12,11 @@ object Utils {
             this.ifBlank { null }.let { LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd")) }
         }.getOrNull()
 
+    fun String.toIsoDate(): LocalDate? =
+        runCatching {
+            this.ifBlank { null }.let { LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyy-MM-dd")) }
+        }.getOrNull()
+
     fun LocalDate.toLocalDateString(): String = this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
     fun LocalDate.toISOString(): String = this.format(DateTimeFormatter.ISO_DATE)
