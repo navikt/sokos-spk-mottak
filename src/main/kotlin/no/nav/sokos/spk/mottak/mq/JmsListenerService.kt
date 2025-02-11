@@ -138,20 +138,20 @@ class JmsListenerService(
         val avregningstransaksjon: Avregningstransaksjon? =
             avregningsgrunnlag.delytelseId?.let {
                 transaksjonRepository.findTransaksjonByMotIdAndTomDatoAndTomDato(it, avregningsgrunnlag.tomdato)
-            } ?: transaksjonRepository.findTransaksjonByTrekkvedtakId(avregningsgrunnlag.trekkvedtakId!!)
+            } ?: avregningsgrunnlag.trekkvedtakId?.let { transaksjonRepository.findTransaksjonByTrekkvedtakId(avregningsgrunnlag.trekkvedtakId) }
 
         val avregningsretur =
             avregningstransaksjon?.let {
                 avregningsgrunnlag.avregningsretur(it)
             } ?: avregningsgrunnlag.trekkvedtakId?.let { findKreditorRef(it) }
 
-        avregningsretur?.datoAvsender ?: "1900-01-01".toIsoDate()
+        avregningsretur?.datoAvsender = avregningsretur?.datoAvsender ?: "1900-01-01".toIsoDate()
 
         avregningsretur?.let {
             dataSource.transaction { session ->
                 avregningsreturRepository.insert(it, session)
             }
-        } ?: logger.error { "Feilet i prosessering av avregningsgrunnlag: avregningsretur er null" }
+        } ?: throw NullPointerException("Feilet i prosessering av avregningsgrunnlag: avregningsretur er null")
     }
 
     private fun findKreditorRef(trekkvedtakId: String?): Avregningsretur? {

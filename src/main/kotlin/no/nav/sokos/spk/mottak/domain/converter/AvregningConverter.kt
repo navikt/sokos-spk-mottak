@@ -36,6 +36,7 @@ object AvregningConverter {
             datoAvsender = avregningstransaksjon.datoAnviser,
             utbetalesTil = utbetalesTil,
             statusTekst = null,
+            returtypeKode = returType,
             transaksjonId = avregningstransaksjon.transaksjonId,
             datoValutering = datoValutert,
             konto = konto,

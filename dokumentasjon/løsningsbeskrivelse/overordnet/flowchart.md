@@ -3,7 +3,8 @@ flowchart TB
     spk("SPK")
     sftp("SFTP")
     mottak("sokos-spk-mottak")
-    oppdragZ("OppdragZ")
+    oppdragZ("Oppdrag Z")
+    ur("UR Z")
     avstemming("Avstemmingskomponenten")
     spk -- sender anvisningsfil --> sftp
     sftp -- overfører feilfil ved anvisningsfilfeil --> spk
@@ -13,4 +14,5 @@ flowchart TB
     mottak -- sender feilfil ved anvisningsfilfeil --> sftp
     mottak -- sender returfil med status på transaksjoner --> sftp
     mottak -- sender avstemmingsdata --> avstemming
+    ur -- sender avregningsgrunnlag --> mottak
 ````
