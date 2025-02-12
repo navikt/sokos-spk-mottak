@@ -68,7 +68,7 @@ Eksempel:
 {
    "avregningsgrunnlag":{
       "returType":"U",
-      "oppdragsId:70014840,  
+      "oppdragsId":70014840,  
       "linjeId":3,
       "trekkvedtakId":0, 
       "gjelderId":"03117232831",
@@ -88,6 +88,7 @@ Eksempel:
       "delytelseId":"84004200"  
    }
 }
+```
 
 **Mapping T_RETUR_TIL_ANV**
 
@@ -95,7 +96,7 @@ Eksempel:
 |-------------------|---------------------------------------|-------------------------------------------|
 | RETUR_TIL_ANV_ID  |                                       | settes av databasen                       |
 | RECTYPE           | "02"                                  | recordtype                                |
-| K_RETUR_T         | "AVR"                                 | avregningstype                            |   
+| K_RETUR_T         | "AVR"                                 | avregningstype                            |
 | K_ANVISER         | "SPK"                                 | anviser                                   |
 | OS_ID_FK          | avregningsgrunnlag.oppdragsId         | id på oppdraget i OS                      |
 | OS_LINJE_ID_FK    | avregningsgrunnlag.linjeId            | id på oppdragslinjen i OS                 |

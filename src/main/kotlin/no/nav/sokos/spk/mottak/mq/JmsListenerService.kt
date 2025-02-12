@@ -154,7 +154,7 @@ class JmsListenerService(
         } ?: throw NullPointerException("Feilet i prosessering av avregningsgrunnlag: avregningsretur er null")
     }
 
-    private fun findKreditorRef(trekkvedtakId: String?): Avregningsretur? {
+    private fun findKreditorRef(trekkvedtakId: Int): Avregningsretur? {
         throw NotImplementedError("Mangler implementasjon for å finne kreditorRef for trekkvedtakId: $trekkvedtakId")
     }
 

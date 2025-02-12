@@ -17,9 +17,9 @@ object AvregningConverter {
 
     fun Avregningsgrunnlag.avregningsretur(avregningstransaksjon: Avregningstransaksjon): Avregningsretur =
         Avregningsretur(
-            osId = oppdragsId,
-            osLinjeId = linjeId,
-            trekkvedtakId = trekkvedtakId,
+            osId = oppdragsId.toString(),
+            osLinjeId = linjeId?.toString(),
+            trekkvedtakId = trekkvedtakId?.toString(),
             gjelderId = gjelderId,
             fnr = avregningstransaksjon.fnr,
             datoStatus = datoStatusSatt.toLocalDate()!!,
@@ -28,7 +28,7 @@ object AvregningConverter {
             bilagsNr = bilagsnr,
             datoFom = fomdato.toLocalDate()!!,
             datoTom = tomdato.toLocalDate()!!,
-            belop = belop,
+            belop = belop.toString(),
             debetKredit = debetKredit,
             utbetalingType = utbetalingsType,
             transaksjonTekst = transTekst,

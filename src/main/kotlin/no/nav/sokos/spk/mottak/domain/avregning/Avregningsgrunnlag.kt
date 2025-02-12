@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Avregningsgrunnlag(
     @SerialName("RETURTYPE") val returType: String,
-    @SerialName("OPPDRAGS-ID") val oppdragsId: String? = null,
-    @SerialName("LINJE-ID") val linjeId: String? = null,
-    @SerialName("TREKKVEDTAK-ID") val trekkvedtakId: String? = null,
+    @SerialName("OPPDRAGS-ID") val oppdragsId: Int,
+    @SerialName("LINJE-ID") val linjeId: Int? = null,
+    @SerialName("TREKKVEDTAK-ID") val trekkvedtakId: Int? = null,
     @SerialName("GJELDER-ID") val gjelderId: String,
     @SerialName("UTBETALES-TIL") val utbetalesTil: String,
     @SerialName("DATO-STATUS-SATT") val datoStatusSatt: String,
@@ -18,7 +18,7 @@ data class Avregningsgrunnlag(
     @SerialName("KONTO") val konto: String? = null,
     @SerialName("FOMDATO") val fomdato: String,
     @SerialName("TOMDATO") val tomdato: String,
-    @SerialName("BELOP") val belop: String,
+    @SerialName("BELOP") val belop: Int,
     @SerialName("DEBET-KREDIT") val debetKredit: String,
     @SerialName("UTBETALINGS-TYPE") val utbetalingsType: String? = null,
     @SerialName("TRANS-TEKST") val transTekst: String? = null,

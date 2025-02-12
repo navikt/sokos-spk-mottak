@@ -320,7 +320,7 @@ class TransaksjonRepository(
             }
         }
 
-    fun findTransaksjonByTrekkvedtakId(trekkvedtakId: String): Avregningstransaksjon? =
+    fun findTransaksjonByTrekkvedtakId(trekkvedtakId: Int): Avregningstransaksjon? =
         using(sessionOf(dataSource)) { session ->
             findTransaksjonByTrekkvedtakIdTimer.recordCallable {
                 session.single(
