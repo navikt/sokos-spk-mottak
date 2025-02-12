@@ -124,9 +124,9 @@ class TransaksjonRepository(
                     SET K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY_EKSIST'
                     WHERE TRANSAKSJON_ID IN (SELECT DISTINCT t1.TRANSAKSJON_ID
                                              FROM T_TRANSAKSJON t1
-                                                      INNER JOIN T_K_GYLDIG_KOMBIN k1 on (t1.K_ART = k1.K_ART AND t1.K_BELOP_T = k1.K_BELOP_T)
+                                                      INNER JOIN T_K_GYLDIG_KOMBIN k1 on (t1.K_ART = k1.K_ART AND t1.K_BELOP_T = k1.K_BELOP_T AND k1.ER_GYLDIG = '1')
                                                       INNER JOIN T_TRANSAKSJON t2 ON (t1.PERSON_ID = t2.PERSON_ID AND t1.FIL_INFO_ID = t2.FIL_INFO_ID)
-                                                      INNER JOIN T_K_GYLDIG_KOMBIN k2 on (t2.K_ART = k2.K_ART AND t2.K_BELOP_T = k2.K_BELOP_T)
+                                                      INNER JOIN T_K_GYLDIG_KOMBIN k2 on (t2.K_ART = k2.K_ART AND t2.K_BELOP_T = k2.K_BELOP_T AND k2.ER_GYLDIG = '1')
                                              WHERE t1.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
                                                AND t1.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPPRETTET'
                                                AND t1.K_ANVISER = '$SPK'
@@ -150,7 +150,7 @@ class TransaksjonRepository(
                         """
                         SELECT DISTINCT t.PERSON_ID, k.K_FAGOMRADE
                         FROM T_TRANSAKSJON t
-                                 INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER)
+                                 INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER AND k.ER_GYLDIG = '1')
                         WHERE t.K_BELOP_T IN ('01', '02')
                           AND t.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
                           AND t.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPPRETTET'
@@ -220,7 +220,7 @@ class TransaksjonRepository(
                                t.REF_TRANS_ID, t.TEKSTKODE, RECTYPE, t.TRANS_EKS_ID_FK, t.K_TRANS_TOLKNING, t.SENDT_TIL_OPPDRAG, t.TREKKVEDTAK_ID_FK, t.FNR_ENDRET, t.MOT_ID, t.OS_STATUS, t.DATO_OPPRETTET, t.OPPRETTET_AV, t.DATO_ENDRET, t.ENDRET_AV, t.VERSJON, t.SALDO, t.KID, t.PRIORITET,
                                t.K_TREKKANSVAR, t.K_TRANS_TILST_T, t.GRAD, k.K_FAGOMRADE, k.OS_KLASSIFIKASJON, k.K_TREKKGRUPPE, k.K_TREKK_T, k.K_TREKKALT_T
                         FROM T_TRANSAKSJON t
-                            INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER)
+                            INNER JOIN T_K_GYLDIG_KOMBIN k on (t.K_ART = k.K_ART AND t.K_BELOP_T = k.K_BELOP_T AND t.K_ANVISER = k.K_ANVISER AND k.ER_GYLDIG = '1')
                         WHERE t.K_ANVISER = '$SPK' 
                         AND k.ER_GYLDIG = 1
                         AND t.K_BELOP_T IN (${belopstype.joinToString(separator = "','", prefix = "'", postfix = "'")}) 
@@ -241,8 +241,8 @@ class TransaksjonRepository(
                         """
                         SELECT count(*) AS ANTALL, t.PERSON_ID, k.K_FAGOMRADE, t.FIL_INFO_ID, t.OS_STATUS, t.K_TRANS_TILST_T, SUM(CAST(t.BELOP/100 AS BIGINT)) AS BELOP
                         FROM T_TRANSAKSJON t
-                                 INNER JOIN T_K_GYLDIG_KOMBIN k ON k.K_ART = t.K_ART and k.K_BELOP_T = t.K_BELOP_T
-                        WHERE k.K_FAGOMRADE IN ('PENSPK', 'UFORESPK', 'SPKBP') AND t.K_BELOP_T IN ('01','02') AND t.FIL_INFO_ID = $filInfoId
+                                 INNER JOIN T_K_GYLDIG_KOMBIN k ON (k.K_ART = t.K_ART and k.K_BELOP_T = t.K_BELOP_T and k.ER_GYLDIG = '1')
+                        WHERE k.K_FAGOMRADE IN ('PENSPK', 'UFORESPK', 'SPKBP') AND t.FIL_INFO_ID = $filInfoId
                         group by t.PERSON_ID, k.K_FAGOMRADE, t.FIL_INFO_ID, t.K_TRANS_TILST_T, t.OS_STATUS
                         """.trimIndent(),
                     ),
@@ -268,7 +268,7 @@ class TransaksjonRepository(
                         """
                         SELECT DISTINCT t.TRANSAKSJON_ID, t.FNR_FK, k.K_FAGOMRADE, t.OS_STATUS, t.K_TRANS_TILST_T, tt.FEILKODE, tt.FEILKODEMELDING, t.DATO_OPPRETTET
                         FROM T_TRANSAKSJON t 
-                                    INNER JOIN T_K_GYLDIG_KOMBIN k ON k.K_ART = t.K_ART AND k.K_BELOP_T = t.K_BELOP_T AND t.K_BELOP_T IN ('01', '02')
+                                    INNER JOIN T_K_GYLDIG_KOMBIN k ON (k.K_ART = t.K_ART AND k.K_BELOP_T = t.K_BELOP_T AND t.K_BELOP_T IN ('01', '02') AND k.ER_GYLDIG = '1')
                                     INNER JOIN T_TRANS_TILSTAND tt ON t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID AND tt.TRANS_TILSTAND_ID = (
                                         SELECT MAX(TRANS_TILSTAND_ID)
                                         FROM T_TRANS_TILSTAND 
