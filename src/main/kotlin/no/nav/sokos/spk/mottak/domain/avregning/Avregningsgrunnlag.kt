@@ -22,8 +22,10 @@ data class Avregningsgrunnlag(
     @SerialName("DEBET-KREDIT") val debetKredit: String,
     @SerialName("UTBETALINGS-TYPE") val utbetalingsType: String? = null,
     @SerialName("TRANS-TEKST") val transTekst: String? = null,
-    @SerialName("DATO-VALUTERT") val datoValutert: String? = null,
+    @SerialName("DATO-VALUTERT") val datoValutert: String,
     @SerialName("DELYTELSE-ID") val delytelseId: String? = null,
+    @SerialName("FAGSYSTEM-ID") val fagSystemId: String,
+    @SerialName("KREDITOR-REF") val kreditorRef: String? = null,
 )
 
 @Serializable

@@ -297,8 +297,9 @@ class TransaksjonRepository(
             }
         }
 
-    fun findTransaksjonByMotIdAndTomDatoAndTomDato(
+    fun findTransaksjonByMotIdAndPersonIdAndTomDatoAndTomDato(
         motId: String,
+        personId: Int,
         tomDato: String,
     ): Avregningstransaksjon? =
         using(sessionOf(dataSource)) { session ->
@@ -311,8 +312,9 @@ class TransaksjonRepository(
                         t.TRANS_EKS_ID_FK,
                         t.DATO_ANVISER
                                 FROM T_TRANSAKSJON t
-                                WHERE t . MOT_ID =
-                        '$motId' AND t.DATO_TOM = DATE('$tomDato')
+                                WHERE t.MOT_ID = '$motId'
+                                AND t.PERSON_ID = $personId
+                                AND t.DATO_TOM = DATE('$tomDato')
                         """.trimIndent(),
                     ),
                     mapToAvregningstransaksjon,

@@ -115,6 +115,9 @@ spec:
       value: "200"
     - name: MQ_LISTENER_ENABLED
       value: "true"
+    - name: AVREGNING_LISTENER_ENABLED
+      value: "true"
+
     # PDL
     - name: PDL_URL
       value: "https://pdl-api.intern.nav.no"

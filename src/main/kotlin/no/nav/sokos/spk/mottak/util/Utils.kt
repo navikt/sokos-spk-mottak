@@ -26,4 +26,8 @@ object Utils {
     fun Boolean.booleanToString(): String = if (this) "1" else "0"
 
     fun LocalDateTime.toAvstemmingPeriode(): String = this.format(DateTimeFormatter.ofPattern("yyyyMMddHH"))
+
+    fun String.toLocalDateStringOrEmpty(): String {
+        return this.trim().toIntOrNull()?.let { if (it == 0) "" else this } ?: throw NumberFormatException("Feil ved konvertering av $this to datoformat 'yyyyMMdd'")
+    }
 }

@@ -18,6 +18,7 @@ object PropertiesConfig {
                 "USE_AUTHENTICATION" to "true",
                 "SCHEDULER_ENABLED" to "true",
                 "MQ_LISTENER_ENABLED" to "true",
+                "AVREGNING_LISTENER_ENABLED" to "true",
                 "READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN" to "0 0 1 * * *",
                 "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 0 1 * * *",
                 "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 0 1 * * *",
@@ -134,6 +135,7 @@ object PropertiesConfig {
         val avstemmingQueueName: String = getOrEmpty("MQ_AVSTEMMING_QUEUE_NAME"),
         val mqBatchSize: Int = get("MQ_BATCH_SIZE").toInt(),
         val mqListenerEnabled: Boolean = get("MQ_LISTENER_ENABLED").toBoolean(),
+        val avregningListenerEnabled: Boolean = get("AVREGNING_LISTENER_ENABLED").toBoolean(),
     )
 
     data class PdlProperties(

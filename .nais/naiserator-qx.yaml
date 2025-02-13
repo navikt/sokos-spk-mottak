@@ -119,6 +119,8 @@ spec:
       value: "200"
     - name: MQ_LISTENER_ENABLED
       value: "false"
+    - name: AVREGNING_LISTENER_ENABLED
+      value: "false"
 
     # PDL
     - name: PDL_URL

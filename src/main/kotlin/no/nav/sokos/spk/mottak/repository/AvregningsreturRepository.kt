@@ -54,11 +54,13 @@ class AvregningsreturRepository(
                     DATO_VALUTERING,
                     KONTO,
                     MOT_ID,
+                    PERSON_ID,
+                    KREDITOR_REF,
                     DATO_OPPRETTET,
                     OPPRETTET_AV,
                     DATO_ENDRET,
                     ENDRET_AV,
-                    VERSJON ) VALUES (:rectype, :returtype, :anviser, :osId, :osLinjeId, :trekkvedtakId, :gjelderId, :fnr, :datoStatus, :status, :bilagsNrSerie, :bilagsNr, :datoFom, :datoTom, :belop, :debetKredit, :utbetalingType, :transaksjonTekst, :transEksId, :datoAvsender, :utbetalesTil, :statusTekst, :returtypeKode, :duplikat, :datoValutering, :konto, :motId, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon,)
+                    VERSJON ) VALUES (:rectype, :returtype, :anviser, :osId, :osLinjeId, :trekkvedtakId, :gjelderId, :fnr, :datoStatus, :status, :bilagsNrSerie, :bilagsNr, :datoFom, :datoTom, :belop, :debetKredit, :utbetalingType, :transaksjonTekst, :transEksId, :datoAvsender, :utbetalesTil, :statusTekst, :returtypeKode, :duplikat, :datoValutering, :konto, :motId, :personId, :kreditorRef, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon,)
                     """.trimIndent(),
                     avregningsretur.asMap(),
                 ),
