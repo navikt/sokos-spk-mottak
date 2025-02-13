@@ -222,12 +222,12 @@ class InnTransaksjonRepository(
                         SELECT DISTINCT inn.INN_TRANSAKSJON_ID, g.K_FAGOMRADE
                         FROM T_INN_TRANSAKSJON inn
                             INNER JOIN T_PERSON p ON inn.FNR_FK = p.FNR_FK
-                            INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = inn.ART AND g.K_BELOP_T = inn.BELOPSTYPE AND g.K_ANVISER = '$SPK'
+                            INNER JOIN T_K_GYLDIG_KOMBIN g ON (g.K_ART = inn.ART AND g.K_BELOP_T = inn.BELOPSTYPE AND g.K_ANVISER = '$SPK' AND g.ER_GYLDIG = '1')
                         WHERE p.person_Id IN (${personIdListe.joinToString()})
                         AND g.K_FAGOMRADE IN 
                             (SELECT DISTINCT g.K_FAGOMRADE
                             FROM T_TRANSAKSJON t
-                                INNER JOIN T_K_GYLDIG_KOMBIN g ON g.K_ART = t.K_ART AND g.K_BELOP_T = t.K_BELOP_T
+                                INNER JOIN T_K_GYLDIG_KOMBIN g ON (g.K_ART = t.K_ART AND g.K_BELOP_T = t.K_BELOP_T AND g.ER_GYLDIG = '1')
                             WHERE t.person_Id = p.PERSON_ID
                             AND t.K_ANVISER = '$SPK')
                         """.trimIndent(),
