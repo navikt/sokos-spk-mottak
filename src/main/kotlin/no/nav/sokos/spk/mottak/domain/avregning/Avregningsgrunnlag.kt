@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Avregningsgrunnlag(
-    @SerialName("RETURTYPE") val returType: String,
     @SerialName("OPPDRAGS-ID") val oppdragsId: Int,
     @SerialName("LINJE-ID") val linjeId: Int? = null,
     @SerialName("TREKKVEDTAK-ID") val trekkvedtakId: Int? = null,

@@ -57,7 +57,7 @@ class AvregningService(
             message.acknowledge()
         }.onFailure { exception ->
             secureLogger.error { "Avregningsgrunnlagmelding fra UR: $jmsMessage" }
-            logger.error(exception) { "Prosessering av avregningsgrunnlag feilet. ${message.jmsMessageID}" }
+            logger.error(exception) { "Prosessering av avregningsgrunnlag feilet. jmsMessageID: ${message.jmsMessageID}" }
         }
     }
 
@@ -71,9 +71,11 @@ class AvregningService(
                         avregningsgrunnlag.tomdato,
                     )
                 }
+
                 avregningsgrunnlag.trekkvedtakId != null -> {
                     transaksjonRepository.findTransaksjonByTrekkvedtakId(avregningsgrunnlag.trekkvedtakId)
                 }
+
                 else -> null
             }
 

@@ -6,7 +6,7 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.avregning.Avregningsgrunnlag
 import no.nav.sokos.spk.mottak.domain.avregning.Avregningsretur
 import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
-import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
+import no.nav.sokos.spk.mottak.util.Utils.toLocalDateNotBlank
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateStringOrEmpty
 
 object AvregningConverter {
@@ -19,15 +19,12 @@ object AvregningConverter {
             trekkvedtakId = trekkvedtakId?.toString(),
             gjelderId = gjelderId,
             fnr = avregningstransaksjon.fnr,
-            // how to handle a null date?
-            datoStatus = datoStatusSatt.toLocalDate()!!,
+            datoStatus = datoStatusSatt.toLocalDateNotBlank(),
             status = status,
             bilagsNrSerie = bilagsnrSerie,
             bilagsNr = bilagsnr,
-            // how to handle a null date?
-            datoFom = fomdato.toLocalDate()!!,
-            // how to handle a null date?
-            datoTom = tomdato.toLocalDate()!!,
+            datoFom = fomdato.toLocalDateNotBlank(),
+            datoTom = tomdato.toLocalDateNotBlank(),
             belop = belop.toString(),
             debetKredit = debetKredit,
             utbetalingType = utbetalingsType,
@@ -35,10 +32,7 @@ object AvregningConverter {
             transEksId = avregningstransaksjon.transEksId,
             datoAvsender = avregningstransaksjon.datoAnviser,
             utbetalesTil = utbetalesTil,
-            statusTekst = null,
-            returtypeKode = returType,
             transaksjonId = avregningstransaksjon.transaksjonId,
-            //  will null or '0' represents a non-existing datoValutering?
             datoValutering = datoValutert.toLocalDateStringOrEmpty(),
             konto = konto,
             motId = delytelseId,

@@ -20,11 +20,12 @@ NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar dagl
 
 6. [JmsListenerService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/mq/JmsListenerService.kt) 
 <br/> Tjeneste som lytter til reply-meldinger fra OS og lagrer meldingstatus og annen informasjon i T_TRANSAKSJON. Reply-meldingene inneholder informasjon om status til behandlingen av transaksjonene i OS, både utbetalinger- og trekktransaksjoner.
-<br/> Tjenesten lytter også til meldinger fra UR Z som inneholder grunnlagsdata som benyttes for å generere avregningsfiler til SPK.
    
 7. [AvstemmingService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/AvstemmingService.kt)
 <br/> Tjeneste som sender til avstemmingskomponenten all avstemmingsinformasjon om transaksjoner som er sendt til OS siste døgn.
 
+8. [AvregningService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/AvregningService.kt)
+<br/> Tjeneste som lytter til meldinger fra UR Z som inneholder grunnlagsdata som benyttes for å generere avregningsfiler til SPK.
 
 ### Kjøring av tjenester i scheduler [JobTaskConfig](../../../src/main/kotlin/no/nav/sokos/spk/mottak/config/JobTaskConfig.kt)
 <br/> Tjenestene 1-3 kjører i sekvensiell rekkefølge og startes daglig.

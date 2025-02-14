@@ -1,13 +1,16 @@
 package no.nav.sokos.spk.mottak.util
 
+import java.text.ParseException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import javax.xml.datatype.DatatypeFactory
 import javax.xml.datatype.XMLGregorianCalendar
 
 object Utils {
     fun String.toLocalDate(): LocalDate? =
+
         runCatching {
             this.ifBlank { null }.let { LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd")) }
         }.getOrNull()
@@ -28,6 +31,17 @@ object Utils {
     fun LocalDateTime.toAvstemmingPeriode(): String = this.format(DateTimeFormatter.ofPattern("yyyyMMddHH"))
 
     fun String.toLocalDateStringOrEmpty(): String {
-        return this.trim().toIntOrNull()?.let { if (it == 0) "" else this } ?: throw NumberFormatException("Feil ved konvertering av $this to datoformat 'yyyyMMdd'")
+        return this.trim().toIntOrNull()?.let { if (it == 0) "" else this } ?: throw ParseException("Feil ved konvertering av $this to datoformat 'yyyyMMdd'", 0)
+    }
+
+    fun String.toLocalDateNotBlank(): LocalDate {
+        if (this.isBlank()) {
+            throw ParseException("Ikke tillatt med blank dato-streng", 0)
+        }
+        return try {
+            LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd"))
+        } catch (e: DateTimeParseException) {
+            throw ParseException("Feil ved konvertering av $this til datoformat 'yyyyMMdd'", 0)
+        }
     }
 }
