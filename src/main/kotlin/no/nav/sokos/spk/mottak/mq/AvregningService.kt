@@ -22,7 +22,9 @@ import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.repository.AvregningsreturRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
+import no.nav.sokos.spk.mottak.util.Utils.stringToInt
 import no.nav.sokos.spk.mottak.util.Utils.toIsoDate
+import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 
 private val logger = KotlinLogging.logger {}
 private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
@@ -65,10 +67,10 @@ class AvregningService(
         val avregningstransaksjon: Avregningstransaksjon? =
             when {
                 avregningsgrunnlag.delytelseId != null -> {
-                    transaksjonRepository.findTransaksjonByMotIdAndPersonIdAndTomDatoAndTomDato(
+                    transaksjonRepository.findTransaksjonByMotIdAndPersonIdAndTomDato(
                         avregningsgrunnlag.delytelseId,
-                        avregningsgrunnlag.fagSystemId.toInt(),
-                        avregningsgrunnlag.tomdato,
+                        avregningsgrunnlag.fagSystemId.stringToInt(),
+                        avregningsgrunnlag.tomdato.toLocalDate()!!,
                     )
                 }
 

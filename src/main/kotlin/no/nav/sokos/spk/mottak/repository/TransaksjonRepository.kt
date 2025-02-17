@@ -1,5 +1,7 @@
 package no.nav.sokos.spk.mottak.repository
 
+import java.time.LocalDate
+
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.Session
@@ -35,7 +37,7 @@ class TransaksjonRepository(
     private val findLastTransaksjonByPersonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findLastTransaksjonByPersonId")
     private val findAllByBelopstypeAndByTransaksjonTilstandTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findAllByBelopstypeAndByTransaksjonTilstand")
     private val updateBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandStatus")
-    private val findTransaksjonByMotIdAndTomDatoAndTomDatoTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonByMotIdAndTomDatoAndTomDato")
+    private val findTransaksjonByMotIdAndTomDatoTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonByMotIdAndPersonIdAndTomDato")
     private val findTransaksjonByTrekkvedtakIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonByTrekkvedtakId")
 
     fun insertBatch(
@@ -297,13 +299,13 @@ class TransaksjonRepository(
             }
         }
 
-    fun findTransaksjonByMotIdAndPersonIdAndTomDatoAndTomDato(
+    fun findTransaksjonByMotIdAndPersonIdAndTomDato(
         motId: String,
         personId: Int,
-        tomDato: String,
+        tomDato: LocalDate,
     ): Avregningstransaksjon? =
         using(sessionOf(dataSource)) { session ->
-            findTransaksjonByMotIdAndTomDatoAndTomDatoTimer.recordCallable {
+            findTransaksjonByMotIdAndTomDatoTimer.recordCallable {
                 session.single(
                     queryOf(
                         """
@@ -314,7 +316,7 @@ class TransaksjonRepository(
                                 FROM T_TRANSAKSJON t
                                 WHERE t.MOT_ID = '$motId'
                                 AND t.PERSON_ID = $personId
-                                AND t.DATO_TOM = DATE('$tomDato')
+                                AND t.DATO_TOM = '$tomDato'
                         """.trimIndent(),
                     ),
                     mapToAvregningstransaksjon,

@@ -1,0 +1,23 @@
+{
+  "avregningsgrunnlag":{
+    "oppdragsId":70014840,
+    "trekkvedtakId":123456,
+    "gjelderId":"19040835672",
+    "utbetalesTil":"19040835672",
+    "datoStatusSatt":"20250228",
+    "status":"0018",
+    "bilagsnrSerie":"10",
+    "bilagsnr":"759197901",
+    "konto":"008404500",
+    "fomdato":"20090101",
+    "tomdato":"20090131",
+    "belop":9988700,
+    "debetKredit":"D",
+    "utbetalingsType":"BK1",
+    "transTekst":"0030 012924639",
+    "datoValutert":"20250228",
+    "delytelseId":"20025935",
+    "fagSystemId":"5031583",
+    "kreditorRef":""
+  }
+}
