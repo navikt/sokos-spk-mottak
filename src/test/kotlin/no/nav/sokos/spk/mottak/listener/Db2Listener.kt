@@ -50,6 +50,7 @@ object Db2Listener : TestListener {
     }
 
     override suspend fun afterEach(
+        @OptIn(io.kotest.common.KotestInternal::class)
         testCase: TestCase,
         result: TestResult,
     ) {

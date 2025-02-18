@@ -28,6 +28,7 @@ import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 
 private val logger = KotlinLogging.logger {}
 private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
+private const val UNKNOWN_TRANSACTION_DATE = "1900-01-01"
 
 class AvregningService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
@@ -64,46 +65,61 @@ class AvregningService(
     }
 
     private fun processAvregningsgrunnlagMessage(avregningsgrunnlag: Avregningsgrunnlag) {
-        val avregningstransaksjon: Avregningstransaksjon? =
-            when {
-                avregningsgrunnlag.delytelseId != null -> {
-                    transaksjonRepository.findTransaksjonByMotIdAndPersonIdAndTomDato(
-                        avregningsgrunnlag.delytelseId,
-                        avregningsgrunnlag.fagSystemId.stringToInt(),
-                        avregningsgrunnlag.tomdato.toLocalDate()!!,
-                    )
-                }
+        val avregningstransaksjon = findAvregningstransaksjon(avregningsgrunnlag)
+        val avregningsretur = createAvregningsretur(avregningsgrunnlag, avregningstransaksjon)
 
-                avregningsgrunnlag.trekkvedtakId != null -> {
-                    transaksjonRepository.findTransaksjonByTrekkvedtakId(avregningsgrunnlag.trekkvedtakId)
-                }
-
-                else -> null
-            }
-
-        val avregningsretur: Avregningsretur? =
-            avregningstransaksjon?.let {
-                avregningsgrunnlag.toAvregningsretur(it)
-            } ?: avregningsgrunnlag.trekkvedtakId?.let {
-                setKreditorRefToTransEksId(avregningsgrunnlag)
-            }
-
-        avregningsretur?.apply {
-            datoAvsender = datoAvsender ?: "1900-01-01".toIsoDate()
-        }?.let {
+        avregningsretur.apply {
+            datoAvsender = datoAvsender ?: UNKNOWN_TRANSACTION_DATE.toIsoDate()
+        }.let {
             dataSource.transaction { session ->
                 avregningsreturRepository.insert(it, session)
             }
-        } ?: throw NullPointerException("Feilet i prosessering av avregningsgrunnlag: avregningsretur er null")
+        }
+    }
+
+    private fun findAvregningstransaksjon(avregningsgrunnlag: Avregningsgrunnlag): Avregningstransaksjon? {
+        return when {
+            avregningsgrunnlag.delytelseId != null -> {
+                transaksjonRepository.findTransaksjonByMotIdAndPersonIdAndTomDato(
+                    avregningsgrunnlag.delytelseId,
+                    avregningsgrunnlag.fagSystemId.stringToInt(),
+                    avregningsgrunnlag.tomdato.toLocalDate()!!,
+                )
+            }
+
+            avregningsgrunnlag.trekkvedtakId != null -> {
+                transaksjonRepository.findTransaksjonByTrekkvedtakId(avregningsgrunnlag.trekkvedtakId)
+            }
+
+            else -> null
+        }
+    }
+
+    private fun createAvregningsretur(
+        avregningsgrunnlag: Avregningsgrunnlag,
+        avregningstransaksjon: Avregningstransaksjon?,
+    ): Avregningsretur {
+        return avregningstransaksjon?.let {
+            avregningsgrunnlag.toAvregningsretur(it)
+        } ?: avregningsgrunnlag.trekkvedtakId?.let {
+            setKreditorRefToTransEksId(avregningsgrunnlag)
+        } ?: setUnknownAvregningsretur(avregningsgrunnlag)
+    }
+
+    private fun setUnknownAvregningsretur(avregningsgrunnlag: Avregningsgrunnlag): Avregningsretur {
+        return avregningsgrunnlag.toAvregningsretur(
+            Avregningstransaksjon(
+                datoAnviser = UNKNOWN_TRANSACTION_DATE.toIsoDate(),
+            ),
+        )
     }
 
     private fun setKreditorRefToTransEksId(avregningsgrunnlag: Avregningsgrunnlag): Avregningsretur {
         return avregningsgrunnlag.toAvregningsretur(
-            avregningstransaksjon =
-                Avregningstransaksjon(
-                    transEksId = avregningsgrunnlag.kreditorRef,
-                    datoAnviser = "1900-01-01".toIsoDate(),
-                ),
+            Avregningstransaksjon(
+                transEksId = avregningsgrunnlag.kreditorRef,
+                datoAnviser = UNKNOWN_TRANSACTION_DATE.toIsoDate(),
+            ),
         )
     }
 }

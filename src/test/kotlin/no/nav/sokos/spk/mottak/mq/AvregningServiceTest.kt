@@ -44,19 +44,25 @@ internal class AvregningServiceTest : BehaviorSpec({
             description = "det sendes en avregningsmelding med delYtelseId til MQ",
             jsonFile = "/mq/avregning_med_delytelseId.json",
             expectedMetricValue = 1,
-            transaksjonId = 20025925,
+            motId = "20025925",
         ),
         TestScenario(
             description = "det sendes en avregningsmelding med trekkvedtakId til MQ",
             jsonFile = "/mq/avregning_med_trekkvedtakId.json",
             expectedMetricValue = 2,
-            transaksjonId = 20025935,
+            motId = "20025935",
         ),
         TestScenario(
             description = "det sendes en avregningsmelding med kreditorRef til MQ",
             jsonFile = "/mq/avregning_med_kreditorRef.json",
             expectedMetricValue = 3,
             trekkvedtakId = "223344",
+        ),
+        TestScenario(
+            description = "det sendes en avregningsmelding med ukjent transaksjon til MQ",
+            jsonFile = "/mq/avregning_ukjent_transaksjon.json",
+            expectedMetricValue = 4,
+            motId = "999888777",
         ),
     ).forEach { scenario ->
         Given("det finnes avregningsmeldinger som skal sendes fra UR Z") {
@@ -72,8 +78,8 @@ internal class AvregningServiceTest : BehaviorSpec({
                     runBlocking {
                         delay(2000)
                         val avregningsretur =
-                            scenario.transaksjonId?.let {
-                                Db2Listener.avregningsreturRepository.getByTransaksjonId(it)
+                            scenario.motId?.let {
+                                Db2Listener.avregningsreturRepository.getByMotId(it)
                             } ?: Db2Listener.avregningsreturRepository.getByTrekkvedtakId(scenario.trekkvedtakId!!)
                         verifyAvregningstransaksjon(avregningsretur!!)
                     }
@@ -127,6 +133,6 @@ data class TestScenario(
     val description: String,
     val jsonFile: String,
     val expectedMetricValue: Long,
-    val transaksjonId: Int? = null,
+    val motId: String? = null,
     val trekkvedtakId: String? = null,
 )
