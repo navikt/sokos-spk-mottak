@@ -63,7 +63,7 @@ internal class AvregningServiceTest : BehaviorSpec({
             description = "det sendes en avregningsmelding med trekkvedtakId til MQ",
             jsonFile = "/mq/avregning_med_trekkvedtakId.json",
             expectedMetricValue = 2,
-            motId = "20025935",
+            trekkvedtakId = "123456",
             fnr = "19040835672",
             transEksId = "9805382",
             datoAvsender = "2008-12-20",
@@ -73,7 +73,6 @@ internal class AvregningServiceTest : BehaviorSpec({
             description = "det sendes en avregningsmelding med kreditorRef til MQ",
             jsonFile = "/mq/avregning_med_kreditorRef.json",
             expectedMetricValue = 3,
-            motId = "999888777",
             trekkvedtakId = "223344",
             transEksId = "918273",
             datoAvsender = UNKNOWN_TRANSACTION_DATE,
@@ -121,8 +120,8 @@ internal class AvregningServiceTest : BehaviorSpec({
                             avregningTransaksjonId = scenario.transaksjonId,
                         )
                         run {
-                            scenario.trekkvedtakId?.let { motId ->
-                                Db2Listener.avregningsreturRepository.getByTrekkvedtakId(motId.toString())
+                            scenario.trekkvedtakId?.let {
+                                Db2Listener.avregningsreturRepository.getByTrekkvedtakId(it)
                             } ?: scenario.motId?.let {
                                 Db2Listener.avregningsreturRepository.getByMotId(it)
                             }
