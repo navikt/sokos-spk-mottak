@@ -76,7 +76,19 @@ class AvregningService(
     }
 
     private fun processAvregningsgrunnlagMessage(avregningsgrunnlag: Avregningsgrunnlag) {
-        val avregningstransaksjon = findAvregningstransaksjon(avregningsgrunnlag)
+        if (eksistererAvregningstransaksjon(avregningsgrunnlag)) {
+            logger.warn {
+                "Avregningstransaksjon eksisterer allerede for avregningsgrunnlag. " +
+                    "oppdragsId: ${avregningsgrunnlag.oppdragsId}, " +
+                    "linjeId: ${avregningsgrunnlag.linjeId}, " +
+                    "trekkvedtakId: ${avregningsgrunnlag.trekkvedtakId}, " +
+                    "bilagsnrSerie: ${avregningsgrunnlag.bilagsnrSerie}, " +
+                    "bilagsnr: ${avregningsgrunnlag.bilagsnr}, " +
+                    "delytelseId: ${avregningsgrunnlag.delytelseId}"
+            }
+            return
+        }
+        val avregningstransaksjon = findTransaksjon(avregningsgrunnlag)
         val avregningsretur = createAvregningsretur(avregningsgrunnlag, avregningstransaksjon)
 
         avregningsretur.apply {
@@ -88,7 +100,17 @@ class AvregningService(
         }
     }
 
-    private fun findAvregningstransaksjon(avregningsgrunnlag: Avregningsgrunnlag): Avregningstransaksjon? {
+    private fun eksistererAvregningstransaksjon(avregningsgrunnlag: Avregningsgrunnlag): Boolean {
+        return run {
+            avregningsgrunnlag.delytelseId?.let { motId ->
+                avregningsreturRepository.getByMotId(motId)
+            } ?: avregningsgrunnlag.trekkvedtakId?.let { trekkvedtakId ->
+                avregningsreturRepository.getByTrekkvedtakId(trekkvedtakId.toString())
+            }
+        } != null
+    }
+
+    private fun findTransaksjon(avregningsgrunnlag: Avregningsgrunnlag): Avregningstransaksjon? {
         return when {
             avregningsgrunnlag.delytelseId != null -> {
                 transaksjonRepository.findTransaksjonByMotIdAndPersonIdAndTomDato(

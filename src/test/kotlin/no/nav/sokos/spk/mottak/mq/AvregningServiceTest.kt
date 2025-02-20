@@ -120,6 +120,13 @@ internal class AvregningServiceTest : BehaviorSpec({
                             avregningDatoAvsender = scenario.datoAvsender,
                             avregningTransaksjonId = scenario.transaksjonId,
                         )
+                        run {
+                            scenario.trekkvedtakId?.let { motId ->
+                                Db2Listener.avregningsreturRepository.getByTrekkvedtakId(motId.toString())
+                            } ?: scenario.motId?.let {
+                                Db2Listener.avregningsreturRepository.getByMotId(it)
+                            }
+                        } shouldBe avregningsretur
                     }
                 }
             }
