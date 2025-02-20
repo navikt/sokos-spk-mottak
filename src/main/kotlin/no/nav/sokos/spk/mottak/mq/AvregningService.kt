@@ -28,7 +28,7 @@ import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 
 private val logger = KotlinLogging.logger {}
 private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
-private const val UNKNOWN_TRANSACTION_DATE = "1900-01-01"
+const val UNKNOWN_TRANSACTION_DATE = "1900-01-01"
 
 class AvregningService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
@@ -53,14 +53,25 @@ class AvregningService(
 
     private fun onAvregningsgrunnlagMessage(message: Message) {
         val jmsMessage = message.getBody(String::class.java)
+        var avregningsgrunnlagWrapper: AvregningsgrunnlagWrapper? = null
         runCatching {
             logger.debug { "Mottatt avregningsgrunnlag fra UR. Meldingsinnhold: $jmsMessage" }
-            val avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
-            processAvregningsgrunnlagMessage(avregningsgrunnlagWrapper.avregningsgrunnlag)
-            message.acknowledge()
+            avregningsgrunnlagWrapper =
+                json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage).apply {
+                    processAvregningsgrunnlagMessage(avregningsgrunnlag)
+                    message.acknowledge()
+                }
         }.onFailure { exception ->
             secureLogger.error { "Avregningsgrunnlagmelding fra UR: $jmsMessage" }
-            logger.error(exception) { "Prosessering av avregningsgrunnlag feilet. jmsMessageID: ${message.jmsMessageID}" }
+            logger.error(exception) {
+                "Prosessering av avregningsgrunnlag feilet. jmsMessageID: ${message.jmsMessageID}, " +
+                    "oppdragsId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.oppdragsId}, " +
+                    "oppdragsLinjeId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.linjeId}, " +
+                    "trekkvedtakId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.trekkvedtakId}, " +
+                    "bilagsnrSerie: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.bilagsnrSerie}, " +
+                    "bilagsnr: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.bilagsnr}, " +
+                    "delytelseId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.delytelseId}"
+            }
         }
     }
 

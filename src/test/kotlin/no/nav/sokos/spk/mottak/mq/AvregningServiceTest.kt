@@ -2,6 +2,7 @@ import java.time.LocalDate
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -10,17 +11,25 @@ import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.avregning.AvregningsgrunnlagWrapper
 import no.nav.sokos.spk.mottak.domain.avregning.Avregningsretur
+import no.nav.sokos.spk.mottak.domain.converter.AvregningConverter.toAvregningsretur
+import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqAvregningListenerMetricCounter
 import no.nav.sokos.spk.mottak.mq.AvregningService
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
+import no.nav.sokos.spk.mottak.mq.UNKNOWN_TRANSACTION_DATE
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
+import no.nav.sokos.spk.mottak.util.Utils.toIsoDate
+import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 
 internal class AvregningServiceTest : BehaviorSpec({
     extensions(listOf(Db2Listener, MQListener))
+
+    val json = Json { ignoreUnknownKeys = true }
 
     val avregningService: AvregningService by lazy {
         AvregningService(
@@ -45,24 +54,36 @@ internal class AvregningServiceTest : BehaviorSpec({
             jsonFile = "/mq/avregning_med_delytelseId.json",
             expectedMetricValue = 1,
             motId = "20025925",
+            fnr = "04030842389",
+            transEksId = "9805367",
+            datoAvsender = "2008-12-20",
+            transaksjonId = 20025925,
         ),
         TestScenario(
             description = "det sendes en avregningsmelding med trekkvedtakId til MQ",
             jsonFile = "/mq/avregning_med_trekkvedtakId.json",
             expectedMetricValue = 2,
             motId = "20025935",
+            fnr = "19040835672",
+            transEksId = "9805382",
+            datoAvsender = "2008-12-20",
+            transaksjonId = 20025935,
         ),
         TestScenario(
             description = "det sendes en avregningsmelding med kreditorRef til MQ",
             jsonFile = "/mq/avregning_med_kreditorRef.json",
             expectedMetricValue = 3,
+            motId = "999888777",
             trekkvedtakId = "223344",
+            transEksId = "918273",
+            datoAvsender = UNKNOWN_TRANSACTION_DATE,
         ),
         TestScenario(
             description = "det sendes en avregningsmelding med ukjent transaksjon til MQ",
             jsonFile = "/mq/avregning_ukjent_transaksjon.json",
             expectedMetricValue = 4,
             motId = "999888777",
+            datoAvsender = UNKNOWN_TRANSACTION_DATE,
         ),
     ).forEach { scenario ->
         Given("det finnes avregningsmeldinger som skal sendes fra UR Z") {
@@ -77,11 +98,28 @@ internal class AvregningServiceTest : BehaviorSpec({
                     mqAvregningListenerMetricCounter.longValue shouldBe scenario.expectedMetricValue
                     runBlocking {
                         delay(2000)
+                        val avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(avregningsmelding)
                         val avregningsretur =
-                            scenario.motId?.let {
-                                Db2Listener.avregningsreturRepository.getByMotId(it)
-                            } ?: Db2Listener.avregningsreturRepository.getByTrekkvedtakId(scenario.trekkvedtakId!!)
-                        verifyAvregningstransaksjon(avregningsretur!!)
+                            run {
+                                scenario.trekkvedtakId?.let {
+                                    Db2Listener.avregningsreturRepository.getByTrekkvedtakId(it)
+                                } ?: scenario.motId?.let {
+                                    Db2Listener.avregningsreturRepository.getByMotId(it)
+                                } ?: avregningsgrunnlagWrapper.avregningsgrunnlag.toAvregningsretur(
+                                    Avregningstransaksjon(
+                                        datoAnviser = UNKNOWN_TRANSACTION_DATE.toIsoDate(),
+                                    ),
+                                )
+                            }
+
+                        verifyAvregningstransaksjon(
+                            avregningsretur,
+                            avregningsgrunnlagWrapper,
+                            avregningFnr = scenario.fnr,
+                            avregningTransEksId = scenario.transEksId,
+                            avregningDatoAvsender = scenario.datoAvsender,
+                            avregningTransaksjonId = scenario.transaksjonId,
+                        )
                     }
                 }
             }
@@ -95,33 +133,41 @@ private fun setupDatabase(dbScript: String) {
     }
 }
 
-private fun verifyAvregningstransaksjon(avregningsretur: Avregningsretur) {
+private fun verifyAvregningstransaksjon(
+    avregningsretur: Avregningsretur,
+    avregningsmelding: AvregningsgrunnlagWrapper,
+    avregningFnr: String? = null,
+    avregningTransEksId: String? = null,
+    avregningDatoAvsender: String? = null,
+    avregningTransaksjonId: Int? = null,
+) {
     val systemId = PropertiesConfig.Configuration().naisAppName
+    val avregningsgrunnlag = avregningsmelding.avregningsgrunnlag
     with(avregningsretur) {
-        osId shouldBe osId
-        osLinjeId shouldBe osLinjeId
-        trekkvedtakId shouldBe trekkvedtakId
-        gjelderId shouldBe gjelderId
-        fnr shouldBe fnr
-        datoStatus shouldBe datoStatus
-        status shouldBe status
-        bilagsNrSerie shouldBe bilagsNrSerie
-        bilagsNr shouldBe bilagsNr
-        datoFom shouldBe datoFom
-        datoTom shouldBe datoTom
-        belop shouldBe belop
-        debetKredit shouldBe debetKredit
-        utbetalingType shouldBe utbetalingType
-        transaksjonTekst shouldBe transaksjonTekst
-        transEksId shouldBe transEksId
-        datoAvsender shouldBe datoAvsender
-        utbetalesTil shouldBe utbetalesTil
-        transaksjonId shouldBe transaksjonId
-        datoValutering shouldBe datoValutering
-        konto shouldBe konto
-        motId shouldBe motId
-        personId shouldBe personId
-        kreditorRef shouldBe kreditorRef
+        osId shouldBe avregningsgrunnlag.oppdragsId.toString()
+        osLinjeId shouldBe avregningsgrunnlag.linjeId?.toString()
+        trekkvedtakId shouldBe avregningsgrunnlag.trekkvedtakId?.toString()
+        gjelderId shouldBe avregningsgrunnlag.gjelderId
+        fnr shouldBe avregningFnr
+        datoStatus shouldBe avregningsgrunnlag.datoStatusSatt.toLocalDate()
+        status shouldBe avregningsgrunnlag.status
+        bilagsNrSerie shouldBe avregningsgrunnlag.bilagsnrSerie
+        bilagsNr shouldBe avregningsgrunnlag.bilagsnr
+        datoFom shouldBe avregningsgrunnlag.fomdato.toLocalDate()
+        datoTom shouldBe avregningsgrunnlag.tomdato.toLocalDate()
+        belop shouldBe avregningsgrunnlag.belop.toString()
+        debetKredit shouldBe avregningsgrunnlag.debetKredit
+        utbetalingType shouldBe avregningsgrunnlag.utbetalingsType
+        transaksjonTekst shouldBe avregningsgrunnlag.transTekst
+        transEksId shouldBe avregningTransEksId
+        datoAvsender shouldBe avregningDatoAvsender?.toIsoDate()
+        utbetalesTil shouldBe avregningsgrunnlag.utbetalesTil
+        transaksjonId shouldBe avregningTransaksjonId
+        datoValutering shouldBe avregningsgrunnlag.datoValutert
+        konto shouldBe avregningsgrunnlag.konto
+        motId shouldBe avregningsgrunnlag.delytelseId
+        personId shouldBe avregningsgrunnlag.fagSystemId.toInt()
+        kreditorRef shouldBe avregningsgrunnlag.kreditorRef
         datoOpprettet.toLocalDate() shouldBe LocalDate.now()
         opprettetAv shouldBe systemId
         datoEndret.toLocalDate() shouldBe LocalDate.now()
@@ -135,4 +181,8 @@ data class TestScenario(
     val expectedMetricValue: Long,
     val motId: String? = null,
     val trekkvedtakId: String? = null,
+    val fnr: String? = null,
+    val transEksId: String? = null,
+    val datoAvsender: String? = null,
+    val transaksjonId: Int? = null,
 )
