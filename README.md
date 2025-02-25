@@ -3,13 +3,13 @@
 # Innholdsoversikt
 
 * [1. Dokumentasjon](dokumentasjon/dokumentasjon.md)
-* [2. Funksjonelle krav](#1-funksjonelle-krav)
-* [3. Utviklingsmiljø](#2-utviklingsmiljø)
-* [4. Programvarearkitektur](#3-programvarearkitektur)
-* [5. Deployment](#4-deployment)
-* [6. Autentisering](#5-autentisering)
-* [7. Drift og støtte](#6-drift-og-støtte)
-* [8. Henvendelser](#7-henvendelser)
+* [2. Funksjonelle krav](#2-funksjonelle-krav)
+* [3. Utviklingsmiljø](#3-utviklingsmiljø)
+* [4. Programvarearkitektur](#4-programvarearkitektur)
+* [5. Deployment](#5-deployment)
+* [6. Autentisering](#6-Autentisering)
+* [7. Drift og støtte](#7-drift-og-støtte)
+* [8. Henvendelser](#8-henvendelser)
 
 ---
 
