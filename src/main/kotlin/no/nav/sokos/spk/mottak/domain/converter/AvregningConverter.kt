@@ -36,7 +36,7 @@ object AvregningConverter {
             datoValutering = datoValutert.toLocalDateStringOrEmpty(),
             konto = konto,
             motId = delytelseId,
-            personId = fagSystemId.toInt(),
+            personId = fagSystemId,
             kreditorRef = kreditorRef,
             datoOpprettet = LocalDateTime.now(),
             opprettetAv = systemId,

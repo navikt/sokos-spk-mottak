@@ -264,7 +264,7 @@ class AvregningsreturRepository(
             datoValutering = row.string("DATO_VALUTERING"),
             konto = row.stringOrNull("KONTO"),
             motId = row.stringOrNull("MOT_ID"),
-            personId = row.int("PERSON_ID"),
+            personId = row.string("PERSON_ID"),
             kreditorRef = row.stringOrNull("KREDITOR_REF"),
             datoOpprettet = row.localDateTime("DATO_OPPRETTET"),
             opprettetAv = row.string("OPPRETTET_AV"),

@@ -22,7 +22,6 @@ import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.repository.AvregningsreturRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
-import no.nav.sokos.spk.mottak.util.Utils.stringToInt
 import no.nav.sokos.spk.mottak.util.Utils.toIsoDate
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 
@@ -112,18 +111,17 @@ class AvregningService(
 
     private fun findTransaksjon(avregningsgrunnlag: Avregningsgrunnlag): Avregningstransaksjon? {
         return when {
-            avregningsgrunnlag.delytelseId != null -> {
-                transaksjonRepository.findTransaksjonByMotIdAndPersonIdAndTomDato(
-                    avregningsgrunnlag.delytelseId,
-                    avregningsgrunnlag.fagSystemId.stringToInt(),
-                    avregningsgrunnlag.tomdato.toLocalDate()!!,
-                )
+            !avregningsgrunnlag.delytelseId.isNullOrEmpty() && avregningsgrunnlag.fagSystemId.toIntOrNull() != null -> {
+                avregningsgrunnlag.tomdato.toLocalDate()?.let { tomDato ->
+                    transaksjonRepository.findTransaksjonByMotIdAndPersonIdAndTomDato(
+                        avregningsgrunnlag.delytelseId,
+                        avregningsgrunnlag.fagSystemId.toInt(),
+                        tomDato,
+                    )
+                }
             }
-
-            avregningsgrunnlag.trekkvedtakId != null -> {
+            avregningsgrunnlag.trekkvedtakId != null ->
                 transaksjonRepository.findTransaksjonByTrekkvedtakId(avregningsgrunnlag.trekkvedtakId)
-            }
-
             else -> null
         }
     }

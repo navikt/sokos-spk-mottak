@@ -2,6 +2,7 @@
   "avregningsgrunnlag":{
     "oppdragsId":70014840,
     "linjeId":3,
+    "trekkvedtakId":null,
     "gjelderId":"19040835672",
     "utbetalesTil":"19040835672",
     "datoStatusSatt":"20250228",
@@ -17,6 +18,7 @@
     "transTekst":"0030 012924639",
     "datoValutert":"20250228",
     "delytelseId":"999888777",
-    "fagSystemId":"123456"
+    "fagSystemId":"180417-397",
+    "kreditorRef":null
   }
 }

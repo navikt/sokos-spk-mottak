@@ -172,7 +172,7 @@ private fun verifyAvregningstransaksjon(
         datoValutering shouldBe avregningsgrunnlag.datoValutert
         konto shouldBe avregningsgrunnlag.konto
         motId shouldBe avregningsgrunnlag.delytelseId
-        personId shouldBe avregningsgrunnlag.fagSystemId.toInt()
+        personId shouldBe avregningsgrunnlag.fagSystemId
         kreditorRef shouldBe avregningsgrunnlag.kreditorRef
         datoOpprettet.toLocalDate() shouldBe LocalDate.now()
         opprettetAv shouldBe systemId

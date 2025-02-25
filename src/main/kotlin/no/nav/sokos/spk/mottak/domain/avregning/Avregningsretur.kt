@@ -35,7 +35,7 @@ data class Avregningsretur(
     val datoValutering: String,
     val konto: String? = null,
     val motId: String? = null,
-    val personId: Int,
+    val personId: String,
     val kreditorRef: String? = null,
     val datoOpprettet: LocalDateTime,
     val opprettetAv: String,
