@@ -26,6 +26,7 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.authenticate
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.securityConfig
+import no.nav.sokos.spk.mottak.service.LeveAttesterService
 import no.nav.sokos.spk.mottak.service.ScheduledTaskService
 
 private const val API_BASE_PATH = "/api/v1"
@@ -34,6 +35,7 @@ internal class SecurityTest :
     FunSpec({
         val scheduler = mockk<Scheduler>()
         val scheduledTaskService = mockk<ScheduledTaskService>()
+        val leveAttesterService = mockk<LeveAttesterService>()
 
         test("http GET endepunkt uten token bør returnere 401 - Unauthorized") {
             withMockOAuth2Server {
@@ -42,7 +44,7 @@ internal class SecurityTest :
                         securityConfig(true, authConfig())
                         routing {
                             authenticate(true, AUTHENTICATION_NAME) {
-                                mottakApi(scheduler, scheduledTaskService)
+                                mottakApi(scheduler, scheduledTaskService, leveAttesterService)
                             }
                         }
                     }
@@ -76,7 +78,7 @@ internal class SecurityTest :
                         securityConfig(true, authConfig())
                         routing {
                             authenticate(true, AUTHENTICATION_NAME) {
-                                mottakApi(scheduler, scheduledTaskService)
+                                mottakApi(scheduler, scheduledTaskService, leveAttesterService)
                             }
                         }
                     }

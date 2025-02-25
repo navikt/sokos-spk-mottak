@@ -2,7 +2,6 @@ package no.nav.sokos.spk.mottak.service
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.every
 import io.mockk.mockk
 import kotliquery.queryOf
 
@@ -29,8 +28,6 @@ internal class TransaksjonstolkningTest :
                 innTransaksjonRepository = Db2Listener.innTransaksjonRepository,
                 pdlService = mockk<PdlService>(),
             )
-
-        every { Db2Listener.innTransaksjonRepository.findAllFnrWithoutPersonId() } returns emptyList()
 
         Given("det finnes en innTransaksjon med et fnr som ikke eksisterer i T_TRANSAKSJON") {
             Db2Listener.dataSource.transaction { session ->

@@ -69,6 +69,14 @@ object Metrics {
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
+    val leveAttesterCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_leveattester")
+            .help("Counts the number of leve attester received from SPK")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
     val mqUtbetalingProducerMetricCounter: Counter =
         Counter
             .builder()
