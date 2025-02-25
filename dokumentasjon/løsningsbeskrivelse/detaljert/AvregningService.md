@@ -1,14 +1,15 @@
 # AvregningService
 
-Tjenesten lytter til avregningsmeldinger sendt fra UR. Disse meldingene valideres, berikes, lagres og sendes til SPK.
+Tjenesten lytter på en kø som inneholder avregningsmeldinger sendt fra UR. Disse meldingene valideres, berikes, lagres og sendes til SPK.
 
-Avregningsmeldingene inneholder grunnlagsinformasjon fra UR og brukes til å danne avregningsinformasjon som oversendes SPK daglig som filer.
-Dersom avregningsmeldingen inneholder `delYtelseId` (lik utbetalingsmeldingens `mottaksId`) gjøres det et oppslag i T_TRANSAKSJON med denne parameteren som nøkkel i tillegg til `fagSystemId` (lik
-utbetalingsmeldingens `personId`) og `tomDato` (utbetalingperiodens
-til-dato). Tidligere har `mottaksId` vært benyttet for flere enn en transaksjon og følgelig er `tomDato` en del av nøkkelen. Dagens løsning har derimot bare en `mottaksId` per transaksjon.
+Avregningsmeldingene inneholder grunnlagsinformasjon fra UR og brukes til å danne avregningsinformasjon som oversendes daglig til SPK som filer.
+Dersom avregningsmeldingen inneholder `delYtelseId` (= utbetalingsmeldingens `mottaksId`) gjøres det et oppslag i T_TRANSAKSJON med denne parameteren som nøkkel i tillegg til `fagSystemId` (=
+utbetalingsmeldingens `personId`) og `tomDato` (utbetalingperiodens til-dato).
+Tidligere har `mottaksId` vært benyttet for flere enn en transaksjon og følgelig er `tomDato` en del av nøkkelen. Dagens løsning har derimot bare en `mottaksId` per transaksjon.
 Parameteren `fagSystemId` brukes for å sikre at `delYtelseId` tilhører `sokos-spk-mottak`.
 
-Hvis avregningsmeldingen ikke er knyttet til en utbetalingsmelding, men derimot en trekkmelding, vil meldingsparameteren `trekkVedtakId` brukes som nøkkel for knytting til transaksjonen i
+Hvis avregningsmeldingen ikke er knyttet til en utbetalingsmelding, men derimot en trekkmelding, vil meldingsparameteren `trekkVedtakId` brukes som nøkkel for knytting av avregningen til transaksjonen
+i
 T_TRANSAKSJON.
 
 Følgende informasjonen hentes fra T_TRANSAKSJON og knyttes til avregningstransaksjonen:
@@ -18,11 +19,12 @@ Følgende informasjonen hentes fra T_TRANSAKSJON og knyttes til avregningstransa
 * `datoAnviser` (anvisningsdato til SPK)
 * `transaksjonId` (transaksjonens id)
 
-Hvis en avregningsmelding som er knyttet til en trekkmelding ikke finnes i T_TRANSAKSJON, vil meldingsparameteren `kreditorRef` benyttes som `transEksId` (SPK sin transaksjonsId).
+Hvis en avregningsmelding som er knyttet til en trekkmelding ikke finnes i T_TRANSAKSJON, vil verdien av meldingsparameteren `kreditorRef` benyttes til `transEksId` (SPK sin transaksjonsId).
+Dersom man ikke klarer å knytte avregningsmeldingen til en transaksjon i T_TRANSAKSJON, vil `datoAnviser` settes til '1900-01-01'.
 
 Avregningsmeldingen blir mappet og persistert til en rad i T_RETUR_TIL_ANV.
 
-**Format på avregningsmelding:**
+**Format på avregningsmelding fra UR Z:**
 <br/>&emsp;avregningsgrunnlag.oppdragsId (Int(10))
 <br/>&emsp;avregningsgrunnlag.linjeId (Int(5))
 <br/>&emsp;avregningsgrunnlag.trekkvedtakId (Int(10))
@@ -41,8 +43,8 @@ Avregningsmeldingen blir mappet og persistert til en rad i T_RETUR_TIL_ANV.
 <br/>&emsp;avregningsgrunnlag.transTekst (String(35))
 <br/>&emsp;avregningsgrunnlag.datoValutert (String(8), yyyyMMdd)
 <br/>&emsp;avregningsgrunnlag.delytelseId (String(10))
-<br/>&emsp;avregningsgrunnlag.fagSystemId (String(10))
-<br/>&emsp;avregningsgrunnlag.kreditorRef (String(12))
+<br/>&emsp;avregningsgrunnlag.fagSystemId (String(30))
+<br/>&emsp;avregningsgrunnlag.kreditorRef (String(30))
 
 Eksempel:
 
@@ -51,7 +53,7 @@ Eksempel:
   "avregningsgrunnlag": {
     "oppdragsId": 70014840,
     "linjeId": 3,
-    "trekkvedtakId": 0,
+    "trekkvedtakId": null,
     "gjelderId": "08410376603",
     "utbetalesTil": "08410376603",
     "datoStatusSatt": "20240219",
@@ -68,7 +70,7 @@ Eksempel:
     "datoValutert": "20240219",
     "delytelseId": "84004200",
     "fagSystemId": "1234567",
-    "kreditorRef": ""
+    "kreditorRef": null
   }
 }
 ```
@@ -97,7 +99,7 @@ Eksempel:
 | UTBETALING_TYPE   | avregningsgrunnlag.utbetalingsType | hvordan utbetalingen er sendt, norsk konto, utenlandsk konto, etc                                            |
 | TRANS_TEKST       | avregningsgrunnlag.transTekst      | tekst knyttet til transaksjonen                                                                              |
 | TRANS_EKS_ID_FK   | T_TRANSAKSJON.TRANS_EKS_ID_FK      | SPK sin id til transaksjonen<br/>hvis trekk ikke er fra SPK, brukes avregningsgrunnlag.kreditorRef som verdi |
-| DATO_AVSENDER     | T_TRANSAKSJON.DATO_ANVISER         | avsenders dato mottatt fra anviser                                                                           |
+| DATO_AVSENDER     | T_TRANSAKSJON.DATO_ANVISER         | avsenders dato mottatt fra anviser, settes til 1900-01-01 dersom transaksjon ikke er fra SPK                 |
 | UTBETALES_TIL     | avregningsgrunnlag.utbetalesTil    | fnr eller orgnr som mottar utbetalingen                                                                      |
 | STATUS_TEKST      |                                    | beskrivelse av status                                                                                        |
 | RETURTYPE_KODE    |                                    | Ikke i bruk                                                                                                  |
