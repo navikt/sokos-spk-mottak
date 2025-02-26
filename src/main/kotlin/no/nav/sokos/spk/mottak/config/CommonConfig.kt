@@ -33,10 +33,10 @@ import org.slf4j.event.Level
 
 import no.nav.sokos.spk.mottak.metrics.Metrics
 
-private val logger = KotlinLogging.logger {}
-
 const val SECURE_LOGGER = "secureLogger"
 const val X_KALLENDE_SYSTEM = "x-kallende-system"
+
+private val logger = KotlinLogging.logger {}
 
 fun Application.commonConfig() {
     install(CallId) {
@@ -79,16 +79,14 @@ fun Application.commonConfig() {
 }
 
 private fun ApplicationCall.extractCallingSystemFromJwtToken(): String {
-    return request.header(HttpHeaders.Authorization)?.removePrefix("Bearer ")
-        .let {
-            runCatching { JWT.decode(it) }
-                .onFailure { logger.warn("Failed to decode token: ", it) }
-                .getOrNull()
-                ?.let { it.claims["azp_name"]?.asString() ?: it.claims["client_id"]?.asString() }
-                ?.split(":")
-                ?.last()
-        }
-        ?: "Ukjent"
+    val token = request.header(HttpHeaders.Authorization)?.removePrefix("Bearer ")
+    return token?.let {
+        runCatching {
+            JWT.decode(it)
+        }.onFailure {
+            logger.warn("Failed to decode token: ", it)
+        }.getOrNull()?.let { it.claims["azp_name"]?.asString() ?: it.claims["client_id"]?.asString() }?.split(":")?.last()
+    } ?: "Ukjent"
 }
 
 fun Routing.internalNaisRoutes(
