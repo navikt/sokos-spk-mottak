@@ -51,7 +51,7 @@ internal class AvregningServiceTest : BehaviorSpec({
     listOf(
         TestScenario(
             description = "det sendes en avregningsmelding med delYtelseId til MQ",
-            jsonFile = "/mq/avregning_med_delytelseId.json",
+            jsonFile = "/mq/avregning_med_kjent_utbetalingstransaksjon.json",
             expectedMetricValue = 1,
             motId = "20025925",
             fnr = "04030842389",
@@ -61,7 +61,7 @@ internal class AvregningServiceTest : BehaviorSpec({
         ),
         TestScenario(
             description = "det sendes en avregningsmelding med trekkvedtakId til MQ",
-            jsonFile = "/mq/avregning_med_trekkvedtakId.json",
+            jsonFile = "/mq/avregning_med_kjent_trekktransaksjon.json",
             expectedMetricValue = 2,
             trekkvedtakId = "123456",
             fnr = "19040835672",
@@ -71,7 +71,7 @@ internal class AvregningServiceTest : BehaviorSpec({
         ),
         TestScenario(
             description = "det sendes en avregningsmelding med kreditorRef til MQ",
-            jsonFile = "/mq/avregning_med_kreditorRef.json",
+            jsonFile = "/mq/avregning_med_ukjent_trekktransaksjon.json",
             expectedMetricValue = 3,
             trekkvedtakId = "223344",
             transEksId = "918273",
@@ -79,7 +79,7 @@ internal class AvregningServiceTest : BehaviorSpec({
         ),
         TestScenario(
             description = "det sendes en avregningsmelding med ukjent transaksjon til MQ",
-            jsonFile = "/mq/avregning_ukjent_transaksjon.json",
+            jsonFile = "/mq/avregning_ukjent_utbetalingstransaksjon.json",
             expectedMetricValue = 4,
             motId = "999888777",
             datoAvsender = UNKNOWN_TRANSACTION_DATE,

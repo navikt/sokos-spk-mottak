@@ -20,7 +20,7 @@ Følgende informasjonen hentes fra T_TRANSAKSJON og knyttes til avregningstransa
 * `transaksjonId` (transaksjonens id)
 
 Hvis en avregningsmelding som er knyttet til en trekkmelding ikke finnes i T_TRANSAKSJON, vil verdien av meldingsparameteren `kreditorRef` benyttes til `transEksId` (SPK sin transaksjonsId).
-Dersom man ikke klarer å knytte avregningsmeldingen til en transaksjon i T_TRANSAKSJON, vil `datoAnviser` settes til '1900-01-01'.
+Dersom man ikke klarer å knytte avregningsmeldingen til en transaksjon (utbetaling eller trekk) i T_TRANSAKSJON, vil `datoAnviser` settes til '1900-01-01'.
 
 Avregningsmeldingen blir mappet og persistert til en rad i T_RETUR_TIL_ANV.
 
