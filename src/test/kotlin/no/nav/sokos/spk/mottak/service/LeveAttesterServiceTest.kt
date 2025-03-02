@@ -12,9 +12,9 @@ internal class LeveAttesterServiceTest : FunSpec({
 
     extensions(listOf(Db2Listener))
 
-    val leveAttesterService: LeveAttesterService by lazy {
-        LeveAttesterService(
-            leveAttesterRepository = Db2Listener.leveAttesterRepository,
+    val leveAttestService: LeveAttestService by lazy {
+        LeveAttestService(
+            leveAttestRepository = Db2Listener.leveAttestRepository,
         )
     }
 
@@ -23,7 +23,7 @@ internal class LeveAttesterServiceTest : FunSpec({
             session.update(queryOf(readFromResource("/database/utbetaling_transaksjon.sql")))
         }
 
-        val result = leveAttesterService.getLeveAttester("2009-01-01")
+        val result = leveAttestService.getLeveAttester("2009-01-01")
         result.size shouldBe 9
     }
 })

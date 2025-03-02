@@ -7,16 +7,16 @@ import kotliquery.sessionOf
 import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.domain.LeveAttester
+import no.nav.sokos.spk.mottak.domain.LeveAttest
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 
-class LeveAttesterRepository(
+class LeveAttestRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
-    private val getLeveAttesterTimer = Metrics.timer(DATABASE_CALL, "LeveAttesterRepository", "getLeveAttester")
+    private val getLeveAttesterTimer = Metrics.timer(DATABASE_CALL, "LeveAttestRepository", "getLeveAttester")
 
-    fun getLeveAttester(datoFom: String): List<LeveAttester> =
+    fun getLeveAttester(datoFom: String): List<LeveAttest> =
         using(sessionOf(dataSource)) { session ->
             getLeveAttesterTimer.recordCallable {
                 session.list(
@@ -27,14 +27,14 @@ class LeveAttesterRepository(
                         AND DATO_FOM = '$datoFom'
                         """.trimIndent(),
                     ),
-                    mapToLeveAttester,
+                    mapToLeveAttest,
                 )
             }
         }
 }
 
-private val mapToLeveAttester: (Row) -> LeveAttester = { row ->
-    LeveAttester(
+private val mapToLeveAttest: (Row) -> LeveAttest = { row ->
+    LeveAttest(
         fnrFk = row.string("FNR_FK"),
         kAnviser = row.string("K_ANVISER"),
     )

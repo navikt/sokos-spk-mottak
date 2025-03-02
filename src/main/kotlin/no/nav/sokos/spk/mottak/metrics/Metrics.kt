@@ -25,7 +25,7 @@ object Metrics {
         Counter
             .builder()
             .name("${METRICS_NAMESPACE}_trekk_transaksjoner_til_oppdrag")
-            .help("Counts the number of trekk transactions sent to OppdragZ")
+            .help("Counts the number of trekktransaksjoner sent to OppdragZ")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
@@ -33,7 +33,7 @@ object Metrics {
         Counter
             .builder()
             .name("${METRICS_NAMESPACE}_utbetaling_transaksjoner_til_oppdrag")
-            .help("Counts the number of transactions sent to OppdragZ")
+            .help("Counts the number of utbetalingstransaksjoner sent to OppdragZ")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
@@ -41,7 +41,7 @@ object Metrics {
         Counter
             .builder()
             .name("${METRICS_NAMESPACE}_transaksjon_godkjent")
-            .help("Counts the number of file processed from SPK")
+            .help("Counts the number of transaksjoner godkjent")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
@@ -49,7 +49,7 @@ object Metrics {
         Counter
             .builder()
             .name("${METRICS_NAMESPACE}_transaksjon_avvist")
-            .help("Counts the number of file processed from SPK")
+            .help("Counts the number of transaksjoner avvist")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
@@ -57,7 +57,7 @@ object Metrics {
         Counter
             .builder()
             .name("${METRICS_NAMESPACE}_innlest_fil")
-            .help("Counts the number of file processed from SPK")
+            .help("Counts the number of innleste filer")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
@@ -65,15 +65,15 @@ object Metrics {
         Counter
             .builder()
             .name("${METRICS_NAMESPACE}_inn_transaksjoner")
-            .help("Counts the number of transactions received from SPK")
+            .help("Counts the number of inntransaksjoner")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
-    val leveAttesterCounter: Counter =
+    val LeveAttestCounter: Counter =
         Counter
             .builder()
-            .name("${METRICS_NAMESPACE}_leveattester")
-            .help("Counts the number of leve attester received from SPK")
+            .name("${METRICS_NAMESPACE}_fnr_leveattester")
+            .help("Counts the number of fnr leveattester")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
@@ -81,7 +81,7 @@ object Metrics {
         Counter
             .builder()
             .name("${METRICS_NAMESPACE}_utbetaling_mq_producer")
-            .help("Counts the number of utbetaling sent to OppdragZ through MQ")
+            .help("Counts the number of utbetalinger sent to OppdragZ through MQ")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
