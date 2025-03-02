@@ -44,7 +44,7 @@ import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.AvstemmingType
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.KildeType
 
-class AvstemmingServiceTest :
+internal class AvstemmingServiceTest :
     BehaviorSpec({
         extensions(listOf(Db2Listener, MQListener))
 
