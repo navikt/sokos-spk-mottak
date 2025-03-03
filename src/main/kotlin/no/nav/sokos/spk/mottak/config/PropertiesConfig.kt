@@ -30,7 +30,7 @@ object PropertiesConfig {
         ConfigurationMap(
             mapOf(
                 "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
-                "USE_AUTHENTICATION" to "true",
+                "USE_AUTHENTICATION" to "false",
                 "POSTGRES_HOST" to "dev-pg.intern.nav.no",
                 "POSTGRES_PORT" to "5432",
                 "POSTGRES_NAME" to "sokos-spk-mottak",
