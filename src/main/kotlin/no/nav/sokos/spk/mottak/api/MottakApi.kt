@@ -4,7 +4,6 @@ import java.time.Instant
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 import com.github.kagkarlsson.scheduler.Scheduler
@@ -19,13 +18,16 @@ import io.ktor.server.routing.route
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import no.nav.sokos.spk.mottak.security.AuthToken
+import no.nav.sokos.spk.mottak.service.LeveAttestService
 import no.nav.sokos.spk.mottak.service.ScheduledTaskService
+import no.nav.sokos.spk.mottak.validator.validateDateQueryParameter
 
 private const val RECURRING = "recurring"
 
 fun Route.mottakApi(
     scheduler: Scheduler = JobTaskConfig.scheduler(),
     scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
+    leveAttestService: LeveAttestService = LeveAttestService(),
 ) {
     route("api/v1") {
         post("readParseFileAndValidateTransactions") {
@@ -68,6 +70,12 @@ fun Route.mottakApi(
 
         get("jobTaskInfo") {
             call.respond(HttpStatusCode.OK, scheduledTaskService.getScheduledTaskInformation())
+        }
+
+        get("leveattester/{datoFom}") {
+            call.respond(
+                leveAttestService.getLeveAttester(call.pathParameters["datoFom"].orEmpty().validateDateQueryParameter()),
+            )
         }
     }
 }

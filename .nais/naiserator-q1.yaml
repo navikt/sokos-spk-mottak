@@ -49,6 +49,7 @@ spec:
       claims:
         extra:
           - NAVident
+          - azp_name
   accessPolicy:
     inbound:
       rules:
@@ -58,6 +59,8 @@ spec:
         - application: sokos-utbetalingsportalen
           namespace: okonomi
           cluster: dev-gcp
+        - application: pensjon-pen
+          cluster: dev-fss
   webproxy: true
   vault:
     enabled: true
