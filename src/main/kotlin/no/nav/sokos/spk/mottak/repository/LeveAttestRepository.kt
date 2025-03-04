@@ -8,6 +8,7 @@ import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.domain.LeveAttest
+import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 
@@ -23,7 +24,7 @@ class LeveAttestRepository(
                     queryOf(
                         """
                         SELECT DISTINCT FNR_FK, K_ANVISER FROM T_TRANSAKSJON 
-                        WHERE K_ANVISER = 'SPK'
+                        WHERE K_ANVISER = '$SPK'
                         AND DATO_FOM = '$datoFom'
                         """.trimIndent(),
                     ),
