@@ -188,8 +188,7 @@ Eksempel:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:avstemmingsdata xmlns:ns2="http://nav.no/virksomhet/tjenester/avstemming/me
-ldinger/v1">
+<ns2:avstemmingsdata xmlns:ns2="http://nav.no/virksomhet/tjenester/avstemming/meldinger/v1">
     <aksjon>
         <aksjonType>DATA</aksjonType>
         <kildeType>AVLEV</kildeType>

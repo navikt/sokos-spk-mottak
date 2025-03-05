@@ -12,6 +12,7 @@ import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.DatabaseTestConfig
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
+import no.nav.sokos.spk.mottak.repository.AvregningsreturRepository
 import no.nav.sokos.spk.mottak.repository.AvvikTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
@@ -32,6 +33,7 @@ object Db2Listener : TestListener {
     val transaksjonTilstandRepository = spyk(TransaksjonTilstandRepository(dataSource))
     val personRepository = spyk(PersonRepository(dataSource))
     val leveAttestRepository = spyk(LeveAttestRepository(dataSource))
+    val avregningsreturRepository = spyk(AvregningsreturRepository(dataSource))
 
     override suspend fun beforeSpec(spec: Spec) {
         dataSource shouldNotBe null
@@ -66,6 +68,7 @@ object Db2Listener : TestListener {
             session.update(queryOf("DELETE FROM T_TRANS_TILSTAND"))
             session.update(queryOf("DELETE FROM T_TRANSAKSJON"))
             session.update(queryOf("DELETE FROM T_AVV_TRANSAKSJON"))
+            session.update(queryOf("DELETE FROM T_RETUR_TIL_ANV"))
         }
     }
 }

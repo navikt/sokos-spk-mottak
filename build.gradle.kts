@@ -138,6 +138,7 @@ dependencies {
     // Test
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
+    testImplementation("io.kotest:kotest-extensions-now:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
@@ -214,6 +215,7 @@ tasks {
     }
 
     withType<Test>().configureEach {
+        jvmArgs("--add-opens", "java.base/java.time=ALL-UNNAMED")
         useJUnitPlatform()
 
         testLogging {

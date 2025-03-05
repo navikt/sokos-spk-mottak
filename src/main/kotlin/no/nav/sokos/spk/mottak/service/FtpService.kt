@@ -16,6 +16,7 @@ enum class Directories(
     INBOUND("/inbound/anvisningsfil"),
     ANVISNINGSFIL_BEHANDLET("/inbound/anvisningsfilbehandlet"),
     ANVISNINGSRETUR("/outbound/anvisningsretur"),
+    AVREGNINGSRETUR("/outbound/avregning"),
 }
 
 class FtpService(
