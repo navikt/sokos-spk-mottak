@@ -59,7 +59,7 @@ spec:
         - application: sokos-utbetalingsportalen
           namespace: okonomi
           cluster: dev-gcp
-        - application: pensjon-pen
+        - application: pensjon-pen-q2
           cluster: dev-fss
   webproxy: true
   vault:
