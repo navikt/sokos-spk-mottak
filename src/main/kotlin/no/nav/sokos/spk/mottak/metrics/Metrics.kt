@@ -69,7 +69,7 @@ object Metrics {
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
-    val LeveAttestCounter: Counter =
+    val leveAttestCounter: Counter =
         Counter
             .builder()
             .name("${METRICS_NAMESPACE}_fnr_leveattester")

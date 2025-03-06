@@ -9,7 +9,7 @@ class LeveAttestService(
 ) {
     fun getLeveAttester(datoFom: String): List<LeveAttest> {
         val leveAttestList = leveAttestRepository.getLeveAttester(datoFom)
-        Metrics.innTransaksjonCounter.inc(leveAttestList.size.toLong())
+        Metrics.leveAttestCounter.inc(leveAttestList.size.toLong())
         return leveAttestList
     }
 }
