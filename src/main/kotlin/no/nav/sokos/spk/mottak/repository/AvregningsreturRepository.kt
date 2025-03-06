@@ -99,7 +99,7 @@ class AvregningsreturRepository(
 
     private val mapToAvregningsretur: (Row) -> Avregningsretur = { row ->
         Avregningsretur(
-            returTilAnviserId = row.int("RETUR_TIL_ANV_ID"),
+            returTilAnviserId = row.intOrNull("RETUR_TIL_ANV_ID"),
             rectype = row.string("RECTYPE"),
             returtype = row.string("K_RETUR_T"),
             anviser = row.string("K_ANVISER"),
@@ -133,9 +133,9 @@ class AvregningsreturRepository(
             datoEndret = row.localDateTime("DATO_ENDRET"),
             endretAv = row.string("ENDRET_AV"),
             versjon = row.int("VERSJON"),
-            motId = row.string("MOT_ID"),
-            personId = row.string("PERSON_ID"),
-            kreditorRef = row.string("KREDITOR_REF"),
+            motId = row.stringOrNull("MOT_ID"),
+            personId = row.stringOrNull("PERSON_ID"),
+            kreditorRef = row.stringOrNull("KREDITOR_REF"),
         )
     }
 }

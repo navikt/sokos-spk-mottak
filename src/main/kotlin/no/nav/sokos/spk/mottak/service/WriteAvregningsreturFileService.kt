@@ -39,8 +39,8 @@ class WriteAvregningsreturFileService(
             val avregningTransaksjonList = avregningsreturRepository.getReturTilAnviserWhichIsNotSent()
             if (avregningTransaksjonList.isNotEmpty()) {
                 logger.info { "Returfil produseres for ${avregningTransaksjonList.size} avregningstransaksjoner" }
-                val filInfoInnIdList = createTempFileAndUploadToFtpServer(avregningTransaksjonList)
-                logger.info { "Returfil for avregning til filInfoInnId: ${filInfoInnIdList.joinToString()} er produsert og lastet opp til FTP server" }
+                val filInfoInnId = createTempFileAndUploadToFtpServer(avregningTransaksjonList)
+                logger.info { "Returfil for avregning til filInfoInnId: $filInfoInnId er produsert og lastet opp til FTP server" }
             } else {
                 logger.info { "Ingen avregningstransaksjoner blir funnet!" }
             }
@@ -51,8 +51,8 @@ class WriteAvregningsreturFileService(
         }
     }
 
-    private fun createTempFileAndUploadToFtpServer(avregningTransaksjonList: List<Avregningsretur>): List<Int> {
-        dataSource.transaction { session ->
+    private fun createTempFileAndUploadToFtpServer(avregningTransaksjonList: List<Avregningsretur>): Long {
+        return dataSource.transaction { session ->
             val applicationNavn = PropertiesConfig.Configuration().naisAppName
 
             val lopeNummer = lopenummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING)?.inc() ?: 1
@@ -107,8 +107,8 @@ class WriteAvregningsreturFileService(
             }
 
             ftpService.createFile(returFilnavn, Directories.AVREGNINGSRETUR, avregningFil.toString())
-            logger.info { "$returFilnavn med $antallTransaksjon transaksjoner og beløp: $sumBelop er opprettet og lastet opp til ${Directories.ANVISNINGSRETUR}" }
+            logger.info { "$returFilnavn med $antallTransaksjon transaksjoner og beløp: ${sumBelop / 100} er opprettet og lastet opp til ${Directories.ANVISNINGSRETUR}" }
+            filInfoId
         }
-        return emptyList()
     }
 }
