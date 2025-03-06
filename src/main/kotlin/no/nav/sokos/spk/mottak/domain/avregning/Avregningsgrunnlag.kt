@@ -30,3 +30,28 @@ data class Avregningsgrunnlag(
 data class AvregningsgrunnlagWrapper(
     val avregningsgrunnlag: Avregningsgrunnlag,
 )
+
+fun Avregningsgrunnlag.toAvregningsAvvik(): AvregningsgrunnlagAvvik {
+    return AvregningsgrunnlagAvvik(
+        oppdragsId = oppdragsId,
+        linjeId = linjeId,
+        trekkvedtakId = trekkvedtakId,
+        gjelderId = gjelderId,
+        utbetalesTil = utbetalesTil,
+        datoStatusSatt = datoStatusSatt,
+        status = status,
+        bilagsnrSerie = bilagsnrSerie,
+        bilagsnr = bilagsnr,
+        konto = konto,
+        fomdato = fomdato,
+        tomdato = tomdato,
+        belop = belop,
+        debetKredit = debetKredit,
+        utbetalingsType = utbetalingsType,
+        transTekst = transTekst,
+        datoValutert = datoValutert,
+        delytelseId = delytelseId,
+        fagSystemId = fagSystemId,
+        kreditorRef = kreditorRef,
+    )
+}

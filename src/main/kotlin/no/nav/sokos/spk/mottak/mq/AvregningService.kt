@@ -17,8 +17,10 @@ import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
 import no.nav.sokos.spk.mottak.domain.avregning.Avregningsgrunnlag
 import no.nav.sokos.spk.mottak.domain.avregning.AvregningsgrunnlagWrapper
 import no.nav.sokos.spk.mottak.domain.avregning.Avregningsretur
+import no.nav.sokos.spk.mottak.domain.avregning.toAvregningsAvvik
 import no.nav.sokos.spk.mottak.domain.converter.AvregningConverter.toAvregningsretur
 import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
+import no.nav.sokos.spk.mottak.repository.AvregningsavvikRepository
 import no.nav.sokos.spk.mottak.repository.AvregningsreturRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
@@ -38,6 +40,7 @@ class AvregningService(
     private val avregningsgrunnlagMQListener = jmsContext.createConsumer(avregningsgrunnlagQueue)
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val avregningsreturRepository: AvregningsreturRepository = AvregningsreturRepository(dataSource)
+    private val avregningsavvikRepository: AvregningsavvikRepository = AvregningsavvikRepository(dataSource)
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -62,6 +65,7 @@ class AvregningService(
                 }
         }.onFailure { exception ->
             secureLogger.error { "Avregningsgrunnlagmelding fra UR: $jmsMessage" }
+            avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
             logger.error(exception) {
                 "Prosessering av avregningsgrunnlag feilet. jmsMessageID: ${message.jmsMessageID}, " +
                     "oppdragsId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.oppdragsId}, " +
@@ -70,6 +74,15 @@ class AvregningService(
                     "bilagsnrSerie: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.bilagsnrSerie}, " +
                     "bilagsnr: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.bilagsnr}, " +
                     "delytelseId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.delytelseId}"
+            }
+            avregningsgrunnlagWrapper?.avregningsgrunnlag?.let { avregningsgrunnlag ->
+                runCatching {
+                    dataSource.transaction { session ->
+                        avregningsavvikRepository.insert(avregningsgrunnlag.toAvregningsAvvik(), exception.message!!, session)
+                    }
+                }.onFailure { ex ->
+                    logger.error(exception) { "Feiler ved lagring av avviksmelding i T_AVREGNING_AVVIK: ${ex.message}" }
+                }
             }
         }
     }
@@ -120,8 +133,9 @@ class AvregningService(
                     )
                 }
             }
-            avregningsgrunnlag.trekkvedtakId != null ->
-                transaksjonRepository.findTransaksjonByTrekkvedtakId(avregningsgrunnlag.trekkvedtakId)
+
+            avregningsgrunnlag.trekkvedtakId != null -> transaksjonRepository.findTransaksjonByTrekkvedtakId(avregningsgrunnlag.trekkvedtakId)
+
             else -> null
         }
     }

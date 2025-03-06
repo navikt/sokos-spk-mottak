@@ -231,6 +231,14 @@ class AvregningsreturRepository(
             }
         }
 
+    // Kun for testing
+    fun getNoOfRows(): Int? =
+        using(sessionOf(dataSource)) { session ->
+            session.single(
+                queryOf("SELECT COUNT(*) FROM T_RETUR_TIL_ANV"),
+            ) { row -> row.int(1) }
+        }
+
     private val mapToAvregningsretur: (Row) -> Avregningsretur = { row ->
         Avregningsretur(
             returTilAnviserId = row.int("RETUR_TIL_ANV_ID"),

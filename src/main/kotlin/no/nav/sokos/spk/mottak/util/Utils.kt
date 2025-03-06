@@ -45,7 +45,7 @@ object Utils {
         return try {
             LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd"))
         } catch (e: DateTimeParseException) {
-            throw ParseException("Feil ved konvertering av $this (format 'yyyyMMdd') til dato", 0)
+            throw ParseException("Feil ved konvertering av $this (format yyyyMMdd) til dato", 0)
         }
     }
 }
