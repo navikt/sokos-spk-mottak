@@ -12,7 +12,7 @@ plugins {
     kotlin("plugin.serialization") version "2.1.10"
     id("com.expediagroup.graphql") version "8.3.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
+    id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
 
@@ -41,9 +41,9 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "3.1.0"
+val ktorVersion = "3.1.1"
 val jschVersion = "0.2.23"
-val logbackVersion = "1.5.16"
+val logbackVersion = "1.5.17"
 val logstashVersion = "8.0"
 val jacksonVersion = "2.15.3"
 val micrometerVersion = "1.14.4"
@@ -55,18 +55,18 @@ val wiremockVersion = "3.12.0"
 val kotlinxSerializationVersion = "1.8.0"
 val kotlinxDatetimeVersion = "0.6.2"
 val mockOAuth2ServerVersion = "2.1.10"
-val mockkVersion = "1.13.16"
+val mockkVersion = "1.13.17"
 val hikariVersion = "6.2.1"
 val db2JccVersion = "12.1.0.0"
 val kotliqueryVersion = "1.9.1"
 val testcontainersVersion = "1.20.5"
 val h2Version = "2.3.232"
-val flywayVersion = "11.3.3"
+val flywayVersion = "11.3.4"
 val postgresVersion = "42.7.5"
 val dbSchedulerVersion = "15.3.0"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20250218124429_8804209"
-val ibmmqVersion = "9.4.1.1"
+val ibmmqVersion = "9.4.2.0"
 val activemqVersion = "2.39.0"
 val graphqlClientVersion = "8.3.0"
 val jaxbVersion = "4.0.5"
@@ -78,6 +78,7 @@ dependencies {
     implementation("io.ktor:ktor-server-call-id-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
 
     // Ktor client
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")

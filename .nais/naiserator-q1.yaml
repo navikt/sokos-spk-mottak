@@ -49,15 +49,18 @@ spec:
       claims:
         extra:
           - NAVident
+          - azp_name
   accessPolicy:
     inbound:
       rules:
         - application: azure-token-generator
-          namespace: aura
+          namespace: nais
           cluster: dev-gcp
         - application: sokos-utbetalingsportalen
           namespace: okonomi
           cluster: dev-gcp
+        - application: pensjon-pen-q2
+          cluster: dev-fss
   webproxy: true
   vault:
     enabled: true
