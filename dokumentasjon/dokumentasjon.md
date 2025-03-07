@@ -9,12 +9,12 @@
 ## Detaljert beskrivelse av tjenestene
 - [ReadAndParseFileService](løsningsbeskrivelse/detaljert/ReadAndParseFileService.md)
 - [ValidateTransaksjonService](løsningsbeskrivelse/detaljert/ValidateTransaksjonService.md)
-- [WriteToFileService](løsningsbeskrivelse/detaljert/WriteToFileService.md)
+- [WriteInnlesningsreturFileService](løsningsbeskrivelse/detaljert/WriteInnlesningsreturFileService.md)
 - [SendUtbetalingTransaksjonToOppdragZService](løsningsbeskrivelse/detaljert/SendUtbetalingTransaksjonToOppdragZService.md)
 - [SendTrekkTransaksjonToOppdragZService](løsningsbeskrivelse/detaljert/SendTrekkTransaksjonToOppdragZService.md)
 - [JmsListenerService](løsningsbeskrivelse/detaljert/JmsListenerService.md)
 - [AvstemmingService](løsningsbeskrivelse/detaljert/AvstemmingService.md)
-
+- [WriteAvregningsreturFileService](løsningsbeskrivelse/detaljert/WriteAvregningsreturFileService.md)
 
 ## Tester
 - [Filformat tester](tester/filformat-tester.md)

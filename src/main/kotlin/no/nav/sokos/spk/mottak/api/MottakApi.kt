@@ -68,6 +68,15 @@ fun Route.mottakApi(
             call.respond(HttpStatusCode.Accepted, "GrensesnittAvstemming har startet, sjekk logger for status")
         }
 
+        post("writeAvregningsreturFile") {
+            val ident = AuthToken.getSaksbehandler(call)
+            call.launch(Dispatchers.IO) {
+                val task = JobTaskConfig.recurringWriteAvregningsreturFileTask()
+                scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
+            }
+            call.respond(HttpStatusCode.Accepted, "WriteAvregningsreturFile har startet, sjekk logger for status")
+        }
+
         get("jobTaskInfo") {
             call.respond(HttpStatusCode.OK, scheduledTaskService.getScheduledTaskInformation())
         }

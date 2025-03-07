@@ -9,7 +9,7 @@ NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar dagl
 2. [ValidateTransaksjonService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/ValidateTransaksjonService.kt) 
 <br/> Tjeneste som behandler transaksjonene som er lastet inn i innlastingstabellen i forrige trinn. Dette består av validering av transaksjonene som ligger i tabellen og lagre disse permanent. Dersom transaksjonen er gyldig lagres den i `T_TRANSAKSJON`, mens ugyldige transaksjoner lagres i `T_AVV_TRANSAKSJON` med en avvisningsårsak. Status på valideringen lagres også i `T_INN_TRANSAKSJON`.
 
-3. [WriteToFileService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/WriteToFileService.kt) 
+3. [WriteInnlesningsreturFileService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/WriteInnlesningsreturFileService.kt) 
 <br/> Tjeneste som genererer en returfil per anvisningsfil som sendes til SPK og som inneholder samme informasjon som anvisningsfilen men med tilleggsinformasjon om status på transaksjonsvalideringen.
 
 4. [SendUtbetalingTransaksjonToOppdragZService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/SendUtbetalingTransaksjonToOppdragZService.kt)
