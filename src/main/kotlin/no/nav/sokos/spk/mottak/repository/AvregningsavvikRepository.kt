@@ -17,7 +17,6 @@ class AvregningsavvikRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val insertTimer = Metrics.timer(DATABASE_CALL, "AvregningsavvikRepository", "insert")
-    val systemId = PropertiesConfig.Configuration().naisAppName
 
     fun insert(
         avregningsgrunnlagAvvik: AvregningsgrunnlagAvvik,

@@ -75,8 +75,7 @@ class InnTransaksjonRepository(
                         where p.PERSON_ID is null
                         """.trimIndent(),
                     ),
-                    { row -> row.string("FNR_FK") },
-                )
+                ) { row -> row.string("FNR_FK") }
             }
         }
 

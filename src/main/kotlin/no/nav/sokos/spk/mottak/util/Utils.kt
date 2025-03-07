@@ -28,10 +28,6 @@ object Utils {
 
     fun Boolean.booleanToString(): String = if (this) "1" else "0"
 
-    fun String.stringToInt(): Int {
-        return this.toIntOrNull() ?: 0
-    }
-
     fun LocalDateTime.toAvstemmingPeriode(): String = this.format(DateTimeFormatter.ofPattern("yyyyMMddHH"))
 
     fun String.toLocalDateStringOrEmpty(): String {

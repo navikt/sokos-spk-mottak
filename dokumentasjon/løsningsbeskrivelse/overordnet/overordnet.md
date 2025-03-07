@@ -24,7 +24,7 @@ NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar dagl
 7. [AvstemmingService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/AvstemmingService.kt)
 <br/> Tjeneste som sender til avstemmingskomponenten all avstemmingsinformasjon om transaksjoner som er sendt til OS siste døgn.
 
-8. [AvregningService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/AvregningService.kt)
+8. [AvregningService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/mq/AvregningService.kt)
 <br/> Tjeneste som lytter til meldinger fra UR Z som inneholder grunnlagsdata som benyttes for å generere avregningsfiler til SPK.
 
 ### Kjøring av tjenester i scheduler [JobTaskConfig](../../../src/main/kotlin/no/nav/sokos/spk/mottak/config/JobTaskConfig.kt)

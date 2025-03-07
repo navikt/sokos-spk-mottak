@@ -1,3 +1,5 @@
+package no.nav.sokos.spk.mottak.mq
+
 import java.time.LocalDate
 
 import kotlinx.coroutines.delay
@@ -19,9 +21,6 @@ import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqAvregningListenerMetricCounter
-import no.nav.sokos.spk.mottak.mq.AvregningService
-import no.nav.sokos.spk.mottak.mq.JmsProducerService
-import no.nav.sokos.spk.mottak.mq.UNKNOWN_TRANSACTION_DATE
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import no.nav.sokos.spk.mottak.util.Utils.toIsoDate
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDate

@@ -72,59 +72,6 @@ class AvregningsreturRepository(
             )
         }
 
-    fun getByTransaksjonId(transId: Int): Avregningsretur? =
-        using(sessionOf(dataSource)) { session ->
-            getByTransaksjonIdTimer.recordCallable {
-                session.single(
-                    queryOf(
-                        """
-                        SELECT RETUR_TIL_ANV_ID,
-                        RECTYPE,
-                        K_RETUR_T,
-                        K_ANVISER,
-                        OS_ID_FK,
-                        OS_LINJE_ID_FK,
-                        TREKKVEDTAK_ID_FK,
-                        GJELDER_ID,
-                        FNR_FK,
-                        DATO_STATUS,
-                        STATUS,
-                        BILAGSNR_SERIE,
-                        BILAGSNR,
-                        DATO_FOM,
-                        DATO_TOM,
-                        BELOP,
-                        DEBET_KREDIT,
-                        UTBETALING_TYPE,
-                        TRANS_TEKST,
-                        TRANS_EKS_ID_FK,
-                        DATO_AVSENDER,
-                        UTBETALES_TIL,
-                        STATUS_TEKST,
-                        RETURTYPE_KODE,
-                        DUPLIKAT,
-                        TRANSAKSJON_ID,
-                        FIL_INFO_INN_ID,
-                        FIL_INFO_UT_ID,
-                        DATO_VALUTERING,
-                        KONTO,
-                        MOT_ID,
-                        PERSON_ID,
-                        KREDITOR_REF,
-                        DATO_OPPRETTET,
-                        OPPRETTET_AV,
-                        DATO_ENDRET,
-                        ENDRET_AV,
-                        VERSJON
-                            FROM T_RETUR_TIL_ANV 
-                            WHERE TRANSAKSJON_ID = $transId;
-                        """.trimIndent(),
-                    ),
-                    mapToAvregningsretur,
-                )
-            }
-        }
-
     fun getByMotId(motId: String): Avregningsretur? =
         using(sessionOf(dataSource)) { session ->
             getByTransaksjonIdTimer.recordCallable {
