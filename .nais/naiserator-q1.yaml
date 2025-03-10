@@ -60,6 +60,7 @@ spec:
           namespace: okonomi
           cluster: dev-gcp
         - application: pensjon-pen-q2
+          namespace: pensjon-q2
           cluster: dev-fss
   webproxy: true
   vault:
@@ -150,3 +151,5 @@ spec:
       value: "0 0 7-17 * * *"
     - name: GRENSESNITT_AVSTEMMING_CRON_PATTERN
       value: "0 0 5 * * *"
+    - name: WRITE_AVREGNINGSRETUR_FILE_CRON_PATTERN
+      value: "0 0 10 * * *"

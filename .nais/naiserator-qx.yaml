@@ -147,3 +147,5 @@ spec:
       value: "0 0 0 1 1 ?"
     - name: GRENSESNITT_AVSTEMMING_CRON_PATTERN
       value: "0 0 0 1 1 ?"
+    - name: WRITE_AVREGNINGSRETUR_FILE_CRON_PATTERN
+      value: "0 0 0 1 1 ?"

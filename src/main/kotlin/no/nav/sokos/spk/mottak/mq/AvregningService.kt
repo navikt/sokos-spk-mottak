@@ -14,11 +14,11 @@ import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
-import no.nav.sokos.spk.mottak.domain.avregning.Avregningsgrunnlag
-import no.nav.sokos.spk.mottak.domain.avregning.AvregningsgrunnlagWrapper
-import no.nav.sokos.spk.mottak.domain.avregning.Avregningsretur
-import no.nav.sokos.spk.mottak.domain.avregning.toAvregningsAvvik
+import no.nav.sokos.spk.mottak.domain.Avregningsgrunnlag
+import no.nav.sokos.spk.mottak.domain.AvregningsgrunnlagWrapper
+import no.nav.sokos.spk.mottak.domain.Avregningsretur
 import no.nav.sokos.spk.mottak.domain.converter.AvregningConverter.toAvregningsretur
+import no.nav.sokos.spk.mottak.domain.toAvregningsAvvik
 import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.repository.AvregningsavvikRepository
 import no.nav.sokos.spk.mottak.repository.AvregningsreturRepository
@@ -78,7 +78,11 @@ class AvregningService(
             avregningsgrunnlagWrapper?.avregningsgrunnlag?.let { avregningsgrunnlag ->
                 runCatching {
                     dataSource.transaction { session ->
-                        avregningsavvikRepository.insert(avregningsgrunnlag.toAvregningsAvvik(), exception.message!!, session)
+                        avregningsavvikRepository.insert(
+                            avregningsgrunnlag.toAvregningsAvvik(),
+                            exception.message!!,
+                            session,
+                        )
                     }
                 }.onFailure { ex ->
                     logger.error(exception) { "Feiler ved lagring av avviksmelding i T_AVREGNING_AVVIK: ${ex.message}" }
@@ -103,9 +107,7 @@ class AvregningService(
         val avregningstransaksjon = findTransaksjon(avregningsgrunnlag)
         val avregningsretur = createAvregningsretur(avregningsgrunnlag, avregningstransaksjon)
 
-        avregningsretur.apply {
-            datoAvsender = datoAvsender ?: UNKNOWN_TRANSACTION_DATE.toIsoDate()
-        }.let {
+        avregningsretur.let {
             dataSource.transaction { session ->
                 avregningsreturRepository.insert(it, session)
             }
@@ -134,7 +136,10 @@ class AvregningService(
                 }
             }
 
-            avregningsgrunnlag.trekkvedtakId != null -> transaksjonRepository.findTransaksjonByTrekkvedtakId(avregningsgrunnlag.trekkvedtakId)
+            avregningsgrunnlag.trekkvedtakId != null ->
+                transaksjonRepository.findTransaksjonByTrekkvedtakId(
+                    avregningsgrunnlag.trekkvedtakId,
+                )
 
             else -> null
         }

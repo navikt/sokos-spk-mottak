@@ -13,8 +13,8 @@ import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.domain.avregning.AvregningsgrunnlagWrapper
-import no.nav.sokos.spk.mottak.domain.avregning.Avregningsretur
+import no.nav.sokos.spk.mottak.domain.AvregningsgrunnlagWrapper
+import no.nav.sokos.spk.mottak.domain.Avregningsretur
 import no.nav.sokos.spk.mottak.domain.converter.AvregningConverter.toAvregningsretur
 import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.listener.Db2Listener
@@ -197,14 +197,14 @@ private fun verifyAvregningstransaksjon(
         fnr shouldBe avregningFnr
         datoStatus shouldBe avregningsgrunnlag.datoStatusSatt.toLocalDate()
         status shouldBe avregningsgrunnlag.status
-        bilagsNrSerie shouldBe avregningsgrunnlag.bilagsnrSerie
-        bilagsNr shouldBe avregningsgrunnlag.bilagsnr
+        bilagsnrSerie shouldBe avregningsgrunnlag.bilagsnrSerie
+        bilagsnr shouldBe avregningsgrunnlag.bilagsnr
         datoFom shouldBe avregningsgrunnlag.fomdato.toLocalDate()
         datoTom shouldBe avregningsgrunnlag.tomdato.toLocalDate()
         belop shouldBe avregningsgrunnlag.belop.toString()
         debetKredit shouldBe avregningsgrunnlag.debetKredit
-        utbetalingType shouldBe avregningsgrunnlag.utbetalingsType
-        transaksjonTekst shouldBe avregningsgrunnlag.transTekst
+        utbetalingtype shouldBe avregningsgrunnlag.utbetalingsType
+        transTekst shouldBe avregningsgrunnlag.transTekst
         transEksId shouldBe avregningTransEksId
         datoAvsender shouldBe avregningDatoAvsender?.toIsoDate()
         utbetalesTil shouldBe avregningsgrunnlag.utbetalesTil

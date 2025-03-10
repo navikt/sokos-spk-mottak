@@ -1,8 +1,8 @@
 package no.nav.sokos.spk.mottak.util
 
-import no.nav.sokos.spk.mottak.domain.ANVISER_FIL_BESKRIVELSE
-import no.nav.sokos.spk.mottak.domain.FILTYPE_INNLEST
-import no.nav.sokos.spk.mottak.domain.FilInfo
+import java.time.LocalDate
+
+import no.nav.sokos.spk.mottak.domain.Avregningsretur
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.NAV
@@ -80,16 +80,22 @@ object FileParser {
         )
     }
 
-    fun createStartRecord(filInfo: FilInfo): String {
+    fun createStartRecord(
+        anviser: String,
+        lopeNr: String,
+        filType: String,
+        datoMottatt: LocalDate,
+        beskrivelse: String,
+    ): String {
         val stringBuilder = StringBuilder()
         stringBuilder
             .append(RECTYPE_STARTRECORD)
             .append(NAV.padEnd(11, ' '))
-            .append(filInfo.anviser.padEnd(11, ' '))
-            .append(filInfo.lopeNr.padStart(6, '0'))
-            .append(FILTYPE_INNLEST.padEnd(3, ' '))
-            .append(filInfo.datoMottatt!!.toLocalDateString().padEnd(6, ' '))
-            .append(ANVISER_FIL_BESKRIVELSE.padEnd(35, ' '))
+            .append(anviser.padEnd(11, ' '))
+            .append(lopeNr.padStart(6, '0'))
+            .append(filType.padEnd(3, ' '))
+            .append(datoMottatt.toLocalDateString().padEnd(6, ' '))
+            .append(beskrivelse.padEnd(35, ' '))
             .append(FilStatus.OK.code)
             .append("".padEnd(35, ' '))
             .appendLine()
@@ -120,7 +126,32 @@ object FileParser {
         return stringBuilder.toString()
     }
 
-    fun createEndRecord(
+    fun createAvregningTransaksjonRecord(avregningTransaksjon: Avregningsretur): String {
+        val stringBuilder =
+            StringBuilder()
+                .append(RECTYPE_TRANSAKSJONSRECORD)
+                .append((avregningTransaksjon.transEksId ?: "").padEnd(12, ' '))
+                .append(avregningTransaksjon.datoAvsender.toLocalDateString().padEnd(8, ' '))
+                .append(avregningTransaksjon.gjelderId.padEnd(11, ' '))
+                .append(avregningTransaksjon.utbetalesTil.padEnd(11, ' '))
+                .append(avregningTransaksjon.datoStatus.toLocalDateString().padEnd(8, ' '))
+                .append(avregningTransaksjon.status.padEnd(4, ' '))
+                .append((avregningTransaksjon.statusTekst ?: "").padStart(35, ' '))
+                .append(avregningTransaksjon.bilagsnrSerie.padEnd(4, ' '))
+                .append(avregningTransaksjon.bilagsnr.padEnd(10, ' '))
+                .append(avregningTransaksjon.konto.padEnd(9, ' '))
+                .append(avregningTransaksjon.datoFom.toLocalDateString().padEnd(8, ' '))
+                .append(avregningTransaksjon.datoTom.toLocalDateString().padEnd(8, ' '))
+                .append(avregningTransaksjon.belop.padStart(11, '0'))
+                .append(avregningTransaksjon.debetKredit.padEnd(1, ' '))
+                .append(avregningTransaksjon.utbetalingtype.padEnd(3, ' '))
+                .append(avregningTransaksjon.datoValutering.padEnd(8, ' '))
+                .appendLine()
+
+        return stringBuilder.toString()
+    }
+
+    fun createSluttRecord(
         antallTransaksjon: Int,
         sumBelop: Long,
     ): String {

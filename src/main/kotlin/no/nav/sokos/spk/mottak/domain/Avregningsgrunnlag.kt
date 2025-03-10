@@ -1,4 +1,4 @@
-package no.nav.sokos.spk.mottak.domain.avregning
+package no.nav.sokos.spk.mottak.domain
 
 import kotlinx.serialization.Serializable
 
@@ -11,14 +11,14 @@ data class Avregningsgrunnlag(
     val utbetalesTil: String,
     val datoStatusSatt: String,
     val status: String,
-    val bilagsnrSerie: String? = null,
-    val bilagsnr: String? = null,
-    val konto: String? = null,
+    val bilagsnrSerie: String,
+    val bilagsnr: String,
+    val konto: String,
     val fomdato: String,
     val tomdato: String,
     val belop: Int,
     val debetKredit: String,
-    val utbetalingsType: String? = null,
+    val utbetalingsType: String,
     val transTekst: String? = null,
     val datoValutert: String,
     val delytelseId: String? = null,

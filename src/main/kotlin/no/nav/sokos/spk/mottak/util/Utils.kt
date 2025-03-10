@@ -15,10 +15,16 @@ object Utils {
             this.ifBlank { null }.let { LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd")) }
         }.getOrNull()
 
-    fun String.toIsoDate(): LocalDate? =
-        runCatching {
-            this.ifBlank { null }.let { LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyy-MM-dd")) }
-        }.getOrNull()
+    fun String.toIsoDate(): LocalDate {
+        if (this.isBlank()) {
+            throw ParseException("Ikke tillatt med blank dato-streng", 0)
+        }
+        return try {
+            LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        } catch (e: DateTimeParseException) {
+            throw ParseException("Feil ved konvertering av $this (format yyyy-MM-dd) til dato", 0)
+        }
+    }
 
     fun LocalDate.toLocalDateString(): String = this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 

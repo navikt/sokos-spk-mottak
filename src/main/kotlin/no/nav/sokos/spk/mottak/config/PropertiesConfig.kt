@@ -23,6 +23,7 @@ object PropertiesConfig {
                 "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 0 1 * * *",
                 "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 0 1 * * *",
                 "GRENSESNITT_AVSTEMMING_CRON_PATTERN" to "0 0 1 * * *",
+                "WRITE_AVREGNINGSRETUR_FILE_CRON_PATTERN" to "0 0 1 * * *",
                 "MQ_BATCH_SIZE" to "200",
             ),
         )
@@ -117,6 +118,7 @@ object PropertiesConfig {
         val sendUtbetalingTransaksjonToOppdragZCronPattern: String = getOrEmpty("SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN"),
         val sendTrekkTransaksjonToOppdragZCronPattern: String = getOrEmpty("SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN"),
         val grensesnittAvstemmingCronPattern: String = getOrEmpty("GRENSESNITT_AVSTEMMING_CRON_PATTERN"),
+        val writeAvregningsreturFileCronPattern: String = getOrEmpty("WRITE_AVREGNINGSRETUR_FILE_CRON_PATTERN"),
     )
 
     data class MQProperties(
@@ -150,4 +152,6 @@ object PropertiesConfig {
     }
 
     fun isLocal() = Configuration().profile == Profile.LOCAL
+
+    fun isDev() = Configuration().profile == Profile.DEV
 }

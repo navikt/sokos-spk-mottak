@@ -51,7 +51,7 @@ val kotlinLoggingVersion = "3.0.5"
 val janionVersion = "3.1.12"
 val natpryceVersion = "1.6.10.0"
 val kotestVersion = "6.0.0.M2"
-val wiremockVersion = "3.12.0"
+val wiremockVersion = "3.12.1"
 val kotlinxSerializationVersion = "1.8.0"
 val kotlinxDatetimeVersion = "0.6.2"
 val mockOAuth2ServerVersion = "2.1.10"
@@ -59,7 +59,7 @@ val mockkVersion = "1.13.17"
 val hikariVersion = "6.2.1"
 val db2JccVersion = "12.1.0.0"
 val kotliqueryVersion = "1.9.1"
-val testcontainersVersion = "1.20.5"
+val testcontainersVersion = "1.20.6"
 val h2Version = "2.3.232"
 val flywayVersion = "11.3.4"
 val postgresVersion = "42.7.5"
@@ -138,6 +138,7 @@ dependencies {
     // Test
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
+    testImplementation("io.kotest:kotest-extensions-now:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
@@ -214,6 +215,7 @@ tasks {
     }
 
     withType<Test>().configureEach {
+        jvmArgs("--add-opens", "java.base/java.time=ALL-UNNAMED")
         useJUnitPlatform()
 
         testLogging {

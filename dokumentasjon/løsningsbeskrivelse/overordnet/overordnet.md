@@ -9,7 +9,7 @@ NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar dagl
 2. [ValidateTransaksjonService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/ValidateTransaksjonService.kt) 
 <br/> Tjeneste som behandler transaksjonene som er lastet inn i innlastingstabellen i forrige trinn. Dette består av validering av transaksjonene som ligger i tabellen og lagre disse permanent. Dersom transaksjonen er gyldig lagres den i `T_TRANSAKSJON`, mens ugyldige transaksjoner lagres i `T_AVV_TRANSAKSJON` med en avvisningsårsak. Status på valideringen lagres også i `T_INN_TRANSAKSJON`.
 
-3. [WriteToFileService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/WriteToFileService.kt) 
+3. [WriteInnlesningsreturFileService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/WriteInnlesningsreturFileService.kt) 
 <br/> Tjeneste som genererer en returfil per anvisningsfil som sendes til SPK og som inneholder samme informasjon som anvisningsfilen men med tilleggsinformasjon om status på transaksjonsvalideringen.
 
 4. [SendUtbetalingTransaksjonToOppdragZService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/SendUtbetalingTransaksjonToOppdragZService.kt)
@@ -27,10 +27,17 @@ NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar dagl
 8. [AvregningService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/mq/AvregningService.kt)
 <br/> Tjeneste som lytter til meldinger fra UR Z som inneholder grunnlagsdata som benyttes for å generere avregningsfiler til SPK.
 
+9. [WriteAvregningsreturFileService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/WriteAvregningsreturFileService.kt)
+<br/> Tjeneste som genererer en returfil for avregning som ikke har sendt som til SPK før. Returfilen skal innhole avregningsdata og har samme mal som *innlesningsretur*.    
+
+10. [LeveattestService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/LeveAttestService.kt)
+   <br/> Tjeneste som leverer leveattester gjennom REST-grensesnitt til Pensjon-PEN. Tjenesten henter leveattester fra `T_TRANSAKSJON` for anviser `SPK` for en gitt periode.
+
 ### Kjøring av tjenester i scheduler [JobTaskConfig](../../../src/main/kotlin/no/nav/sokos/spk/mottak/config/JobTaskConfig.kt)
 <br/> Tjenestene 1-3 kjører i sekvensiell rekkefølge og startes daglig.
 <br/> Tjeneste 4-5 kjøres daglig i sekvensiell rekkefølge og etter at tjeneste 1-3 er ferdig.
 <br/> Tjeneste 7 kjøres en gang daglig.
+<br/> Tjeneste 9 kjøres en gang daglig.
 
 ### Ytelse/volum 
 <br/> SPK sender månedlig filer på ca 300000 transaksjoner. Daglig sendes maks 2-3 filer med etterutbetalingstransaksjoner med maks noen tusen transaksjoner.

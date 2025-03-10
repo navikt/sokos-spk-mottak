@@ -102,9 +102,9 @@ class TransaksjonRepository(
                         OS_STATUS = :osStatus,
                         DATO_ENDRET = CURRENT_TIMESTAMP,
                         TRANS_TILSTAND_ID = :transTilstandId
-                    WHERE TRANSAKSJON_ID IN (:transaksjonId);
+                    WHERE TRANSAKSJON_ID = :transaksjonId;
                 """.trimIndent(),
-                transaksjonIdList.zip(transTilstandIdList).map {
+                transaksjonIdList.zip(transTilstandIdList).map { it ->
                     mapOf(
                         "transaksjonId" to it.first,
                         "transTilstandId" to it.second,

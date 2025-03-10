@@ -8,7 +8,7 @@ import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.domain.avregning.AvregningsgrunnlagAvvik
+import no.nav.sokos.spk.mottak.domain.AvregningsgrunnlagAvvik
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.asMap

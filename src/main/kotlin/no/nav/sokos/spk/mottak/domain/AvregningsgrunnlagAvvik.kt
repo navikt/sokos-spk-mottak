@@ -1,4 +1,4 @@
-package no.nav.sokos.spk.mottak.domain.avregning
+package no.nav.sokos.spk.mottak.domain
 
 data class AvregningsgrunnlagAvvik(
     val avregningAvvikId: Int? = null,

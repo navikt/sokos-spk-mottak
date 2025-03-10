@@ -3,8 +3,8 @@ package no.nav.sokos.spk.mottak.domain.converter
 import java.time.LocalDateTime
 
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.domain.avregning.Avregningsgrunnlag
-import no.nav.sokos.spk.mottak.domain.avregning.Avregningsretur
+import no.nav.sokos.spk.mottak.domain.Avregningsgrunnlag
+import no.nav.sokos.spk.mottak.domain.Avregningsretur
 import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateNotBlank
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateStringOrEmpty
@@ -21,14 +21,14 @@ object AvregningConverter {
             fnr = avregningstransaksjon.fnr,
             datoStatus = datoStatusSatt.toLocalDateNotBlank(),
             status = status,
-            bilagsNrSerie = bilagsnrSerie,
-            bilagsNr = bilagsnr,
+            bilagsnrSerie = bilagsnrSerie,
+            bilagsnr = bilagsnr,
             datoFom = fomdato.toLocalDateNotBlank(),
             datoTom = tomdato.toLocalDateNotBlank(),
             belop = belop.toString(),
             debetKredit = debetKredit,
-            utbetalingType = utbetalingsType,
-            transaksjonTekst = transTekst,
+            utbetalingtype = utbetalingsType,
+            transTekst = transTekst,
             transEksId = avregningstransaksjon.transEksId,
             datoAvsender = avregningstransaksjon.datoAnviser,
             utbetalesTil = utbetalesTil,
