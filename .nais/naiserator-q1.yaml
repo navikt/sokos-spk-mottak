@@ -60,6 +60,7 @@ spec:
           namespace: okonomi
           cluster: dev-gcp
         - application: pensjon-pen-q2
+          namespace: pensjon-q2
           cluster: dev-fss
   webproxy: true
   vault:
