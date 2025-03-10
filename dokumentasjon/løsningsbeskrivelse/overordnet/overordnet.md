@@ -24,6 +24,8 @@ NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar dagl
 7. [AvstemmingService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/AvstemmingService.kt)
 <br/> Tjeneste som sender til avstemmingskomponenten all avstemmingsinformasjon om transaksjoner som er sendt til OS siste døgn.
 
+8. [LeveattestService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/LeveattestService.kt)
+<br/> Tjeneste som leverer leveattester gjennom REST-grensesnitt til Pensjon-PEN. Tjenesten henter leveattester fra `T_TRANSAKSJON` for anviser `SPK` for en gitt periode.
 
 ### Kjøring av tjenester i scheduler [JobTaskConfig](../../../src/main/kotlin/no/nav/sokos/spk/mottak/config/JobTaskConfig.kt)
 <br/> Tjenestene 1-3 kjører i sekvensiell rekkefølge og startes daglig.
