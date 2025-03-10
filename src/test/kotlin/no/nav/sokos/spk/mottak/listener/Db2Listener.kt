@@ -12,6 +12,7 @@ import kotliquery.queryOf
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.DatabaseTestConfig
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
+import no.nav.sokos.spk.mottak.domain.FILTYPE_AVREGNING
 import no.nav.sokos.spk.mottak.repository.AvregningsreturRepository
 import no.nav.sokos.spk.mottak.repository.AvvikTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
@@ -61,6 +62,7 @@ object Db2Listener : TestListener {
     private fun resetDatabase() {
         dataSource.transaction { session ->
             lopeNummerRepository.updateLopeNummer("000033", FILTYPE_ANVISER, session)
+            lopeNummerRepository.updateLopeNummer("000010", FILTYPE_AVREGNING, session)
             session.update(queryOf("DELETE FROM T_INN_TRANSAKSJON"))
             session.update(queryOf("DELETE FROM T_FIL_INFO"))
             session.update(queryOf("DELETE FROM T_PERSON"))

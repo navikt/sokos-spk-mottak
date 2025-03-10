@@ -55,12 +55,16 @@ internal class WriteAvregningsreturFileServiceTest : BehaviorSpec({
             session.update(queryOf(readFromResource("/database/skrivreturfil/avregningsretur_ikke_sendt.sql")))
         }
         Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().size shouldBe 32
+        Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 10
+
         When("skriving av returfiler starter") {
             withConstantNow(LocalDate.of(2025, 1, 1)) {
                 writeAvregningsreturFileService.writeAvregningsreturFile()
             }
             Then("skal det opprettes avregningsreturfilen til SPK som lastes opp til Ftp outbound/avregning") {
                 Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().shouldBeEmpty()
+                Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 11
+
                 val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_RET, listOf("000011")).first()
                 verifyFilInfo(
                     filInfo = filInfo,
@@ -95,6 +99,7 @@ internal class WriteAvregningsreturFileServiceTest : BehaviorSpec({
             session.update(queryOf(readFromResource("/database/skrivreturfil/avregningsretur_ikke_sendt.sql")))
         }
         Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().size shouldBe 32
+        Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 10
 
         When("skriv retur filen prosess starter") {
             val ftpServiceMock = mockk<FtpService>()
@@ -107,6 +112,7 @@ internal class WriteAvregningsreturFileServiceTest : BehaviorSpec({
 
                 Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().size shouldBe 32
                 Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_RET, listOf("000011")).shouldBeEmpty()
+                Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 10
             }
         }
     }
