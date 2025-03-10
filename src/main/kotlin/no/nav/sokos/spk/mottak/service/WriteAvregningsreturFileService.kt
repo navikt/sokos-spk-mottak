@@ -24,7 +24,7 @@ import no.nav.sokos.spk.mottak.util.FileParser
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 private val logger = KotlinLogging.logger {}
-private val BATCH_SIZE = 20000
+private const val BATCH_SIZE = 20000
 private const val OUTPUT_FILE_NAME = "SPK_NAV_%s_AVR"
 
 class WriteAvregningsreturFileService(
@@ -39,8 +39,8 @@ class WriteAvregningsreturFileService(
             val avregningTransaksjonList = avregningsreturRepository.getReturTilAnviserWhichIsNotSent()
             if (avregningTransaksjonList.isNotEmpty()) {
                 logger.info { "Returfil produseres for ${avregningTransaksjonList.size} avregningstransaksjoner" }
-                val filInfoInnId = createTempFileAndUploadToFtpServer(avregningTransaksjonList)
-                logger.info { "Returfil for avregning til filInfoInnId: $filInfoInnId er produsert og lastet opp til FTP server" }
+                val filInfoId = createTempFileAndUploadToFtpServer(avregningTransaksjonList)
+                logger.info { "Returfil for avregning til filInfoId: $filInfoId er produsert og lastet opp til FTP server" }
             } else {
                 logger.info { "Ingen avregningstransaksjoner blir funnet!" }
             }

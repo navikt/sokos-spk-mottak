@@ -74,7 +74,7 @@ erDiagram
         int versjon
         int grad
     }
-    T_FIL_INFO ||--|{ T_TRANSAKSJON:  ""
+    T_FIL_INFO ||--|{ T_TRANSAKSJON: ""
     T_TRANSAKSJON {
         int transaksjon_id
         int trans_tilstand_id
@@ -122,6 +122,48 @@ erDiagram
         string k_trekkansvar
         string k_trans_tilst_t
         string grad
+    }
+    T_FIL_INFO ||--|{ T_RETUR_TIL_ANV: ""
+    T_TRANSAKSJON ||--|{ T_RETUR_TIL_ANV: ""
+    T_RETUR_TIL_ANV {
+        int retur_til_anv_id
+        string rectype
+        string k_retur_t
+        string k_anviser
+        string os_id_fk
+        string os_linje_id_fk
+        string trekkvedtak_id_fk
+        string gjelder_id
+        string fnr_fk
+        LocalDate dato_status
+        string status
+        string bilagsnr_serie
+        string bilagsnr
+        LocalDate dato_fom
+        LocalDate dato_tom
+        string belop
+        string debet_kredit
+        string utbetaling_type
+        string trans_tekst
+        string trans_eks_id_fk
+        LocalDate dato_avsender
+        string utbetales_til
+        string returtype_kode
+        string status_tekst
+        string duplikat
+        int transaksjon_id
+        int fil_info_inn_id
+        int fil_info_ut_id
+        string dato_valutering
+        string konto
+        string mot_id
+        int person_id
+        string kreditor_ref
+        LocalDateTime dato_opprettet
+        string opprettet_av
+        LocalDateTime dato_endret
+        string endret_av
+        int versjon
     }
     T_TRANSAKSJON ||--|{ T_TRANS_TILSTAND: ""
     T_TRANS_TILSTAND ||--|| T_TRANSAKSJON: ""

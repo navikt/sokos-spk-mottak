@@ -18,6 +18,7 @@ object PropertiesConfig {
                 "USE_AUTHENTICATION" to "true",
                 "SCHEDULER_ENABLED" to "true",
                 "MQ_LISTENER_ENABLED" to "true",
+                "AVREGNING_LISTENER_ENABLED" to "true",
                 "READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN" to "0 0 1 * * *",
                 "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 0 1 * * *",
                 "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 0 1 * * *",
@@ -43,6 +44,7 @@ object PropertiesConfig {
                 "MQ_UTBETALING_REPLY_QUEUE_NAME" to "QA.Q1_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY",
                 "MQ_TREKK_QUEUE_NAME" to "QA.Q1_231.OB04_TREKK_MOT_JSON",
                 "MQ_TREKK_REPLY_QUEUE_NAME" to "QA.Q1_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY",
+                "MQ_AVREGNINGSGRUNNLAG_QUEUE_NAME" to "QA.Q1_MOT.AVREGNINGSGRUNNLAG_MOT_JSON",
                 "MQ_AVSTEMMING_QUEUE_NAME" to "QA.Q1_234.OB29_AVSTEMMING_XML",
             ),
         )
@@ -131,9 +133,11 @@ object PropertiesConfig {
         val trekkReplyQueueName: String = getOrEmpty("MQ_TREKK_REPLY_QUEUE_NAME"),
         val utbetalingQueueName: String = getOrEmpty("MQ_UTBETALING_QUEUE_NAME"),
         val utbetalingReplyQueueName: String = getOrEmpty("MQ_UTBETALING_REPLY_QUEUE_NAME"),
+        val avregningsgrunnlagQueueName: String = getOrEmpty("MQ_AVREGNINGSGRUNNLAG_QUEUE_NAME"),
         val avstemmingQueueName: String = getOrEmpty("MQ_AVSTEMMING_QUEUE_NAME"),
         val mqBatchSize: Int = get("MQ_BATCH_SIZE").toInt(),
         val mqListenerEnabled: Boolean = get("MQ_LISTENER_ENABLED").toBoolean(),
+        val avregningListenerEnabled: Boolean = get("AVREGNING_LISTENER_ENABLED").toBoolean(),
     )
 
     data class PdlProperties(

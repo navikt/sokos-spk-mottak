@@ -1,6 +1,6 @@
 # Overordnet beskrivelse
 
-NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar daglig filer med transaksjoner som skal behandles i økonomiløsningen. Transaksjonene blir validert og lastet inn i den nye mottakskomponenten `sokos-spk-mottak` og deretter overført til Oppdragssystemet (OS) for videre behandling i økonomiløsningen.
+NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar daglig filer med transaksjoner som skal behandles i økonomiløsningen. Transaksjonene blir validert og lastet inn i den nye mottakskomponenten `sokos-spk-mottak` og deretter overført til Oppdragssystemet (OS) for videre behandling i økonomiløsningen. Videre mottar `sokos-spk-mottak` daglig meldinger med grunnlagsdata som benyttes for å utføre avregninger som sendes som filer til SPK.
 `sokos-spk-mottak` består av følgende tjenester:
 
 1. [ReadAndParseFileService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/ReadAndParseFileService.kt)
@@ -19,17 +19,19 @@ NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar dagl
 <br/> Tjeneste som sender alle trekktransaksjoner til Oppdragssystemet(OS) som ligger i `T_TRANSAKSJON` (dvs godkjente) men som ennå ikke er oversendt. I tillegg vil også transaksjoner som har feilet ved tidligere oversendelsesforsøk sendes til OS.
 
 6. [JmsListenerService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/mq/JmsListenerService.kt) 
-<br/> Tjeneste som lytter til reply-meldinger fra OS og lagrer meldingstatus og annen informasjon i T_TRANSAKSJON. Reply-meldingene inneholder informasjon om status til behandlingen av transaksjonene i OS.
+<br/> Tjeneste som lytter til reply-meldinger fra OS og lagrer meldingstatus og annen informasjon i T_TRANSAKSJON. Reply-meldingene inneholder informasjon om status til behandlingen av transaksjonene i OS, både utbetalinger- og trekktransaksjoner.
    
 7. [AvstemmingService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/AvstemmingService.kt)
 <br/> Tjeneste som sender til avstemmingskomponenten all avstemmingsinformasjon om transaksjoner som er sendt til OS siste døgn.
 
-8. [LeveattestService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/LeveattestService.kt)
-<br/> Tjeneste som leverer leveattester gjennom REST-grensesnitt til Pensjon-PEN. Tjenesten henter leveattester fra `T_TRANSAKSJON` for anviser `SPK` for en gitt periode.
+8. [AvregningService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/mq/AvregningService.kt)
+<br/> Tjeneste som lytter til meldinger fra UR Z som inneholder grunnlagsdata som benyttes for å generere avregningsfiler til SPK.
 
 9. [WriteAvregningsreturFileService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/WriteAvregningsreturFileService.kt)
 <br/> Tjeneste som genererer en returfil for avregning som ikke har sendt som til SPK før. Returfilen skal innhole avregningsdata og har samme mal som *innlesningsretur*.    
 
+10. [LeveattestService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/LeveAttestService.kt)
+   <br/> Tjeneste som leverer leveattester gjennom REST-grensesnitt til Pensjon-PEN. Tjenesten henter leveattester fra `T_TRANSAKSJON` for anviser `SPK` for en gitt periode.
 
 ### Kjøring av tjenester i scheduler [JobTaskConfig](../../../src/main/kotlin/no/nav/sokos/spk/mottak/config/JobTaskConfig.kt)
 <br/> Tjenestene 1-3 kjører i sekvensiell rekkefølge og startes daglig.

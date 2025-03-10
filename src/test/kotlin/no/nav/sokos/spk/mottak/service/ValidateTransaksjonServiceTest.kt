@@ -3,7 +3,6 @@ package no.nav.sokos.spk.mottak.service
 import java.sql.SQLException
 import java.time.LocalDate
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 import com.github.tomakehurst.wiremock.client.WireMock

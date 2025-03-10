@@ -51,7 +51,7 @@ class JmsListenerService(
         utbetalingMQListener.setMessageListener { onUtbetalingMessage(it) }
         trekkMQListener.setMessageListener { onTrekkMessage(it) }
 
-        jmsContext.setExceptionListener { logger.error("Feil på MQ-kommunikasjon", it) }
+        jmsContext.setExceptionListener { logger.error("Feil på MQ-kommunikasjon med OS", it) }
     }
 
     fun start() {
@@ -111,13 +111,14 @@ class JmsListenerService(
     }
 
     private fun onTrekkMessage(message: Message) {
+        val jmsMessage = message.getBody(String::class.java)
         runCatching {
-            val jmsMessage = message.getBody(String::class.java)
             logger.debug { "Mottatt trekkmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
             val trekkWrapper = json.decodeFromString<DokumentWrapper>(jmsMessage)
             processTrekkMessage(trekkWrapper.dokument!!, trekkWrapper.mmel!!)
             message.acknowledge()
         }.onFailure { exception ->
+            secureLogger.error { "Trekkmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
         }
     }
@@ -160,9 +161,8 @@ class JmsListenerService(
             osStatus == OS_STATUS_OK -> false
             transaksjonRepository.getByTransaksjonId(transaksjonId)!!.osStatus == TRANSAKSJONSTATUS_OK -> {
                 logger.info { "Transaksjon: $transaksjonId er allerede mottatt med OK-status" }
-                return true
+                true
             }
-
             else -> false
         }
     }

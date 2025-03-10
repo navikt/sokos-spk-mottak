@@ -12,6 +12,7 @@ import no.nav.sokos.spk.mottak.config.applicationLifecycleConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.routingConfig
 import no.nav.sokos.spk.mottak.config.securityConfig
+import no.nav.sokos.spk.mottak.mq.AvregningService
 import no.nav.sokos.spk.mottak.mq.JmsListenerService
 
 fun main() {
@@ -29,6 +30,10 @@ private fun Application.module() {
     DatabaseConfig.postgresMigrate()
     if (PropertiesConfig.MQProperties().mqListenerEnabled) {
         JmsListenerService().start()
+    }
+
+    if (PropertiesConfig.MQProperties().avregningListenerEnabled) {
+        AvregningService().start()
     }
 
     if (PropertiesConfig.SchedulerProperties().enabled) {

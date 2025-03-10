@@ -1,6 +1,5 @@
 package no.nav.sokos.spk.mottak.domain.converter
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 import no.nav.sokos.spk.mottak.domain.SPKMOT

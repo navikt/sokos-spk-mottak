@@ -1,5 +1,7 @@
 package no.nav.sokos.spk.mottak.repository
 
+import java.time.LocalDate
+
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.Session
@@ -16,6 +18,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.TransaksjonDetalj
 import no.nav.sokos.spk.mottak.domain.TransaksjonOppsummering
+import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
@@ -34,6 +37,8 @@ class TransaksjonRepository(
     private val findLastTransaksjonByPersonIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findLastTransaksjonByPersonId")
     private val findAllByBelopstypeAndByTransaksjonTilstandTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findAllByBelopstypeAndByTransaksjonTilstand")
     private val updateBatchTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "updateTransTilstandStatus")
+    private val findTransaksjonByMotIdAndTomDatoTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonByMotIdAndPersonIdAndTomDato")
+    private val findTransaksjonByTrekkvedtakIdTimer = Metrics.timer(DATABASE_CALL, "TransaksjonRepository", "findTransaksjonByTrekkvedtakId")
 
     fun insertBatch(
         transaksjonList: List<Transaksjon>,
@@ -99,7 +104,7 @@ class TransaksjonRepository(
                         TRANS_TILSTAND_ID = :transTilstandId
                     WHERE TRANSAKSJON_ID = :transaksjonId;
                 """.trimIndent(),
-                transaksjonIdList.zip(transTilstandIdList).map {
+                transaksjonIdList.zip(transTilstandIdList).map { it ->
                     mapOf(
                         "transaksjonId" to it.first,
                         "transTilstandId" to it.second,
@@ -294,17 +299,97 @@ class TransaksjonRepository(
             }
         }
 
+    fun findTransaksjonByMotIdAndPersonIdAndTomDato(
+        motId: String,
+        personId: Int,
+        tomDato: LocalDate,
+    ): Avregningstransaksjon? =
+        using(sessionOf(dataSource)) { session ->
+            findTransaksjonByMotIdAndTomDatoTimer.recordCallable {
+                session.single(
+                    queryOf(
+                        """
+                        SELECT t.TRANSAKSJON_ID,
+                        t.FNR_FK,
+                        t.TRANS_EKS_ID_FK,
+                        t.DATO_ANVISER
+                                FROM T_TRANSAKSJON t
+                                WHERE t.MOT_ID = '$motId'
+                                AND t.PERSON_ID = $personId
+                                AND t.DATO_TOM = '$tomDato'
+                        """.trimIndent(),
+                    ),
+                    mapToAvregningstransaksjon,
+                )
+            }
+        }
+
+    fun findTransaksjonByTrekkvedtakId(trekkvedtakId: Int): Avregningstransaksjon? =
+        using(sessionOf(dataSource)) { session ->
+            findTransaksjonByTrekkvedtakIdTimer.recordCallable {
+                session.single(
+                    queryOf(
+                        """
+                        SELECT t.TRANSAKSJON_ID,
+                        t.FNR_FK,
+                        t.TRANS_EKS_ID_FK,
+                        t.DATO_ANVISER
+                                FROM T_TRANSAKSJON t
+                                WHERE t.TREKKVEDTAK_ID_FK = '$trekkvedtakId'
+                        """.trimIndent(),
+                    ),
+                    mapToAvregningstransaksjon,
+                )
+            }
+        }
+
     /** Bruker kun for testing */
     fun getByTransaksjonId(transaksjonId: Int): Transaksjon? =
         using(sessionOf(dataSource)) { session ->
             session.single(
                 queryOf(
                     """
-                    SELECT TRANSAKSJON_ID, TRANS_TILSTAND_ID, FIL_INFO_ID, K_TRANSAKSJON_S, PERSON_ID, K_BELOP_T, K_ART, K_ANVISER, FNR_FK, UTBETALES_TIL, OS_ID_FK, OS_LINJE_ID_FK, DATO_FOM, DATO_TOM, DATO_ANVISER, DATO_PERSON_FOM, DATO_REAK_FOM, BELOP,
-                           REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_EKS_ID_FK, K_TRANS_TOLKNING, SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, SALDO, KID, PRIORITET,
-                           K_TREKKANSVAR, K_TRANS_TILST_T, GRAD
-                    FROM T_TRANSAKSJON 
-                    WHERE TRANSAKSJON_ID = $transaksjonId
+                    SELECT TRANSAKSJON_ID,
+                    TRANS_TILSTAND_ID,
+                    FIL_INFO_ID,
+                    K_TRANSAKSJON_S,
+                    PERSON_ID,
+                    K_BELOP_T,
+                    K_ART,
+                    K_ANVISER,
+                    FNR_FK,
+                    UTBETALES_TIL,
+                    OS_ID_FK,
+                    OS_LINJE_ID_FK,
+                    DATO_FOM,
+                    DATO_TOM,
+                    DATO_ANVISER,
+                    DATO_PERSON_FOM,
+                    DATO_REAK_FOM,
+                    BELOP,
+                    REF_TRANS_ID,
+                    TEKSTKODE,
+                    RECTYPE,
+                    TRANS_EKS_ID_FK,
+                    K_TRANS_TOLKNING,
+                    SENDT_TIL_OPPDRAG,
+                    TREKKVEDTAK_ID_FK,
+                    FNR_ENDRET,
+                    MOT_ID,
+                    OS_STATUS,
+                    DATO_OPPRETTET,
+                    OPPRETTET_AV,
+                    DATO_ENDRET,
+                    ENDRET_AV,
+                    VERSJON,
+                    SALDO,
+                    KID,
+                    PRIORITET,
+                    K_TREKKANSVAR,
+                    K_TRANS_TILST_T,
+                    GRAD
+                            FROM T_TRANSAKSJON
+                            WHERE TRANSAKSJON_ID = $transaksjonId
                     """.trimIndent(),
                 ),
                 mapToTransaksjon,
@@ -316,16 +401,61 @@ class TransaksjonRepository(
             session.list(
                 queryOf(
                     """
-                    SELECT TRANSAKSJON_ID, TRANS_TILSTAND_ID, FIL_INFO_ID, K_TRANSAKSJON_S, PERSON_ID, K_BELOP_T, K_ART, K_ANVISER, FNR_FK, UTBETALES_TIL, OS_ID_FK, OS_LINJE_ID_FK, DATO_FOM, DATO_TOM, DATO_ANVISER, DATO_PERSON_FOM, DATO_REAK_FOM, BELOP,
-                           REF_TRANS_ID, TEKSTKODE, RECTYPE, TRANS_EKS_ID_FK, K_TRANS_TOLKNING, SENDT_TIL_OPPDRAG, TREKKVEDTAK_ID_FK, FNR_ENDRET, MOT_ID, OS_STATUS, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON, SALDO, KID, PRIORITET,
-                           K_TREKKANSVAR, K_TRANS_TILST_T, GRAD
-                    FROM T_TRANSAKSJON 
-                    WHERE FIL_INFO_ID = $filInfoId
+                    SELECT TRANSAKSJON_ID,
+                    TRANS_TILSTAND_ID,
+                    FIL_INFO_ID,
+                    K_TRANSAKSJON_S,
+                    PERSON_ID,
+                    K_BELOP_T,
+                    K_ART,
+                    K_ANVISER,
+                    FNR_FK,
+                    UTBETALES_TIL,
+                    OS_ID_FK,
+                    OS_LINJE_ID_FK,
+                    DATO_FOM,
+                    DATO_TOM,
+                    DATO_ANVISER,
+                    DATO_PERSON_FOM,
+                    DATO_REAK_FOM,
+                    BELOP,
+                    REF_TRANS_ID,
+                    TEKSTKODE,
+                    RECTYPE,
+                    TRANS_EKS_ID_FK,
+                    K_TRANS_TOLKNING,
+                    SENDT_TIL_OPPDRAG,
+                    TREKKVEDTAK_ID_FK,
+                    FNR_ENDRET,
+                    MOT_ID,
+                    OS_STATUS,
+                    DATO_OPPRETTET,
+                    OPPRETTET_AV,
+                    DATO_ENDRET,
+                    ENDRET_AV,
+                    VERSJON,
+                    SALDO,
+                    KID,
+                    PRIORITET,
+                    K_TREKKANSVAR,
+                    K_TRANS_TILST_T,
+                    GRAD
+                            FROM T_TRANSAKSJON
+                            WHERE FIL_INFO_ID = $filInfoId
                     """.trimIndent(),
                 ),
                 mapToTransaksjon,
             )
         }
+
+    private val mapToAvregningstransaksjon: (Row) -> Avregningstransaksjon = { row ->
+        Avregningstransaksjon(
+            row.int("TRANSAKSJON_ID"),
+            row.string("FNR_FK"),
+            row.string("TRANS_EKS_ID_FK"),
+            row.localDate("DATO_ANVISER"),
+        )
+    }
 
     private val mapToTransaksjon: (Row) -> Transaksjon = { row ->
         Transaksjon(
