@@ -27,10 +27,15 @@ NAV gjennomfører utbetaling av ytelser og trekk på vegne av SPK og mottar dagl
 8. [LeveattestService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/LeveattestService.kt)
 <br/> Tjeneste som leverer leveattester gjennom REST-grensesnitt til Pensjon-PEN. Tjenesten henter leveattester fra `T_TRANSAKSJON` for anviser `SPK` for en gitt periode.
 
+9. [WriteAvregningsreturFileService](../../../src/main/kotlin/no/nav/sokos/spk/mottak/service/WriteAvregningsreturFileService.kt)
+<br/> Tjeneste som genererer en returfil for avregning som ikke har sendt som til SPK før. Returfilen skal innhole avregningsdata og har samme mal som *innlesningsretur*.    
+
+
 ### Kjøring av tjenester i scheduler [JobTaskConfig](../../../src/main/kotlin/no/nav/sokos/spk/mottak/config/JobTaskConfig.kt)
 <br/> Tjenestene 1-3 kjører i sekvensiell rekkefølge og startes daglig.
 <br/> Tjeneste 4-5 kjøres daglig i sekvensiell rekkefølge og etter at tjeneste 1-3 er ferdig.
 <br/> Tjeneste 7 kjøres en gang daglig.
+<br/> Tjeneste 9 kjøres en gang daglig.
 
 ### Ytelse/volum 
 <br/> SPK sender månedlig filer på ca 300000 transaksjoner. Daglig sendes maks 2-3 filer med etterutbetalingstransaksjoner med maks noen tusen transaksjoner.

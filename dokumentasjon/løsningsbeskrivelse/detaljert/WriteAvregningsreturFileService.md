@@ -1,6 +1,7 @@
 # WriteAvregningsreturFileService
 
-Tjenesten produserer en returfil for avregning fra UR. Filen har samme mal som *innlesningsretur*.
+Tjenesten produserer en returfil for avregning fra UR. Filen har samme mal som *innlesningsretur*. Kontoer som starter med *0083* og *0084* er SPK kontoer som spk-mottak ikke har noen data eller
+person tilkyntting til. Disse avregning blir registrert gjennom andre kanaler og skal returneres til SPK.
 
 **Startbetingelse:** Dersom *T_RETUR_TIL_ANV* inneholder transaksjoner som ikke har sendt til SFTP-serveren, dvs kolonnen *FIL_INFO_UT_ID* i *T_RETUR_TIL_AVN* er null.
 
@@ -67,6 +68,7 @@ RestApi kall eller ved neste skeduerlingen.
 | SUMBELØP   | PIC 9(12)v9(02) | Sum beløp alle records | Sum beløp i filen                               |
 
 ### Eksempel til avregningsreturfil
+
 ```
 01NAV        SPK        000011AVR20250304Avregningsretur                    00                                   
 02123116468   202412232512594620025125946200202501090010                                   00100794088716008409019202501012025013100000207800KBK120250109
