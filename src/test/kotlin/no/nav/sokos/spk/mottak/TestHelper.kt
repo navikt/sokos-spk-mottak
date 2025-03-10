@@ -126,4 +126,11 @@ object TestHelper {
                     }
             },
         )
+
+    fun List<String>.convertArrayListToString(): String {
+        val stringBuilder = StringBuilder()
+        this.forEach { stringBuilder.append(it).appendLine() }
+        stringBuilder.setLength(stringBuilder.length - 1)
+        return stringBuilder.toString()
+    }
 }
