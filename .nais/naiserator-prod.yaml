@@ -107,12 +107,17 @@ spec:
       value: QA.P231.OB04_TREKK_MOT_JSON
     - name: MQ_TREKK_REPLY_QUEUE_NAME
       value: QA.P_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY
+    - name: MQ_AVREGNINGSGRUNNLAG_QUEUE_NAME
+      value: QA.P_MOT.AVREGNINGSGRUNNLAG_MOT_JSON
     - name: MQ_AVSTEMMING_QUEUE_NAME
       value: QA.P234.OB29_AVSTEMMING_XML
     - name: MQ_BATCH_SIZE
       value: "200"
     - name: MQ_LISTENER_ENABLED
       value: "true"
+    - name: AVREGNING_LISTENER_ENABLED
+      value: "false"
+
     # PDL
     - name: PDL_URL
       value: "https://pdl-api.intern.nav.no"

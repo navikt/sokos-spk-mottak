@@ -24,6 +24,6 @@ internal class LeveAttesterServiceTest : FunSpec({
         }
 
         val result = leveAttestService.getLeveAttester("2009-01-01")
-        result.size shouldBe 9
+        result.size shouldBe 10
     }
 })

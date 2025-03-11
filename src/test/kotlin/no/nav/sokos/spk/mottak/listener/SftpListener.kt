@@ -102,7 +102,7 @@ object SftpListener : TestListener {
 
     fun deleteFile(vararg fileName: String) {
         val deleteFilename = fileName.joinToString(separator = " ")
-        val sftpConfig = SftpConfig(SftpListener.sftpProperties)
+        val sftpConfig = SftpConfig(sftpProperties)
 
         sftpConfig.channel { connector ->
             runCatching {

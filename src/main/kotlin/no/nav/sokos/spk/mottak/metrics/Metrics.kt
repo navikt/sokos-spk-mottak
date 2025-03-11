@@ -108,4 +108,12 @@ object Metrics {
             .help("Counts the number of trekk receive from OppdragZ through MQ")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val mqAvregningListenerMetricCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_avregning_mq_listener")
+            .help("Counts the number of avregning msgs from UR Z through MQ")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
 }

@@ -13,6 +13,7 @@ import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.DatabaseTestConfig
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FILTYPE_AVREGNING
+import no.nav.sokos.spk.mottak.repository.AvregningsavvikRepository
 import no.nav.sokos.spk.mottak.repository.AvregningsreturRepository
 import no.nav.sokos.spk.mottak.repository.AvvikTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
@@ -33,8 +34,9 @@ object Db2Listener : TestListener {
     val avvikTransaksjonRepository = spyk(AvvikTransaksjonRepository(dataSource))
     val transaksjonTilstandRepository = spyk(TransaksjonTilstandRepository(dataSource))
     val personRepository = spyk(PersonRepository(dataSource))
-    val leveAttestRepository = spyk(LeveAttestRepository(dataSource))
     val avregningsreturRepository = spyk(AvregningsreturRepository(dataSource))
+    val avregningsavvikRepository = spyk(AvregningsavvikRepository(dataSource))
+    val leveAttestRepository = spyk(LeveAttestRepository(dataSource))
 
     override suspend fun beforeSpec(spec: Spec) {
         dataSource shouldNotBe null
@@ -45,6 +47,8 @@ object Db2Listener : TestListener {
         avvikTransaksjonRepository shouldNotBe null
         transaksjonTilstandRepository shouldNotBe null
         personRepository shouldNotBe null
+        avregningsreturRepository shouldNotBe null
+        avregningsavvikRepository shouldNotBe null
         leveAttestRepository shouldNotBe null
 
         dataSource.transaction { session ->
@@ -53,6 +57,7 @@ object Db2Listener : TestListener {
     }
 
     override suspend fun afterEach(
+        @OptIn(io.kotest.common.KotestInternal::class)
         testCase: TestCase,
         result: TestResult,
     ) {
@@ -71,6 +76,7 @@ object Db2Listener : TestListener {
             session.update(queryOf("DELETE FROM T_TRANSAKSJON"))
             session.update(queryOf("DELETE FROM T_AVV_TRANSAKSJON"))
             session.update(queryOf("DELETE FROM T_RETUR_TIL_ANV"))
+            session.update(queryOf("DELETE FROM T_AVREGNING_AVVIK"))
         }
     }
 }

@@ -1,0 +1,26 @@
+package no.nav.sokos.spk.mottak.domain
+
+data class AvregningsgrunnlagAvvik(
+    val avregningAvvikId: Int? = null,
+    val oppdragsId: Int,
+    val linjeId: Int? = null,
+    val trekkvedtakId: Int? = null,
+    val gjelderId: String,
+    val utbetalesTil: String,
+    val datoStatusSatt: String,
+    val status: String,
+    val bilagsnrSerie: String? = null,
+    val bilagsnr: String? = null,
+    val konto: String? = null,
+    val fomdato: String,
+    val tomdato: String,
+    val belop: Int,
+    val debetKredit: String,
+    val utbetalingsType: String? = null,
+    val transTekst: String? = null,
+    val datoValutert: String,
+    val delytelseId: String? = null,
+    val fagSystemId: String,
+    val kreditorRef: String? = null,
+    val feilmelding: String? = null,
+)

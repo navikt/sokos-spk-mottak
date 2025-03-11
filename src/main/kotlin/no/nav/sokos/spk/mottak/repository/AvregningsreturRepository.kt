@@ -13,12 +13,122 @@ import no.nav.sokos.spk.mottak.domain.Avregningsretur
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
+import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
 
 class AvregningsreturRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
-    private val getReturTilAnviserWhichIsNotSentTimer = Metrics.timer(DATABASE_CALL, "ReturAnviserTransaksjonRepository", "getReturTilAnviserWhichIsNotSent")
+    private val insertTimer = Metrics.timer(DATABASE_CALL, "AvregningsreturRepository", "insert")
+    private val getByTransaksjonIdTimer =
+        Metrics.timer(DATABASE_CALL, "AvregningsreturRepository", "getByTransaksjonId")
+    private val getReturTilAnviserWhichIsNotSentTimer =
+        Metrics.timer(DATABASE_CALL, "ReturAnviserTransaksjonRepository", "getReturTilAnviserWhichIsNotSent")
     private val updateBatchTimer = Metrics.timer(DATABASE_CALL, "ReturAnviserTransaksjonRepository", "updateBatch")
+
+    fun insert(
+        avregningsretur: Avregningsretur,
+        session: Session,
+    ): Long? =
+        insertTimer.recordCallable {
+            session.updateAndReturnGeneratedKey(
+                queryOf(
+                    """
+                    INSERT INTO T_RETUR_TIL_ANV (
+                    RECTYPE,
+                    K_RETUR_T,
+                    K_ANVISER,
+                    OS_ID_FK,
+                    OS_LINJE_ID_FK,
+                    TREKKVEDTAK_ID_FK,
+                    GJELDER_ID,
+                    FNR_FK,
+                    DATO_STATUS,
+                    STATUS,
+                    BILAGSNR_SERIE,
+                    BILAGSNR,
+                    DATO_FOM,
+                    DATO_TOM,
+                    BELOP,
+                    DEBET_KREDIT,
+                    UTBETALING_TYPE,
+                    TRANS_TEKST,
+                    TRANS_EKS_ID_FK,
+                    DATO_AVSENDER,
+                    UTBETALES_TIL,
+                    STATUS_TEKST,
+                    RETURTYPE_KODE,
+                    DUPLIKAT,
+                    TRANSAKSJON_ID,
+                    FIL_INFO_INN_ID,
+                    FIL_INFO_UT_ID,
+                    DATO_VALUTERING,
+                    KONTO,
+                    MOT_ID,
+                    PERSON_ID,
+                    KREDITOR_REF,
+                    DATO_OPPRETTET,
+                    OPPRETTET_AV,
+                    DATO_ENDRET,
+                    ENDRET_AV,
+                    VERSJON ) VALUES (:rectype, :returtype, :anviser, :osId, :osLinjeId, :trekkvedtakId, :gjelderId, :fnr, :datoStatus, :status, :bilagsnrSerie, :bilagsnr, :datoFom, :datoTom, :belop, :debetKredit, :utbetalingtype, :transTekst, :transEksId, :datoAvsender, :utbetalesTil, :statusTekst, :returtypeKode, :duplikat, :transaksjonId, :filInfoInnId, :filInfoUtId, :datoValutering, :konto, :motId, :personId, :kreditorRef, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon)
+                    """.trimIndent(),
+                    avregningsretur.asMap(),
+                ),
+            )
+        }
+
+    fun getByMotId(motId: String): Avregningsretur? =
+        using(sessionOf(dataSource)) { session ->
+            getByTransaksjonIdTimer.recordCallable {
+                session.single(
+                    queryOf(
+                        """
+                        SELECT RETUR_TIL_ANV_ID,
+                        RECTYPE,
+                        K_RETUR_T,
+                        K_ANVISER,
+                        OS_ID_FK,
+                        OS_LINJE_ID_FK,
+                        TREKKVEDTAK_ID_FK,
+                        GJELDER_ID,
+                        FNR_FK,
+                        DATO_STATUS,
+                        STATUS,
+                        BILAGSNR_SERIE,
+                        BILAGSNR,
+                        DATO_FOM,
+                        DATO_TOM,
+                        BELOP,
+                        DEBET_KREDIT,
+                        UTBETALING_TYPE,
+                        TRANS_TEKST,
+                        TRANS_EKS_ID_FK,
+                        DATO_AVSENDER,
+                        UTBETALES_TIL,
+                        STATUS_TEKST,
+                        RETURTYPE_KODE,
+                        DUPLIKAT,
+                        TRANSAKSJON_ID,
+                        FIL_INFO_INN_ID,
+                        FIL_INFO_UT_ID,
+                        DATO_VALUTERING,
+                        KONTO,
+                        MOT_ID,
+                        PERSON_ID,
+                        KREDITOR_REF,
+                        DATO_OPPRETTET,
+                        OPPRETTET_AV,
+                        DATO_ENDRET,
+                        ENDRET_AV,
+                        VERSJON
+                            FROM T_RETUR_TIL_ANV 
+                            WHERE MOT_ID = '$motId'
+                        """.trimIndent(),
+                    ),
+                    mapToAvregningsretur,
+                )
+            }
+        }
 
     fun getReturTilAnviserWhichIsNotSent(): List<Avregningsretur> =
         using(sessionOf(dataSource)) { session ->
@@ -73,6 +183,67 @@ class AvregningsreturRepository(
             }
         }
 
+    fun getByTrekkvedtakId(trekkvedtakId: String): Avregningsretur? =
+        using(sessionOf(dataSource)) { session ->
+            getByTransaksjonIdTimer.recordCallable {
+                session.single(
+                    queryOf(
+                        """
+                        SELECT RETUR_TIL_ANV_ID,
+                        RECTYPE,
+                        K_RETUR_T,
+                        K_ANVISER,
+                        OS_ID_FK,
+                        OS_LINJE_ID_FK,
+                        TREKKVEDTAK_ID_FK,
+                        GJELDER_ID,
+                        FNR_FK,
+                        DATO_STATUS,
+                        STATUS,
+                        BILAGSNR_SERIE,
+                        BILAGSNR,
+                        DATO_FOM,
+                        DATO_TOM,
+                        BELOP,
+                        DEBET_KREDIT,
+                        UTBETALING_TYPE,
+                        TRANS_TEKST,
+                        TRANS_EKS_ID_FK,
+                        DATO_AVSENDER,
+                        UTBETALES_TIL,
+                        STATUS_TEKST,
+                        RETURTYPE_KODE,
+                        DUPLIKAT,
+                        TRANSAKSJON_ID,
+                        FIL_INFO_INN_ID,
+                        FIL_INFO_UT_ID,
+                        DATO_VALUTERING,
+                        KONTO,
+                        MOT_ID,
+                        PERSON_ID,
+                        KREDITOR_REF,
+                        DATO_OPPRETTET,
+                        OPPRETTET_AV,
+                        DATO_ENDRET,
+                        ENDRET_AV,
+                        VERSJON
+                            FROM T_RETUR_TIL_ANV 
+                            WHERE TREKKVEDTAK_ID_FK = '$trekkvedtakId';
+                        """.trimIndent(),
+                    ),
+                    mapToAvregningsretur,
+                )
+            }
+        }
+
+    // Kun for testing
+    fun getNoOfRows(): Int? =
+        using(sessionOf(dataSource)) { session ->
+            session.single(
+                queryOf("SELECT COUNT(*) FROM T_RETUR_TIL_ANV"),
+            ) { row -> row.int(1) }
+        }
+
     fun updateBatch(
         returTilAnviserIdList: List<Int>,
         filInfoUtId: Int,
@@ -99,7 +270,7 @@ class AvregningsreturRepository(
 
     private val mapToAvregningsretur: (Row) -> Avregningsretur = { row ->
         Avregningsretur(
-            returTilAnviserId = row.intOrNull("RETUR_TIL_ANV_ID"),
+            returTilAnviserId = row.int("RETUR_TIL_ANV_ID"),
             rectype = row.string("RECTYPE"),
             returtype = row.string("K_RETUR_T"),
             anviser = row.string("K_ANVISER"),
@@ -117,12 +288,12 @@ class AvregningsreturRepository(
             belop = row.string("BELOP"),
             debetKredit = row.string("DEBET_KREDIT"),
             utbetalingtype = row.string("UTBETALING_TYPE"),
-            transTekst = row.string("TRANS_TEKST"),
+            transTekst = row.stringOrNull("TRANS_TEKST"),
             transEksId = row.stringOrNull("TRANS_EKS_ID_FK"),
             datoAvsender = row.localDate("DATO_AVSENDER"),
             utbetalesTil = row.string("UTBETALES_TIL"),
             statusTekst = row.stringOrNull("STATUS_TEKST"),
-            duplikat = row.boolean("DUPLIKAT"),
+            duplikat = row.stringOrNull("DUPLIKAT"),
             transaksjonId = row.intOrNull("TRANSAKSJON_ID"),
             filInfoInnId = row.int("FIL_INFO_INN_ID"),
             filInfoUtId = row.intOrNull("FIL_INFO_UT_ID"),

@@ -133,7 +133,7 @@ object FileParser {
                 .append((avregningTransaksjon.transEksId ?: "").padEnd(12, ' '))
                 .append(avregningTransaksjon.datoAvsender.toLocalDateString().padEnd(8, ' '))
                 .append(avregningTransaksjon.gjelderId.padEnd(11, ' '))
-                .append(avregningTransaksjon.utbetalesTil.orEmpty().padEnd(11, ' '))
+                .append(avregningTransaksjon.utbetalesTil.padEnd(11, ' '))
                 .append(avregningTransaksjon.datoStatus.toLocalDateString().padEnd(8, ' '))
                 .append(avregningTransaksjon.status.padEnd(4, ' '))
                 .append((avregningTransaksjon.statusTekst ?: "").padStart(35, ' '))
