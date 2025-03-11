@@ -1,6 +1,13 @@
 package no.nav.sokos.spk.mottak.domain
 
+import java.time.LocalDateTime
+
 import kotlinx.serialization.Serializable
+
+import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
+import no.nav.sokos.spk.mottak.util.Utils.toLocalDateNotBlank
+import no.nav.sokos.spk.mottak.util.Utils.toLocalDateStringOrEmpty
 
 @Serializable
 data class Avregningsgrunnlag(
@@ -30,6 +37,38 @@ data class Avregningsgrunnlag(
 data class AvregningsgrunnlagWrapper(
     val avregningsgrunnlag: Avregningsgrunnlag,
 )
+
+fun Avregningsgrunnlag.toAvregningsretur(avregningstransaksjon: Avregningstransaksjon): Avregningsretur =
+    Avregningsretur(
+        osId = oppdragsId.toString(),
+        osLinjeId = linjeId?.toString(),
+        trekkvedtakId = trekkvedtakId?.toString(),
+        gjelderId = gjelderId,
+        fnr = avregningstransaksjon.fnr,
+        datoStatus = datoStatusSatt.toLocalDateNotBlank(),
+        status = status,
+        bilagsnrSerie = bilagsnrSerie,
+        bilagsnr = bilagsnr,
+        datoFom = fomdato.toLocalDateNotBlank(),
+        datoTom = tomdato.toLocalDateNotBlank(),
+        belop = belop.toString(),
+        debetKredit = debetKredit,
+        utbetalingtype = utbetalingsType,
+        transTekst = transTekst,
+        transEksId = avregningstransaksjon.transEksId,
+        datoAvsender = avregningstransaksjon.datoAnviser,
+        utbetalesTil = utbetalesTil,
+        transaksjonId = avregningstransaksjon.transaksjonId,
+        datoValutering = datoValutert.toLocalDateStringOrEmpty(),
+        konto = konto,
+        motId = delytelseId,
+        personId = fagSystemId,
+        kreditorRef = kreditorRef,
+        datoOpprettet = LocalDateTime.now(),
+        opprettetAv = PropertiesConfig.Configuration().naisAppName,
+        datoEndret = LocalDateTime.now(),
+        endretAv = PropertiesConfig.Configuration().naisAppName,
+    )
 
 fun Avregningsgrunnlag.toAvregningsAvvik(): AvregningsgrunnlagAvvik {
     return AvregningsgrunnlagAvvik(

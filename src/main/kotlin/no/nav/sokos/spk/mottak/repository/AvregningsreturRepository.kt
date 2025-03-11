@@ -303,7 +303,7 @@ class AvregningsreturRepository(
             opprettetAv = row.string("OPPRETTET_AV"),
             datoEndret = row.localDateTime("DATO_ENDRET"),
             endretAv = row.string("ENDRET_AV"),
-            versjon = row.intOrNull("VERSJON"),
+            versjon = row.int("VERSJON"),
             motId = row.stringOrNull("MOT_ID"),
             personId = row.stringOrNull("PERSON_ID"),
             kreditorRef = row.stringOrNull("KREDITOR_REF"),

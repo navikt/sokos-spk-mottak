@@ -17,8 +17,8 @@ import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
 import no.nav.sokos.spk.mottak.domain.Avregningsgrunnlag
 import no.nav.sokos.spk.mottak.domain.AvregningsgrunnlagWrapper
 import no.nav.sokos.spk.mottak.domain.Avregningsretur
-import no.nav.sokos.spk.mottak.domain.converter.AvregningConverter.toAvregningsretur
 import no.nav.sokos.spk.mottak.domain.toAvregningsAvvik
+import no.nav.sokos.spk.mottak.domain.toAvregningsretur
 import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.repository.AvregningsavvikRepository
 import no.nav.sokos.spk.mottak.repository.AvregningsreturRepository

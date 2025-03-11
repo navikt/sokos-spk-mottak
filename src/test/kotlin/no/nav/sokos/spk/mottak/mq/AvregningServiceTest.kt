@@ -15,7 +15,7 @@ import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.AvregningsgrunnlagWrapper
 import no.nav.sokos.spk.mottak.domain.Avregningsretur
-import no.nav.sokos.spk.mottak.domain.converter.AvregningConverter.toAvregningsretur
+import no.nav.sokos.spk.mottak.domain.toAvregningsretur
 import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.MQListener

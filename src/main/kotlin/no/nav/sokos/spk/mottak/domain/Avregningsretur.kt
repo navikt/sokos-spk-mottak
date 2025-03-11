@@ -5,9 +5,9 @@ import java.time.LocalDateTime
 
 data class Avregningsretur(
     val returTilAnviserId: Int? = null,
-    val rectype: String? = "02",
-    val returtype: String? = "AVR",
-    val anviser: String? = "SPK",
+    val rectype: String = RECTYPE_TRANSAKSJONSRECORD,
+    val returtype: String = FILTYPE_AVREGNING,
+    val anviser: String = SPK,
     val osId: String? = null,
     val osLinjeId: String? = null,
     val trekkvedtakId: String? = null,
@@ -37,7 +37,7 @@ data class Avregningsretur(
     val opprettetAv: String,
     val datoEndret: LocalDateTime,
     val endretAv: String,
-    val versjon: Int? = 1,
+    val versjon: Int = 1,
     val motId: String? = null,
     val personId: String? = null,
     val kreditorRef: String? = null,

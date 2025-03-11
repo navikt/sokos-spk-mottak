@@ -110,6 +110,8 @@ Eksempel:
 | DATO_VALUTERING   | avregningsgrunnlag.datoValutert    | dato når transaksjon er valutert i UR                                                                        |
 | KONTO             | avregningsgrunnlag.konto           | regnskapskonto transaksjonen er ført på                                                                      |
 | MOT_ID            | avregningsgrunnlag.delytelseId     | transaksjonens motId i T_TRANSAKSJON                                                                         |
+| PERSON_ID         | avregningsgrunnlag.fagSystemId     | transaksjonens personId i T_TRANSAKSJON                                                                      |
+| KREDITOR_REF      | avregningsgrunnlag.kreditorRef     | kreditorreferanse knyttet til trekkvedtakId                                                                  |
 | DATO_OPPRETTET    |                                    | opprettelsesdato for record                                                                                  |
 | OPPRETTET_AV      | "sokos-spk-mottak"                 | nais appnavn                                                                                                 |
 | DATO_ENDRET       |                                    | dato når record er endret                                                                                    |
