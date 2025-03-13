@@ -57,7 +57,7 @@ class AvregningService(
         val jmsMessage = message.getBody(String::class.java)
         var avregningsgrunnlagWrapper: AvregningsgrunnlagWrapper? = null
         runCatching {
-            logger.debug { "Mottatt avregningsgrunnlag fra UR. Meldingsinnhold: $jmsMessage" }
+            logger.info { "Mottatt avregningsgrunnlag fra UR. Meldingsinnhold: $jmsMessage" }
             avregningsgrunnlagWrapper =
                 json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage).apply {
                     processAvregningsgrunnlagMessage(avregningsgrunnlag)
