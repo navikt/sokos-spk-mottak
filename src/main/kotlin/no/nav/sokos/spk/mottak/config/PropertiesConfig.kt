@@ -18,7 +18,7 @@ object PropertiesConfig {
                 "USE_AUTHENTICATION" to "true",
                 "SCHEDULER_ENABLED" to "true",
                 "MQ_LISTENER_ENABLED" to "true",
-                "AVREGNING_LISTENER_ENABLED" to "true",
+                "AVREGNING_LISTENER_ENABLED" to "false",
                 "READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN" to "0 0 1 * * *",
                 "SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 0 1 * * *",
                 "SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN" to "0 0 1 * * *",
