@@ -196,7 +196,7 @@ private fun verifyAvregningstransaksjon(
         gjelderId shouldBe avregningsgrunnlag.gjelderId
         fnr shouldBe avregningFnr
         datoStatus shouldBe avregningsgrunnlag.datoStatusSatt.toLocalDate()
-        status shouldBe avregningsgrunnlag.status
+        status shouldBe avregningsgrunnlag.sattStatus
         bilagsnrSerie shouldBe avregningsgrunnlag.bilagsnrSerie
         bilagsnr shouldBe avregningsgrunnlag.bilagsnr
         datoFom shouldBe avregningsgrunnlag.fomdato.toLocalDate()
