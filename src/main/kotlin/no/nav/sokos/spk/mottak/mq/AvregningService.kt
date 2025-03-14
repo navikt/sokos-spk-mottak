@@ -126,7 +126,7 @@ class AvregningService(
 
     private fun findTransaksjon(avregningsgrunnlag: Avregningsgrunnlag): Avregningstransaksjon? {
         return when {
-            !avregningsgrunnlag.delytelseId.isNullOrEmpty() && avregningsgrunnlag.fagSystemId.toIntOrNull() != null -> {
+            !avregningsgrunnlag.delytelseId.isNullOrBlank() && avregningsgrunnlag.fagSystemId.toIntOrNull() != null -> {
                 avregningsgrunnlag.tomdato.toLocalDate()?.let { tomDato ->
                     transaksjonRepository.findTransaksjonByMotIdAndPersonIdAndTomDato(
                         avregningsgrunnlag.delytelseId,
@@ -136,10 +136,9 @@ class AvregningService(
                 }
             }
 
-            avregningsgrunnlag.trekkvedtakId != null ->
-                transaksjonRepository.findTransaksjonByTrekkvedtakId(
-                    avregningsgrunnlag.trekkvedtakId,
-                )
+            avregningsgrunnlag.trekkvedtakId != null -> {
+                transaksjonRepository.findTransaksjonByTrekkvedtakId(avregningsgrunnlag.trekkvedtakId)
+            }
 
             else -> null
         }
