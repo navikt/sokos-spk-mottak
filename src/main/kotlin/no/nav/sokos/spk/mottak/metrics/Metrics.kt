@@ -77,6 +77,22 @@ object Metrics {
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
+    val innlesningsreturCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_innlesningsretur")
+            .help("Counts the number of innlesningsretur")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val avregningsreturCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_avregningsretur")
+            .help("Counts the number of avregningsretur")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
     val mqUtbetalingProducerMetricCounter: Counter =
         Counter
             .builder()

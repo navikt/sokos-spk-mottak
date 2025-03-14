@@ -15,6 +15,7 @@ import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.exception.MottakException
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.util.FileParser
@@ -94,6 +95,7 @@ class WriteInnlesningsreturFileService(
 
             ftpService.createFile(returFilnavn, Directories.ANVISNINGSRETUR, anvisningFil.toString())
             logger.info { "$returFilnavn med $antallTransaksjon transaksjoner og beløp: $sumBelop er opprettet og lastet opp til ${Directories.ANVISNINGSRETUR}" }
+            Metrics.innlesningsreturCounter.inc(antallTransaksjon.toLong())
         }
     }
 

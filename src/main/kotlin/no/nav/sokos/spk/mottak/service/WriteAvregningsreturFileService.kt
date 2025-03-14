@@ -17,6 +17,7 @@ import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.exception.MottakException
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.AvregningsreturRepository
 import no.nav.sokos.spk.mottak.repository.FilInfoRepository
 import no.nav.sokos.spk.mottak.repository.LopenummerRepository
@@ -100,7 +101,7 @@ class WriteAvregningsreturFileService(
                 antallTransaksjon++
                 sumBelop += transaksjon.belop.toLong()
             }
-            avregningFil.append(FileParser.createSluttRecord(antallTransaksjon, sumBelop))
+            avregningFil.append(FileParser.createSluttRecord(antallTransaksjon + 2, sumBelop))
 
             avregningTransaksjonList.chunked(BATCH_SIZE) { transaksjoner ->
                 avregningsreturRepository.updateBatch(transaksjoner.map { it.returTilAnviserId!! }, filInfoId.toInt(), session)
@@ -108,6 +109,8 @@ class WriteAvregningsreturFileService(
 
             ftpService.createFile(returFilnavn, Directories.AVREGNINGSRETUR, avregningFil.toString())
             logger.info { "$returFilnavn med $antallTransaksjon transaksjoner og beløp: ${sumBelop / 100} er opprettet og lastet opp til ${Directories.ANVISNINGSRETUR}" }
+            Metrics.avregningsreturCounter.inc(antallTransaksjon.toLong())
+
             filInfoId
         }
     }
