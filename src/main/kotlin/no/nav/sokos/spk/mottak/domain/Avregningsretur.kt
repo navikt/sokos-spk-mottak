@@ -27,6 +27,7 @@ data class Avregningsretur(
     var datoAvsender: LocalDate,
     val utbetalesTil: String,
     val statusTekst: String? = null,
+    val returtypeKode: String? = null,
     val duplikat: String? = "0",
     val transaksjonId: Int? = null,
     val filInfoInnId: Int? = 0,
