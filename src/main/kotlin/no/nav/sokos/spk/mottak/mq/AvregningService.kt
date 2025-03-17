@@ -67,7 +67,8 @@ class AvregningService(
             secureLogger.error { "Avregningsgrunnlagmelding fra UR: $jmsMessage" }
             avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
             logger.error(exception) {
-                "Prosessering av avregningsgrunnlag feilet. jmsMessageID: ${message.jmsMessageID}, " +
+                "Prosessering av avregningsgrunnlag feilet: ${exception.message}, " +
+                    "jmsMessageID: ${message.jmsMessageID}, " +
                     "oppdragsId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.oppdragsId}, " +
                     "oppdragsLinjeId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.linjeId}, " +
                     "trekkvedtakId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.trekkvedtakId}, " +
