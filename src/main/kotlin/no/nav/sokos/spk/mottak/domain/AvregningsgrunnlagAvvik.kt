@@ -14,7 +14,7 @@ data class AvregningsgrunnlagAvvik(
     val konto: String? = null,
     val fomdato: String,
     val tomdato: String,
-    val belop: Int,
+    val belop: Int? = null,
     val debetKredit: String,
     val utbetalingsType: String? = null,
     val transTekst: String? = null,

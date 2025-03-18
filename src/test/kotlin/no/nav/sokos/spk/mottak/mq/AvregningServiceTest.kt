@@ -198,10 +198,10 @@ private fun verifyAvregningstransaksjon(
         datoStatus shouldBe avregningsgrunnlag.datoStatusSatt.toLocalDate()
         status shouldBe avregningsgrunnlag.sattStatus
         bilagsnrSerie shouldBe avregningsgrunnlag.bilagsnrSerie
-        bilagsnr shouldBe avregningsgrunnlag.bilagsnr
+        bilagsnr shouldBe avregningsgrunnlag.bilagsnr.padStart(10, '0')
         datoFom shouldBe avregningsgrunnlag.fomdato.toLocalDate()
         datoTom shouldBe avregningsgrunnlag.tomdato.toLocalDate()
-        belop shouldBe avregningsgrunnlag.belop.toString()
+        belop shouldBe avregningsgrunnlag.belop?.times(100)?.toString()
         debetKredit shouldBe avregningsgrunnlag.debetKredit
         utbetalingtype shouldBe avregningsgrunnlag.utbetalingsType
         transTekst shouldBe avregningsgrunnlag.transTekst
