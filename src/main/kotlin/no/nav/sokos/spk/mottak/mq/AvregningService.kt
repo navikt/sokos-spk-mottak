@@ -57,7 +57,7 @@ class AvregningService(
         val jmsMessage = message.getBody(String::class.java)
         var avregningsgrunnlagWrapper: AvregningsgrunnlagWrapper? = null
         runCatching {
-            logger.info { "Mottatt avregningsgrunnlag fra UR. Meldingsinnhold: $jmsMessage" }
+            secureLogger.debug { "Mottatt avregningsgrunnlag fra UR. Meldingsinnhold: $jmsMessage" }
             avregningsgrunnlagWrapper =
                 json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage).apply {
                     processAvregningsgrunnlagMessage(avregningsgrunnlag)
@@ -74,7 +74,8 @@ class AvregningService(
                     "trekkvedtakId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.trekkvedtakId}, " +
                     "bilagsnrSerie: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.bilagsnrSerie}, " +
                     "bilagsnr: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.bilagsnr}, " +
-                    "delytelseId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.delytelseId}"
+                    "delytelseId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.delytelseId}, " +
+                    "fagSystemId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.fagSystemId}"
             }
             avregningsgrunnlagWrapper?.avregningsgrunnlag?.let { avregningsgrunnlag ->
                 runCatching {
@@ -101,7 +102,8 @@ class AvregningService(
                     "trekkvedtakId: ${avregningsgrunnlag.trekkvedtakId}, " +
                     "bilagsnrSerie: ${avregningsgrunnlag.bilagsnrSerie}, " +
                     "bilagsnr: ${avregningsgrunnlag.bilagsnr}, " +
-                    "delytelseId: ${avregningsgrunnlag.delytelseId}"
+                    "delytelseId: ${avregningsgrunnlag.delytelseId}, " +
+                    "fagSystemId: ${avregningsgrunnlag.fagSystemId}"
             }
             return
         }
