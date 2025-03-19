@@ -12,8 +12,9 @@ import no.nav.sokos.spk.mottak.config.applicationLifecycleConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.routingConfig
 import no.nav.sokos.spk.mottak.config.securityConfig
-import no.nav.sokos.spk.mottak.mq.AvregningService
-import no.nav.sokos.spk.mottak.mq.JmsListenerService
+import no.nav.sokos.spk.mottak.mq.AvregningListenerService
+import no.nav.sokos.spk.mottak.mq.TrekkListenerService
+import no.nav.sokos.spk.mottak.mq.UtbetalingListenerService
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -29,11 +30,12 @@ private fun Application.module() {
 
     DatabaseConfig.postgresMigrate()
     if (PropertiesConfig.MQProperties().mqListenerEnabled) {
-        JmsListenerService().start()
+        UtbetalingListenerService().start()
+        TrekkListenerService().start()
     }
 
     if (PropertiesConfig.MQProperties().avregningListenerEnabled) {
-        AvregningService().start()
+        AvregningListenerService().start()
     }
 
     if (PropertiesConfig.SchedulerProperties().enabled) {

@@ -23,6 +23,7 @@ import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.TransaksjonTilstand
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdrag110
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdragsLinje150
+import no.nav.sokos.spk.mottak.listener.Db2Listener
 
 object TestHelper {
     fun readFromResource(filename: String): String {
@@ -132,5 +133,27 @@ object TestHelper {
         this.forEach { stringBuilder.append(it).appendLine() }
         stringBuilder.setLength(stringBuilder.length - 1)
         return stringBuilder.toString()
+    }
+
+    fun verifyTransaksjonState(
+        transaksjonIdList: List<Int>,
+        transaksjonStatus: String,
+        osStatus: String,
+    ) {
+        transaksjonIdList.forEach {
+            val transaksjon = Db2Listener.transaksjonRepository.getByTransaksjonId(it)!!
+            transaksjon.transTilstandType shouldBe transaksjonStatus
+            transaksjon.osStatus shouldBe osStatus
+        }
+    }
+
+    fun verifyTransaksjonTilstandState(
+        transaksjonIdList: List<Int>,
+        transaksjonTilstandStatus: String,
+    ) {
+        val transTilstandList = Db2Listener.transaksjonTilstandRepository.findAllByTransaksjonId(transaksjonIdList)
+        transTilstandList.map {
+            it.transaksjonTilstandType == transaksjonTilstandStatus
+        }
     }
 }

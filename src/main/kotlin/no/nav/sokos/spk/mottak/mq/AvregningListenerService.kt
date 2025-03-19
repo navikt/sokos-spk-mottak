@@ -5,7 +5,6 @@ import kotlinx.serialization.json.Json
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.jms.ConnectionFactory
-import jakarta.jms.JMSContext
 import jakarta.jms.Message
 import jakarta.jms.Queue
 import mu.KotlinLogging
@@ -31,12 +30,11 @@ private val logger = KotlinLogging.logger {}
 private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
 const val UNKNOWN_TRANSACTION_DATE = "1900-01-01"
 
-class AvregningService(
+class AvregningListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
     avregningsgrunnlagQueue: Queue = MQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
-) {
-    private val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.CLIENT_ACKNOWLEDGE)
+) : JmsListener(connectionFactory) {
     private val avregningsgrunnlagMQListener = jmsContext.createConsumer(avregningsgrunnlagQueue)
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val avregningsreturRepository: AvregningsreturRepository = AvregningsreturRepository(dataSource)
@@ -46,38 +44,30 @@ class AvregningService(
 
     init {
         avregningsgrunnlagMQListener.setMessageListener { onAvregningsgrunnlagMessage(it) }
-        jmsContext.setExceptionListener { logger.error("Feil på MQ-kommunikasjon med UR", it) }
-    }
-
-    fun start() {
-        jmsContext.start()
     }
 
     private fun onAvregningsgrunnlagMessage(message: Message) {
         val jmsMessage = message.getBody(String::class.java)
-        var avregningsgrunnlagWrapper: AvregningsgrunnlagWrapper? = null
         runCatching {
             secureLogger.debug { "Mottatt avregningsgrunnlag fra UR. Meldingsinnhold: $jmsMessage" }
-            avregningsgrunnlagWrapper =
-                json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage).apply {
-                    processAvregningsgrunnlagMessage(avregningsgrunnlag)
-                    message.acknowledge()
-                }
+            val avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
+            processAvregningsgrunnlagMessage(avregningsgrunnlagWrapper.avregningsgrunnlag)
+            message.acknowledge()
         }.onFailure { exception ->
             secureLogger.error { "Avregningsgrunnlagmelding fra UR: $jmsMessage" }
-            avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
+            val avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
             logger.error(exception) {
                 "Prosessering av avregningsgrunnlag feilet: ${exception.message}, " +
                     "jmsMessageID: ${message.jmsMessageID}, " +
-                    "oppdragsId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.oppdragsId}, " +
-                    "oppdragsLinjeId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.linjeId}, " +
-                    "trekkvedtakId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.trekkvedtakId}, " +
-                    "bilagsnrSerie: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.bilagsnrSerie}, " +
-                    "bilagsnr: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.bilagsnr}, " +
-                    "delytelseId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.delytelseId}, " +
-                    "fagSystemId: ${avregningsgrunnlagWrapper?.avregningsgrunnlag?.fagSystemId}"
+                    "oppdragsId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.oppdragsId}, " +
+                    "oppdragsLinjeId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.linjeId}, " +
+                    "trekkvedtakId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.trekkvedtakId}, " +
+                    "bilagsnrSerie: ${avregningsgrunnlagWrapper.avregningsgrunnlag.bilagsnrSerie}, " +
+                    "bilagsnr: ${avregningsgrunnlagWrapper.avregningsgrunnlag.bilagsnr}, " +
+                    "delytelseId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.delytelseId} " +
+                    "fagSystemId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.fagSystemId}"
             }
-            avregningsgrunnlagWrapper?.avregningsgrunnlag?.let { avregningsgrunnlag ->
+            avregningsgrunnlagWrapper.avregningsgrunnlag.let { avregningsgrunnlag ->
                 runCatching {
                     dataSource.transaction { session ->
                         avregningsavvikRepository.insert(
@@ -87,7 +77,7 @@ class AvregningService(
                         )
                     }
                 }.onFailure { ex ->
-                    logger.error(exception) { "Feiler ved lagring av avviksmelding i T_AVREGNING_AVVIK: ${ex.message}" }
+                    logger.error(ex) { "Feiler ved lagring av avviksmelding i T_AVREGNING_AVVIK: ${ex.message}" }
                 }
             }
         }
@@ -102,7 +92,7 @@ class AvregningService(
                     "trekkvedtakId: ${avregningsgrunnlag.trekkvedtakId}, " +
                     "bilagsnrSerie: ${avregningsgrunnlag.bilagsnrSerie}, " +
                     "bilagsnr: ${avregningsgrunnlag.bilagsnr}, " +
-                    "delytelseId: ${avregningsgrunnlag.delytelseId}, " +
+                    "delytelseId: ${avregningsgrunnlag.delytelseId} " +
                     "fagSystemId: ${avregningsgrunnlag.fagSystemId}"
             }
             return
