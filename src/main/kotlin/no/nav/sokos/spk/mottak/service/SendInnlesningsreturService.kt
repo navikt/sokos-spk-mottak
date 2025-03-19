@@ -24,7 +24,7 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 private val logger = KotlinLogging.logger {}
 private const val OUTPUT_FILE_NAME = "SPK_NAV_%s_INL"
 
-class WriteInnlesningsreturFileService(
+class SendInnlesningsreturService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource),
     private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),

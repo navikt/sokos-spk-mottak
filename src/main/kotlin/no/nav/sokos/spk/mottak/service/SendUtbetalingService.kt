@@ -37,7 +37,7 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 private val logger = KotlinLogging.logger { }
 
-class SendUtbetalingTransaksjonToOppdragZService(
+class SendUtbetalingService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
