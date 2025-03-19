@@ -17,13 +17,13 @@ import mu.KotlinLogging
 
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.service.AvstemmingService
-import no.nav.sokos.spk.mottak.service.ReadAndParseFileService
+import no.nav.sokos.spk.mottak.service.ReadFileService
 import no.nav.sokos.spk.mottak.service.ScheduledTaskService
-import no.nav.sokos.spk.mottak.service.SendTrekkTransaksjonToOppdragZService
-import no.nav.sokos.spk.mottak.service.SendUtbetalingTransaksjonToOppdragZService
+import no.nav.sokos.spk.mottak.service.SendAvregningsreturService
+import no.nav.sokos.spk.mottak.service.SendInnlesningsreturService
+import no.nav.sokos.spk.mottak.service.SendTrekkService
+import no.nav.sokos.spk.mottak.service.SendUtbetalingService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
-import no.nav.sokos.spk.mottak.service.WriteAvregningsreturFileService
-import no.nav.sokos.spk.mottak.service.WriteInnlesningsreturFileService
 import no.nav.sokos.spk.mottak.util.CallIdUtils.withCallId
 
 private val logger = KotlinLogging.logger {}
@@ -57,9 +57,9 @@ object JobTaskConfig {
             .build()
 
     internal fun recurringReadParseFileAndValidateTransactionsTask(
-        readAndParseFileService: ReadAndParseFileService = ReadAndParseFileService(),
+        readFileService: ReadFileService = ReadFileService(),
         validateTransaksjonService: ValidateTransaksjonService = ValidateTransaksjonService(),
-        writeInnlesningsreturFileService: WriteInnlesningsreturFileService = WriteInnlesningsreturFileService(),
+        sendInnlesningsreturService: SendInnlesningsreturService = SendInnlesningsreturService(),
         scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<String> {
@@ -71,16 +71,16 @@ object JobTaskConfig {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS)
-                    readAndParseFileService.readAndParseFile()
+                    readFileService.readAndParseFile()
                     validateTransaksjonService.validateInnTransaksjon()
-                    writeInnlesningsreturFileService.writeInnlesningsreturFile()
+                    sendInnlesningsreturService.writeInnlesningsreturFile()
                 }
             }
     }
 
     internal fun recurringSendUtbetalingTransaksjonToOppdragZTask(
-        sendUtbetalingTransaksjonToOppdragZService: SendUtbetalingTransaksjonToOppdragZService =
-            SendUtbetalingTransaksjonToOppdragZService(
+        sendUtbetalingService: SendUtbetalingService =
+            SendUtbetalingService(
                 mqBatchSize = PropertiesConfig.MQProperties().mqBatchSize,
             ),
         scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
@@ -94,14 +94,14 @@ object JobTaskConfig {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ)
-                    sendUtbetalingTransaksjonToOppdragZService.getUtbetalingTransaksjonAndSendToOppdragZ()
+                    sendUtbetalingService.getUtbetalingTransaksjonAndSendToOppdragZ()
                 }
             }
     }
 
     internal fun recurringSendTrekkTransaksjonToOppdragZTask(
-        sendTrekkTransaksjonToOppdragZService: SendTrekkTransaksjonToOppdragZService =
-            SendTrekkTransaksjonToOppdragZService(
+        sendTrekkService: SendTrekkService =
+            SendTrekkService(
                 mqBatchSize = PropertiesConfig.MQProperties().mqBatchSize,
             ),
         scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
@@ -115,7 +115,7 @@ object JobTaskConfig {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_SEND_TREKK_TRANSAKSJON_TO_OPPDRAGZ)
-                    sendTrekkTransaksjonToOppdragZService.getTrekkTransaksjonAndSendToOppdrag()
+                    sendTrekkService.getTrekkTransaksjonAndSendToOppdrag()
                 }
             }
     }
@@ -139,7 +139,7 @@ object JobTaskConfig {
     }
 
     internal fun recurringWriteAvregningsreturFileTask(
-        writeAvregningsreturFileService: WriteAvregningsreturFileService = WriteAvregningsreturFileService(),
+        sendAvregningsreturService: SendAvregningsreturService = SendAvregningsreturService(),
         scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
     ): RecurringTask<String> {
@@ -151,7 +151,7 @@ object JobTaskConfig {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_WRITE_AVREGNINGSRETUR_FILE)
-                    writeAvregningsreturFileService.writeAvregningsreturFile()
+                    sendAvregningsreturService.writeAvregningsreturFile()
                 }
             }
     }

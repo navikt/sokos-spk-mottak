@@ -42,8 +42,8 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
         extensions(listOf(Db2Listener, MQListener))
 
         Given("det finnes utbetalinger som skal sendes til oppdragZ") {
-            val utbetalingTransaksjonTilOppdragService: SendUtbetalingTransaksjonToOppdragZService by lazy {
-                SendUtbetalingTransaksjonToOppdragZService(
+            val utbetalingTransaksjonTilOppdragService: SendUtbetalingService by lazy {
+                SendUtbetalingService(
                     dataSource = Db2Listener.dataSource,
                     mqBatchSize = UTBETALING_BATCH_SIZE,
                     producer =
@@ -71,7 +71,7 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
 
         Given("det finnes utbetalinger som skal sendes til oppdragZ med MQ server som er nede") {
             val utbetalingTransaksjonTilOppdragService =
-                SendUtbetalingTransaksjonToOppdragZService(
+                SendUtbetalingService(
                     dataSource = Db2Listener.dataSource,
                     producer =
                         JmsProducerService(
@@ -100,7 +100,7 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
             every { Db2Listener.transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_OPPDRAG, TRANS_TILSTAND_TIL_OPPDRAG) } throws SQLException("No database connection!")
 
             val utbetalingTransaksjonTilOppdragService =
-                SendUtbetalingTransaksjonToOppdragZService(
+                SendUtbetalingService(
                     dataSource = Db2Listener.dataSource,
                     innTransaksjonRepository = Db2Listener.innTransaksjonRepository,
                     transaksjonRepository = Db2Listener.transaksjonRepository,
@@ -124,7 +124,7 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
 
         Given("det finnes utbetalinger som skal sendes til oppdragZ med database som feiler ved oppdatering av transtilstand i transaksjonstabellen") {
             val utbetalingTransaksjonTilOppdragService =
-                SendUtbetalingTransaksjonToOppdragZService(
+                SendUtbetalingService(
                     dataSource = Db2Listener.dataSource,
                     transaksjonRepository = Db2Listener.transaksjonRepository,
                     transaksjonTilstandRepository = Db2Listener.transaksjonTilstandRepository,
@@ -156,7 +156,7 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
 
         Given("det finnes utbetalinger som skal sendes til oppdragZ med database som feiler ved opprettelse av transaksjoner i transaksjontilstandtabellen") {
             val utbetalingTransaksjonTilOppdragService =
-                SendUtbetalingTransaksjonToOppdragZService(
+                SendUtbetalingService(
                     dataSource = Db2Listener.dataSource,
                     transaksjonRepository = Db2Listener.transaksjonRepository,
                     transaksjonTilstandRepository = Db2Listener.transaksjonTilstandRepository,
@@ -188,7 +188,7 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
 
         Given("det finnes utbetalinger som skal sendes til oppdragZ med MQ server nede og som feiler ved opprettelse av transaksjoner med feilstatus i transaksjontilstandtabellen") {
             val utbetalingTransaksjonTilOppdragService =
-                SendUtbetalingTransaksjonToOppdragZService(
+                SendUtbetalingService(
                     dataSource = Db2Listener.dataSource,
                     transaksjonRepository = Db2Listener.transaksjonRepository,
                     transaksjonTilstandRepository = Db2Listener.transaksjonTilstandRepository,
@@ -220,8 +220,8 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
 
         Given("det finnes 5 utbetalinger som skal sendes til oppdragZ i en batch-chunk") {
             val producer = mockk<JmsProducerService>(relaxed = true)
-            val utbetalingTransaksjonTilOppdragService: SendUtbetalingTransaksjonToOppdragZService by lazy {
-                SendUtbetalingTransaksjonToOppdragZService(
+            val utbetalingTransaksjonTilOppdragService: SendUtbetalingService by lazy {
+                SendUtbetalingService(
                     dataSource = Db2Listener.dataSource,
                     producer = producer,
                 )
@@ -253,8 +253,8 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
 
         Given("det finnes utbetalinger for en person som skal sendes til oppdragZ") {
             val producer = mockk<JmsProducerService>(relaxed = true)
-            val utbetalingTransaksjonTilOppdragService: SendUtbetalingTransaksjonToOppdragZService by lazy {
-                SendUtbetalingTransaksjonToOppdragZService(
+            val utbetalingTransaksjonTilOppdragService: SendUtbetalingService by lazy {
+                SendUtbetalingService(
                     dataSource = Db2Listener.dataSource,
                     producer = producer,
                 )

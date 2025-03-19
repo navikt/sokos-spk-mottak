@@ -28,7 +28,7 @@ private val logger = KotlinLogging.logger {}
 private const val BATCH_SIZE = 20000
 private const val OUTPUT_FILE_NAME = "SPK_NAV_%s_AVR"
 
-class WriteAvregningsreturFileService(
+class SendAvregningsreturService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
     private val avregningsreturRepository: AvregningsreturRepository = AvregningsreturRepository(dataSource),
     private val filInfoRepository: FilInfoRepository = FilInfoRepository(dataSource),

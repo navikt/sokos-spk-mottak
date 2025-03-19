@@ -57,8 +57,8 @@ internal class ReadParseFileServiceTest :
             FtpService(SftpConfig(SftpListener.sftpProperties))
         }
 
-        val readAndParseFileService: ReadAndParseFileService by lazy {
-            ReadAndParseFileService(
+        val readFileService: ReadFileService by lazy {
+            ReadFileService(
                 dataSource = dataSource,
                 ftpService = ftpService,
             )
@@ -76,7 +76,7 @@ internal class ReadParseFileServiceTest :
             ftpService.createFile(SPK_OK, Directories.INBOUND, readFromResource("/spk/$SPK_OK"))
 
             When("leser filen og parser") {
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal filen bli flyttet fra \"inbound\" til \"inbound/anvisningsfilbehandlet\" og transaksjoner blir lagret i databasen.") {
                     ftpService.downloadFiles(Directories.ANVISNINGSFIL_BEHANDLET).size shouldBe 1
@@ -100,7 +100,7 @@ internal class ReadParseFileServiceTest :
             ftpService.createFile(SPK_FILE_FEIL, Directories.INBOUND, readFromResource("/spk/$SPK_FILE_FEIL"))
 
             When("leser begge filene og parser") {
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal begge filene bli flyttet fra \"inbound\" til \"inbound/ferdig\", transaksjoner blir lagret i databasen og en avviksfil blir opprettet i \"inbound\\anvisningsretur\"") {
                     ftpService.downloadFiles(Directories.ANVISNINGSFIL_BEHANDLET).size shouldBe 2
@@ -127,8 +127,8 @@ internal class ReadParseFileServiceTest :
         @Suppress("NAME_SHADOWING")
         Given("det finnes ubehandlet fil i \"inbound\" på FTP-serveren ") {
             val ftpServiceMock = mockk<FtpService>()
-            val readAndParseFileService: ReadAndParseFileService by lazy {
-                ReadAndParseFileService(
+            val readFileService: ReadFileService by lazy {
+                ReadFileService(
                     dataSource = dataSource,
                     ftpService = ftpServiceMock,
                 )
@@ -141,7 +141,7 @@ internal class ReadParseFileServiceTest :
                     every { ftpServiceMock.moveFile(any(), any(), any()) } throws IOException("Ftp server is down!")
                     val exception =
                         shouldThrow<MottakException> {
-                            readAndParseFileService.readAndParseFile()
+                            readFileService.readAndParseFile()
                         }
                     exception.message shouldBe "Ukjent feil ved innlesing av fil: P611.ANV.NAV.HUB.SPK.L000034.D240104.T003017_OK.txt. Feilmelding: Ftp server is down!"
                 }
@@ -154,7 +154,7 @@ internal class ReadParseFileServiceTest :
                     every { ftpServiceMock.createFile(any(), any(), any()) } throws IOException("Ftp server can not move file!")
                     val exception =
                         shouldThrow<MottakException> {
-                            readAndParseFileService.readAndParseFile()
+                            readFileService.readAndParseFile()
                         }
                     exception.message shouldBe "Feil ved opprettelse av avviksfil: P611.ANV.NAV.HUB.SPK.L000035.D240104.T003017_FEIL.txt. Feilmelding: Ftp server can not move file!"
                 }
@@ -164,7 +164,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_ANVISER to readFromResource("/spk/$SPK_FEIL_UGYLDIG_ANVISER").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_ANVISER") {
                     val lopeNummerFraFil = "000034"
@@ -178,7 +178,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_MOTTAKER to readFromResource("/spk/$SPK_FEIL_UGYLDIG_MOTTAKER").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_MOTTAKER") {
                     val lopeNummerFraFil = "000034"
@@ -192,7 +192,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_FILLOPENUMMER_I_BRUK to readFromResource("/spk/$SPK_FEIL_FILLOPENUMMER_I_BRUK").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus FILLOPENUMMER_I_BRUK") {
                     val lopeNummerFraFil = "000032"
@@ -206,7 +206,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_LOPENUMMER to readFromResource("/spk/$SPK_FEIL_UGYLDIG_LOPENUMMER").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_FILLOPENUMMER") {
                     val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf("00004X"))
@@ -219,7 +219,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_FORVENTET_FILLOPENUMMER to readFromResource("/spk/$SPK_FEIL_FORVENTET_FILLOPENUMMER").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus FORVENTET_FILLOPENUMMER") {
                     val lopeNummerFraFil = "000099"
@@ -233,7 +233,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_FILTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_FILTYPE").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_FILTYPE") {
                     val lopeNummerFraFil = "000034"
@@ -247,7 +247,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_ANTRECORDS to readFromResource("/spk/$SPK_FEIL_UGYLDIG_ANTRECORDS").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_ANTRECORDS") {
                     val lopeNummerFraFil = "000034"
@@ -266,7 +266,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_SUMBELOP to readFromResource("/spk/$SPK_FEIL_UGYLDIG_SUMBELOP").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_SUMBELOP") {
                     val lopeNummerFraFil = "000034"
@@ -280,7 +280,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_PRODDATO to readFromResource("/spk/$SPK_FEIL_UGYLDIG_PRODDATO").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_PRODDATO") {
                     val lopeNummerFraFil = "000034"
@@ -294,7 +294,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_START_RECTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_START_RECTYPE").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_RECTYPE") {
                     val lopeNummerFraFil = "000034"
@@ -308,7 +308,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_END_RECTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_END_RECTYPE").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_RECTYPE") {
                     val lopeNummerFraFil = "000034"
@@ -322,7 +322,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP to readFromResource("/spk/$SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_SUMBELOP") {
                     val lopeNummerFraFil = "000034"
@@ -336,7 +336,7 @@ internal class ReadParseFileServiceTest :
                 every { ftpServiceMock.downloadFiles() } returns mapOf(SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE to readFromResource("/spk/$SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE").lines())
                 every { ftpServiceMock.createFile(any(), any(), any()) } returns Unit
                 every { ftpServiceMock.moveFile(any(), any(), any()) } returns Unit
-                readAndParseFileService.readAndParseFile()
+                readFileService.readAndParseFile()
 
                 Then("skal fil info inneholde en filestatus UGYLDIG_RECTYPE") {
                     val lopeNummerFraFil = "000034"
