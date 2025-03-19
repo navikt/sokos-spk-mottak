@@ -41,8 +41,8 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
 
         Given("det finnes trekk som skal sendes til oppdragZ") {
             val producer = mockk<JmsProducerService>(relaxed = true)
-            val trekkTransaksjonTilOppdragService: SendTrekkTransaksjonToOppdragZService by lazy {
-                SendTrekkTransaksjonToOppdragZService(
+            val trekkTransaksjonTilOppdragService: SendTrekkService by lazy {
+                SendTrekkService(
                     dataSource = Db2Listener.dataSource,
                     mqBatchSize = TREKK_BATCH_SIZE,
                     producer = producer,
@@ -75,7 +75,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
 
         Given("det finnes trekk som skal sendes til oppdragZ med MQ server nede") {
             val trekkTransaksjonTilOppdragService =
-                SendTrekkTransaksjonToOppdragZService(
+                SendTrekkService(
                     dataSource = Db2Listener.dataSource,
                     producer =
                         JmsProducerService(
@@ -104,7 +104,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
             every { Db2Listener.transaksjonRepository.findAllByBelopstypeAndByTransaksjonTilstand(BELOPTYPE_TIL_TREKK, TRANS_TILSTAND_TIL_TREKK) } throws SQLException("No database connection!")
 
             val trekkTransaksjonTilOppdragService =
-                SendTrekkTransaksjonToOppdragZService(
+                SendTrekkService(
                     dataSource = Db2Listener.dataSource,
                     innTransaksjonRepository = Db2Listener.innTransaksjonRepository,
                     transaksjonRepository = Db2Listener.transaksjonRepository,
@@ -128,7 +128,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
 
         Given("det finnes trekk som skal sendes til oppdragZ med database som feiler ved oppdatering av transtilstand i transaksjonstabellen") {
             val trekkTransaksjonTilOppdragService =
-                SendTrekkTransaksjonToOppdragZService(
+                SendTrekkService(
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
@@ -160,7 +160,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
 
         Given("det finnes trekk som skal sendes til oppdragZ med database som feiler ved opprettelse av transaksjoner i transaksjontilstandtabellen") {
             val trekkTransaksjonTilOppdragService =
-                SendTrekkTransaksjonToOppdragZService(
+                SendTrekkService(
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,
@@ -192,7 +192,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
 
         Given("det finnes trekk som skal sendes til oppdragZ med MQ server nede og som feiler ved opprettelse av transaksjoner med feilstatus i transaksjontilstandtabellen") {
             val trekkTransaksjonTilOppdragService =
-                SendTrekkTransaksjonToOppdragZService(
+                SendTrekkService(
                     Db2Listener.dataSource,
                     Db2Listener.transaksjonRepository,
                     Db2Listener.transaksjonTilstandRepository,

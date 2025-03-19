@@ -30,7 +30,7 @@ import no.nav.sokos.spk.mottak.validator.FileValidation.validateStartAndSluttRec
 private const val BATCH_SIZE: Int = 20000
 private val logger = KotlinLogging.logger {}
 
-class ReadAndParseFileService(
+class ReadFileService(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
     private val innTransaksjonRepository: InnTransaksjonRepository = InnTransaksjonRepository(dataSource),
     private val lopenummerRepository: LopenummerRepository = LopenummerRepository(dataSource),

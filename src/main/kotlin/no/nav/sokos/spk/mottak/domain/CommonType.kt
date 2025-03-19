@@ -6,6 +6,16 @@ const val MOT = "MOT"
 const val SPKMOT = "SPKMOT"
 const val SPK_TSS = "80000427901"
 
+// SERVICENAVN
+const val AVREGNING_LISTENER_SERVICE = "AvregningListenerService"
+const val AVSTEMMING_SERVICE = "AvstemmingService"
+const val READ_FILE_SERVICE = "ReadFileService"
+const val SEND_AVREGNINGSRETUR_SERVICE = "SendAvregningsreturService"
+const val SEND_INNLESNINGSRETUR_SERVICE = "SendInnlesningsreturService"
+const val SEND_TREKK_SERVICE = "SendTrekkService"
+const val SEND_UTBETALING_SERVICE = "SendUtbetalingService"
+const val VALIDATE_TRANSAKSJON_SERVICE = "ValidateTransaksjonService"
+
 // FILETYPE
 const val FILTYPE_ANVISER = "ANV"
 const val FILTYPE_INNLEST = "INL"

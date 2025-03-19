@@ -37,8 +37,8 @@ internal class WriteAvregningsreturFileServiceTest : BehaviorSpec({
         FtpService(SftpConfig(SftpListener.sftpProperties))
     }
 
-    val writeAvregningsreturFileService: WriteAvregningsreturFileService by lazy {
-        WriteAvregningsreturFileService(
+    val sendAvregningsreturService: SendAvregningsreturService by lazy {
+        SendAvregningsreturService(
             dataSource = Db2Listener.dataSource,
             ftpService = ftpService,
         )
@@ -59,7 +59,7 @@ internal class WriteAvregningsreturFileServiceTest : BehaviorSpec({
 
         When("skriving av returfiler starter") {
             withConstantNow(LocalDate.of(2025, 1, 1)) {
-                writeAvregningsreturFileService.writeAvregningsreturFile()
+                sendAvregningsreturService.writeAvregningsreturFile()
             }
             Then("skal det opprettes avregningsreturfilen til SPK som lastes opp til Ftp outbound/avregning") {
                 Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().shouldBeEmpty()
@@ -85,10 +85,10 @@ internal class WriteAvregningsreturFileServiceTest : BehaviorSpec({
         When("skriving av returfil starter") {
             val dataSourceMock = mockk<HikariDataSource>()
             every { dataSourceMock.connection } throws SQLException("No database connection!")
-            val writeAvregningsreturFileServiceMock = WriteAvregningsreturFileService(dataSource = dataSourceMock, ftpService = ftpService)
+            val sendAvregningsreturServiceMock = SendAvregningsreturService(dataSource = dataSourceMock, ftpService = ftpService)
 
             Then("skal det kastes en MottakException med databasefeil") {
-                val exception = shouldThrow<MottakException> { writeAvregningsreturFileServiceMock.writeAvregningsreturFile() }
+                val exception = shouldThrow<MottakException> { sendAvregningsreturServiceMock.writeAvregningsreturFile() }
                 exception.message shouldBe "Skriving av avregningfil feilet. Feilmelding: No database connection!"
             }
         }
@@ -104,10 +104,10 @@ internal class WriteAvregningsreturFileServiceTest : BehaviorSpec({
         When("skriv retur filen prosess starter") {
             val ftpServiceMock = mockk<FtpService>()
             every { ftpServiceMock.createFile(any(), any(), any()) } throws IOException("Ftp server can not move file!")
-            val writeAvregningsreturFileServiceMock = WriteAvregningsreturFileService(dataSource = Db2Listener.dataSource, ftpService = ftpServiceMock)
+            val sendAvregningsreturServiceMock = SendAvregningsreturService(dataSource = Db2Listener.dataSource, ftpService = ftpServiceMock)
 
             Then("skal det kastet en MottakException med ftp feil") {
-                val exception = shouldThrow<MottakException> { writeAvregningsreturFileServiceMock.writeAvregningsreturFile() }
+                val exception = shouldThrow<MottakException> { sendAvregningsreturServiceMock.writeAvregningsreturFile() }
                 exception.message shouldBe "Skriving av avregningfil feilet. Feilmelding: Ftp server can not move file!"
 
                 Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().size shouldBe 32
