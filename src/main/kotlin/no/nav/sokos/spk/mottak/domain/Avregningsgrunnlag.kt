@@ -4,7 +4,6 @@ import java.time.LocalDateTime
 
 import kotlinx.serialization.Serializable
 
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateNotBlank
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateStringOrEmpty
@@ -65,9 +64,9 @@ fun Avregningsgrunnlag.toAvregningsretur(avregningstransaksjon: Avregningstransa
         personId = fagSystemId,
         kreditorRef = kreditorRef,
         datoOpprettet = LocalDateTime.now(),
-        opprettetAv = PropertiesConfig.Configuration().naisAppName,
+        opprettetAv = AVREGNING_LISTENER_SERVICE,
         datoEndret = LocalDateTime.now(),
-        endretAv = PropertiesConfig.Configuration().naisAppName,
+        endretAv = AVREGNING_LISTENER_SERVICE,
     )
 
 fun Avregningsgrunnlag.toAvregningsAvvik(): AvregningsgrunnlagAvvik {

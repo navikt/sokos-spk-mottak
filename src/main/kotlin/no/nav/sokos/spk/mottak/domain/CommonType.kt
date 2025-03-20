@@ -14,6 +14,8 @@ const val SEND_AVREGNINGSRETUR_SERVICE = "SendAvregningsreturService"
 const val SEND_INNLESNINGSRETUR_SERVICE = "SendInnlesningsreturService"
 const val SEND_TREKK_SERVICE = "SendTrekkService"
 const val SEND_UTBETALING_SERVICE = "SendUtbetalingService"
+const val TREKK_LISTENER_SERVICE = "TrekkListenerService"
+const val UTBETALING_LISTENER_SERVICE = "UtbetalingListenerService"
 const val VALIDATE_TRANSAKSJON_SERVICE = "ValidateTransaksjonService"
 
 // FILETYPE

@@ -8,9 +8,9 @@ import kotliquery.sessionOf
 import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.AvvikTransaksjon
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.VALIDATE_TRANSAKSJON_SERVICE
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.asMap
@@ -24,7 +24,7 @@ class AvvikTransaksjonRepository(
         innTransaksjonList: List<InnTransaksjon>,
         session: Session,
     ): List<Int> {
-        val systemId = PropertiesConfig.Configuration().naisAppName
+        val systemId = VALIDATE_TRANSAKSJON_SERVICE
         return insertBatchTimer
             .recordCallable {
                 session.batchPreparedNamedStatement(

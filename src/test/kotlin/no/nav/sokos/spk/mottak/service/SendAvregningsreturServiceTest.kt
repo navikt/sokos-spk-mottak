@@ -24,13 +24,14 @@ import no.nav.sokos.spk.mottak.config.SftpConfig
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_RET
 import no.nav.sokos.spk.mottak.domain.FILTYPE_AVREGNING
 import no.nav.sokos.spk.mottak.domain.FilStatus
+import no.nav.sokos.spk.mottak.domain.SEND_AVREGNINGSRETUR_SERVICE
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.SftpListener
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 @OptIn(KotestInternal::class)
-internal class WriteAvregningsreturFileServiceTest : BehaviorSpec({
+internal class SendAvregningsreturServiceTest : BehaviorSpec({
     extensions(listOf(Db2Listener, SftpListener))
 
     val ftpService: FtpService by lazy {
@@ -71,6 +72,7 @@ internal class WriteAvregningsreturFileServiceTest : BehaviorSpec({
                     filStatus = FilStatus.OK,
                     filTilstandType = FILTILSTANDTYPE_RET,
                     fileType = FILTYPE_AVREGNING,
+                    systemId = SEND_AVREGNINGSRETUR_SERVICE,
                 )
 
                 val downloadFile = ftpService.downloadFiles(Directories.AVREGNINGSRETUR)

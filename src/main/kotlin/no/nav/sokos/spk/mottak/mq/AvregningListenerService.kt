@@ -1,7 +1,5 @@
 package no.nav.sokos.spk.mottak.mq
 
-import kotlinx.serialization.json.Json
-
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.jms.ConnectionFactory
@@ -39,8 +37,6 @@ class AvregningListenerService(
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val avregningsreturRepository: AvregningsreturRepository = AvregningsreturRepository(dataSource)
     private val avregningsavvikRepository: AvregningsavvikRepository = AvregningsavvikRepository(dataSource)
-
-    private val json = Json { ignoreUnknownKeys = true }
 
     init {
         avregningsgrunnlagMQListener.setMessageListener { onAvregningsgrunnlagMessage(it) }
@@ -100,10 +96,8 @@ class AvregningListenerService(
         val avregningstransaksjon = findTransaksjon(avregningsgrunnlag)
         val avregningsretur = createAvregningsretur(avregningsgrunnlag, avregningstransaksjon)
 
-        avregningsretur.let {
-            dataSource.transaction { session ->
-                avregningsreturRepository.insert(it, session)
-            }
+        dataSource.transaction { session ->
+            avregningsreturRepository.insert(avregningsretur, session)
         }
     }
 

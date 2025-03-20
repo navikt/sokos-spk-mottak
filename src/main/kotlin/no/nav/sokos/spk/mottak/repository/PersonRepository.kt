@@ -8,8 +8,8 @@ import kotliquery.sessionOf
 import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.Person
+import no.nav.sokos.spk.mottak.domain.VALIDATE_TRANSAKSJON_SERVICE
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 
@@ -40,7 +40,7 @@ class PersonRepository(
         fnr: String,
         session: Session,
     ): Long? {
-        val systemId = PropertiesConfig.Configuration().naisAppName
+        val systemId = VALIDATE_TRANSAKSJON_SERVICE
         return insertTimer.recordCallable {
             session.updateAndReturnGeneratedKey(
                 queryOf(
@@ -64,7 +64,7 @@ class PersonRepository(
         session: Session,
     ) {
         updateTimer.recordCallable {
-            val systemId = PropertiesConfig.Configuration().naisAppName
+            val systemId = VALIDATE_TRANSAKSJON_SERVICE
             session.update(
                 queryOf(
                     """

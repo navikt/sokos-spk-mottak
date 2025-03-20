@@ -8,7 +8,6 @@ import kotliquery.sessionOf
 import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
 import no.nav.sokos.spk.mottak.domain.TransaksjonTilstand
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
@@ -24,11 +23,11 @@ class TransaksjonTilstandRepository(
     fun insertBatch(
         transaksjonIdList: List<Int>,
         transaksjonTilstandType: String = TRANS_TILSTAND_OPPRETTET,
+        systemId: String,
         feilkode: String? = null,
         feilkodeMelding: String? = null,
         session: Session,
     ): List<Int> {
-        val systemId = PropertiesConfig.Configuration().naisAppName
         return insertBatchTimer
             .recordCallable {
                 session.batchPreparedNamedStatement(

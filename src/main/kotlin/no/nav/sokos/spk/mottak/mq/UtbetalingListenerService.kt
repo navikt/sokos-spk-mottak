@@ -1,7 +1,5 @@
 package no.nav.sokos.spk.mottak.mq
 
-import kotlinx.serialization.json.Json
-
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.jms.ConnectionFactory
@@ -17,6 +15,7 @@ import no.nav.sokos.spk.mottak.domain.OS_STATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
+import no.nav.sokos.spk.mottak.domain.UTBETALING_LISTENER_SERVICE
 import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingListenerMetricCounter
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
@@ -34,8 +33,6 @@ class UtbetalingListenerService(
     private val utbetalingMQListener = jmsContext.createConsumer(utbetalingReplyQueue)
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
-
-    private val json = Json { ignoreUnknownKeys = true }
 
     init {
         utbetalingMQListener.setMessageListener { onUtbetalingMessage(it) }
@@ -69,20 +66,21 @@ class UtbetalingListenerService(
             dataSource.transaction { session ->
                 val transTilstandIdList =
                     transaksjonTilstandRepository.insertBatch(
-                        transaksjonIdList,
-                        transTilstandStatus,
-                        oppdrag.mmel.kodeMelding,
-                        oppdrag.mmel.beskrMelding,
-                        session,
+                        transaksjonIdList = transaksjonIdList,
+                        transaksjonTilstandType = transTilstandStatus,
+                        systemId = UTBETALING_LISTENER_SERVICE,
+                        feilkode = oppdrag.mmel.kodeMelding,
+                        feilkodeMelding = oppdrag.mmel.beskrMelding,
+                        session = session,
                     )
 
                 transaksjonRepository.updateBatch(
-                    transaksjonIdList,
-                    transTilstandIdList,
-                    transTilstandStatus,
-                    null,
-                    oppdrag.mmel.alvorlighetsgrad,
-                    session,
+                    transaksjonIdList = transaksjonIdList,
+                    transTilstandIdList = transTilstandIdList,
+                    transaksjonTilstandType = transTilstandStatus,
+                    systemId = UTBETALING_LISTENER_SERVICE,
+                    osStatus = oppdrag.mmel.alvorlighetsgrad,
+                    session = session,
                 )
             }
             mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())

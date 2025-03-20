@@ -22,13 +22,14 @@ import no.nav.sokos.spk.mottak.domain.BEHANDLET_JA
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_RET
 import no.nav.sokos.spk.mottak.domain.FILTYPE_INNLEST
 import no.nav.sokos.spk.mottak.domain.FilStatus
+import no.nav.sokos.spk.mottak.domain.SEND_INNLESNINGSRETUR_SERVICE
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.SftpListener
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 @OptIn(KotestInternal::class)
-internal class WriteInnlesningsreturFileServiceTest : BehaviorSpec({
+internal class SendInnlesningsreturServiceTest : BehaviorSpec({
     extensions(listOf(Db2Listener, SftpListener))
 
     val ftpService: FtpService by lazy {
@@ -63,6 +64,7 @@ internal class WriteInnlesningsreturFileServiceTest : BehaviorSpec({
                     filStatus = FilStatus.OK,
                     filTilstandType = FILTILSTANDTYPE_RET,
                     fileType = FILTYPE_INNLEST,
+                    systemId = SEND_INNLESNINGSRETUR_SERVICE,
                 )
                 val filInfo2 = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_RET, listOf("000035")).first()
                 verifyFilInfo(
@@ -70,6 +72,7 @@ internal class WriteInnlesningsreturFileServiceTest : BehaviorSpec({
                     filStatus = FilStatus.OK,
                     filTilstandType = FILTILSTANDTYPE_RET,
                     fileType = FILTYPE_INNLEST,
+                    systemId = SEND_INNLESNINGSRETUR_SERVICE,
                 )
                 filInfo1.filNavn shouldNotBe filInfo2.filNavn
                 val downloadFile = ftpService.downloadFiles(Directories.ANVISNINGSRETUR)

@@ -8,8 +8,8 @@ import kotliquery.sessionOf
 import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.Avregningsretur
+import no.nav.sokos.spk.mottak.domain.SEND_AVREGNINGSRETUR_SERVICE
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
@@ -255,7 +255,7 @@ class AvregningsreturRepository(
                 UPDATE T_RETUR_TIL_ANV
                     SET FIL_INFO_UT_ID = :filInfoUtId, 
                         DATO_ENDRET = CURRENT_TIMESTAMP, 
-                        ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}'
+                        ENDRET_AV = '$SEND_AVREGNINGSRETUR_SERVICE'
                     WHERE RETUR_TIL_ANV_ID = :returTilAnviserId
                 """.trimIndent(),
                 returTilAnviserIdList.map { returTilAnviserId ->

@@ -6,7 +6,6 @@ import java.time.LocalDateTime
 import no.nav.pdl.enums.IdentGruppe
 import no.nav.pdl.hentidenterbolk.HentIdenterBolkResult
 import no.nav.pdl.hentidenterbolk.IdentInformasjon
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
 import no.nav.sokos.spk.mottak.domain.GyldigKombinasjon
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
@@ -15,6 +14,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.TransaksjonStatus
+import no.nav.sokos.spk.mottak.domain.VALIDATE_TRANSAKSJON_SERVICE
 
 const val SPK_OK = "P611.ANV.NAV.HUB.SPK.L000034.D240104.T003017_OK.txt"
 const val SPK_FEIL_UGYLDIG_ANVISER = "P611.ANV.NAV.HUB.SPK.L003919.D240104.T003017_UGYLDIG_ANVISER.txt"
@@ -34,7 +34,6 @@ const val SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE = "P611.ANV.NAV.HUB.SPK.L003919.D
 
 object TestData {
     fun transaksjonMock(): Transaksjon {
-        val systemId = PropertiesConfig.Configuration().naisAppName
         return Transaksjon(
             transaksjonId = 36799719,
             filInfoId = 123,
@@ -64,9 +63,9 @@ object TestData {
             motId = "36799719",
             osStatus = null,
             datoOpprettet = LocalDateTime.now(),
-            opprettetAv = "Test",
+            opprettetAv = VALIDATE_TRANSAKSJON_SERVICE,
             datoEndret = LocalDateTime.now(),
-            endretAv = "Test",
+            endretAv = VALIDATE_TRANSAKSJON_SERVICE,
             versjon = 1,
             transTilstandType = TRANS_TILSTAND_OPPRETTET,
             grad = 100,

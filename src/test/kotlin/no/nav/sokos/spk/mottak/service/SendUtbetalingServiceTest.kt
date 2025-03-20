@@ -37,7 +37,7 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 const val UTBETALING_BATCH_SIZE = 2
 
-internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
+internal class SendUtbetalingServiceTest :
     BehaviorSpec({
         extensions(listOf(Db2Listener, MQListener))
 
@@ -145,7 +145,7 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
             When("hent utbetalinger og send til OppdragZ") {
                 clearMocks(Db2Listener.transaksjonTilstandRepository)
                 every {
-                    Db2Listener.transaksjonRepository.updateBatch(any(), any(), eq(TRANS_TILSTAND_OPPDRAG_SENDT_OK), any(), any(), any())
+                    Db2Listener.transaksjonRepository.updateBatch(any(), any(), eq(TRANS_TILSTAND_OPPDRAG_SENDT_OK), any(), any(), any(), any())
                 } throws Exception("Feiler ved oppdatering av transtilstand til OSO i transaksjon-tabellen!")
                 utbetalingTransaksjonTilOppdragService.getUtbetalingTransaksjonAndSendToOppdragZ()
                 Then("skal ingen transaksjoner blir oppdatert med status OSO (Oppdrag Sendt Ok), men beholder status OPR (Opprettet)") {
@@ -177,7 +177,7 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
             When("hent utbetalinger og send til OppdragZ") {
                 clearMocks(Db2Listener.transaksjonRepository)
                 every {
-                    Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_OPPDRAG_SENDT_OK, any(), any(), any())
+                    Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_OPPDRAG_SENDT_OK, any(), any(), any(), any())
                 } throws Exception("Feiler ved opprettelse av transaksjoner i transaksjontilstand-tabellen!")
                 utbetalingTransaksjonTilOppdragService.getUtbetalingTransaksjonAndSendToOppdragZ()
                 Then("skal ingen transaksjoner blir oppdatert med status OSO (Oppdrag Sendt Ok), men beholder status OPR (Opprettet)") {
@@ -209,7 +209,7 @@ internal class SendUtbetalingTransaksjonToOppdragZServiceTest :
             When("hent utbetalinger og send til OppdragZ") {
                 clearMocks(Db2Listener.transaksjonRepository)
                 every {
-                    Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, any(), any(), any())
+                    Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_OPPDRAG_SENDT_FEIL, any(), any(), any(), any())
                 } throws Exception("Feiler ved opprettelse av transaksjoner med feilstatus i transaksjontilstand-tabellen!")
                 utbetalingTransaksjonTilOppdragService.getUtbetalingTransaksjonAndSendToOppdragZ()
                 Then("skal ingen transaksjoner blir oppdatert med status OSF (Oppdrag Sendt Feil), men beholder status OPR (Opprettet)") {

@@ -14,6 +14,7 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.VALIDATE_TRANSAKSJON_SERVICE
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.domain.mapToTransaksjon
 import no.nav.sokos.spk.mottak.exception.MottakException
@@ -113,7 +114,11 @@ class ValidateTransaksjonService(
                 transaksjonRepository.insertBatch(this.map { it.mapToTransaksjon(lastTransaksjonMap[it.personId], lastFagomraadeMap) }, session)
 
                 val transaksjonIdList = this.map { innTransaksjon -> innTransaksjon.innTransaksjonId!! }
-                transaksjonTilstandRepository.insertBatch(transaksjonIdList = transaksjonIdList, session = session)
+                transaksjonTilstandRepository.insertBatch(
+                    transaksjonIdList = transaksjonIdList,
+                    systemId = VALIDATE_TRANSAKSJON_SERVICE,
+                    session = session,
+                )
                 transaksjonRepository.updateTransTilstandId(session)
 
                 logger.debug { "${transaksjonIdList.size} transaksjoner opprettet" }

@@ -1,7 +1,5 @@
 package no.nav.sokos.spk.mottak.mq
 
-import kotlinx.serialization.json.Json
-
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.jms.ConnectionFactory
@@ -15,6 +13,7 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
 import no.nav.sokos.spk.mottak.domain.OS_STATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
+import no.nav.sokos.spk.mottak.domain.TREKK_LISTENER_SERVICE
 import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.trekkTilstandStatus
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.domain.oppdrag.DokumentWrapper
@@ -35,8 +34,6 @@ class TrekkListenerService(
     private val trekkMQListener = jmsContext.createConsumer(trekkReplyQueue)
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
-
-    private val json = Json { ignoreUnknownKeys = true }
 
     init {
         trekkMQListener.setMessageListener { onTrekkMessage(it) }
@@ -65,20 +62,22 @@ class TrekkListenerService(
             dataSource.transaction { session ->
                 val transTilstandIdList =
                     transaksjonTilstandRepository.insertBatch(
-                        listOf(transaksjonId),
-                        trekkStatus,
-                        trekkInfo.kodeMelding,
-                        trekkInfo.beskrMelding,
-                        session,
+                        transaksjonIdList = listOf(transaksjonId),
+                        transaksjonTilstandType = trekkStatus,
+                        systemId = TREKK_LISTENER_SERVICE,
+                        feilkode = trekkInfo.kodeMelding,
+                        feilkodeMelding = trekkInfo.beskrMelding,
+                        session = session,
                     )
 
                 transaksjonRepository.updateBatch(
-                    listOf(transaksjonId),
-                    transTilstandIdList,
-                    trekkStatus,
-                    trekk.innrapporteringTrekk.navTrekkId,
-                    trekkInfo.alvorlighetsgrad,
-                    session,
+                    transaksjonIdList = listOf(transaksjonId),
+                    transTilstandIdList = transTilstandIdList,
+                    transaksjonTilstandType = trekkStatus,
+                    systemId = TREKK_LISTENER_SERVICE,
+                    vedtaksId = trekk.innrapporteringTrekk.navTrekkId,
+                    osStatus = trekkInfo.alvorlighetsgrad,
+                    session = session,
                 )
             }
             mqTrekkListenerMetricCounter.inc()

@@ -8,13 +8,13 @@ import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.AVREGNING_FIL_BESKRIVELSE
 import no.nav.sokos.spk.mottak.domain.Avregningsretur
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_RET
 import no.nav.sokos.spk.mottak.domain.FILTYPE_AVREGNING
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
+import no.nav.sokos.spk.mottak.domain.SEND_AVREGNINGSRETUR_SERVICE
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
@@ -54,10 +54,8 @@ class SendAvregningsreturService(
 
     private fun createTempFileAndUploadToFtpServer(avregningTransaksjonList: List<Avregningsretur>): Long {
         return dataSource.transaction { session ->
-            val applicationNavn = PropertiesConfig.Configuration().naisAppName
-
             val lopeNummer = lopenummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING)?.inc() ?: 1
-            lopenummerRepository.updateLopeNummer(lopeNummer.toString(), FILTYPE_AVREGNING, session)
+            lopenummerRepository.updateLopeNummer(lopeNummer.toString(), FILTYPE_AVREGNING, SEND_AVREGNINGSRETUR_SERVICE, session)
 
             val returFilnavn = OUTPUT_FILE_NAME.format(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS")))
             val filInfoId =
@@ -74,9 +72,9 @@ class SendAvregningsreturService(
                         datoMottatt = LocalDate.now(),
                         datoSendt = null,
                         datoOpprettet = LocalDateTime.now(),
-                        opprettetAv = applicationNavn,
+                        opprettetAv = SEND_AVREGNINGSRETUR_SERVICE,
                         datoEndret = LocalDateTime.now(),
-                        endretAv = applicationNavn,
+                        endretAv = SEND_AVREGNINGSRETUR_SERVICE,
                         versjon = 1,
                     ),
                     session,

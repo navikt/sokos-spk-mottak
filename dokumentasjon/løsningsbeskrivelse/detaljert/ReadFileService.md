@@ -1,4 +1,4 @@
-# ReadAndParseFileService
+# ReadFileService
 
 Tjenesten leser anvisningsfiler fra SPK og validerer at filformatet er riktig. Transaksjonene i filene blir lagret i en innlastingstabell T_INN_TRANSAKSJON.
 

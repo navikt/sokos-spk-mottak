@@ -13,6 +13,7 @@ import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.AVREGNING_LISTENER_SERVICE
 import no.nav.sokos.spk.mottak.domain.AvregningsgrunnlagWrapper
 import no.nav.sokos.spk.mottak.domain.Avregningsretur
 import no.nav.sokos.spk.mottak.domain.toAvregningsretur
@@ -187,7 +188,7 @@ private fun verifyAvregningstransaksjon(
     avregningDatoAvsender: String? = null,
     avregningTransaksjonId: Int? = null,
 ) {
-    val systemId = PropertiesConfig.Configuration().naisAppName
+    val systemId = AVREGNING_LISTENER_SERVICE
     val avregningsgrunnlag = avregningsmelding.avregningsgrunnlag
     with(avregningsretur) {
         osId shouldBe avregningsgrunnlag.oppdragsId.toString()

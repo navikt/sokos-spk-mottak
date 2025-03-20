@@ -7,14 +7,18 @@
 - [Flowchart](løsningsbeskrivelse/overordnet/flowchart.md)
 
 ## Detaljert beskrivelse av tjenestene
-- [ReadAndParseFileService](løsningsbeskrivelse/detaljert/ReadAndParseFileService.md)
-- [ValidateTransaksjonService](løsningsbeskrivelse/detaljert/ValidateTransaksjonService.md)
-- [WriteInnlesningsreturFileService](løsningsbeskrivelse/detaljert/WriteInnlesningsreturFileService.md)
-- [SendUtbetalingTransaksjonToOppdragZService](løsningsbeskrivelse/detaljert/SendUtbetalingTransaksjonToOppdragZService.md)
-- [SendTrekkTransaksjonToOppdragZService](løsningsbeskrivelse/detaljert/SendTrekkTransaksjonToOppdragZService.md)
-- [JmsListenerService](løsningsbeskrivelse/detaljert/JmsListenerService.md)
+- [AvregningListenerService](løsningsbeskrivelse/detaljert/AvregningListenerService.md)
 - [AvstemmingService](løsningsbeskrivelse/detaljert/AvstemmingService.md)
-- [WriteAvregningsreturFileService](løsningsbeskrivelse/detaljert/WriteAvregningsreturFileService.md)
+- [LeveAttestService](løsningsbeskrivelse/detaljert/LeveAttestService.md)
+- [ReadFileService](løsningsbeskrivelse/detaljert/ReadFileService.md)
+- [SendAvregningsreturService](løsningsbeskrivelse/detaljert/SendAvregningsreturService.md)
+- [SendInnlesningsreturService](løsningsbeskrivelse/detaljert/SendInnlesningsreturService.md)
+- [SendTrekkService](løsningsbeskrivelse/detaljert/SendTrekkService.md)
+- [SendUtbetalingService](løsningsbeskrivelse/detaljert/SendUtbetalingService.md)
+- [TrekkListenerService](løsningsbeskrivelse/detaljert/TrekkListenerService.md)
+- [UtbetalingListenerService](løsningsbeskrivelse/detaljert/UtbetalingListenerService.md)
+- [ValidateTransaksjonService](løsningsbeskrivelse/detaljert/ValidateTransaksjonService.md)
+
 
 ## Tester
 - [Filformat tester](tester/filformat-tester.md)
