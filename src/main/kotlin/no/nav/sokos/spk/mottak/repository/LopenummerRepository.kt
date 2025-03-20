@@ -8,7 +8,6 @@ import kotliquery.sessionOf
 import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.LopeNummer
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
@@ -39,6 +38,7 @@ class LopenummerRepository(
     fun updateLopeNummer(
         lopeNummer: String,
         filType: String,
+        systemId: String,
         session: Session,
     ) {
         updateLopeNummerTimer.recordCallable {
@@ -46,7 +46,7 @@ class LopenummerRepository(
                 queryOf(
                     """
                     UPDATE T_LOPENR 
-                    SET SISTE_LOPENR = (:lopeNummer), ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}', DATO_ENDRET = CURRENT_TIMESTAMP 
+                    SET SISTE_LOPENR = (:lopeNummer), ENDRET_AV = '$systemId', DATO_ENDRET = CURRENT_TIMESTAMP 
                     WHERE K_ANVISER = 'SPK'
                     AND K_FIL_T = (:filType)
                     """.trimIndent(),

@@ -10,7 +10,6 @@ import kotliquery.sessionOf
 import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.AvstemmingInfo
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FilInfo
@@ -119,6 +118,7 @@ class FilInfoRepository(
         filInfoIdList: List<Int>,
         avstemmingStatus: String,
         datoTransaksjonSendt: LocalDate? = null,
+        systemId: String,
         session: Session,
     ) {
         session.update(
@@ -126,7 +126,7 @@ class FilInfoRepository(
                 """
                 UPDATE T_FIL_INFO SET K_AVSTEMMING_S = '$avstemmingStatus', 
                     ${datoTransaksjonSendt?.let { " DATO_TRANSAKSJON_SENDT = '$datoTransaksjonSendt', " } ?: ""} 
-                    DATO_ENDRET = CURRENT_TIMESTAMP, ENDRET_AV = '${PropertiesConfig.Configuration().naisAppName}'
+                    DATO_ENDRET = CURRENT_TIMESTAMP, ENDRET_AV = '$systemId'
                 WHERE FIL_INFO_ID IN (${filInfoIdList.joinToString()})
                 """.trimIndent(),
             ),

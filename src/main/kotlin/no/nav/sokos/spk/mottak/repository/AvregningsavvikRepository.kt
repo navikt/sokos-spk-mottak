@@ -7,7 +7,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.AVREGNING_LISTENER_SERVICE
 import no.nav.sokos.spk.mottak.domain.AvregningsgrunnlagAvvik
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
@@ -23,7 +23,7 @@ class AvregningsavvikRepository(
         feilmelding: String,
         session: Session,
     ): Long? {
-        val systemId = PropertiesConfig.Configuration().naisAppName
+        val systemId = AVREGNING_LISTENER_SERVICE
         return insertTimer.recordCallable {
             session.updateAndReturnGeneratedKey(
                 queryOf(

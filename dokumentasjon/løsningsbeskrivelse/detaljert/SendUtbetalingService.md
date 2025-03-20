@@ -1,4 +1,4 @@
-# SendUtbetalingTransaksjonToOppdragZService
+# SendUtbetalingService
 Tjenesten er ansvarlig for å sende alle utbetalingstransaksjoner til Oppdragssystemet (OS) som ligger i T_TRANSAKSJON og som ikke er oversendt ennå eller har feilet ved tidligere oversendelsesforsøk.
 
 **Startbetingelse:** T_INN_TRANSAKSJON er tom.

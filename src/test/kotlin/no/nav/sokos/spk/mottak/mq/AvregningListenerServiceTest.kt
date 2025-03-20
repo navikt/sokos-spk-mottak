@@ -13,6 +13,7 @@ import org.apache.activemq.artemis.jms.client.ActiveMQQueue
 
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.AVREGNING_LISTENER_SERVICE
 import no.nav.sokos.spk.mottak.domain.AvregningsgrunnlagWrapper
 import no.nav.sokos.spk.mottak.domain.Avregningsretur
 import no.nav.sokos.spk.mottak.domain.toAvregningsretur
@@ -25,13 +26,13 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import no.nav.sokos.spk.mottak.util.Utils.toIsoDate
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 
-internal class AvregningServiceTest : BehaviorSpec({
+internal class AvregningListenerServiceTest : BehaviorSpec({
     extensions(listOf(Db2Listener, MQListener))
 
     val json = Json { ignoreUnknownKeys = true }
 
-    val avregningService: AvregningService by lazy {
-        AvregningService(
+    val avregningListenerService: AvregningListenerService by lazy {
+        AvregningListenerService(
             connectionFactory,
             ActiveMQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
             Db2Listener.dataSource,
@@ -88,7 +89,7 @@ internal class AvregningServiceTest : BehaviorSpec({
             setupDatabase("/database/utbetaling_transaksjon.sql")
 
             When(scenario.description) {
-                avregningService.start()
+                avregningListenerService.start()
                 val avregningsmelding = readFromResource(scenario.jsonFile)
                 jmsProducerAvregning.send(listOf(avregningsmelding))
 
@@ -136,7 +137,7 @@ internal class AvregningServiceTest : BehaviorSpec({
         setupDatabase("/database/avregningstransaksjon.sql")
 
         When("det sendes en avregningsmelding med delYtelseId til MQ som allerede eksisterer i databasen") {
-            avregningService.start()
+            avregningListenerService.start()
             Db2Listener.avregningsreturRepository.getByMotId("20025925").let { it?.osId shouldBe "999999" }
             val avregningsmelding = readFromResource("/mq/avregning_med_kjent_utbetalingstransaksjon.json")
             jmsProducerAvregning.send(listOf(avregningsmelding))
@@ -156,7 +157,7 @@ internal class AvregningServiceTest : BehaviorSpec({
         setupDatabase("/database/utbetaling_transaksjon.sql")
 
         When("det sendes en avregningsmelding med delYtelseId til MQ som har formatsfeil") {
-            avregningService.start()
+            avregningListenerService.start()
             val avregningsmelding = readFromResource("/mq/avregning_med_formatsfeil.json")
             jmsProducerAvregning.send(listOf(avregningsmelding))
 
@@ -187,7 +188,7 @@ private fun verifyAvregningstransaksjon(
     avregningDatoAvsender: String? = null,
     avregningTransaksjonId: Int? = null,
 ) {
-    val systemId = PropertiesConfig.Configuration().naisAppName
+    val systemId = AVREGNING_LISTENER_SERVICE
     val avregningsgrunnlag = avregningsmelding.avregningsgrunnlag
     with(avregningsretur) {
         osId shouldBe avregningsgrunnlag.oppdragsId.toString()

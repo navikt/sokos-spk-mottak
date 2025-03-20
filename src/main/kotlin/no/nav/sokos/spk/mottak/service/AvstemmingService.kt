@@ -14,6 +14,7 @@ import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQ_BATCH_SIZE
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
+import no.nav.sokos.spk.mottak.domain.AVSTEMMING_SERVICE
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.TransaksjonDetalj
@@ -88,7 +89,7 @@ class AvstemmingService(
 
                     val filInfoIdList = avstemmingInfoList.map { it.filInfoId }
                     dataSource.transaction { session ->
-                        filInfoRepository.updateAvstemmingStatus(filInfoIdList, TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK, null, session)
+                        filInfoRepository.updateAvstemmingStatus(filInfoIdList, TRANS_TILSTAND_OPPDRAG_AVSTEMMING_OK, null, AVSTEMMING_SERVICE, session)
                     }
 
                     logger.info { "Avstemming sendt OK for filInfoId: ${filInfoIdList.joinToString()}" }

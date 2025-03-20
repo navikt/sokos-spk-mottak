@@ -18,6 +18,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.TransaksjonDetalj
 import no.nav.sokos.spk.mottak.domain.TransaksjonOppsummering
+import no.nav.sokos.spk.mottak.domain.VALIDATE_TRANSAKSJON_SERVICE
 import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
@@ -89,6 +90,7 @@ class TransaksjonRepository(
         transaksjonIdList: List<Int>,
         transTilstandIdList: List<Int>,
         transaksjonTilstandType: String,
+        systemId: String,
         vedtaksId: String? = null,
         osStatus: String? = null,
         session: Session,
@@ -100,8 +102,9 @@ class TransaksjonRepository(
                     SET K_TRANS_TILST_T = :transaksjonTilstandType,
                         TREKKVEDTAK_ID_FK = :vedtaksId, 
                         OS_STATUS = :osStatus,
+                        ENDRET_AV = :systemId,
                         DATO_ENDRET = CURRENT_TIMESTAMP,
-                        TRANS_TILSTAND_ID = :transTilstandId
+                        TRANS_TILSTAND_ID = :transTilstandId                        
                     WHERE TRANSAKSJON_ID = :transaksjonId;
                 """.trimIndent(),
                 transaksjonIdList.zip(transTilstandIdList).map { it ->
@@ -111,6 +114,7 @@ class TransaksjonRepository(
                         "transaksjonTilstandType" to transaksjonTilstandType,
                         "vedtaksId" to (vedtaksId?.trimStart { it == '0' }),
                         "osStatus" to osStatus,
+                        "systemId" to systemId,
                     )
                 },
             )
@@ -126,7 +130,7 @@ class TransaksjonRepository(
                 queryOf(
                     """
                     UPDATE T_TRANSAKSJON
-                    SET K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY_EKSIST'
+                    SET K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY_EKSIST', ENDRET_AV = '$VALIDATE_TRANSAKSJON_SERVICE', DATO_ENDRET = CURRENT_TIMESTAMP
                     WHERE TRANSAKSJON_ID IN (SELECT DISTINCT t1.TRANSAKSJON_ID
                                              FROM T_TRANSAKSJON t1
                                                       INNER JOIN T_K_GYLDIG_KOMBIN k1 on (t1.K_ART = k1.K_ART AND t1.K_BELOP_T = k1.K_BELOP_T AND k1.ER_GYLDIG = '1')
@@ -176,7 +180,9 @@ class TransaksjonRepository(
                     """
                     UPDATE T_TRANSAKSJON t
                         SET TRANS_TILSTAND_ID = (SELECT tt.TRANS_TILSTAND_ID
-                                                 FROM T_TRANS_TILSTAND tt WHERE t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID)
+                                                 FROM T_TRANS_TILSTAND tt WHERE t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID),
+                            ENDRET_AV = '$VALIDATE_TRANSAKSJON_SERVICE',
+                            DATO_ENDRET = CURRENT_TIMESTAMP
                         WHERE t.TRANS_TILSTAND_ID IS NULL AND t.K_ANVISER = '$SPK';
                     """.trimIndent(),
                 ),

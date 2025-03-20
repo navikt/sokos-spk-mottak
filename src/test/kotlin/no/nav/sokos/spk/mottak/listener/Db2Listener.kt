@@ -66,8 +66,8 @@ object Db2Listener : TestListener {
 
     private fun resetDatabase() {
         dataSource.transaction { session ->
-            lopeNummerRepository.updateLopeNummer("000033", FILTYPE_ANVISER, session)
-            lopeNummerRepository.updateLopeNummer("000010", FILTYPE_AVREGNING, session)
+            lopeNummerRepository.updateLopeNummer("000033", FILTYPE_ANVISER, "test", session)
+            lopeNummerRepository.updateLopeNummer("000010", FILTYPE_AVREGNING, "test", session)
             session.update(queryOf("DELETE FROM T_INN_TRANSAKSJON"))
             session.update(queryOf("DELETE FROM T_FIL_INFO"))
             session.update(queryOf("DELETE FROM T_PERSON"))

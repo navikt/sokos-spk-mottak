@@ -13,6 +13,7 @@ import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQ_BATCH_SIZE
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_TREKK
+import no.nav.sokos.spk.mottak.domain.SEND_TREKK_SERVICE
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_TREKK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_SENDT_OK
@@ -107,7 +108,19 @@ class SendTrekkService(
         transTilstandStatus: String,
         session: Session,
     ) {
-        val transaksjonTilstandIdList = transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
-        transaksjonRepository.updateBatch(transaksjonIdList, transaksjonTilstandIdList, transTilstandStatus, session = session)
+        val transaksjonTilstandIdList =
+            transaksjonTilstandRepository.insertBatch(
+                transaksjonIdList = transaksjonIdList,
+                transaksjonTilstandType = transTilstandStatus,
+                systemId = SEND_TREKK_SERVICE,
+                session = session,
+            )
+        transaksjonRepository.updateBatch(
+            transaksjonIdList = transaksjonIdList,
+            transTilstandIdList = transaksjonTilstandIdList,
+            transaksjonTilstandType = transTilstandStatus,
+            systemId = SEND_TREKK_SERVICE,
+            session = session,
+        )
     }
 }

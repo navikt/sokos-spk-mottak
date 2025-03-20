@@ -14,6 +14,8 @@ const val SEND_AVREGNINGSRETUR_SERVICE = "SendAvregningsreturService"
 const val SEND_INNLESNINGSRETUR_SERVICE = "SendInnlesningsreturService"
 const val SEND_TREKK_SERVICE = "SendTrekkService"
 const val SEND_UTBETALING_SERVICE = "SendUtbetalingService"
+const val TREKK_LISTENER_SERVICE = "TrekkListenerService"
+const val UTBETALING_LISTENER_SERVICE = "UtbetalingListenerService"
 const val VALIDATE_TRANSAKSJON_SERVICE = "ValidateTransaksjonService"
 
 // FILETYPE
@@ -28,6 +30,9 @@ const val FILTILSTANDTYPE_RET = "RET"
 
 // TRANSAKSJONTYPE
 const val TRANSAKSJONSTATUS_OK = "00"
+
+// OS_STATUS
+const val OS_STATUS_OK = "00"
 
 // RECTYPE
 const val RECTYPE_STARTRECORD = "01"

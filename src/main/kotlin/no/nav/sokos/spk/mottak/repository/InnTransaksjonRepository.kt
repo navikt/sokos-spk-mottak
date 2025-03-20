@@ -10,13 +10,14 @@ import kotliquery.sessionOf
 import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_JA
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_NEI
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.READ_FILE_SERVICE
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
+import no.nav.sokos.spk.mottak.domain.VALIDATE_TRANSAKSJON_SERVICE
 import no.nav.sokos.spk.mottak.domain.record.TransaksjonRecord
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
@@ -114,7 +115,7 @@ class InnTransaksjonRepository(
             session.update(
                 queryOf(
                     """
-                    UPDATE T_INN_TRANSAKSJON SET K_TRANSAKSJON_S='$TRANSAKSJONSTATUS_OK'
+                    UPDATE T_INN_TRANSAKSJON SET K_TRANSAKSJON_S='$TRANSAKSJONSTATUS_OK', ENDRET_AV='$VALIDATE_TRANSAKSJON_SERVICE', DATO_ENDRET=CURRENT TIMESTAMP
                     WHERE K_TRANSAKSJON_S IS NULL                
                     """.trimIndent(),
                 ),
@@ -172,7 +173,7 @@ class InnTransaksjonRepository(
         updateBehandletStatusBatchTimer.recordCallable {
             session.batchPreparedNamedStatement(
                 """
-                UPDATE T_INN_TRANSAKSJON SET BEHANDLET = '$behandlet' WHERE INN_TRANSAKSJON_ID = :innTransaksjonId
+                UPDATE T_INN_TRANSAKSJON SET BEHANDLET = '$behandlet', ENDRET_AV='$VALIDATE_TRANSAKSJON_SERVICE', DATO_ENDRET=CURRENT TIMESTAMP WHERE INN_TRANSAKSJON_ID = :innTransaksjonId
                 """.trimIndent(),
                 innTransaksjonIdList.map { mapOf("innTransaksjonId" to it) },
             )
@@ -188,7 +189,7 @@ class InnTransaksjonRepository(
             session.execute(
                 queryOf(
                     """
-                    UPDATE T_INN_TRANSAKSJON SET K_TRANSAKSJON_S = '$status' WHERE FNR_FK = '$fnr'
+                    UPDATE T_INN_TRANSAKSJON SET K_TRANSAKSJON_S = '$status', ENDRET_AV='$VALIDATE_TRANSAKSJON_SERVICE', DATO_ENDRET=CURRENT TIMESTAMP WHERE FNR_FK = '$fnr'
                     """.trimIndent(),
                 ),
             )
@@ -252,7 +253,6 @@ class InnTransaksjonRepository(
         } ?: 0
 
     private fun List<TransaksjonRecord>.convertToListMap(filInfoId: Long): List<Map<String, Any?>> {
-        val systemId = PropertiesConfig.Configuration().naisAppName
         return this.map { transaksjonRecord ->
             mapOf(
                 "filInfoId" to filInfoId,
@@ -276,9 +276,9 @@ class InnTransaksjonRepository(
                 "belop" to (transaksjonRecord.belop.toIntOrNull() ?: 0),
                 "behandlet" to BEHANDLET_NEI,
                 "datoOpprettet" to LocalDateTime.now(),
-                "opprettetAv" to systemId,
+                "opprettetAv" to READ_FILE_SERVICE,
                 "datoEndret" to LocalDateTime.now(),
-                "endretAv" to systemId,
+                "endretAv" to READ_FILE_SERVICE,
                 "versjon" to "1",
                 "grad" to transaksjonRecord.grad.toIntOrNull(),
                 "gradStr" to transaksjonRecord.grad.trim().ifBlank { null },

@@ -1,4 +1,4 @@
-# SendTrekkTransaksjonToOppdragZService
+# SendTrekkService
 
 Tjenesten er ansvarlig for å sende alle trekktransaksjoner til Oppdragssystemet(OS) som ligger i T_TRANSAKSJON og som ikke er oversendt ennå eller har feilet ved tidligere oversendelsesforsøk.
 

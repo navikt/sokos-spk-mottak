@@ -4,6 +4,7 @@ import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.api.model.PortBinding
 import com.github.dockerjava.api.model.Ports
 import com.zaxxer.hikari.HikariDataSource
+import io.kotest.common.KotestInternal
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
 import io.kotest.core.test.TestCase
@@ -52,6 +53,7 @@ object PostgresListener : TestListener {
             .migrationsExecuted
     }
 
+    @KotestInternal
     override suspend fun afterEach(
         testCase: TestCase,
         result: TestResult,

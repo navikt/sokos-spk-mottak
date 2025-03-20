@@ -18,10 +18,12 @@ import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQ_BATCH_SIZE
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.BELOPTYPE_TIL_OPPDRAG
+import no.nav.sokos.spk.mottak.domain.SEND_UTBETALING_SERVICE
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_SENDT_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TIL_OPPDRAG
 import no.nav.sokos.spk.mottak.domain.Transaksjon
+import no.nav.sokos.spk.mottak.domain.UTBETALING_LISTENER_SERVICE
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdrag110
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdragsLinje150
 import no.nav.sokos.spk.mottak.exception.MottakException
@@ -111,7 +113,13 @@ class SendUtbetalingService(
 
                         if (errorCounter.get() == 0) {
                             dataSource.transaction { session ->
-                                filInfoRepository.updateAvstemmingStatus(transaksjonList.distinctBy { it.filInfoId }.map { it.filInfoId }, TRANS_TILSTAND_OPPDRAG_SENDT_OK, LocalDate.now(), session)
+                                filInfoRepository.updateAvstemmingStatus(
+                                    transaksjonList.distinctBy { it.filInfoId }.map { it.filInfoId },
+                                    TRANS_TILSTAND_OPPDRAG_SENDT_OK,
+                                    LocalDate.now(),
+                                    SEND_UTBETALING_SERVICE,
+                                    session,
+                                )
                             }
                         }
                     }
@@ -163,7 +171,19 @@ class SendUtbetalingService(
         transTilstandStatus: String,
         session: Session,
     ) {
-        val transTilstandIdList = transaksjonTilstandRepository.insertBatch(transaksjonIdList, transTilstandStatus, session = session)
-        transaksjonRepository.updateBatch(transaksjonIdList, transTilstandIdList, transTilstandStatus, session = session)
+        val transTilstandIdList =
+            transaksjonTilstandRepository.insertBatch(
+                transaksjonIdList = transaksjonIdList,
+                transaksjonTilstandType = transTilstandStatus,
+                systemId = UTBETALING_LISTENER_SERVICE,
+                session = session,
+            )
+        transaksjonRepository.updateBatch(
+            transaksjonIdList = transaksjonIdList,
+            transTilstandIdList = transTilstandIdList,
+            transaksjonTilstandType = transTilstandStatus,
+            systemId = SEND_UTBETALING_SERVICE,
+            session = session,
+        )
     }
 }

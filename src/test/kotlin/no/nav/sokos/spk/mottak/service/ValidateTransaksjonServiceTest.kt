@@ -25,7 +25,6 @@ import no.nav.sokos.spk.mottak.TestData.hentIdenterBolkResultMock
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.TestHelper.verifyTransaksjon
 import no.nav.sokos.spk.mottak.TestHelper.verifyTransaksjonTilstand
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.AvvikTransaksjon
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_JA
 import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
@@ -42,6 +41,7 @@ import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_BELOPSTYPE
 import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_DATO
 import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_FNR
 import no.nav.sokos.spk.mottak.domain.TransaksjonStatus.UGYLDIG_KOMBINASJON_AV_ART_BELOPSTYPE
+import no.nav.sokos.spk.mottak.domain.VALIDATE_TRANSAKSJON_SERVICE
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
@@ -577,7 +577,7 @@ private fun verifyAvvikTransaksjon(
     innTransaksjon: InnTransaksjon,
     valideringsfeil: String? = null,
 ) {
-    val systemId = PropertiesConfig.Configuration().naisAppName
+    val systemId = VALIDATE_TRANSAKSJON_SERVICE
 
     avvikTransaksjon.avvikTransaksjonId shouldBe innTransaksjon.innTransaksjonId
     avvikTransaksjon.filInfoId shouldBe innTransaksjon.filInfoId

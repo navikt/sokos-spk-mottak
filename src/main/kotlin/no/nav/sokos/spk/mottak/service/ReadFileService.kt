@@ -12,6 +12,7 @@ import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_AVV
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FilStatus
+import no.nav.sokos.spk.mottak.domain.READ_FILE_SERVICE
 import no.nav.sokos.spk.mottak.domain.record.RecordData
 import no.nav.sokos.spk.mottak.domain.record.SluttRecord
 import no.nav.sokos.spk.mottak.domain.record.StartRecord
@@ -90,9 +91,9 @@ class ReadFileService(
         recordData: RecordData,
         session: TransactionalSession,
     ) {
-        lopenummerRepository.updateLopeNummer(recordData.startRecord.filLopenummer, FILTYPE_ANVISER, session)
+        lopenummerRepository.updateLopeNummer(recordData.startRecord.filLopenummer, FILTYPE_ANVISER, READ_FILE_SERVICE, session)
 
-        val filInfo = recordData.startRecord.toFileInfo(recordData.filNavn!!, FILTILSTANDTYPE_GOD, FilStatus.OK.code)
+        val filInfo = recordData.startRecord.toFileInfo(recordData.filNavn!!, FILTILSTANDTYPE_GOD, FilStatus.OK.code, null, READ_FILE_SERVICE)
         val filInfoId = filInfoRepository.insert(filInfo, session)!!
 
         var antallInnTransaksjon = 0
@@ -120,7 +121,7 @@ class ReadFileService(
                 exception.statusCode != FilStatus.UGYLDIG_ANVISER.code &&
                 exception.statusCode != FilStatus.UGYLDIG_FILTYPE.code
             ) {
-                lopenummerRepository.updateLopeNummer(recordData.startRecord.filLopenummer, FILTYPE_ANVISER, session)
+                lopenummerRepository.updateLopeNummer(recordData.startRecord.filLopenummer, FILTYPE_ANVISER, READ_FILE_SERVICE, session)
             } else {
                 logger.error { "Kan ikke oppdatere løpenummer for ${recordData.filNavn} siden betingelsene ikke er tilfredsstilt" }
             }
@@ -131,6 +132,7 @@ class ReadFileService(
                     FILTILSTANDTYPE_AVV,
                     exception.statusCode,
                     exception.message,
+                    READ_FILE_SERVICE,
                 )
             filInfoRepository.insert(filInfo, session)!!
 

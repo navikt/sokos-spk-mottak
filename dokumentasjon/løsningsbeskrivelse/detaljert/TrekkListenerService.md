@@ -1,7 +1,7 @@
-# JmsListenerService
+TrekkListenerService
 
 Tjenesten lytter til kvitteringsmeldinger sendt fra OS og lagrer nødvendig meldingsinformasjon i T_TRANSAKSJON og T_TRANS_TILSTAND. Kvitteringsmeldinger inneholder informasjon om status til behandlingen av
-  transaksjonene (utbetaling- og trekktransaksjoner) i OS.
+  transaksjonene i OS.
 
 For kvitteringsmeldinger sjekkes statusinformasjonen (**alvorlighetsgrad**) og dersom
 

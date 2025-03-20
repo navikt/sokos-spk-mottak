@@ -7,12 +7,12 @@ import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.ANVISER_FIL_BESKRIVELSE
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_RET
 import no.nav.sokos.spk.mottak.domain.FILTYPE_INNLEST
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
+import no.nav.sokos.spk.mottak.domain.SEND_INNLESNINGSRETUR_SERVICE
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
@@ -70,7 +70,7 @@ class SendInnlesningsreturService(
             }
             anvisningFil.append(FileParser.createSluttRecord(antallTransaksjon + 2, sumBelop))
 
-            val applicationNavn = PropertiesConfig.Configuration().naisAppName
+            val systemId = SEND_INNLESNINGSRETUR_SERVICE
             filInfoRepository.insert(
                 FilInfo(
                     filInfoId = null,
@@ -84,9 +84,9 @@ class SendInnlesningsreturService(
                     datoMottatt = filInfo.datoMottatt,
                     datoSendt = null,
                     datoOpprettet = LocalDateTime.now(),
-                    opprettetAv = applicationNavn,
+                    opprettetAv = systemId,
                     datoEndret = LocalDateTime.now(),
-                    endretAv = applicationNavn,
+                    endretAv = systemId,
                     versjon = 1,
                 ),
                 session,

@@ -35,7 +35,7 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 const val TREKK_BATCH_SIZE = 2
 
-internal class SendTrekkTransaksjonToOppdragZServiceTest :
+internal class SendTrekkServiceTest :
     BehaviorSpec({
         extensions(listOf(Db2Listener, MQListener))
 
@@ -149,7 +149,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
             When("henter trekk og sender til OppdragZ") {
                 clearMocks(Db2Listener.transaksjonTilstandRepository)
                 every {
-                    Db2Listener.transaksjonRepository.updateBatch(any(), any(), eq(TRANS_TILSTAND_TREKK_SENDT_OK), any(), any(), any())
+                    Db2Listener.transaksjonRepository.updateBatch(any(), any(), eq(TRANS_TILSTAND_TREKK_SENDT_OK), any(), any(), any(), any())
                 } throws Exception("Feiler ved oppdatering av transtilstand til TSO i transaksjon-tabellen!")
                 trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag()
                 Then("skal ingen transaksjoner blir oppdatert med status TSO (Trekk Sendt Ok), men beholder status OPR (Opprettet)") {
@@ -181,7 +181,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
             When("henter trekk og sender til OppdragZ") {
                 clearMocks(Db2Listener.transaksjonRepository)
                 every {
-                    Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_TREKK_SENDT_OK, any(), any(), any())
+                    Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_TREKK_SENDT_OK, any(), any(), any(), any())
                 } throws Exception("Feiler ved opprettelse av transaksjoner i transaksjontilstand-tabellen!")
                 trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag()
                 Then("skal ingen transaksjoner blir oppdatert med status TSO (Trekk Sendt Ok), men beholder status OPR (Opprettet)") {
@@ -213,7 +213,7 @@ internal class SendTrekkTransaksjonToOppdragZServiceTest :
             When("henter trekk og sender til OppdragZ") {
                 clearMocks(Db2Listener.transaksjonRepository)
                 every {
-                    Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_TREKK_SENDT_FEIL, any(), any(), any())
+                    Db2Listener.transaksjonTilstandRepository.insertBatch(any(), TRANS_TILSTAND_TREKK_SENDT_FEIL, any(), any(), any(), any())
                 } throws DatabaseException("Feiler ved opprettelse av transaksjoner med feilstatus i transaksjontilstand-tabellen!")
 
                 trekkTransaksjonTilOppdragService.getTrekkTransaksjonAndSendToOppdrag()

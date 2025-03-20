@@ -1,4 +1,4 @@
-# WriteInnlesningsreturFileService
+# SendInnlesningsreturService
 Tjenesten produserer en returfil for hver anvisningsfil som er mottat fra SPK. Denne filen har samme format og innhold som anvisningsfilen men har i tillegg lagt inn informasjon om transaksjonenes valideringstatus.
 
 **Startbetingelse:** Dersom T_INN_TRANSAKSJON inneholder transaksjoner som er ferdigbehandlet, dvs kolonnen BEHANDLET i T_INN_TRANSAKSJON er J.

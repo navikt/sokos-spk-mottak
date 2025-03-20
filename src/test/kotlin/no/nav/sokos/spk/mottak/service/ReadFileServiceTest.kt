@@ -4,6 +4,7 @@ import java.io.IOException
 import java.time.LocalDate
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.common.KotestInternal
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -30,7 +31,6 @@ import no.nav.sokos.spk.mottak.SPK_FILE_FEIL
 import no.nav.sokos.spk.mottak.SPK_OK
 import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.TestHelper.verifyFilInfo
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpConfig
 import no.nav.sokos.spk.mottak.domain.BEHANDLET_NEI
 import no.nav.sokos.spk.mottak.domain.BELOPSTYPE_SKATTEPLIKTIG_UTBETALING
@@ -40,6 +40,7 @@ import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.LopeNummer
+import no.nav.sokos.spk.mottak.domain.READ_FILE_SERVICE
 import no.nav.sokos.spk.mottak.domain.RECTYPE_TRANSAKSJONSRECORD
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.exception.MottakException
@@ -49,7 +50,8 @@ import no.nav.sokos.spk.mottak.listener.SftpListener
 
 private const val MAX_LOPENUMMER = 33
 
-internal class ReadParseFileServiceTest :
+@OptIn(KotestInternal::class)
+internal class ReadFileServiceTest :
     BehaviorSpec({
         extensions(listOf(Db2Listener, SftpListener))
 
@@ -373,9 +375,9 @@ private fun verifyInntransaksjon(
     innTransaksjon.belop shouldBe 346900
     innTransaksjon.behandlet shouldBe BEHANDLET_NEI
     innTransaksjon.datoOpprettet.toLocalDate() shouldBe LocalDate.now()
-    innTransaksjon.opprettetAv shouldBe PropertiesConfig.Configuration().naisAppName
+    innTransaksjon.opprettetAv shouldBe READ_FILE_SERVICE
     innTransaksjon.datoEndret.toLocalDate() shouldBe LocalDate.now()
-    innTransaksjon.endretAv shouldBe PropertiesConfig.Configuration().naisAppName
+    innTransaksjon.endretAv shouldBe READ_FILE_SERVICE
     innTransaksjon.versjon shouldBe 1
     innTransaksjon.grad shouldBe 100
     innTransaksjon.gradStr shouldBe "100"
@@ -388,6 +390,6 @@ private fun verifyLopenummer(lopeNummer: LopeNummer?) {
         it.filType shouldBe FILTYPE_ANVISER
         it.anviser shouldBe SPK
         it.datoEndret.toLocalDate() shouldBe LocalDate.now()
-        it.endretAv shouldBe PropertiesConfig.Configuration().naisAppName
+        it.endretAv shouldBe READ_FILE_SERVICE
     }
 }

@@ -3,7 +3,6 @@ package no.nav.sokos.spk.mottak.domain
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.util.Utils.booleanToString
 
 data class InnTransaksjon(
@@ -42,7 +41,7 @@ fun InnTransaksjon.mapToTransaksjon(
     transaksjon: Transaksjon?,
     lastFagOmraadeMap: Map<Int, String>,
 ): Transaksjon {
-    val systemId = PropertiesConfig.Configuration().naisAppName
+    val systemId = VALIDATE_TRANSAKSJON_SERVICE
     return Transaksjon(
         transaksjonId = this.innTransaksjonId,
         filInfoId = this.filInfoId,

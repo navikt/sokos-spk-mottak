@@ -11,18 +11,20 @@ import jakarta.xml.bind.JAXBElement
 import no.trygdeetaten.skjema.oppdrag.ObjectFactory
 import no.trygdeetaten.skjema.oppdrag.Oppdrag
 
-import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FilInfo
 import no.nav.sokos.spk.mottak.domain.FilStatus
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
+import no.nav.sokos.spk.mottak.domain.READ_FILE_SERVICE
 import no.nav.sokos.spk.mottak.domain.SPK
 import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
 import no.nav.sokos.spk.mottak.domain.Transaksjon
 import no.nav.sokos.spk.mottak.domain.TransaksjonTilstand
+import no.nav.sokos.spk.mottak.domain.VALIDATE_TRANSAKSJON_SERVICE
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdrag110
 import no.nav.sokos.spk.mottak.domain.converter.OppdragConverter.oppdragsLinje150
+import no.nav.sokos.spk.mottak.listener.Db2Listener
 
 object TestHelper {
     fun readFromResource(filename: String): String {
@@ -40,6 +42,7 @@ object TestHelper {
         feilTekst: String? = null,
         fileType: String = FILTYPE_ANVISER,
         anviser: String = SPK,
+        systemId: String = READ_FILE_SERVICE,
     ) {
         filInfo shouldNotBe null
         filInfo?.let {
@@ -52,10 +55,10 @@ object TestHelper {
             it.lopeNr shouldNotBe null
             it.feilTekst shouldBe feilTekst
             it.datoOpprettet.toLocalDate() shouldBe LocalDate.now()
-            it.opprettetAv shouldBe PropertiesConfig.Configuration().naisAppName
+            it.opprettetAv shouldBe systemId
             it.datoSendt shouldBe null
             it.datoEndret.toLocalDate() shouldBe LocalDate.now()
-            it.endretAv shouldBe PropertiesConfig.Configuration().naisAppName
+            it.endretAv shouldBe systemId
             it.versjon shouldBe 1
         }
     }
@@ -67,7 +70,7 @@ object TestHelper {
         fnrEndret: String,
         transaksjonType: String = TRANSAKSJONSTATUS_OK,
     ) {
-        val systemId = PropertiesConfig.Configuration().naisAppName
+        val systemId = VALIDATE_TRANSAKSJON_SERVICE
 
         transaksjon.transaksjonId shouldBe innTransaksjon.innTransaksjonId
         transaksjon.filInfoId shouldBe innTransaksjon.filInfoId
@@ -104,9 +107,8 @@ object TestHelper {
     fun verifyTransaksjonTilstand(
         transaksjonTilstand: TransaksjonTilstand,
         innTransaksjon: InnTransaksjon,
+        systemId: String = VALIDATE_TRANSAKSJON_SERVICE,
     ) {
-        val systemId = PropertiesConfig.Configuration().naisAppName
-
         transaksjonTilstand.transaksjonId shouldBe innTransaksjon.innTransaksjonId
         transaksjonTilstand.transaksjonTilstandId shouldNotBe null
         transaksjonTilstand.transaksjonTilstandType shouldBe TRANS_TILSTAND_OPPRETTET
@@ -132,5 +134,27 @@ object TestHelper {
         this.forEach { stringBuilder.append(it).appendLine() }
         stringBuilder.setLength(stringBuilder.length - 1)
         return stringBuilder.toString()
+    }
+
+    fun verifyTransaksjonState(
+        transaksjonIdList: List<Int>,
+        transaksjonStatus: String,
+        osStatus: String,
+    ) {
+        transaksjonIdList.forEach {
+            val transaksjon = Db2Listener.transaksjonRepository.getByTransaksjonId(it)!!
+            transaksjon.transTilstandType shouldBe transaksjonStatus
+            transaksjon.osStatus shouldBe osStatus
+        }
+    }
+
+    fun verifyTransaksjonTilstandState(
+        transaksjonIdList: List<Int>,
+        transaksjonTilstandStatus: String,
+    ) {
+        val transTilstandList = Db2Listener.transaksjonTilstandRepository.findAllByTransaksjonId(transaksjonIdList)
+        transTilstandList.map {
+            it.transaksjonTilstandType == transaksjonTilstandStatus
+        }
     }
 }
