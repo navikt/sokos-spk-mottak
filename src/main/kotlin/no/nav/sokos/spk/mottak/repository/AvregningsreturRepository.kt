@@ -137,7 +137,7 @@ class AvregningsreturRepository(
                                KONTO,
                                MOT_ID,
                                PERSON_ID,
-                               KREDITOR_REF
+                               KREDITOR_REF,
                                DATO_OPPRETTET,
                                OPPRETTET_AV,
                                DATO_ENDRET,
