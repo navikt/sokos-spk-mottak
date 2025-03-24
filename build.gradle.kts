@@ -8,9 +8,9 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.1.10"
-    kotlin("plugin.serialization") version "2.1.10"
-    id("com.expediagroup.graphql") version "8.3.0"
+    kotlin("jvm") version "2.1.20"
+    kotlin("plugin.serialization") version "2.1.20"
+    id("com.expediagroup.graphql") version "8.4.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
@@ -43,7 +43,7 @@ repositories {
 
 val ktorVersion = "3.1.1"
 val jschVersion = "0.2.24"
-val logbackVersion = "1.5.17"
+val logbackVersion = "1.5.18"
 val logstashVersion = "8.0"
 val jacksonVersion = "2.15.3"
 val micrometerVersion = "1.14.5"
@@ -61,14 +61,14 @@ val db2JccVersion = "12.1.0.0"
 val kotliqueryVersion = "1.9.1"
 val testcontainersVersion = "1.20.6"
 val h2Version = "2.3.232"
-val flywayVersion = "11.4.0"
+val flywayVersion = "11.4.1"
 val postgresVersion = "42.7.5"
 val dbSchedulerVersion = "15.3.0"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20250218124429_8804209"
 val ibmmqVersion = "9.4.2.0"
-val activemqVersion = "2.39.0"
-val graphqlClientVersion = "8.3.0"
+val activemqVersion = "2.40.0"
+val graphqlClientVersion = "8.4.0"
 val jaxbVersion = "4.0.5"
 
 dependencies {
