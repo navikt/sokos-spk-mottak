@@ -80,7 +80,7 @@ class AvregningListenerService(
     }
 
     private fun processAvregningsgrunnlagMessage(avregningsgrunnlag: Avregningsgrunnlag) {
-        if (eksistererAvregningstransaksjon(avregningsgrunnlag)) {
+        if (avregningsreturRepository.existsByBilagsnr(avregningsgrunnlag.bilagsnrSerie, avregningsgrunnlag.bilagsnr) == 1) {
             logger.warn {
                 "Avregningstransaksjon eksisterer allerede for avregningsgrunnlag. " +
                     "oppdragsId: ${avregningsgrunnlag.oppdragsId}, " +
@@ -95,20 +95,9 @@ class AvregningListenerService(
         }
         val avregningstransaksjon = findTransaksjon(avregningsgrunnlag)
         val avregningsretur = createAvregningsretur(avregningsgrunnlag, avregningstransaksjon)
-
         dataSource.transaction { session ->
             avregningsreturRepository.insert(avregningsretur, session)
         }
-    }
-
-    private fun eksistererAvregningstransaksjon(avregningsgrunnlag: Avregningsgrunnlag): Boolean {
-        return run {
-            avregningsgrunnlag.delytelseId?.let { motId ->
-                avregningsreturRepository.getByMotId(motId)
-            } ?: avregningsgrunnlag.trekkvedtakId?.let { trekkvedtakId ->
-                avregningsreturRepository.getByTrekkvedtakId(trekkvedtakId.toString())
-            }
-        } != null
     }
 
     private fun findTransaksjon(avregningsgrunnlag: Avregningsgrunnlag): Avregningstransaksjon? {
