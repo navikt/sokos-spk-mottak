@@ -19,8 +19,10 @@ class AvregningsreturRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val insertTimer = Metrics.timer(DATABASE_CALL, "AvregningsreturRepository", "insert")
-    private val getByTransaksjonIdTimer =
-        Metrics.timer(DATABASE_CALL, "AvregningsreturRepository", "getByTransaksjonId")
+    private val getByMotIdTimer =
+        Metrics.timer(DATABASE_CALL, "AvregningsreturRepository", "getByMotId")
+    private val getByTrekkedtakIdTimer =
+        Metrics.timer(DATABASE_CALL, "AvregningsreturRepository", "getByTrekkvedtakId")
     private val getReturTilAnviserWhichIsNotSentTimer =
         Metrics.timer(DATABASE_CALL, "ReturAnviserTransaksjonRepository", "getReturTilAnviserWhichIsNotSent")
     private val updateBatchTimer = Metrics.timer(DATABASE_CALL, "ReturAnviserTransaksjonRepository", "updateBatch")
@@ -75,28 +77,6 @@ class AvregningsreturRepository(
                     avregningsretur.asMap(),
                 ),
             )
-        }
-
-    fun existsByBilagsnr(
-        bilagsnrSerie: String,
-        bilagsnr: String,
-    ): Int? =
-        using(sessionOf(dataSource)) { session ->
-            getByTransaksjonIdTimer.recordCallable {
-                session.single(
-                    queryOf(
-                        """
-                        SELECT EXISTS(
-                            SELECT 1
-                            FROM T_RETUR_TIL_ANV
-                            WHERE BILAGSNR_SERIE = ? AND BILAGSNR = ?
-                        ) AS ROW_EXISTS
-                        """.trimIndent(),
-                        bilagsnrSerie,
-                        bilagsnr,
-                    ),
-                ) { row -> row.int("ROW_EXISTS") }
-            }
         }
 
     fun getReturTilAnviserWhichIsNotSent(): List<Avregningsretur> =
@@ -179,7 +159,7 @@ class AvregningsreturRepository(
     // Kun for testing
     fun getByMotId(motId: String): Avregningsretur? =
         using(sessionOf(dataSource)) { session ->
-            getByTransaksjonIdTimer.recordCallable {
+            getByMotIdTimer.recordCallable {
                 session.single(
                     queryOf(
                         """
@@ -233,7 +213,7 @@ class AvregningsreturRepository(
     // Kun for testing
     fun getByTrekkvedtakId(trekkvedtakId: String): Avregningsretur? =
         using(sessionOf(dataSource)) { session ->
-            getByTransaksjonIdTimer.recordCallable {
+            getByTrekkedtakIdTimer.recordCallable {
                 session.single(
                     queryOf(
                         """
