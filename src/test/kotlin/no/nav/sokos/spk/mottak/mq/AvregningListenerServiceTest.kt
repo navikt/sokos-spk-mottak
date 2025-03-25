@@ -134,27 +134,6 @@ internal class AvregningListenerServiceTest : BehaviorSpec({
 
     Given("det finnes avregningsmeldinger som skal sendes fra UR Z") {
         setupDatabase("/database/utbetaling_transaksjon.sql")
-        setupDatabase("/database/avregningstransaksjon.sql")
-
-        When("det sendes en avregningsmelding med delYtelseId til MQ som allerede eksisterer i databasen") {
-            avregningListenerService.start()
-            Db2Listener.avregningsreturRepository.getByMotId("20025925").let { it?.osId shouldBe "999999" }
-            val avregningsmelding = readFromResource("/mq/avregning_med_kjent_utbetalingstransaksjon.json")
-            jmsProducerAvregning.send(listOf(avregningsmelding))
-
-            Then("blir det mottatt en melding som er duplikat og som ikke blir lagret i databasen") {
-                mqAvregningListenerMetricCounter.longValue shouldBe 5
-                runBlocking {
-                    delay(2000)
-                    Db2Listener.avregningsreturRepository.getByMotId("20025925").let { it?.osId shouldBe "999999" }
-                    Db2Listener.avregningsreturRepository.getNoOfRows() shouldBe 1
-                }
-            }
-        }
-    }
-
-    Given("det finnes avregningsmeldinger som skal sendes fra UR Z") {
-        setupDatabase("/database/utbetaling_transaksjon.sql")
 
         When("det sendes en avregningsmelding med delYtelseId til MQ som har formatsfeil") {
             avregningListenerService.start()
@@ -162,7 +141,7 @@ internal class AvregningListenerServiceTest : BehaviorSpec({
             jmsProducerAvregning.send(listOf(avregningsmelding))
 
             Then("blir meldingen forkastet pga formatsfeil i 'tomdato'") {
-                mqAvregningListenerMetricCounter.longValue shouldBe 6
+                mqAvregningListenerMetricCounter.longValue shouldBe 5
                 runBlocking {
                     delay(2000)
                     Db2Listener.avregningsreturRepository.getNoOfRows() shouldBe 0

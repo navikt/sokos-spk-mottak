@@ -460,12 +460,12 @@ CREATE TABLE T_RETUR_TIL_ANV
     FIL_INFO_UT_ID    INTEGER,
     DATO_VALUTERING   VARCHAR(20),
     KONTO             VARCHAR(20),
+    MOT_ID            VARCHAR(10),
+    PERSON_ID         VARCHAR(30),
+    KREDITOR_REF      VARCHAR(30),
     DATO_OPPRETTET    TIMESTAMP(6) not null,
     OPPRETTET_AV      VARCHAR(50)  not null,
     DATO_ENDRET       TIMESTAMP(6) not null,
     ENDRET_AV         VARCHAR(50)  not null,
-    VERSJON           INTEGER      not null,
-    MOT_ID            VARCHAR(10),
-    PERSON_ID         VARCHAR(30),
-    KREDITOR_REF      VARCHAR(30)
+    VERSJON           INTEGER      not null
 );

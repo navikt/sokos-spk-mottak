@@ -19,8 +19,10 @@ class AvregningsreturRepository(
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) {
     private val insertTimer = Metrics.timer(DATABASE_CALL, "AvregningsreturRepository", "insert")
-    private val getByTransaksjonIdTimer =
-        Metrics.timer(DATABASE_CALL, "AvregningsreturRepository", "getByTransaksjonId")
+    private val getByMotIdTimer =
+        Metrics.timer(DATABASE_CALL, "AvregningsreturRepository", "getByMotId")
+    private val getByTrekkedtakIdTimer =
+        Metrics.timer(DATABASE_CALL, "AvregningsreturRepository", "getByTrekkvedtakId")
     private val getReturTilAnviserWhichIsNotSentTimer =
         Metrics.timer(DATABASE_CALL, "ReturAnviserTransaksjonRepository", "getReturTilAnviserWhichIsNotSent")
     private val updateBatchTimer = Metrics.timer(DATABASE_CALL, "ReturAnviserTransaksjonRepository", "updateBatch")
@@ -77,59 +79,6 @@ class AvregningsreturRepository(
             )
         }
 
-    fun getByMotId(motId: String): Avregningsretur? =
-        using(sessionOf(dataSource)) { session ->
-            getByTransaksjonIdTimer.recordCallable {
-                session.single(
-                    queryOf(
-                        """
-                        SELECT RETUR_TIL_ANV_ID,
-                        RECTYPE,
-                        K_RETUR_T,
-                        K_ANVISER,
-                        OS_ID_FK,
-                        OS_LINJE_ID_FK,
-                        TREKKVEDTAK_ID_FK,
-                        GJELDER_ID,
-                        FNR_FK,
-                        DATO_STATUS,
-                        STATUS,
-                        BILAGSNR_SERIE,
-                        BILAGSNR,
-                        DATO_FOM,
-                        DATO_TOM,
-                        BELOP,
-                        DEBET_KREDIT,
-                        UTBETALING_TYPE,
-                        TRANS_TEKST,
-                        TRANS_EKS_ID_FK,
-                        DATO_AVSENDER,
-                        UTBETALES_TIL,
-                        STATUS_TEKST,
-                        RETURTYPE_KODE,
-                        DUPLIKAT,
-                        TRANSAKSJON_ID,
-                        FIL_INFO_INN_ID,
-                        FIL_INFO_UT_ID,
-                        DATO_VALUTERING,
-                        KONTO,
-                        MOT_ID,
-                        PERSON_ID,
-                        KREDITOR_REF,
-                        DATO_OPPRETTET,
-                        OPPRETTET_AV,
-                        DATO_ENDRET,
-                        ENDRET_AV,
-                        VERSJON
-                            FROM T_RETUR_TIL_ANV 
-                            WHERE MOT_ID = '$motId'
-                        """.trimIndent(),
-                    ),
-                    mapToAvregningsretur,
-                )
-            }
-        }
-
     fun getReturTilAnviserWhichIsNotSent(): List<Avregningsretur> =
         using(sessionOf(dataSource)) { session ->
             getReturTilAnviserWhichIsNotSentTimer.recordCallable {
@@ -166,14 +115,14 @@ class AvregningsreturRepository(
                                FIL_INFO_UT_ID,
                                DATO_VALUTERING,
                                KONTO,
+                               MOT_ID,
+                               PERSON_ID,
+                               KREDITOR_REF,
                                DATO_OPPRETTET,
                                OPPRETTET_AV,
                                DATO_ENDRET,
                                ENDRET_AV,
-                               VERSJON,
-                               MOT_ID,
-                               PERSON_ID,
-                               KREDITOR_REF
+                               VERSJON
                         FROM T_RETUR_TIL_ANV
                         WHERE K_RETUR_T = 'AVR' AND K_ANVISER = '$SPK' AND FIL_INFO_UT_ID is null;
                         """.trimIndent(),
@@ -183,9 +132,34 @@ class AvregningsreturRepository(
             }
         }
 
-    fun getByTrekkvedtakId(trekkvedtakId: String): Avregningsretur? =
+    fun updateBatch(
+        returTilAnviserIdList: List<Int>,
+        filInfoUtId: Int,
+        session: Session,
+    ) {
+        updateBatchTimer.recordCallable {
+            session.batchPreparedNamedStatement(
+                """
+                UPDATE T_RETUR_TIL_ANV
+                    SET FIL_INFO_UT_ID = :filInfoUtId, 
+                        DATO_ENDRET = CURRENT_TIMESTAMP, 
+                        ENDRET_AV = '$SEND_AVREGNINGSRETUR_SERVICE'
+                    WHERE RETUR_TIL_ANV_ID = :returTilAnviserId
+                """.trimIndent(),
+                returTilAnviserIdList.map { returTilAnviserId ->
+                    mapOf(
+                        "filInfoUtId" to filInfoUtId,
+                        "returTilAnviserId" to returTilAnviserId,
+                    )
+                },
+            )
+        }
+    }
+
+    // Kun for testing
+    fun getByMotId(motId: String): Avregningsretur? =
         using(sessionOf(dataSource)) { session ->
-            getByTransaksjonIdTimer.recordCallable {
+            getByMotIdTimer.recordCallable {
                 session.single(
                     queryOf(
                         """
@@ -227,7 +201,61 @@ class AvregningsreturRepository(
                         DATO_ENDRET,
                         ENDRET_AV,
                         VERSJON
-                            FROM T_RETUR_TIL_ANV 
+                            FROM T_RETUR_TIL_ANV
+                            WHERE MOT_ID = '$motId'
+                        """.trimIndent(),
+                    ),
+                    mapToAvregningsretur,
+                )
+            }
+        }
+
+    // Kun for testing
+    fun getByTrekkvedtakId(trekkvedtakId: String): Avregningsretur? =
+        using(sessionOf(dataSource)) { session ->
+            getByTrekkedtakIdTimer.recordCallable {
+                session.single(
+                    queryOf(
+                        """
+                        SELECT RETUR_TIL_ANV_ID,
+                        RECTYPE,
+                        K_RETUR_T,
+                        K_ANVISER,
+                        OS_ID_FK,
+                        OS_LINJE_ID_FK,
+                        TREKKVEDTAK_ID_FK,
+                        GJELDER_ID,
+                        FNR_FK,
+                        DATO_STATUS,
+                        STATUS,
+                        BILAGSNR_SERIE,
+                        BILAGSNR,
+                        DATO_FOM,
+                        DATO_TOM,
+                        BELOP,
+                        DEBET_KREDIT,
+                        UTBETALING_TYPE,
+                        TRANS_TEKST,
+                        TRANS_EKS_ID_FK,
+                        DATO_AVSENDER,
+                        UTBETALES_TIL,
+                        STATUS_TEKST,
+                        RETURTYPE_KODE,
+                        DUPLIKAT,
+                        TRANSAKSJON_ID,
+                        FIL_INFO_INN_ID,
+                        FIL_INFO_UT_ID,
+                        DATO_VALUTERING,
+                        KONTO,
+                        MOT_ID,
+                        PERSON_ID,
+                        KREDITOR_REF,
+                        DATO_OPPRETTET,
+                        OPPRETTET_AV,
+                        DATO_ENDRET,
+                        ENDRET_AV,
+                        VERSJON
+                            FROM T_RETUR_TIL_ANV
                             WHERE TREKKVEDTAK_ID_FK = '$trekkvedtakId';
                         """.trimIndent(),
                     ),
@@ -243,30 +271,6 @@ class AvregningsreturRepository(
                 queryOf("SELECT COUNT(*) FROM T_RETUR_TIL_ANV"),
             ) { row -> row.int(1) }
         }
-
-    fun updateBatch(
-        returTilAnviserIdList: List<Int>,
-        filInfoUtId: Int,
-        session: Session,
-    ) {
-        updateBatchTimer.recordCallable {
-            session.batchPreparedNamedStatement(
-                """
-                UPDATE T_RETUR_TIL_ANV
-                    SET FIL_INFO_UT_ID = :filInfoUtId, 
-                        DATO_ENDRET = CURRENT_TIMESTAMP, 
-                        ENDRET_AV = '$SEND_AVREGNINGSRETUR_SERVICE'
-                    WHERE RETUR_TIL_ANV_ID = :returTilAnviserId
-                """.trimIndent(),
-                returTilAnviserIdList.map { returTilAnviserId ->
-                    mapOf(
-                        "filInfoUtId" to filInfoUtId,
-                        "returTilAnviserId" to returTilAnviserId,
-                    )
-                },
-            )
-        }
-    }
 
     private val mapToAvregningsretur: (Row) -> Avregningsretur = { row ->
         Avregningsretur(
@@ -293,20 +297,21 @@ class AvregningsreturRepository(
             datoAvsender = row.localDate("DATO_AVSENDER"),
             utbetalesTil = row.string("UTBETALES_TIL"),
             statusTekst = row.stringOrNull("STATUS_TEKST"),
+            returtypeKode = row.stringOrNull("RETURTYPE_KODE"),
             duplikat = row.stringOrNull("DUPLIKAT"),
             transaksjonId = row.intOrNull("TRANSAKSJON_ID"),
             filInfoInnId = row.int("FIL_INFO_INN_ID"),
             filInfoUtId = row.intOrNull("FIL_INFO_UT_ID"),
             datoValutering = row.string("DATO_VALUTERING"),
             konto = row.string("KONTO"),
+            motId = row.stringOrNull("MOT_ID"),
+            personId = row.stringOrNull("PERSON_ID"),
+            kreditorRef = row.stringOrNull("KREDITOR_REF"),
             datoOpprettet = row.localDateTime("DATO_OPPRETTET"),
             opprettetAv = row.string("OPPRETTET_AV"),
             datoEndret = row.localDateTime("DATO_ENDRET"),
             endretAv = row.string("ENDRET_AV"),
             versjon = row.int("VERSJON"),
-            motId = row.stringOrNull("MOT_ID"),
-            personId = row.stringOrNull("PERSON_ID"),
-            kreditorRef = row.stringOrNull("KREDITOR_REF"),
         )
     }
 }
