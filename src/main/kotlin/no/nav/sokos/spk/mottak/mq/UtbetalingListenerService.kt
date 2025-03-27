@@ -88,6 +88,7 @@ class UtbetalingListenerService(
         }.onFailure { exception ->
             secureLogger.error { "Utbetalingsmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
+            jmsContext.recover()
         }
     }
 
