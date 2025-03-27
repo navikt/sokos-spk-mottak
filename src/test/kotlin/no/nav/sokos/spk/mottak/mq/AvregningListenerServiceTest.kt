@@ -85,7 +85,7 @@ internal class AvregningListenerServiceTest : BehaviorSpec({
             datoAvsender = UNKNOWN_TRANSACTION_DATE,
         ),
     ).forEach { scenario ->
-        Given("det finnes avregningsmeldinger som skal sendes fra UR Z") {
+        Given("det finnes avregningsmeldinger som skal sendes fra OS") {
             setupDatabase("/database/utbetaling_transaksjon.sql")
 
             When(scenario.description) {
