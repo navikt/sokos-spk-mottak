@@ -4,6 +4,7 @@ import kotlinx.serialization.json.Json
 
 import jakarta.jms.ConnectionFactory
 import jakarta.jms.JMSContext
+import jakarta.jms.Session
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -11,14 +12,15 @@ private val logger = KotlinLogging.logger {}
 abstract class JmsListener(
     connectionFactory: ConnectionFactory,
 ) {
-    protected val jmsContext: JMSContext = connectionFactory.createContext(JMSContext.CLIENT_ACKNOWLEDGE)
+    private val connection = connectionFactory.createConnection()
+    protected val session: Session = connection.createSession(true, JMSContext.CLIENT_ACKNOWLEDGE)
     protected val json = Json { ignoreUnknownKeys = true }
 
     init {
-        jmsContext.setExceptionListener { logger.error("Feil på MQ-kommunikasjon", it) }
+        connection.setExceptionListener { logger.error("Feil på MQ-kommunikasjon", it) }
     }
 
     fun start() {
-        jmsContext.start()
+        connection.start()
     }
 }

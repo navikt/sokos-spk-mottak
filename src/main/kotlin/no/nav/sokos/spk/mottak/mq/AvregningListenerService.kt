@@ -33,7 +33,7 @@ class AvregningListenerService(
     avregningsgrunnlagQueue: Queue = MQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) : JmsListener(connectionFactory) {
-    private val avregningsgrunnlagMQListener = jmsContext.createConsumer(avregningsgrunnlagQueue)
+    private val avregningsgrunnlagMQListener = session.createConsumer(avregningsgrunnlagQueue)
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val avregningsreturRepository: AvregningsreturRepository = AvregningsreturRepository(dataSource)
     private val avregningsavvikRepository: AvregningsavvikRepository = AvregningsavvikRepository(dataSource)
@@ -44,39 +44,43 @@ class AvregningListenerService(
 
     private fun onAvregningsgrunnlagMessage(message: Message) {
         val jmsMessage = message.getBody(String::class.java)
+        var avregningsgrunnlagWrapper: AvregningsgrunnlagWrapper? = null
         runCatching {
             secureLogger.debug { "Mottatt avregningsgrunnlag fra UR. Meldingsinnhold: $jmsMessage" }
-            val avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
-            processAvregningsgrunnlagMessage(avregningsgrunnlagWrapper.avregningsgrunnlag)
+            avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
+            processAvregningsgrunnlagMessage(avregningsgrunnlagWrapper!!.avregningsgrunnlag)
             message.acknowledge()
         }.onFailure { exception ->
             secureLogger.error { "Avregningsgrunnlagmelding fra UR: $jmsMessage" }
-            val avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
-            logger.error(exception) {
-                "Prosessering av avregningsgrunnlag feilet: ${exception.message}, " +
-                    "jmsMessageID: ${message.jmsMessageID}, " +
-                    "oppdragsId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.oppdragsId}, " +
-                    "oppdragsLinjeId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.linjeId}, " +
-                    "trekkvedtakId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.trekkvedtakId}, " +
-                    "bilagsnrSerie: ${avregningsgrunnlagWrapper.avregningsgrunnlag.bilagsnrSerie}, " +
-                    "bilagsnr: ${avregningsgrunnlagWrapper.avregningsgrunnlag.bilagsnr}, " +
-                    "delytelseId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.delytelseId} " +
-                    "fagSystemId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.fagSystemId}"
-            }
-            jmsContext.recover()
-            avregningsgrunnlagWrapper.avregningsgrunnlag.let { avregningsgrunnlag ->
-                runCatching {
-                    dataSource.transaction { session ->
-                        avregningsavvikRepository.insert(
-                            avregningsgrunnlag.toAvregningsAvvik(),
-                            exception.message!!,
-                            session,
-                        )
+
+            avregningsgrunnlagWrapper?.let { wrapper ->
+                logger.error(exception) {
+                    "Prosessering av avregningsgrunnlag feilet: ${exception.message}, " +
+                        "jmsMessageID: ${message.jmsMessageID}, " +
+                        "oppdragsId: ${wrapper.avregningsgrunnlag.oppdragsId}, " +
+                        "oppdragsLinjeId: ${wrapper.avregningsgrunnlag.linjeId}, " +
+                        "trekkvedtakId: ${wrapper.avregningsgrunnlag.trekkvedtakId}, " +
+                        "bilagsnrSerie: ${wrapper.avregningsgrunnlag.bilagsnrSerie}, " +
+                        "bilagsnr: ${wrapper.avregningsgrunnlag.bilagsnr}, " +
+                        "delytelseId: ${wrapper.avregningsgrunnlag.delytelseId} " +
+                        "fagSystemId: ${wrapper.avregningsgrunnlag.fagSystemId}"
+                }
+
+                wrapper.avregningsgrunnlag.let { avregningsgrunnlag ->
+                    runCatching {
+                        dataSource.transaction { session ->
+                            avregningsavvikRepository.insert(
+                                avregningsgrunnlag.toAvregningsAvvik(),
+                                exception.message!!,
+                                session,
+                            )
+                        }
+                    }.onFailure { ex ->
+                        logger.error(ex) { "Feiler ved lagring av avviksmelding i T_AVREGNING_AVVIK: ${ex.message}" }
                     }
-                }.onFailure { ex ->
-                    logger.error(ex) { "Feiler ved lagring av avviksmelding i T_AVREGNING_AVVIK: ${ex.message}" }
                 }
             }
+            session.rollback()
         }
     }
 

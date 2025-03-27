@@ -30,7 +30,7 @@ class UtbetalingListenerService(
     utbetalingReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) : JmsListener(connectionFactory) {
-    private val utbetalingMQListener = jmsContext.createConsumer(utbetalingReplyQueue)
+    private val utbetalingMQListener = session.createConsumer(utbetalingReplyQueue)
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
 
@@ -88,7 +88,7 @@ class UtbetalingListenerService(
         }.onFailure { exception ->
             secureLogger.error { "Utbetalingsmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
-            jmsContext.recover()
+            session.rollback()
         }
     }
 

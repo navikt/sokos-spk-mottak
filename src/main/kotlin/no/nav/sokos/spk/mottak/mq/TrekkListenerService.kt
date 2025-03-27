@@ -31,7 +31,7 @@ class TrekkListenerService(
     trekkReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) : JmsListener(connectionFactory) {
-    private val trekkMQListener = jmsContext.createConsumer(trekkReplyQueue)
+    private val trekkMQListener = session.createConsumer(trekkReplyQueue)
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
 
@@ -49,7 +49,7 @@ class TrekkListenerService(
         }.onFailure { exception ->
             secureLogger.error { "Trekkmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
-            jmsContext.recover()
+            session.rollback()
         }
     }
 

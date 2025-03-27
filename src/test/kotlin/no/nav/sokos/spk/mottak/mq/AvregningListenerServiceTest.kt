@@ -134,6 +134,7 @@ internal class AvregningListenerServiceTest : BehaviorSpec({
 
     Given("det finnes avregningsmeldinger som skal sendes fra UR Z") {
         setupDatabase("/database/utbetaling_transaksjon.sql")
+        MQListener.configureBackoutQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName)
 
         When("det sendes en avregningsmelding med delYtelseId til MQ som har formatsfeil") {
             avregningListenerService.start()
@@ -141,7 +142,6 @@ internal class AvregningListenerServiceTest : BehaviorSpec({
             jmsProducerAvregning.send(listOf(avregningsmelding))
 
             Then("blir meldingen forkastet pga formatsfeil i 'tomdato'") {
-                mqAvregningListenerMetricCounter.longValue shouldBe 5
                 runBlocking {
                     delay(2000)
                     Db2Listener.avregningsreturRepository.getNoOfRows() shouldBe 0
