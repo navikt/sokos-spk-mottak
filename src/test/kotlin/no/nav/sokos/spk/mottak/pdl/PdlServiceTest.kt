@@ -20,8 +20,8 @@ internal class PdlServiceTest :
 
         extensions(listOf(WiremockListener))
 
-        val pdlService: PdlService by lazy {
-            PdlService(
+        val pdlClientService: PdlClientService by lazy {
+            PdlClientService(
                 pdlUrl = wiremock.baseUrl(),
                 accessTokenClient = WiremockListener.accessTokenClient,
             )
@@ -42,7 +42,7 @@ internal class PdlServiceTest :
                     ),
             )
 
-            val response = pdlService.getIdenterBolk(listOf("12345678912", "01111953488", "40074203226"))
+            val response = pdlClientService.getIdenterBolk(listOf("12345678912", "01111953488", "40074203226"))
 
             response.size shouldBe 3
 
@@ -77,7 +77,7 @@ internal class PdlServiceTest :
 
             val exception =
                 shouldThrow<PdlException> {
-                    pdlService.getIdenterBolk(emptyList())
+                    pdlClientService.getIdenterBolk(emptyList())
                 }
 
             exception.message shouldBe "Message: Ingen identer angitt."
@@ -100,7 +100,7 @@ internal class PdlServiceTest :
 
             val exception =
                 shouldThrow<PdlException> {
-                    pdlService.getIdenterBolk(listOf("12345678912"))
+                    pdlClientService.getIdenterBolk(listOf("12345678912"))
                 }
 
             exception.message shouldBe "Message: Ikke autentisert"

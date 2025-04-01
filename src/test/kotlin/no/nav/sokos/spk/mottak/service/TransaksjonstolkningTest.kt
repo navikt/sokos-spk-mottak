@@ -15,7 +15,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY
 import no.nav.sokos.spk.mottak.domain.TRANS_TOLKNING_NY_EKSIST
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.listener.Db2Listener
-import no.nav.sokos.spk.mottak.pdl.PdlService
+import no.nav.sokos.spk.mottak.pdl.PdlClientService
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 internal class TransaksjonstolkningTest :
@@ -26,7 +26,7 @@ internal class TransaksjonstolkningTest :
             ValidateTransaksjonService(
                 dataSource = Db2Listener.dataSource,
                 innTransaksjonRepository = Db2Listener.innTransaksjonRepository,
-                pdlService = mockk<PdlService>(),
+                pdlClientService = mockk<PdlClientService>(),
             )
 
         Given("det finnes en innTransaksjon med et fnr som ikke eksisterer i T_TRANSAKSJON") {
