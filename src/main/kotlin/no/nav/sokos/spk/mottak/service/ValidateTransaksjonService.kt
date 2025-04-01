@@ -19,7 +19,7 @@ import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
 import no.nav.sokos.spk.mottak.domain.mapToTransaksjon
 import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.metrics.Metrics
-import no.nav.sokos.spk.mottak.pdl.PdlService
+import no.nav.sokos.spk.mottak.pdl.PdlClientService
 import no.nav.sokos.spk.mottak.repository.AvvikTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.InnTransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.PersonRepository
@@ -40,7 +40,7 @@ class ValidateTransaksjonService(
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
     private val avvikTransaksjonRepository: AvvikTransaksjonRepository = AvvikTransaksjonRepository(dataSource),
     private val personRepository: PersonRepository = PersonRepository(dataSource),
-    private val pdlService: PdlService = PdlService(),
+    private val pdlClientService: PdlClientService = PdlClientService(),
 ) {
     fun validateInnTransaksjon() {
         val timer = Instant.now()
@@ -141,7 +141,7 @@ class ValidateTransaksjonService(
                 runBlocking {
                     val identInformasjonMap =
                         fnrList.chunked(CHUNKED_SZIE)
-                            .flatMap { chunk -> pdlService.getIdenterBolk(chunk).entries }
+                            .flatMap { chunk -> pdlClientService.getIdenterBolk(chunk).entries }
                             .groupBy({ it.key }, { it.value })
                             .mapValues { entry -> entry.value.flatten() }
 

@@ -48,15 +48,15 @@ import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.WiremockListener
 import no.nav.sokos.spk.mottak.listener.WiremockListener.wiremock
 import no.nav.sokos.spk.mottak.pdl.GraphQLResponse
-import no.nav.sokos.spk.mottak.pdl.PdlService
+import no.nav.sokos.spk.mottak.pdl.PdlClientService
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 internal class ValidateTransaksjonServiceTest :
     BehaviorSpec({
         extensions(listOf(WiremockListener, Db2Listener))
 
-        val pdlService: PdlService by lazy {
-            PdlService(
+        val pdlClientService: PdlClientService by lazy {
+            PdlClientService(
                 pdlUrl = wiremock.baseUrl(),
                 accessTokenClient = WiremockListener.accessTokenClient,
             )
@@ -66,7 +66,7 @@ internal class ValidateTransaksjonServiceTest :
             ValidateTransaksjonService(
                 dataSource = Db2Listener.dataSource,
                 innTransaksjonRepository = Db2Listener.innTransaksjonRepository,
-                pdlService = pdlService,
+                pdlClientService = pdlClientService,
             )
         }
 
@@ -417,7 +417,7 @@ internal class ValidateTransaksjonServiceTest :
                 val validateTransaksjonServiceMock =
                     ValidateTransaksjonService(
                         dataSource = dataSourceMock,
-                        pdlService = pdlService,
+                        pdlClientService = pdlClientService,
                     )
                 val exception = shouldThrow<MottakException> { validateTransaksjonServiceMock.validateInnTransaksjon() }
 
