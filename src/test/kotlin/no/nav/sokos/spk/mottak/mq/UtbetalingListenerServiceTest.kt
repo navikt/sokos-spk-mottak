@@ -18,8 +18,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPRETTET
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
-import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingListenerMetricCounter
-import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingProducerMetricCounter
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 class UtbetalingListenerServiceTest : BehaviorSpec({
@@ -29,6 +28,12 @@ class UtbetalingListenerServiceTest : BehaviorSpec({
         UtbetalingListenerService(
             connectionFactory,
             ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
+            producer =
+                JmsProducerService(
+                    senderQueue = ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName + "_BOQ"),
+                    metricCounter = Metrics.mqUtbetalingBOQListenerMetricCounter,
+                    connectionFactory = connectionFactory,
+                ),
             Db2Listener.dataSource,
         )
     }
@@ -37,7 +42,7 @@ class UtbetalingListenerServiceTest : BehaviorSpec({
         JmsProducerService(
             ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
             ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
-            mqUtbetalingProducerMetricCounter,
+            Metrics.mqUtbetalingProducerMetricCounter,
             connectionFactory,
         )
     }
@@ -54,10 +59,10 @@ class UtbetalingListenerServiceTest : BehaviorSpec({
             jmsProducerUtbetaling.send(listOf(reply))
 
             Then("skal det returneres en OK-utbetalingsmelding tilbake") {
-                mqUtbetalingProducerMetricCounter.longValue shouldBe 1
+                Metrics.mqUtbetalingProducerMetricCounter.longValue shouldBe 1
                 runBlocking {
                     delay(2000)
-                    mqUtbetalingListenerMetricCounter.longValue shouldBe 2
+                    Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe 2
                     val transaksjonIdList = listOf(20025925, 20025926)
                     verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_RETUR_OK, "00")
                     verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_RETUR_OK)
@@ -78,10 +83,10 @@ class UtbetalingListenerServiceTest : BehaviorSpec({
             jmsProducerUtbetaling.send(listOf(reply))
 
             Then("skal det returneres en utbetalingsfeilmelding tilbake") {
-                mqUtbetalingProducerMetricCounter.longValue shouldBe 2
+                Metrics.mqUtbetalingProducerMetricCounter.longValue shouldBe 2
                 runBlocking {
                     delay(1000)
-                    mqUtbetalingListenerMetricCounter.longValue shouldBe 3
+                    Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe 3
                     val transaksjonIdList = listOf(20025934)
                     verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_RETUR_FEIL, "08")
                     verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_RETUR_FEIL)
@@ -103,10 +108,10 @@ class UtbetalingListenerServiceTest : BehaviorSpec({
             jmsProducerUtbetaling.send(listOf(reply))
 
             Then("skal det returneres en utbetalingsduplikatmelding tilbake") {
-                mqUtbetalingProducerMetricCounter.longValue shouldBe 3
+                Metrics.mqUtbetalingProducerMetricCounter.longValue shouldBe 3
                 runBlocking {
                     delay(1000)
-                    mqUtbetalingListenerMetricCounter.longValue shouldBe 3
+                    Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe 3
                     val transaksjonIdList = listOf(20025934)
                     verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_OPPRETTET, "00")
                     verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_OPPRETTET)

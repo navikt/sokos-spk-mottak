@@ -29,7 +29,7 @@ import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
 import no.nav.sokos.spk.mottak.listener.MQListener.replyQueueMock
 import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
-import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
@@ -81,7 +81,7 @@ internal class SendTrekkServiceTest :
                         JmsProducerService(
                             senderQueueMock,
                             replyQueueMock,
-                            mqTrekkProducerMetricCounter,
+                            Metrics.mqTrekkProducerMetricCounter,
                             connectionFactory,
                         ),
                 )
@@ -112,7 +112,7 @@ internal class SendTrekkServiceTest :
                         JmsProducerService(
                             ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
                             ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                            mqTrekkProducerMetricCounter,
+                            Metrics.mqTrekkProducerMetricCounter,
                             connectionFactory,
                         ),
                 )
@@ -136,7 +136,7 @@ internal class SendTrekkServiceTest :
                         JmsProducerService(
                             ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
                             ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                            mqTrekkProducerMetricCounter,
+                            Metrics.mqTrekkProducerMetricCounter,
                             connectionFactory,
                         ),
                 )
@@ -168,7 +168,7 @@ internal class SendTrekkServiceTest :
                         JmsProducerService(
                             ActiveMQQueue(PropertiesConfig.MQProperties().trekkQueueName),
                             ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-                            mqTrekkProducerMetricCounter,
+                            Metrics.mqTrekkProducerMetricCounter,
                             connectionFactory,
                         ),
                 )
@@ -200,7 +200,7 @@ internal class SendTrekkServiceTest :
                         JmsProducerService(
                             senderQueueMock,
                             replyQueueMock,
-                            mqTrekkProducerMetricCounter,
+                            Metrics.mqTrekkProducerMetricCounter,
                             connectionFactory,
                         ),
                 )

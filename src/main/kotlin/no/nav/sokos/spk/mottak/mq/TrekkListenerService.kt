@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak.mq
 
 import com.ibm.mq.jakarta.jms.MQQueue
+import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.jms.ConnectionFactory
 import jakarta.jms.Message
@@ -18,7 +19,7 @@ import no.nav.sokos.spk.mottak.domain.converter.TrekkConverter.trekkTilstandStat
 import no.nav.sokos.spk.mottak.domain.oppdrag.Dokument
 import no.nav.sokos.spk.mottak.domain.oppdrag.DokumentWrapper
 import no.nav.sokos.spk.mottak.domain.oppdrag.Mmel
-import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkListenerMetricCounter
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
@@ -29,6 +30,14 @@ private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
 class TrekkListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
     trekkReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+    private val producer: JmsProducerService =
+        JmsProducerService(
+            senderQueue =
+                MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName + "_BOQ").apply {
+                    targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
+                },
+            metricCounter = Metrics.mqTrekkBOQListenerMetricCounter,
+        ),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) : JmsListener(connectionFactory) {
     private val trekkMQListener = jmsContext.createConsumer(trekkReplyQueue)
@@ -49,7 +58,8 @@ class TrekkListenerService(
         }.onFailure { exception ->
             secureLogger.error { "Trekkmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
-            jmsContext.recover()
+            producer.send(listOf(jmsMessage))
+            message.acknowledge()
         }
     }
 
@@ -81,7 +91,7 @@ class TrekkListenerService(
                     session = session,
                 )
             }
-            mqTrekkListenerMetricCounter.inc()
+            Metrics.mqTrekkListenerMetricCounter.inc()
         }
     }
 
