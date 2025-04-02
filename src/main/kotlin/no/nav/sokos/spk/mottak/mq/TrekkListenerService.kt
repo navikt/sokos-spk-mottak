@@ -49,7 +49,6 @@ class TrekkListenerService(
         }.onFailure { exception ->
             secureLogger.error { "Trekkmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
-            jmsContext.recover()
         }
     }
 

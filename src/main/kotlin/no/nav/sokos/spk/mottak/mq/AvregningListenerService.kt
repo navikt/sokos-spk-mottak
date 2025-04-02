@@ -63,7 +63,6 @@ class AvregningListenerService(
                     "delytelseId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.delytelseId} " +
                     "fagSystemId: ${avregningsgrunnlagWrapper.avregningsgrunnlag.fagSystemId}"
             }
-            jmsContext.recover()
             avregningsgrunnlagWrapper.avregningsgrunnlag.let { avregningsgrunnlag ->
                 runCatching {
                     dataSource.transaction { session ->
