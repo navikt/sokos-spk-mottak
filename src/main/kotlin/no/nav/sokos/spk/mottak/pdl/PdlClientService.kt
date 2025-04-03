@@ -22,7 +22,7 @@ import no.nav.sokos.spk.mottak.security.AccessTokenClient
 
 private val logger = KotlinLogging.logger {}
 
-class PdlService(
+class PdlClientService(
     private val pdlUrl: String = PropertiesConfig.PdlProperties().pdlUrl,
     private val pdlScope: String = PropertiesConfig.PdlProperties().pdlScope,
     private val client: HttpClient = httpClient,
