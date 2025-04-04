@@ -117,6 +117,14 @@ object Metrics {
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
+    val mqUtbetalingBOQListenerMetricCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_utbetaling_boq_mq_listener")
+            .help("Counts the number of utbetaling send to BOQ")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
     val mqTrekkListenerMetricCounter: Counter =
         Counter
             .builder()
@@ -125,11 +133,27 @@ object Metrics {
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
+    val mqTrekkBOQListenerMetricCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_trekk_boq_mq_listener")
+            .help("Counts the number of trekk send to BOQ")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
     val mqAvregningListenerMetricCounter: Counter =
         Counter
             .builder()
             .name("${METRICS_NAMESPACE}_avregning_mq_listener")
             .help("Counts the number of avregning msgs from UR Z through MQ")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val mqAvregningBOQListenerMetricCounter: Counter =
+        Counter
+            .builder()
+            .name("${METRICS_NAMESPACE}_avregning_boq_mq_listener")
+            .help("Counts the number of avregning send to BOQ")
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 }

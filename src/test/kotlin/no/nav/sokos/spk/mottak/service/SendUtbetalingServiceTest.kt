@@ -30,7 +30,7 @@ import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
 import no.nav.sokos.spk.mottak.listener.MQListener.replyQueueMock
 import no.nav.sokos.spk.mottak.listener.MQListener.senderQueueMock
-import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingProducerMetricCounter
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.mq.JmsProducerService
 import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
@@ -50,7 +50,7 @@ internal class SendUtbetalingServiceTest :
                         JmsProducerService(
                             ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingQueueName),
                             ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
-                            mqUtbetalingProducerMetricCounter,
+                            Metrics.mqUtbetalingProducerMetricCounter,
                             connectionFactory,
                         ),
                 )
@@ -77,7 +77,7 @@ internal class SendUtbetalingServiceTest :
                         JmsProducerService(
                             senderQueueMock,
                             replyQueueMock,
-                            mqUtbetalingProducerMetricCounter,
+                            Metrics.mqUtbetalingProducerMetricCounter,
                             connectionFactory,
                         ),
                 )
@@ -108,7 +108,7 @@ internal class SendUtbetalingServiceTest :
                         JmsProducerService(
                             senderQueueMock,
                             replyQueueMock,
-                            mqUtbetalingProducerMetricCounter,
+                            Metrics.mqUtbetalingProducerMetricCounter,
                             connectionFactory,
                         ),
                 )
@@ -132,7 +132,7 @@ internal class SendUtbetalingServiceTest :
                         JmsProducerService(
                             ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingQueueName),
                             ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
-                            mqUtbetalingProducerMetricCounter,
+                            Metrics.mqUtbetalingProducerMetricCounter,
                             connectionFactory,
                         ),
                 )
@@ -164,7 +164,7 @@ internal class SendUtbetalingServiceTest :
                         JmsProducerService(
                             ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingQueueName),
                             ActiveMQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
-                            mqUtbetalingProducerMetricCounter,
+                            Metrics.mqUtbetalingProducerMetricCounter,
                             connectionFactory,
                         ),
                 )
@@ -196,7 +196,7 @@ internal class SendUtbetalingServiceTest :
                         JmsProducerService(
                             senderQueueMock,
                             replyQueueMock,
-                            mqUtbetalingProducerMetricCounter,
+                            Metrics.mqUtbetalingProducerMetricCounter,
                             connectionFactory,
                         ),
                 )

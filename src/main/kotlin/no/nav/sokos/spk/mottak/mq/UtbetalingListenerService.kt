@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak.mq
 
 import com.ibm.mq.jakarta.jms.MQQueue
+import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.jms.ConnectionFactory
 import jakarta.jms.Message
@@ -16,7 +17,7 @@ import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_OK
 import no.nav.sokos.spk.mottak.domain.UTBETALING_LISTENER_SERVICE
-import no.nav.sokos.spk.mottak.metrics.Metrics.mqUtbetalingListenerMetricCounter
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
@@ -28,6 +29,14 @@ private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
 class UtbetalingListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
     utbetalingReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
+    private val producer: JmsProducerService =
+        JmsProducerService(
+            senderQueue =
+                MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName + "_BOQ").apply {
+                    targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
+                },
+            metricCounter = Metrics.mqUtbetalingBOQListenerMetricCounter,
+        ),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) : JmsListener(connectionFactory) {
     private val utbetalingMQListener = jmsContext.createConsumer(utbetalingReplyQueue)
@@ -83,11 +92,13 @@ class UtbetalingListenerService(
                     session = session,
                 )
             }
-            mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
+            Metrics.mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
             message.acknowledge()
         }.onFailure { exception ->
             secureLogger.error { "Utbetalingsmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
+            producer.send(listOf(jmsMessage))
+            message.acknowledge()
         }
     }
 

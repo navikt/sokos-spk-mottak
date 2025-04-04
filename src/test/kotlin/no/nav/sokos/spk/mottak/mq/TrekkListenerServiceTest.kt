@@ -18,8 +18,7 @@ import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_TREKK_RETUR_OK
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.MQListener
 import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
-import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkListenerMetricCounter
-import no.nav.sokos.spk.mottak.metrics.Metrics.mqTrekkProducerMetricCounter
+import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 class TrekkListenerServiceTest : BehaviorSpec({
@@ -29,6 +28,12 @@ class TrekkListenerServiceTest : BehaviorSpec({
         TrekkListenerService(
             connectionFactory,
             ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+            producer =
+                JmsProducerService(
+                    senderQueue = ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName + "_BOQ"),
+                    metricCounter = Metrics.mqTrekkBOQListenerMetricCounter,
+                    connectionFactory = connectionFactory,
+                ),
             Db2Listener.dataSource,
         )
     }
@@ -37,7 +42,7 @@ class TrekkListenerServiceTest : BehaviorSpec({
         JmsProducerService(
             ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
             ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-            mqTrekkProducerMetricCounter,
+            Metrics.mqTrekkProducerMetricCounter,
             connectionFactory,
         )
     }
@@ -54,10 +59,10 @@ class TrekkListenerServiceTest : BehaviorSpec({
             jmsProducerTrekk.send(listOf(reply))
 
             Then("skal det returneres en OK-trekkmelding tilbake") {
-                mqTrekkProducerMetricCounter.longValue shouldBe 1
+                Metrics.mqTrekkProducerMetricCounter.longValue shouldBe 1
                 runBlocking {
                     delay(1000)
-                    mqTrekkListenerMetricCounter.longValue shouldBe 1
+                    Metrics.mqTrekkListenerMetricCounter.longValue shouldBe 1
                     val transaksjonIdList = listOf(20425974)
                     verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_OK, "00")
                     verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_OK)
@@ -78,10 +83,10 @@ class TrekkListenerServiceTest : BehaviorSpec({
             jmsProducerTrekk.send(listOf(reply))
 
             Then("skal det returneres en trekk-feilmelding tilbake") {
-                mqTrekkProducerMetricCounter.longValue shouldBe 2
+                Metrics.mqTrekkProducerMetricCounter.longValue shouldBe 2
                 runBlocking {
                     delay(1000)
-                    mqTrekkListenerMetricCounter.longValue shouldBe 2
+                    Metrics.mqTrekkListenerMetricCounter.longValue shouldBe 2
                     val transaksjonIdList = listOf(20425974)
                     verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_FEIL, "08")
                     verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_FEIL)
@@ -103,10 +108,10 @@ class TrekkListenerServiceTest : BehaviorSpec({
             jmsProducerTrekk.send(listOf(reply))
 
             Then("skal det returneres en trekk-duplikatmelding tilbake") {
-                mqTrekkProducerMetricCounter.longValue shouldBe 3
+                Metrics.mqTrekkProducerMetricCounter.longValue shouldBe 3
                 runBlocking {
                     delay(1000)
-                    mqTrekkListenerMetricCounter.longValue shouldBe 2
+                    Metrics.mqTrekkListenerMetricCounter.longValue shouldBe 2
                     val transaksjonIdList = listOf(20425974)
                     verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_OPPRETTET, "00")
                     verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_OPPRETTET)
