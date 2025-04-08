@@ -25,9 +25,9 @@ Dersom man ikke klarer å knytte avregningsmeldingen til en transaksjon (utbetal
 Avregningsmeldingen blir mappet og persistert til en rad i T_RETUR_TIL_ANV.
 
 **Format på avregningsmelding fra UR Z:**
-<br/>&emsp;avregningsgrunnlag.oppdragsId (Int(10))
-<br/>&emsp;avregningsgrunnlag.linjeId (Int(5))
-<br/>&emsp;avregningsgrunnlag.trekkvedtakId (Int(10))
+<br/>&emsp;avregningsgrunnlag.oppdragsId (Int(10)) 
+<br/>&emsp;avregningsgrunnlag.linjeId (Int(5)) *
+<br/>&emsp;avregningsgrunnlag.trekkvedtakId (Int(10)) *
 <br/>&emsp;avregningsgrunnlag.gjelderId (String(11))
 <br/>&emsp;avregningsgrunnlag.utbetalesTil (String(11))
 <br/>&emsp;avregningsgrunnlag.datoStatusSatt (String(8), yyyyMMdd)
@@ -37,14 +37,16 @@ Avregningsmeldingen blir mappet og persistert til en rad i T_RETUR_TIL_ANV.
 <br/>&emsp;avregningsgrunnlag.konto (String(9))
 <br/>&emsp;avregningsgrunnlag.fomdato (String(8), yyyyMMdd)
 <br/>&emsp;avregningsgrunnlag.tomdato (String(8), yyyyMMdd)
-<br/>&emsp;avregningsgrunnlag.belop (Int(11))
+<br/>&emsp;avregningsgrunnlag.belop (Int(11)) *
 <br/>&emsp;avregningsgrunnlag.debetKredit (String(1))
-<br/>&emsp;avregningsgrunnlag.utbetalingsType (String(3))
-<br/>&emsp;avregningsgrunnlag.transTekst (String(35))
-<br/>&emsp;avregningsgrunnlag.datoValutert (String(8), yyyyMMdd)
-<br/>&emsp;avregningsgrunnlag.delytelseId (String(10))
+<br/>&emsp;avregningsgrunnlag.utbetalingsType (String(3)) *
+<br/>&emsp;avregningsgrunnlag.transTekst (String(35)) *
+<br/>&emsp;avregningsgrunnlag.datoValutert (String(8), yyyyMMdd) *
+<br/>&emsp;avregningsgrunnlag.delytelseId (String(10)) *
 <br/>&emsp;avregningsgrunnlag.fagSystemId (String(30))
-<br/>&emsp;avregningsgrunnlag.kreditorRef (String(30))
+<br/>&emsp;avregningsgrunnlag.kreditorRef (String(30)) *
+
+\* betyr at elementet kan utelates
 
 Eksempel:
 
