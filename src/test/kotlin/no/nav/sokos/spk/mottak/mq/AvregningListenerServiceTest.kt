@@ -204,7 +204,7 @@ private fun verifyAvregningstransaksjon(
         datoAvsender shouldBe avregningDatoAvsender?.toIsoDate()
         utbetalesTil shouldBe avregningsgrunnlag.utbetalesTil
         transaksjonId shouldBe avregningTransaksjonId
-        datoValutering shouldBe avregningsgrunnlag.datoValutert
+        datoValutering shouldBe (avregningsgrunnlag.datoValutert.takeIf { it != null && it != "00000000" } ?: "")
         konto shouldBe avregningsgrunnlag.konto
         motId shouldBe avregningsgrunnlag.delytelseId
         personId shouldBe avregningsgrunnlag.fagSystemId
