@@ -18,7 +18,7 @@ data class AvregningsgrunnlagAvvik(
     val debetKredit: String,
     val utbetalingsType: String? = null,
     val transTekst: String? = null,
-    val datoValutert: String,
+    val datoValutert: String? = null,
     val delytelseId: String? = null,
     val fagSystemId: String,
     val kreditorRef: String? = null,

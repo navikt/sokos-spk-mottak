@@ -56,11 +56,11 @@ class AvregningListenerService(
         val jmsMessage = message.getBody(String::class.java)
         var avregningsgrunnlagWrapper: AvregningsgrunnlagWrapper? = null
         runCatching {
-            secureLogger.debug { "Mottatt avregningsgrunnlag fra UR. Meldingsinnhold: $jmsMessage" }
             avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
             processAvregningsgrunnlagMessage(avregningsgrunnlagWrapper!!.avregningsgrunnlag)
             message.acknowledge()
         }.onFailure { exception ->
+            logger.error(exception) { "Feiler ved mottak av avregningsmelding fra UR: ${exception.message}" }
             secureLogger.error { "Avregningsgrunnlagmelding fra UR: $jmsMessage" }
 
             avregningsgrunnlagWrapper?.let { wrapper ->

@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 
 import no.nav.sokos.spk.mottak.dto.Avregningstransaksjon
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDateNotBlank
-import no.nav.sokos.spk.mottak.util.Utils.toLocalDateStringOrEmpty
 
 @Serializable
 data class Avregningsgrunnlag(
@@ -24,9 +23,9 @@ data class Avregningsgrunnlag(
     val tomdato: String,
     val belop: Int? = 0,
     val debetKredit: String,
-    val utbetalingsType: String,
+    val utbetalingsType: String? = null,
     val transTekst: String? = null,
-    val datoValutert: String,
+    val datoValutert: String? = null,
     val delytelseId: String? = null,
     val fagSystemId: String,
     val kreditorRef: String? = null,
@@ -52,13 +51,13 @@ fun Avregningsgrunnlag.toAvregningsretur(avregningstransaksjon: Avregningstransa
         datoTom = tomdato.toLocalDateNotBlank(),
         belop = belop?.times(100)?.toString() ?: "0",
         debetKredit = debetKredit,
-        utbetalingtype = utbetalingsType,
+        utbetalingtype = utbetalingsType ?: "",
         transTekst = transTekst,
         transEksId = avregningstransaksjon.transEksId,
         datoAvsender = avregningstransaksjon.datoAnviser,
         utbetalesTil = utbetalesTil,
         transaksjonId = avregningstransaksjon.transaksjonId,
-        datoValutering = datoValutert.toLocalDateStringOrEmpty(),
+        datoValutering = datoValutert ?: "",
         konto = konto,
         motId = delytelseId,
         personId = fagSystemId,

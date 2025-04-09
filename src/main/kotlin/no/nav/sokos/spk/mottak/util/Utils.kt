@@ -36,10 +36,6 @@ object Utils {
 
     fun LocalDateTime.toAvstemmingPeriode(): String = this.format(DateTimeFormatter.ofPattern("yyyyMMddHH"))
 
-    fun String.toLocalDateStringOrEmpty(): String {
-        return this.trim().toIntOrNull()?.let { if (it == 0) "" else this } ?: throw ParseException("Feil ved konvertering av $this to datoformat 'yyyyMMdd'", 0)
-    }
-
     fun String.toLocalDateNotBlank(): LocalDate {
         if (this.isBlank()) {
             throw ParseException("Ikke tillatt med blank dato-streng", 0)
