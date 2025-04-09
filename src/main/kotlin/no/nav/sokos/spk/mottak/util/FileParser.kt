@@ -127,6 +127,7 @@ object FileParser {
     }
 
     fun createAvregningTransaksjonRecord(avregningTransaksjon: Avregningsretur): String {
+        val validatedDatoValutert = avregningTransaksjon.datoValutering.takeIf { it != "00000000" } ?: ""
         val stringBuilder =
             StringBuilder()
                 .append(RECTYPE_TRANSAKSJONSRECORD)
@@ -145,7 +146,7 @@ object FileParser {
                 .append(avregningTransaksjon.belop.padStart(11, '0'))
                 .append(avregningTransaksjon.debetKredit.padEnd(1, ' '))
                 .append(avregningTransaksjon.utbetalingtype.padEnd(3, ' '))
-                .append(avregningTransaksjon.datoValutering.padEnd(8, ' '))
+                .append(validatedDatoValutert.padEnd(8, ' '))
                 .appendLine()
 
         return stringBuilder.toString()

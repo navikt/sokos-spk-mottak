@@ -57,7 +57,7 @@ fun Avregningsgrunnlag.toAvregningsretur(avregningstransaksjon: Avregningstransa
         datoAvsender = avregningstransaksjon.datoAnviser,
         utbetalesTil = utbetalesTil,
         transaksjonId = avregningstransaksjon.transaksjonId,
-        datoValutering = datoValutert.takeIf { it != null && it != "00000000" } ?: "",
+        datoValutering = datoValutert.orEmpty(),
         konto = konto,
         motId = delytelseId,
         personId = fagSystemId,
