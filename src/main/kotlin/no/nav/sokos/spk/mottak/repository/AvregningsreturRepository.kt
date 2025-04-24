@@ -8,6 +8,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.domain.AVREGNING_LISTENER_SERVICE
 import no.nav.sokos.spk.mottak.domain.Avregningsretur
 import no.nav.sokos.spk.mottak.domain.SEND_AVREGNINGSRETUR_SERVICE
 import no.nav.sokos.spk.mottak.domain.SPK
@@ -124,7 +125,7 @@ class AvregningsreturRepository(
                                ENDRET_AV,
                                VERSJON
                         FROM T_RETUR_TIL_ANV
-                        WHERE K_RETUR_T = 'AVR' AND K_ANVISER = '$SPK' AND FIL_INFO_UT_ID is null;
+                        WHERE K_RETUR_T = 'AVR' AND K_ANVISER = '$SPK' AND OPPRETTET_AV = '$AVREGNING_LISTENER_SERVICE' AND FIL_INFO_UT_ID is null;
                         """.trimIndent(),
                     ),
                     mapToAvregningsretur,
