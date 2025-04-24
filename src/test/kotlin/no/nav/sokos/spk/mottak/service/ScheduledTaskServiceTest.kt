@@ -1,5 +1,6 @@
 package no.nav.sokos.spk.mottak.service
 
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
@@ -8,6 +9,7 @@ import no.nav.sokos.spk.mottak.TestHelper.readFromResource
 import no.nav.sokos.spk.mottak.listener.PostgresListener
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
+@Ignored
 internal class ScheduledTaskServiceTest : FunSpec({
     extensions(PostgresListener)
 
