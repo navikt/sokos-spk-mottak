@@ -119,7 +119,7 @@ spec:
     - name: MQ_LISTENER_ENABLED
       value: "true"
     - name: AVREGNING_LISTENER_ENABLED
-      value: "false"
+      value: "true"
 
     # PDL
     - name: PDL_URL
@@ -147,4 +147,4 @@ spec:
     - name: GRENSESNITT_AVSTEMMING_CRON_PATTERN
       value: "0 0 5 * * *"
     - name: WRITE_AVREGNINGSRETUR_FILE_CRON_PATTERN
-      value: "0 0 10 * * *"
+      value: "0 0 6 30 * *"
