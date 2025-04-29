@@ -145,11 +145,19 @@ object FileParser {
                 .append(avregningTransaksjon.datoTom.toLocalDateString().padEnd(8, ' '))
                 .append(avregningTransaksjon.belop.padStart(11, '0'))
                 .append(avregningTransaksjon.debetKredit.padEnd(1, ' '))
-                .append(avregningTransaksjon.utbetalingtype.padEnd(3, ' '))
+                .append(filterType(avregningTransaksjon.utbetalingtype).padEnd(3, ' '))
                 .append(validatedDatoValutert.padEnd(8, ' '))
                 .appendLine()
 
         return stringBuilder.toString()
+    }
+
+    private fun filterType(utbetalingtype: String): String {
+        return when (utbetalingtype) {
+            "UEU" -> "UTK"
+            "UIG" -> "UTK"
+            else -> utbetalingtype
+        }
     }
 
     fun createSluttRecord(

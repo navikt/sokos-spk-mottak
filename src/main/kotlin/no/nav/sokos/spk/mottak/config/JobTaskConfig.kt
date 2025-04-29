@@ -41,18 +41,11 @@ object JobTaskConfig {
             .enableImmediateExecution()
             .registerShutdownHook()
             .startTasks(
-                *listOf(
-                    recurringReadParseFileAndValidateTransactionsTask(),
-                    recurringSendUtbetalingTransaksjonToOppdragZTask(),
-                    recurringSendTrekkTransaksjonToOppdragZTask(),
-                    recurringGrensesnittAvstemmingTask(),
-                ).plus(
-                    if (PropertiesConfig.isLocal() || PropertiesConfig.isDev()) {
-                        listOf(recurringWriteAvregningsreturFileTask())
-                    } else {
-                        emptyList()
-                    },
-                ).toTypedArray(),
+                recurringReadParseFileAndValidateTransactionsTask(),
+                recurringSendUtbetalingTransaksjonToOppdragZTask(),
+                recurringSendTrekkTransaksjonToOppdragZTask(),
+                recurringGrensesnittAvstemmingTask(),
+                recurringWriteAvregningsreturFileTask(),
             ).failureLogging(LogLevel.ERROR, true)
             .build()
 
