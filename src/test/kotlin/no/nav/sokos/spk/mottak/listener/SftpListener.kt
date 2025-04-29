@@ -26,6 +26,7 @@ import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter
 
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.SftpConfig
+import no.nav.sokos.spk.mottak.service.Directories
 import no.nav.sokos.spk.mottak.service.Directories.ANVISNINGSFIL_BEHANDLET
 import no.nav.sokos.spk.mottak.service.Directories.ANVISNINGSRETUR
 import no.nav.sokos.spk.mottak.service.Directories.AVREGNINGSRETUR
@@ -63,7 +64,7 @@ object SftpListener : TestListener {
                 "/home/foo/.ssh/keys/id_rsa.pub",
             ).withExposedPorts(22)
             .withCreateContainerCmdModifier { cmd -> cmd.hostConfig!!.withPortBindings(PortBinding(Ports.Binding.bindPort(5678), ExposedPort(22))) }
-            .withCommand("foo::::${INBOUND.value},${ANVISNINGSFIL_BEHANDLET.value},outbound,${ANVISNINGSRETUR.value},${AVREGNINGSRETUR.value}")
+            .withCommand("foo::::${INBOUND.value},${ANVISNINGSFIL_BEHANDLET.value},outbound,${ANVISNINGSRETUR.value},${AVREGNINGSRETUR.value},${Directories.AVREGNINGSRETUR_BEHANDLET.value}")
     }
 
     private fun createPrivateKeyFile(privateKey: AsymmetricKeyParameter): File {

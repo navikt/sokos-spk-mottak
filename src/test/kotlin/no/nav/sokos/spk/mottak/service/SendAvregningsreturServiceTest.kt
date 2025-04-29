@@ -48,6 +48,7 @@ internal class SendAvregningsreturServiceTest : BehaviorSpec({
     afterEach {
         SftpListener.deleteFile(
             Directories.AVREGNINGSRETUR.value + "/SPK_NAV_*",
+            Directories.AVREGNINGSRETUR_BEHANDLET.value + "/SPK_NAV_*",
         )
     }
 

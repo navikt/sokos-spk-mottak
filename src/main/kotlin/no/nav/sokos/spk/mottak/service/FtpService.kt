@@ -59,25 +59,6 @@ class FtpService(
         }
     }
 
-    fun copyFile(
-        fileName: String,
-        from: Directories,
-        to: Directories,
-    ) {
-        sftpConfig.channel { connector ->
-            val fromPath = "${from.value}/$fileName"
-            val toPath = "${to.value}/$fileName"
-
-            runCatching {
-                connector.put(fromPath, toPath)
-                logger.debug { "$fileName ble kopiert fra mappen ${from.value} til mappen ${to.value}" }
-            }.onFailure { exception ->
-                logger.error { "$fileName ble ikke kopiert fra mappe ${from.value} til mappe ${to.value}. Feilmelding: ${exception.message}" }
-                throw SFtpException("SFtp-feil: $exception")
-            }
-        }
-    }
-
     fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> {
         var fileName = ""
         return sftpConfig.channel { connector ->

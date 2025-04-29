@@ -107,7 +107,7 @@ class SendAvregningsreturService(
 
             ftpService.createFile(returFilnavn, Directories.AVREGNINGSRETUR, avregningFil.toString())
             logger.info { "$returFilnavn med $antallTransaksjon transaksjoner og beløp: ${sumBelop / 100} er opprettet og lastet opp til ${Directories.AVREGNINGSRETUR}" }
-            ftpService.copyFile(returFilnavn, Directories.AVREGNINGSRETUR, Directories.AVREGNINGSRETUR_BEHANDLET)
+            ftpService.createFile(returFilnavn, Directories.AVREGNINGSRETUR_BEHANDLET, avregningFil.toString())
 
             Metrics.avregningsreturCounter.inc(antallTransaksjon.toLong())
 
