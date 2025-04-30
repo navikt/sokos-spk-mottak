@@ -48,6 +48,7 @@ internal class SendAvregningsreturServiceTest : BehaviorSpec({
     afterEach {
         SftpListener.deleteFile(
             Directories.AVREGNINGSRETUR.value + "/SPK_NAV_*",
+            Directories.AVREGNINGSRETUR_BEHANDLET.value + "/SPK_NAV_*",
         )
     }
 
@@ -75,8 +76,14 @@ internal class SendAvregningsreturServiceTest : BehaviorSpec({
                     systemId = SEND_AVREGNINGSRETUR_SERVICE,
                 )
 
-                val downloadFile = ftpService.downloadFiles(Directories.AVREGNINGSRETUR)
-                downloadFile.forEach { (filename, content) ->
+                val downloadAvregningsfil = ftpService.downloadFiles(Directories.AVREGNINGSRETUR)
+                downloadAvregningsfil.forEach { (filename, content) ->
+                    filename shouldStartWith "SPK_NAV_"
+                    filename shouldEndWith "_AVR"
+                    content.convertArrayListToString() shouldBe readFromResource("/spk/SPK_NAV_AVREGNINGSRETUR.txt")
+                }
+                val downloadAvregningsfilBehandlet = ftpService.downloadFiles(Directories.AVREGNINGSRETUR_BEHANDLET)
+                downloadAvregningsfilBehandlet.forEach { (filename, content) ->
                     filename shouldStartWith "SPK_NAV_"
                     filename shouldEndWith "_AVR"
                     content.convertArrayListToString() shouldBe readFromResource("/spk/SPK_NAV_AVREGNINGSRETUR.txt")

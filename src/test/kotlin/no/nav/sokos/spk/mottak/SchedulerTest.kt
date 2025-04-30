@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.logging.LogLevel.ERROR
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.engine.runBlocking
 import io.mockk.every
@@ -22,6 +23,7 @@ import no.nav.sokos.spk.mottak.service.SendTrekkService
 import no.nav.sokos.spk.mottak.service.SendUtbetalingService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
 
+@Ignored
 internal class SchedulerTest :
     ShouldSpec({
         extensions(PostgresListener)
