@@ -129,5 +129,5 @@ Alarmene blir publisert i Slack kanalen [#team-mob-alerts-dev](https://nav-it.sl
 # 8. Henvendelser
 
 Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på Github.
-Interne henvendelser kan sendes via Slack i kanalen [#po-utbetaling](https://nav-it.slack.com/archives/CKZADNFBP)
+Interne henvendelser kan sendes via Slack i kanalen [#utbetaling](https://nav-it.slack.com/archives/CKZADNFBP)
 
