@@ -63,7 +63,7 @@ spec:
             namespace: okonomi
             severity: warning
             sokos_spk_mottak_type: sokos-spk-mottak
-            alert_type: customgit pu
+            alert_type: custom
 ---
 
 apiVersion: monitoring.coreos.com/v1alpha1
