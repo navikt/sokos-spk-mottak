@@ -42,6 +42,7 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.AksjonType
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.AvstemmingType
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.Avstemmingsdata
+import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.DetaljType
 import no.nav.virksomhet.tjenester.avstemming.meldinger.v1.KildeType
 
 internal class AvstemmingServiceTest :
@@ -75,7 +76,7 @@ internal class AvstemmingServiceTest :
                 .findAllByBelopstypeAndByTransaksjonTilstand(
                     listOf(BELOPSTYPE_SKATTEPLIKTIG_UTBETALING, BELOPSTYPE_IKKE_SKATTEPLIKTIG_UTBETALING, BELOPSTYPE_TREKK),
                     listOf(TRANS_TILSTAND_OPPDRAG_RETUR_OK, TRANS_TILSTAND_OPPDRAG_RETUR_FEIL, TRANS_TILSTAND_OPPDRAG_SENDT_OK),
-                ).size shouldBe 10
+                ).size shouldBe 11
             Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_GOD, listOf("000034")).first().avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_OK
 
             val avstemmingSlot = slot<List<String>>()
@@ -91,6 +92,11 @@ internal class AvstemmingServiceTest :
                     avstemmingsdataList.size shouldBe 4
                     verifyAvstemmingsdata(avstemmingsdataList.first(), AksjonType.START)
                     verifyAvstemmingsdata(avstemmingsdataList[1], AksjonType.DATA)
+                    avstemmingsdataList[1].detalj.size shouldBe 4
+                    avstemmingsdataList[1].detalj.filter { it.detaljType == DetaljType.AVVI }.size shouldBe 2
+                    avstemmingsdataList[1].detalj.filter { it.detaljType == DetaljType.MANG }.size shouldBe 1
+                    avstemmingsdataList[1].detalj.filter { it.detaljType == DetaljType.VARS }.size shouldBe 1
+
                     verifyAvstemmingsdata(avstemmingsdataList[2], AksjonType.DATA)
                     avstemmingsdataList[2].total.totalAntall shouldBe 7
                     avstemmingsdataList[2].grunnlag.godkjentAntall shouldBe 4
@@ -131,6 +137,10 @@ internal class AvstemmingServiceTest :
                     avstemmingsdataList.size shouldBe 4
                     verifyAvstemmingsdata(avstemmingsdataList.first(), AksjonType.START)
                     verifyAvstemmingsdata(avstemmingsdataList[1], AksjonType.DATA)
+                    avstemmingsdataList[1].detalj.size shouldBe 2
+                    avstemmingsdataList[1].detalj.filter { it.detaljType == DetaljType.AVVI }.size shouldBe 2
+                    avstemmingsdataList[1].detalj.filter { it.detaljType == DetaljType.MANG }.size shouldBe 0
+                    avstemmingsdataList[1].detalj.filter { it.detaljType == DetaljType.VARS }.size shouldBe 0
                     verifyAvstemmingsdata(avstemmingsdataList[2], AksjonType.DATA)
                     avstemmingsdataList[2].total.totalAntall shouldBe 3
                     avstemmingsdataList[2].grunnlag.godkjentAntall shouldBe 1
@@ -149,7 +159,7 @@ internal class AvstemmingServiceTest :
                 .findAllByBelopstypeAndByTransaksjonTilstand(
                     listOf(BELOPSTYPE_SKATTEPLIKTIG_UTBETALING, BELOPSTYPE_IKKE_SKATTEPLIKTIG_UTBETALING, BELOPSTYPE_TREKK),
                     listOf(TRANS_TILSTAND_OPPDRAG_RETUR_OK, TRANS_TILSTAND_OPPDRAG_RETUR_FEIL, TRANS_TILSTAND_OPPDRAG_SENDT_OK),
-                ).size shouldBe 10
+                ).size shouldBe 11
             Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_GOD, listOf("000034")).first().avstemmingStatus shouldBe TRANS_TILSTAND_OPPDRAG_SENDT_OK
             every { Db2Listener.filInfoRepository.getByAvstemmingStatus(any()) } throws SQLException("No database connection!")
 
@@ -190,7 +200,12 @@ private fun verifyAvstemmingsdata(
 
     if (aksjonType == AksjonType.DATA) {
         when {
-            avstemmingsdata.detalj.isNotEmpty() -> avstemmingsdata.detalj.size > 0
+            avstemmingsdata.detalj.isNotEmpty() -> {
+                avstemmingsdata.total shouldBe null
+                avstemmingsdata.periode shouldBe null
+                avstemmingsdata.grunnlag shouldBe null
+            }
+
             else -> {
                 avstemmingsdata.total shouldNotBe null
                 avstemmingsdata.periode shouldNotBe null
