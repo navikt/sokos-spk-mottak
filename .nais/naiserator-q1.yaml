@@ -44,8 +44,6 @@ spec:
   azure:
     application:
       enabled: true
-      tenant: trygdeetaten.no
-      allowAllUsers: true
       claims:
         extra:
           - NAVident
