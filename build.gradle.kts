@@ -45,7 +45,6 @@ val ktorVersion = "3.1.3"
 val jschVersion = "2.27.0"
 val logbackVersion = "1.5.18"
 val logstashVersion = "8.1"
-val jacksonVersion = "2.15.3"
 val micrometerVersion = "1.15.0"
 val kotlinLoggingVersion = "3.0.5"
 val janinoVersion = "3.1.12"
@@ -76,7 +75,6 @@ dependencies {
 
     // Ktor server
     implementation("io.ktor:ktor-server-call-logging-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-server-call-id-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")

@@ -12,7 +12,6 @@ import no.nav.sokos.spk.mottak.config.applicationLifecycleConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.routingConfig
 import no.nav.sokos.spk.mottak.config.securityConfig
-import no.nav.sokos.spk.mottak.config.setupServerOpentelemetry
 import no.nav.sokos.spk.mottak.mq.AvregningListenerService
 import no.nav.sokos.spk.mottak.mq.TrekkListenerService
 import no.nav.sokos.spk.mottak.mq.UtbetalingListenerService
@@ -25,7 +24,6 @@ private fun Application.module() {
     val useAuthentication = PropertiesConfig.Configuration().useAuthentication
     val applicationState = ApplicationState()
 
-    setupServerOpentelemetry()
     commonConfig()
     applicationLifecycleConfig(applicationState)
     securityConfig(useAuthentication)

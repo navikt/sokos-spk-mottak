@@ -1,11 +1,12 @@
 package no.nav.sokos.spk.mottak.util
 
+import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.trace.Tracer
 import org.slf4j.MDC
 
-import no.nav.sokos.spk.mottak.config.openTelemetry
-
 object TraceUtils {
+    val openTelemetry = GlobalOpenTelemetry.get()
+
     fun <T> withTracerId(
         tracer: Tracer = openTelemetry.getTracer("no.nav.sokos.spk.mottak"),
         spanName: String = "withTracerId",
