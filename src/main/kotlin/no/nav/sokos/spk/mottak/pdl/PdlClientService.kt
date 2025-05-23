@@ -12,7 +12,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import mu.KotlinLogging
-import org.slf4j.MDC
 
 import no.nav.pdl.HentIdenterBolk
 import no.nav.pdl.hentidenterbolk.IdentInformasjon
@@ -39,7 +38,6 @@ class PdlClientService(
             client.post("$pdlUrl/graphql") {
                 header(HttpHeaders.Authorization, "Bearer $accessToken")
                 header("behandlingsnummer", "B154")
-                header("Nav-Call-Id", MDC.get("x-correlation-id"))
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }
