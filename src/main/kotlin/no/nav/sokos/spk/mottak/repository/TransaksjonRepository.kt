@@ -286,7 +286,7 @@ class TransaksjonRepository(
                                         WHERE TRANSAKSJON_ID = t.TRANSAKSJON_ID
                                     )
                         WHERE k.K_ANVISER = '$SPK' AND t.FIL_INFO_ID IN (${filInfoIdList.joinToString()}) 
-                        AND tt.FEILKODE <> '' AND t.OS_STATUS <> '00'
+                        AND ((tt.FEILKODE <> '' AND t.OS_STATUS <> '00') OR (t.K_TRANS_TILST_T = 'OSO' AND t.OS_STATUS is null))
                         ORDER BY t.TRANSAKSJON_ID;
                         """.trimIndent(),
                     ),
