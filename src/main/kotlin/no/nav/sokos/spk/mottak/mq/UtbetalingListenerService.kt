@@ -11,7 +11,7 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
+import no.nav.sokos.spk.mottak.config.TEAM_LOGS_MARKER
 import no.nav.sokos.spk.mottak.domain.OS_STATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
@@ -24,7 +24,6 @@ import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 private val logger = KotlinLogging.logger {}
-private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
 
 class UtbetalingListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
@@ -95,7 +94,7 @@ class UtbetalingListenerService(
             Metrics.mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
             message.acknowledge()
         }.onFailure { exception ->
-            secureLogger.error { "Utbetalingsmelding fra OppdragZ: $jmsMessage" }
+            logger.error(marker = TEAM_LOGS_MARKER, exception) { "Utbetalingsmelding fra OppdragZ: $jmsMessage" }
             logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
             producer.send(listOf(jmsMessage))
             message.acknowledge()

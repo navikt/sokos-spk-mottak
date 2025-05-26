@@ -11,7 +11,7 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
+import no.nav.sokos.spk.mottak.config.TEAM_LOGS_MARKER
 import no.nav.sokos.spk.mottak.domain.Avregningsgrunnlag
 import no.nav.sokos.spk.mottak.domain.AvregningsgrunnlagWrapper
 import no.nav.sokos.spk.mottak.domain.Avregningsretur
@@ -27,7 +27,6 @@ import no.nav.sokos.spk.mottak.util.Utils.toIsoDate
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 
 private val logger = KotlinLogging.logger {}
-private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
 const val UNKNOWN_TRANSACTION_DATE = "1900-01-01"
 
 class AvregningListenerService(
@@ -61,7 +60,7 @@ class AvregningListenerService(
             message.acknowledge()
         }.onFailure { exception ->
             logger.error(exception) { "Feiler ved mottak av avregningsmelding fra UR: ${exception.message}" }
-            secureLogger.error { "Avregningsgrunnlagmelding fra UR: $jmsMessage" }
+            logger.error(marker = TEAM_LOGS_MARKER) { "Avregningsgrunnlagmelding fra UR: $jmsMessage" }
 
             avregningsgrunnlagWrapper?.let { wrapper ->
                 logger.error(exception) {

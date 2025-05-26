@@ -60,6 +60,10 @@ spec:
         - application: pensjon-pen-q2
           namespace: pensjon-q2
           cluster: dev-fss
+    outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
   webproxy: true
   vault:
     enabled: true

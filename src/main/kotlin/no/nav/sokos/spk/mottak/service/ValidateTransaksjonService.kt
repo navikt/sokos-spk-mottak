@@ -12,7 +12,7 @@ import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
-import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
+import no.nav.sokos.spk.mottak.config.TEAM_LOGS_MARKER
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.VALIDATE_TRANSAKSJON_SERVICE
 import no.nav.sokos.spk.mottak.domain.isTransaksjonStatusOk
@@ -29,7 +29,6 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 private val logger = KotlinLogging.logger {}
-private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
 private const val UGYLDIG_FNR = "02"
 private const val CHUNKED_SZIE = 1000
 
@@ -161,7 +160,8 @@ class ValidateTransaksjonService(
                                 }
                             }
                         } else {
-                            secureLogger.error { "Ingen person funnet i PDL for fnr: $fnr" }
+                            logger.error(marker = TEAM_LOGS_MARKER) { "Ingen person funnet i PDL for fnr: $fnr" }
+                            logger.error { "Ingen person funnet i PDL, sjekk Team Logs" }
                             innTransaksjonRepository.updateTransaksjonStatus(fnr, UGYLDIG_FNR, session)
                         }
                     }
