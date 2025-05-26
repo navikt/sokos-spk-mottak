@@ -4,7 +4,7 @@ import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.trace.Tracer
 
 object TraceUtils {
-    val openTelemetry = GlobalOpenTelemetry.get()
+    private val openTelemetry = GlobalOpenTelemetry.get()
 
     fun <T> withTracerId(
         tracer: Tracer = openTelemetry.getTracer(this::class.java.canonicalName),
