@@ -22,6 +22,7 @@ import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
+import no.nav.sokos.spk.mottak.util.TraceUtils
 
 private val logger = KotlinLogging.logger {}
 
@@ -47,57 +48,59 @@ class UtbetalingListenerService(
     }
 
     private fun onUtbetalingMessage(message: Message) {
-        val jmsMessage = message.getBody(String::class.java)
-        runCatching {
-            logger.debug { "Mottatt oppdragsmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
-            val oppdrag = JaxbUtils.unmarshallOppdrag(jmsMessage)
+        TraceUtils.withTracerId {
+            val jmsMessage = message.getBody(String::class.java)
+            runCatching {
+                logger.debug { "Mottatt oppdragsmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
+                val oppdrag = JaxbUtils.unmarshallOppdrag(jmsMessage)
 
-            val transTilstandStatus =
-                when {
-                    oppdrag.mmel.alvorlighetsgrad.toInt() < 5 -> TRANS_TILSTAND_OPPDRAG_RETUR_OK
-                    else -> {
-                        logger.error { "Prosessering av returmelding feilet med alvorlighetsgrad ${oppdrag.mmel.alvorlighetsgrad}. Feilmelding: ${message.jmsMessageID}" }
-                        TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
+                val transTilstandStatus =
+                    when {
+                        oppdrag.mmel.alvorlighetsgrad.toInt() < 5 -> TRANS_TILSTAND_OPPDRAG_RETUR_OK
+                        else -> {
+                            logger.error { "Prosessering av returmelding feilet med alvorlighetsgrad ${oppdrag.mmel.alvorlighetsgrad}. Feilmelding: ${message.jmsMessageID}" }
+                            TRANS_TILSTAND_OPPDRAG_RETUR_FEIL
+                        }
                     }
+
+                val transaksjonIdList =
+                    oppdrag.oppdrag110.oppdragsLinje150
+                        .filter { !isDuplicate(it.delytelseId.toInt(), oppdrag.mmel.alvorlighetsgrad) }
+                        .map { it.delytelseId.toInt() }
+
+                if (transaksjonIdList.isEmpty()) {
+                    logger.info { "Ingen nye oppdragsmeldingreturer å prosessere" }
+                    return@runCatching
                 }
 
-            val transaksjonIdList =
-                oppdrag.oppdrag110.oppdragsLinje150
-                    .filter { !isDuplicate(it.delytelseId.toInt(), oppdrag.mmel.alvorlighetsgrad) }
-                    .map { it.delytelseId.toInt() }
+                dataSource.transaction { session ->
+                    val transTilstandIdList =
+                        transaksjonTilstandRepository.insertBatch(
+                            transaksjonIdList = transaksjonIdList,
+                            transaksjonTilstandType = transTilstandStatus,
+                            systemId = UTBETALING_LISTENER_SERVICE,
+                            feilkode = oppdrag.mmel.kodeMelding,
+                            feilkodeMelding = oppdrag.mmel.beskrMelding,
+                            session = session,
+                        )
 
-            if (transaksjonIdList.isEmpty()) {
-                logger.info { "Ingen nye oppdragsmeldingreturer å prosessere" }
-                return
-            }
-
-            dataSource.transaction { session ->
-                val transTilstandIdList =
-                    transaksjonTilstandRepository.insertBatch(
+                    transaksjonRepository.updateBatch(
                         transaksjonIdList = transaksjonIdList,
+                        transTilstandIdList = transTilstandIdList,
                         transaksjonTilstandType = transTilstandStatus,
                         systemId = UTBETALING_LISTENER_SERVICE,
-                        feilkode = oppdrag.mmel.kodeMelding,
-                        feilkodeMelding = oppdrag.mmel.beskrMelding,
+                        osStatus = oppdrag.mmel.alvorlighetsgrad,
                         session = session,
                     )
-
-                transaksjonRepository.updateBatch(
-                    transaksjonIdList = transaksjonIdList,
-                    transTilstandIdList = transTilstandIdList,
-                    transaksjonTilstandType = transTilstandStatus,
-                    systemId = UTBETALING_LISTENER_SERVICE,
-                    osStatus = oppdrag.mmel.alvorlighetsgrad,
-                    session = session,
-                )
+                }
+                Metrics.mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
+                message.acknowledge()
+            }.onFailure { exception ->
+                logger.error(marker = TEAM_LOGS_MARKER, exception) { "Utbetalingsmelding fra OppdragZ: $jmsMessage" }
+                logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
+                producer.send(listOf(jmsMessage))
+                message.acknowledge()
             }
-            Metrics.mqUtbetalingListenerMetricCounter.inc(transaksjonIdList.size.toLong())
-            message.acknowledge()
-        }.onFailure { exception ->
-            logger.error(marker = TEAM_LOGS_MARKER, exception) { "Utbetalingsmelding fra OppdragZ: $jmsMessage" }
-            logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
-            producer.send(listOf(jmsMessage))
-            message.acknowledge()
         }
     }
 
