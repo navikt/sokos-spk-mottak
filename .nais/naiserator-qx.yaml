@@ -57,6 +57,10 @@ spec:
         - application: sokos-utbetalingsportalen-qx
           namespace: okonomi
           cluster: dev-gcp
+    outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
   webproxy: true
   vault:
     enabled: true

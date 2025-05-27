@@ -11,7 +11,7 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.MQConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
-import no.nav.sokos.spk.mottak.config.SECURE_LOGGER
+import no.nav.sokos.spk.mottak.config.TEAM_LOGS_MARKER
 import no.nav.sokos.spk.mottak.domain.OS_STATUS_OK
 import no.nav.sokos.spk.mottak.domain.TRANSAKSJONSTATUS_OK
 import no.nav.sokos.spk.mottak.domain.TREKK_LISTENER_SERVICE
@@ -23,9 +23,9 @@ import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
+import no.nav.sokos.spk.mottak.util.TraceUtils
 
 private val logger = KotlinLogging.logger {}
-private val secureLogger = KotlinLogging.logger(SECURE_LOGGER)
 
 class TrekkListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
@@ -49,17 +49,19 @@ class TrekkListenerService(
     }
 
     private fun onTrekkMessage(message: Message) {
-        val jmsMessage = message.getBody(String::class.java)
-        runCatching {
-            logger.debug { "Mottatt trekkmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
-            val trekkWrapper = json.decodeFromString<DokumentWrapper>(jmsMessage)
-            processTrekkMessage(trekkWrapper.dokument!!, trekkWrapper.mmel!!)
-            message.acknowledge()
-        }.onFailure { exception ->
-            secureLogger.error { "Trekkmelding fra OppdragZ: $jmsMessage" }
-            logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
-            producer.send(listOf(jmsMessage))
-            message.acknowledge()
+        TraceUtils.withTracerId {
+            val jmsMessage = message.getBody(String::class.java)
+            runCatching {
+                logger.debug { "Mottatt trekkmeldingretur fra OppdragZ. Meldingsinnhold: $jmsMessage" }
+                val trekkWrapper = json.decodeFromString<DokumentWrapper>(jmsMessage)
+                processTrekkMessage(trekkWrapper.dokument!!, trekkWrapper.mmel!!)
+                message.acknowledge()
+            }.onFailure { exception ->
+                logger.error(marker = TEAM_LOGS_MARKER, exception) { "Trekkmelding fra OppdragZ: $jmsMessage" }
+                logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
+                producer.send(listOf(jmsMessage))
+                message.acknowledge()
+            }
         }
     }
 

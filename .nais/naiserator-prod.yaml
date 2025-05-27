@@ -57,6 +57,10 @@ spec:
         - application: pensjon-pen
           namespace: pensjondeployer
           cluster: prod-fss
+    outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
   webproxy: true
   vault:
     enabled: true
