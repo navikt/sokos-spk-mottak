@@ -59,7 +59,11 @@ internal class SecurityTest :
 
             withMockOAuth2Server {
                 val mockOAuth2Server = this
+                System.setProperty("NAIS_APP_NAME", "test")
+
                 testApplication {
+                    val properties = PropertiesConfig.Configuration()
+                    properties.naisAppName shouldBe "test"
                     val client =
                         createClient {
                             install(ContentNegotiation) {
