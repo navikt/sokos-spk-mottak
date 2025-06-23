@@ -77,9 +77,7 @@ spec:
           channel: '#team-mob-alerts-prod'
           iconEmoji: ':alert:'
           username: 'Alert prod-fss (sokos-spk-mottak)'
-          sendResolved: false
-          httpConfig:
-            proxyUrl: http://webproxy.nais:8088
+          sendResolved: true
           title: |-
             [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
           text: >-
