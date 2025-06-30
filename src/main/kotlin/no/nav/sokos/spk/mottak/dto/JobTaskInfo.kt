@@ -1,16 +1,19 @@
 package no.nav.sokos.spk.mottak.dto
 
-import kotlinx.datetime.Instant
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
+@OptIn(ExperimentalTime::class)
 @Serializable
 data class JobTaskInfo(
     val taskId: String,
     val taskName: String,
-    val executionTime: Instant,
+    val executionTime: @Contextual Instant,
     val isPicked: Boolean,
     val pickedBy: String?,
-    val lastFailure: Instant?,
-    val lastSuccess: Instant?,
+    val lastFailure: @Contextual Instant?,
+    val lastSuccess: @Contextual Instant?,
     val ident: String?,
 )
