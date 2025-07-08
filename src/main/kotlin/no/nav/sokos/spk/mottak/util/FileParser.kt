@@ -120,7 +120,7 @@ object FileParser {
             .append(innTransaksjon.refTransId.orEmpty().padEnd(12, ' '))
             .append(innTransaksjon.tekstkode.orEmpty().padEnd(4, ' '))
             .append(transaksjonStatus.code.padEnd(2, ' '))
-            .append(transaksjonStatus.message.padEnd(35, ' '))
+            .append(transaksjonStatus.message.padEnd(35, ' ').substring(0, 35))
             .appendLine()
 
         return stringBuilder.toString()
