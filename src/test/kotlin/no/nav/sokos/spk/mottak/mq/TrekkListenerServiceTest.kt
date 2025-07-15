@@ -21,102 +21,103 @@ import no.nav.sokos.spk.mottak.listener.MQListener.connectionFactory
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
-class TrekkListenerServiceTest : BehaviorSpec({
-    extensions(listOf(Db2Listener, MQListener))
+class TrekkListenerServiceTest :
+    BehaviorSpec({
+        extensions(listOf(Db2Listener, MQListener))
 
-    val trekkListenerService: TrekkListenerService by lazy {
-        TrekkListenerService(
-            connectionFactory,
-            ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-            producer =
-                JmsProducerService(
-                    senderQueue = ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName + "_BOQ"),
-                    metricCounter = Metrics.mqTrekkBOQListenerMetricCounter,
-                    connectionFactory = connectionFactory,
-                ),
-            Db2Listener.dataSource,
-        )
-    }
-
-    val jmsProducerTrekk: JmsProducerService by lazy {
-        JmsProducerService(
-            ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-            ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-            Metrics.mqTrekkProducerMetricCounter,
-            connectionFactory,
-        )
-    }
-
-    Given("det finnes trekkmeldinger som skal sendes til oppdragZ") {
-        Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/trekk_transaksjon.sql")))
+        val trekkListenerService: TrekkListenerService by lazy {
+            TrekkListenerService(
+                connectionFactory,
+                ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                producer =
+                    JmsProducerService(
+                        senderQueue = ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName + "_BOQ"),
+                        metricCounter = Metrics.mqTrekkBOQListenerMetricCounter,
+                        connectionFactory = connectionFactory,
+                    ),
+                Db2Listener.dataSource,
+            )
         }
 
-        When("henter trekkmeldinger og sender til OppdragZ") {
-            trekkListenerService.start()
+        val jmsProducerTrekk: JmsProducerService by lazy {
+            JmsProducerService(
+                ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                ActiveMQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
+                Metrics.mqTrekkProducerMetricCounter,
+                connectionFactory,
+            )
+        }
 
-            val reply = readFromResource("/mq/trekk_ok_kvittering.json")
-            jmsProducerTrekk.send(listOf(reply))
+        Given("det finnes trekkmeldinger som skal sendes til oppdragZ") {
+            Db2Listener.dataSource.transaction { session ->
+                session.update(queryOf(readFromResource("/database/trekk_transaksjon.sql")))
+            }
 
-            Then("skal det returneres en OK-trekkmelding tilbake") {
-                Metrics.mqTrekkProducerMetricCounter.longValue shouldBe 1
-                runBlocking {
-                    delay(1000)
-                    Metrics.mqTrekkListenerMetricCounter.longValue shouldBe 1
-                    val transaksjonIdList = listOf(20425974)
-                    verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_OK, "00")
-                    verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_OK)
+            When("henter trekkmeldinger og sender til OppdragZ") {
+                trekkListenerService.start()
+
+                val reply = readFromResource("/mq/trekk_ok_kvittering.json")
+                jmsProducerTrekk.send(listOf(reply))
+
+                Then("skal det returneres en OK-trekkmelding tilbake") {
+                    Metrics.mqTrekkProducerMetricCounter.longValue shouldBe 1
+                    runBlocking {
+                        delay(1000)
+                        Metrics.mqTrekkListenerMetricCounter.longValue shouldBe 1
+                        val transaksjonIdList = listOf(20425974)
+                        verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_OK, "00")
+                        verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_OK)
+                    }
                 }
             }
         }
-    }
 
-    Given("det finnes flere trekkmeldinger som skal sendes til oppdragZ") {
-        Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/trekk_transaksjon.sql")))
-        }
+        Given("det finnes flere trekkmeldinger som skal sendes til oppdragZ") {
+            Db2Listener.dataSource.transaction { session ->
+                session.update(queryOf(readFromResource("/database/trekk_transaksjon.sql")))
+            }
 
-        When("henter trekkmeldinger og sender til OppdragZ") {
-            trekkListenerService.start()
+            When("henter trekkmeldinger og sender til OppdragZ") {
+                trekkListenerService.start()
 
-            val reply = readFromResource("/mq/trekk_feil_kvittering.json")
-            jmsProducerTrekk.send(listOf(reply))
+                val reply = readFromResource("/mq/trekk_feil_kvittering.json")
+                jmsProducerTrekk.send(listOf(reply))
 
-            Then("skal det returneres en trekk-feilmelding tilbake") {
-                Metrics.mqTrekkProducerMetricCounter.longValue shouldBe 2
-                runBlocking {
-                    delay(1000)
-                    Metrics.mqTrekkListenerMetricCounter.longValue shouldBe 2
-                    val transaksjonIdList = listOf(20425974)
-                    verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_FEIL, "08")
-                    verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_FEIL)
+                Then("skal det returneres en trekk-feilmelding tilbake") {
+                    Metrics.mqTrekkProducerMetricCounter.longValue shouldBe 2
+                    runBlocking {
+                        delay(1000)
+                        Metrics.mqTrekkListenerMetricCounter.longValue shouldBe 2
+                        val transaksjonIdList = listOf(20425974)
+                        verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_FEIL, "08")
+                        verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_TREKK_RETUR_FEIL)
+                    }
                 }
             }
         }
-    }
 
-    Given("det finnes enda flere trekkmeldinger som skal sendes til oppdragZ") {
-        Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/trekk_transaksjon.sql")))
-            session.update(queryOf("UPDATE T_TRANSAKSJON SET OS_STATUS = '00' WHERE TRANSAKSJON_ID = 20425974"))
-        }
+        Given("det finnes enda flere trekkmeldinger som skal sendes til oppdragZ") {
+            Db2Listener.dataSource.transaction { session ->
+                session.update(queryOf(readFromResource("/database/trekk_transaksjon.sql")))
+                session.update(queryOf("UPDATE T_TRANSAKSJON SET OS_STATUS = '00' WHERE TRANSAKSJON_ID = 20425974"))
+            }
 
-        When("henter trekkmeldinger og sender til OppdragZ") {
-            trekkListenerService.start()
+            When("henter trekkmeldinger og sender til OppdragZ") {
+                trekkListenerService.start()
 
-            val reply = readFromResource("/mq/trekk_feil_kvittering.json")
-            jmsProducerTrekk.send(listOf(reply))
+                val reply = readFromResource("/mq/trekk_feil_kvittering.json")
+                jmsProducerTrekk.send(listOf(reply))
 
-            Then("skal det returneres en trekk-duplikatmelding tilbake") {
-                Metrics.mqTrekkProducerMetricCounter.longValue shouldBe 3
-                runBlocking {
-                    delay(1000)
-                    Metrics.mqTrekkListenerMetricCounter.longValue shouldBe 2
-                    val transaksjonIdList = listOf(20425974)
-                    verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_OPPRETTET, "00")
-                    verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_OPPRETTET)
+                Then("skal det returneres en trekk-duplikatmelding tilbake") {
+                    Metrics.mqTrekkProducerMetricCounter.longValue shouldBe 3
+                    runBlocking {
+                        delay(1000)
+                        Metrics.mqTrekkListenerMetricCounter.longValue shouldBe 2
+                        val transaksjonIdList = listOf(20425974)
+                        verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_OPPRETTET, "00")
+                        verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_OPPRETTET)
+                    }
                 }
             }
         }
-    }
-})
+    })

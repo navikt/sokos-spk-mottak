@@ -105,8 +105,8 @@ class AvregningListenerService(
         Metrics.mqAvregningListenerMetricCounter.inc()
     }
 
-    private fun findTransaksjon(avregningsgrunnlag: Avregningsgrunnlag): Avregningstransaksjon? {
-        return when {
+    private fun findTransaksjon(avregningsgrunnlag: Avregningsgrunnlag): Avregningstransaksjon? =
+        when {
             !avregningsgrunnlag.delytelseId.isNullOrBlank() && avregningsgrunnlag.fagSystemId.toIntOrNull() != null -> {
                 avregningsgrunnlag.tomdato.toLocalDate()?.let { tomDato ->
                     transaksjonRepository.findTransaksjonByMotIdAndPersonIdAndTomDato(
@@ -123,33 +123,29 @@ class AvregningListenerService(
 
             else -> null
         }
-    }
 
     private fun createAvregningsretur(
         avregningsgrunnlag: Avregningsgrunnlag,
         avregningstransaksjon: Avregningstransaksjon?,
-    ): Avregningsretur {
-        return avregningstransaksjon?.let {
+    ): Avregningsretur =
+        avregningstransaksjon?.let {
             avregningsgrunnlag.toAvregningsretur(it)
         } ?: avregningsgrunnlag.trekkvedtakId?.let {
             setKreditorRefToTransEksId(avregningsgrunnlag)
         } ?: setUnknownAvregningsretur(avregningsgrunnlag)
-    }
 
-    private fun setUnknownAvregningsretur(avregningsgrunnlag: Avregningsgrunnlag): Avregningsretur {
-        return avregningsgrunnlag.toAvregningsretur(
+    private fun setUnknownAvregningsretur(avregningsgrunnlag: Avregningsgrunnlag): Avregningsretur =
+        avregningsgrunnlag.toAvregningsretur(
             Avregningstransaksjon(
                 datoAnviser = UNKNOWN_TRANSACTION_DATE.toIsoDate(),
             ),
         )
-    }
 
-    private fun setKreditorRefToTransEksId(avregningsgrunnlag: Avregningsgrunnlag): Avregningsretur {
-        return avregningsgrunnlag.toAvregningsretur(
+    private fun setKreditorRefToTransEksId(avregningsgrunnlag: Avregningsgrunnlag): Avregningsretur =
+        avregningsgrunnlag.toAvregningsretur(
             Avregningstransaksjon(
                 transEksId = avregningsgrunnlag.kreditorRef,
                 datoAnviser = UNKNOWN_TRANSACTION_DATE.toIsoDate(),
             ),
         )
-    }
 }

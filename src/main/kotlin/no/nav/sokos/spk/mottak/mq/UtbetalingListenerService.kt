@@ -107,8 +107,8 @@ class UtbetalingListenerService(
     private fun isDuplicate(
         transaksjonId: Int,
         osStatus: String,
-    ): Boolean {
-        return when {
+    ): Boolean =
+        when {
             osStatus == OS_STATUS_OK -> false
             transaksjonRepository.getByTransaksjonId(transaksjonId)!!.osStatus == TRANSAKSJONSTATUS_OK -> {
                 logger.info { "Transaksjon: $transaksjonId er allerede mottatt med OK-status" }
@@ -117,5 +117,4 @@ class UtbetalingListenerService(
 
             else -> false
         }
-    }
 }

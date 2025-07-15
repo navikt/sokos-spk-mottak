@@ -68,8 +68,8 @@ fun Avregningsgrunnlag.toAvregningsretur(avregningstransaksjon: Avregningstransa
         endretAv = AVREGNING_LISTENER_SERVICE,
     )
 
-fun Avregningsgrunnlag.toAvregningsAvvik(): AvregningsgrunnlagAvvik {
-    return AvregningsgrunnlagAvvik(
+fun Avregningsgrunnlag.toAvregningsAvvik(): AvregningsgrunnlagAvvik =
+    AvregningsgrunnlagAvvik(
         oppdragsId = oppdragsId,
         linjeId = linjeId,
         trekkvedtakId = trekkvedtakId,
@@ -91,4 +91,3 @@ fun Avregningsgrunnlag.toAvregningsAvvik(): AvregningsgrunnlagAvvik {
         fagSystemId = fagSystemId,
         kreditorRef = kreditorRef,
     )
-}

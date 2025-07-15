@@ -52,8 +52,8 @@ class SendAvregningsreturService(
         }
     }
 
-    private fun createTempFileAndUploadToFtpServer(avregningTransaksjonList: List<Avregningsretur>): Long {
-        return dataSource.transaction { session ->
+    private fun createTempFileAndUploadToFtpServer(avregningTransaksjonList: List<Avregningsretur>): Long =
+        dataSource.transaction { session ->
             val lopeNummer = lopenummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING)?.inc() ?: 1
             lopenummerRepository.updateLopeNummer(lopeNummer.toString(), FILTYPE_AVREGNING, SEND_AVREGNINGSRETUR_SERVICE, session)
 
@@ -113,5 +113,4 @@ class SendAvregningsreturService(
 
             filInfoId
         }
-    }
 }

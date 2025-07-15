@@ -139,7 +139,8 @@ class ValidateTransaksjonService(
             innTransaksjonRepository.findAllFnrWithoutPersonId().chunked(READ_ROWS).forEach { fnrList ->
                 runBlocking {
                     val identInformasjonMap =
-                        fnrList.chunked(CHUNKED_SZIE)
+                        fnrList
+                            .chunked(CHUNKED_SZIE)
                             .flatMap { chunk -> pdlClientService.getIdenterBolk(chunk).entries }
                             .groupBy({ it.key }, { it.value })
                             .mapValues { entry -> entry.value.flatten() }
