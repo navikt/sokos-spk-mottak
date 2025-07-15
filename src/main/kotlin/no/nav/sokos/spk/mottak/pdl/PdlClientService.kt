@@ -52,9 +52,9 @@ class PdlClientService(
                     ?.hentIdenterBolk
                     ?.map { item ->
                         item.ident to (item.identer ?: emptyList())
-                    }
-                    ?.groupBy({ it.first }, { it.second })
-                    ?.mapValues { entry -> entry.value.flatten() }.orEmpty()
+                    }?.groupBy({ it.first }, { it.second })
+                    ?.mapValues { entry -> entry.value.flatten() }
+                    .orEmpty()
             }
 
             else -> {

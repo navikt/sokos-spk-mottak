@@ -26,147 +26,148 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 import no.nav.sokos.spk.mottak.util.Utils.toIsoDate
 import no.nav.sokos.spk.mottak.util.Utils.toLocalDate
 
-internal class AvregningListenerServiceTest : BehaviorSpec({
-    extensions(listOf(Db2Listener, MQListener))
+internal class AvregningListenerServiceTest :
+    BehaviorSpec({
+        extensions(listOf(Db2Listener, MQListener))
 
-    val avregningListenerService: AvregningListenerService by lazy {
-        AvregningListenerService(
-            connectionFactory,
-            ActiveMQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
-            producer =
-                JmsProducerService(
-                    senderQueue = ActiveMQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName + "_BOQ"),
-                    metricCounter = Metrics.mqUtbetalingBOQListenerMetricCounter,
-                    connectionFactory = connectionFactory,
-                ),
-            Db2Listener.dataSource,
-        )
-    }
+        val avregningListenerService: AvregningListenerService by lazy {
+            AvregningListenerService(
+                connectionFactory,
+                ActiveMQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
+                producer =
+                    JmsProducerService(
+                        senderQueue = ActiveMQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName + "_BOQ"),
+                        metricCounter = Metrics.mqUtbetalingBOQListenerMetricCounter,
+                        connectionFactory = connectionFactory,
+                    ),
+                Db2Listener.dataSource,
+            )
+        }
 
-    val jmsProducerAvregning: JmsProducerService by lazy {
-        JmsProducerService(
-            ActiveMQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
-            ActiveMQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
-            MQListener.tempMetric,
-            connectionFactory,
-        )
-    }
+        val jmsProducerAvregning: JmsProducerService by lazy {
+            JmsProducerService(
+                ActiveMQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
+                ActiveMQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
+                MQListener.tempMetric,
+                connectionFactory,
+            )
+        }
 
-    listOf(
-        TestScenario(
-            description = "det sendes en avregningsmelding med delYtelseId til MQ",
-            jsonFile = "/mq/avregning_med_kjent_utbetalingstransaksjon.json",
-            expectedMetricValue = 1,
-            motId = "20025925",
-            fnr = "04030842389",
-            transEksId = "9805367",
-            datoAvsender = "2008-12-20",
-            transaksjonId = 20025925,
-        ),
-        TestScenario(
-            description = "det sendes en avregningsmelding med trekkvedtakId til MQ",
-            jsonFile = "/mq/avregning_med_kjent_trekktransaksjon.json",
-            expectedMetricValue = 2,
-            trekkvedtakId = "123456",
-            fnr = "19040835672",
-            transEksId = "9805382",
-            datoAvsender = "2008-12-20",
-            transaksjonId = 20025935,
-        ),
-        TestScenario(
-            description = "det sendes en avregningsmelding med kreditorRef til MQ",
-            jsonFile = "/mq/avregning_med_ukjent_trekktransaksjon.json",
-            expectedMetricValue = 3,
-            trekkvedtakId = "223344",
-            transEksId = "918273",
-            datoAvsender = UNKNOWN_TRANSACTION_DATE,
-        ),
-        TestScenario(
-            description = "det sendes en avregningsmelding med ukjent transaksjon til MQ",
-            jsonFile = "/mq/avregning_ukjent_utbetalingstransaksjon.json",
-            expectedMetricValue = 4,
-            motId = "999888777",
-            datoAvsender = UNKNOWN_TRANSACTION_DATE,
-        ),
-    ).forEach { scenario ->
-        Given("det finnes avregningsmeldinger som skal sendes fra OS") {
-            setupDatabase("/database/utbetaling_transaksjon.sql")
+        listOf(
+            TestScenario(
+                description = "det sendes en avregningsmelding med delYtelseId til MQ",
+                jsonFile = "/mq/avregning_med_kjent_utbetalingstransaksjon.json",
+                expectedMetricValue = 1,
+                motId = "20025925",
+                fnr = "04030842389",
+                transEksId = "9805367",
+                datoAvsender = "2008-12-20",
+                transaksjonId = 20025925,
+            ),
+            TestScenario(
+                description = "det sendes en avregningsmelding med trekkvedtakId til MQ",
+                jsonFile = "/mq/avregning_med_kjent_trekktransaksjon.json",
+                expectedMetricValue = 2,
+                trekkvedtakId = "123456",
+                fnr = "19040835672",
+                transEksId = "9805382",
+                datoAvsender = "2008-12-20",
+                transaksjonId = 20025935,
+            ),
+            TestScenario(
+                description = "det sendes en avregningsmelding med kreditorRef til MQ",
+                jsonFile = "/mq/avregning_med_ukjent_trekktransaksjon.json",
+                expectedMetricValue = 3,
+                trekkvedtakId = "223344",
+                transEksId = "918273",
+                datoAvsender = UNKNOWN_TRANSACTION_DATE,
+            ),
+            TestScenario(
+                description = "det sendes en avregningsmelding med ukjent transaksjon til MQ",
+                jsonFile = "/mq/avregning_ukjent_utbetalingstransaksjon.json",
+                expectedMetricValue = 4,
+                motId = "999888777",
+                datoAvsender = UNKNOWN_TRANSACTION_DATE,
+            ),
+        ).forEach { scenario ->
+            Given("det finnes avregningsmeldinger som skal sendes fra OS") {
+                setupDatabase("/database/utbetaling_transaksjon.sql")
 
-            When(scenario.description) {
-                avregningListenerService.start()
-                val avregningsmelding = readFromResource(scenario.jsonFile)
-                jmsProducerAvregning.send(listOf(avregningsmelding))
+                When(scenario.description) {
+                    avregningListenerService.start()
+                    val avregningsmelding = readFromResource(scenario.jsonFile)
+                    jmsProducerAvregning.send(listOf(avregningsmelding))
 
-                Then("blir det mottatt en melding") {
+                    Then("blir det mottatt en melding") {
 
-                    runBlocking {
-                        delay(2000)
-                        Metrics.mqAvregningListenerMetricCounter.longValue shouldBe scenario.expectedMetricValue
+                        runBlocking {
+                            delay(2000)
+                            Metrics.mqAvregningListenerMetricCounter.longValue shouldBe scenario.expectedMetricValue
 
-                        val avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(avregningsmelding)
-                        val avregningsretur =
+                            val avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(avregningsmelding)
+                            val avregningsretur =
+                                run {
+                                    scenario.trekkvedtakId?.let {
+                                        Db2Listener.avregningsreturRepository.getByTrekkvedtakId(it)
+                                    } ?: scenario.motId?.let {
+                                        Db2Listener.avregningsreturRepository.getByMotId(it)
+                                    } ?: avregningsgrunnlagWrapper.avregningsgrunnlag.toAvregningsretur(
+                                        Avregningstransaksjon(
+                                            datoAnviser = UNKNOWN_TRANSACTION_DATE.toIsoDate(),
+                                        ),
+                                    )
+                                }
+
+                            verifyAvregningstransaksjon(
+                                avregningsretur,
+                                avregningsgrunnlagWrapper,
+                                avregningFnr = scenario.fnr,
+                                avregningTransEksId = scenario.transEksId,
+                                avregningDatoAvsender = scenario.datoAvsender,
+                                avregningTransaksjonId = scenario.transaksjonId,
+                            )
                             run {
                                 scenario.trekkvedtakId?.let {
                                     Db2Listener.avregningsreturRepository.getByTrekkvedtakId(it)
                                 } ?: scenario.motId?.let {
                                     Db2Listener.avregningsreturRepository.getByMotId(it)
-                                } ?: avregningsgrunnlagWrapper.avregningsgrunnlag.toAvregningsretur(
-                                    Avregningstransaksjon(
-                                        datoAnviser = UNKNOWN_TRANSACTION_DATE.toIsoDate(),
-                                    ),
-                                )
-                            }
-
-                        verifyAvregningstransaksjon(
-                            avregningsretur,
-                            avregningsgrunnlagWrapper,
-                            avregningFnr = scenario.fnr,
-                            avregningTransEksId = scenario.transEksId,
-                            avregningDatoAvsender = scenario.datoAvsender,
-                            avregningTransaksjonId = scenario.transaksjonId,
-                        )
-                        run {
-                            scenario.trekkvedtakId?.let {
-                                Db2Listener.avregningsreturRepository.getByTrekkvedtakId(it)
-                            } ?: scenario.motId?.let {
-                                Db2Listener.avregningsreturRepository.getByMotId(it)
-                            }
-                        } shouldBe avregningsretur
+                                }
+                            } shouldBe avregningsretur
+                        }
                     }
                 }
             }
         }
-    }
 
-    Given("det finnes avregningsmeldinger som skal sendes fra UR Z") {
-        setupDatabase("/database/utbetaling_transaksjon.sql")
-        MQListener.tempMetric.clear()
-        Metrics.mqAvregningListenerMetricCounter.clear()
-        Metrics.mqAvregningBOQListenerMetricCounter.clear()
+        Given("det finnes avregningsmeldinger som skal sendes fra UR Z") {
+            setupDatabase("/database/utbetaling_transaksjon.sql")
+            MQListener.tempMetric.clear()
+            Metrics.mqAvregningListenerMetricCounter.clear()
+            Metrics.mqAvregningBOQListenerMetricCounter.clear()
 
-        When("det sendes en avregningsmelding med delYtelseId til MQ som har formatsfeil") {
-            avregningListenerService.start()
-            val avregningsmelding = readFromResource("/mq/avregning_med_formatsfeil.json")
+            When("det sendes en avregningsmelding med delYtelseId til MQ som har formatsfeil") {
+                avregningListenerService.start()
+                val avregningsmelding = readFromResource("/mq/avregning_med_formatsfeil.json")
 
-            jmsProducerAvregning.send(listOf(avregningsmelding))
+                jmsProducerAvregning.send(listOf(avregningsmelding))
 
-            Then("blir meldingen forkastet pga formatsfeil i 'tomdato'") {
-                runBlocking {
-                    delay(2000)
+                Then("blir meldingen forkastet pga formatsfeil i 'tomdato'") {
+                    runBlocking {
+                        delay(2000)
 
-                    MQListener.tempMetric.longValue shouldBe 1
+                        MQListener.tempMetric.longValue shouldBe 1
 
-                    Metrics.mqAvregningListenerMetricCounter.longValue shouldBe 0
-                    Metrics.mqUtbetalingBOQListenerMetricCounter.longValue shouldBe 1
+                        Metrics.mqAvregningListenerMetricCounter.longValue shouldBe 0
+                        Metrics.mqUtbetalingBOQListenerMetricCounter.longValue shouldBe 1
 
-                    Db2Listener.avregningsreturRepository.getNoOfRows() shouldBe 0
-                    Db2Listener.avregningsavvikRepository.getNoOfRows() shouldBe 1
-                    Db2Listener.avregningsavvikRepository.getFeilmeldingByBilagsNr("10", "759197901") shouldBe "Feil ved konvertering av 20091313 (format yyyyMMdd) til dato"
+                        Db2Listener.avregningsreturRepository.getNoOfRows() shouldBe 0
+                        Db2Listener.avregningsavvikRepository.getNoOfRows() shouldBe 1
+                        Db2Listener.avregningsavvikRepository.getFeilmeldingByBilagsNr("10", "759197901") shouldBe "Feil ved konvertering av 20091313 (format yyyyMMdd) til dato"
+                    }
                 }
             }
         }
-    }
-})
+    })
 
 private fun setupDatabase(dbScript: String) {
     Db2Listener.dataSource.transaction { session ->

@@ -27,8 +27,8 @@ class TransaksjonTilstandRepository(
         feilkode: String? = null,
         feilkodeMelding: String? = null,
         session: Session,
-    ): List<Int> {
-        return insertBatchTimer
+    ): List<Int> =
+        insertBatchTimer
             .recordCallable {
                 session.batchPreparedNamedStatement(
                     """
@@ -59,7 +59,6 @@ class TransaksjonTilstandRepository(
                     ),
                 ) { row -> row.int("TRANS_TILSTAND_ID") }
             }.orEmpty()
-    }
 
     /** Bruker kun for testing */
     fun getByTransaksjonId(transaksjonId: Int): TransaksjonTilstand? =

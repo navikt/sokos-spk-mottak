@@ -24,8 +24,8 @@ fun StartRecord.toFileInfo(
     filStatus: String,
     feilTekst: String? = null,
     systemId: String,
-): FilInfo {
-    return FilInfo(
+): FilInfo =
+    FilInfo(
         filStatus = filStatus,
         filTilstandType = filTilstandType,
         anviser = SPK,
@@ -41,4 +41,3 @@ fun StartRecord.toFileInfo(
         endretAv = systemId,
         versjon = 1,
     )
-}

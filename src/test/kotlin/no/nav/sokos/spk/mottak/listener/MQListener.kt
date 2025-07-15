@@ -30,7 +30,12 @@ object MQListener : TestListener {
     val senderQueueMock = mockk<ActiveMQQueue>()
     val replyQueueMock = mockk<ActiveMQQueue>()
 
-    val tempMetric = Counter.builder().name("temp_metric").withoutExemplars().register(prometheusMeterRegistry.prometheusRegistry)
+    val tempMetric =
+        Counter
+            .builder()
+            .name("temp_metric")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
     val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun beforeSpec(spec: Spec) {

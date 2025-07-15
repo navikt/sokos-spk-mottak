@@ -31,98 +31,99 @@ import no.nav.sokos.spk.mottak.listener.SftpListener
 import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 @OptIn(KotestInternal::class)
-internal class SendAvregningsreturServiceTest : BehaviorSpec({
-    extensions(listOf(Db2Listener, SftpListener))
+internal class SendAvregningsreturServiceTest :
+    BehaviorSpec({
+        extensions(listOf(Db2Listener, SftpListener))
 
-    val ftpService: FtpService by lazy {
-        FtpService(SftpConfig(SftpListener.sftpProperties))
-    }
-
-    val sendAvregningsreturService: SendAvregningsreturService by lazy {
-        SendAvregningsreturService(
-            dataSource = Db2Listener.dataSource,
-            ftpService = ftpService,
-        )
-    }
-
-    afterEach {
-        SftpListener.deleteFile(
-            Directories.AVREGNINGSRETUR.value + "/SPK_NAV_*",
-            Directories.AVREGNINGSRETUR_BEHANDLET.value + "/SPK_NAV_*",
-        )
-    }
-
-    Given("det finnes avregningsretur transaksjoner som ikke er sent til FTP") {
-        Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/skrivreturfil/avregningsretur_ikke_sendt.sql")))
+        val ftpService: FtpService by lazy {
+            FtpService(SftpConfig(SftpListener.sftpProperties))
         }
-        Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().size shouldBe 32
-        Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 10
 
-        When("skriving av returfiler starter") {
-            withConstantNow(LocalDate.of(2025, 1, 1)) {
-                sendAvregningsreturService.writeAvregningsreturFile()
+        val sendAvregningsreturService: SendAvregningsreturService by lazy {
+            SendAvregningsreturService(
+                dataSource = Db2Listener.dataSource,
+                ftpService = ftpService,
+            )
+        }
+
+        afterEach {
+            SftpListener.deleteFile(
+                Directories.AVREGNINGSRETUR.value + "/SPK_NAV_*",
+                Directories.AVREGNINGSRETUR_BEHANDLET.value + "/SPK_NAV_*",
+            )
+        }
+
+        Given("det finnes avregningsretur transaksjoner som ikke er sent til FTP") {
+            Db2Listener.dataSource.transaction { session ->
+                session.update(queryOf(readFromResource("/database/skrivreturfil/avregningsretur_ikke_sendt.sql")))
             }
-            Then("skal det opprettes avregningsreturfilen til SPK som lastes opp til Ftp outbound/avregning") {
-                Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().shouldBeEmpty()
-                Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 11
+            Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().size shouldBe 32
+            Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 10
 
-                val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_RET, listOf("000011")).first()
-                verifyFilInfo(
-                    filInfo = filInfo,
-                    filStatus = FilStatus.OK,
-                    filTilstandType = FILTILSTANDTYPE_RET,
-                    fileType = FILTYPE_AVREGNING,
-                    systemId = SEND_AVREGNINGSRETUR_SERVICE,
-                )
-
-                val downloadAvregningsfil = ftpService.downloadFiles(Directories.AVREGNINGSRETUR)
-                downloadAvregningsfil.forEach { (filename, content) ->
-                    filename shouldStartWith "SPK_NAV_"
-                    filename shouldEndWith "_AVR"
-                    content.convertArrayListToString() shouldBe readFromResource("/spk/SPK_NAV_AVREGNINGSRETUR.txt")
+            When("skriving av returfiler starter") {
+                withConstantNow(LocalDate.of(2025, 1, 1)) {
+                    sendAvregningsreturService.writeAvregningsreturFile()
                 }
-                val downloadAvregningsfilBehandlet = ftpService.downloadFiles(Directories.AVREGNINGSRETUR_BEHANDLET)
-                downloadAvregningsfilBehandlet.forEach { (filename, content) ->
-                    filename shouldStartWith "SPK_NAV_"
-                    filename shouldEndWith "_AVR"
-                    content.convertArrayListToString() shouldBe readFromResource("/spk/SPK_NAV_AVREGNINGSRETUR.txt")
+                Then("skal det opprettes avregningsreturfilen til SPK som lastes opp til Ftp outbound/avregning") {
+                    Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().shouldBeEmpty()
+                    Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 11
+
+                    val filInfo = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_RET, listOf("000011")).first()
+                    verifyFilInfo(
+                        filInfo = filInfo,
+                        filStatus = FilStatus.OK,
+                        filTilstandType = FILTILSTANDTYPE_RET,
+                        fileType = FILTYPE_AVREGNING,
+                        systemId = SEND_AVREGNINGSRETUR_SERVICE,
+                    )
+
+                    val downloadAvregningsfil = ftpService.downloadFiles(Directories.AVREGNINGSRETUR)
+                    downloadAvregningsfil.forEach { (filename, content) ->
+                        filename shouldStartWith "SPK_NAV_"
+                        filename shouldEndWith "_AVR"
+                        content.convertArrayListToString() shouldBe readFromResource("/spk/SPK_NAV_AVREGNINGSRETUR.txt")
+                    }
+                    val downloadAvregningsfilBehandlet = ftpService.downloadFiles(Directories.AVREGNINGSRETUR_BEHANDLET)
+                    downloadAvregningsfilBehandlet.forEach { (filename, content) ->
+                        filename shouldStartWith "SPK_NAV_"
+                        filename shouldEndWith "_AVR"
+                        content.convertArrayListToString() shouldBe readFromResource("/spk/SPK_NAV_AVREGNINGSRETUR.txt")
+                    }
+                }
+            }
+
+            When("skriving av returfil starter") {
+                val dataSourceMock = mockk<HikariDataSource>()
+                every { dataSourceMock.connection } throws SQLException("No database connection!")
+                val sendAvregningsreturServiceMock = SendAvregningsreturService(dataSource = dataSourceMock, ftpService = ftpService)
+
+                Then("skal det kastes en MottakException med databasefeil") {
+                    val exception = shouldThrow<MottakException> { sendAvregningsreturServiceMock.writeAvregningsreturFile() }
+                    exception.message shouldBe "Skriving av avregningfil feilet. Feilmelding: No database connection!"
                 }
             }
         }
 
-        When("skriving av returfil starter") {
-            val dataSourceMock = mockk<HikariDataSource>()
-            every { dataSourceMock.connection } throws SQLException("No database connection!")
-            val sendAvregningsreturServiceMock = SendAvregningsreturService(dataSource = dataSourceMock, ftpService = ftpService)
+        Given("det fins avregningsretur som ikke sent til FTP med FTP server er nede") {
+            Db2Listener.dataSource.transaction { session ->
+                session.update(queryOf(readFromResource("/database/skrivreturfil/avregningsretur_ikke_sendt.sql")))
+            }
+            Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().size shouldBe 32
+            Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 10
 
-            Then("skal det kastes en MottakException med databasefeil") {
-                val exception = shouldThrow<MottakException> { sendAvregningsreturServiceMock.writeAvregningsreturFile() }
-                exception.message shouldBe "Skriving av avregningfil feilet. Feilmelding: No database connection!"
+            When("skriv retur filen prosess starter") {
+                val ftpServiceMock = mockk<FtpService>()
+                every { ftpServiceMock.createFile(any(), any(), any()) } throws IOException("Ftp server can not move file!")
+                val sendAvregningsreturServiceMock = SendAvregningsreturService(dataSource = Db2Listener.dataSource, ftpService = ftpServiceMock)
+
+                Then("skal det kastet en MottakException med ftp feil") {
+                    val exception = shouldThrow<MottakException> { sendAvregningsreturServiceMock.writeAvregningsreturFile() }
+                    exception.message shouldBe "Skriving av avregningfil feilet. Feilmelding: Ftp server can not move file!"
+
+                    Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().size shouldBe 32
+                    Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_RET, listOf("000011")).shouldBeEmpty()
+                    Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 10
+                }
             }
         }
-    }
-
-    Given("det fins avregningsretur som ikke sent til FTP med FTP server er nede") {
-        Db2Listener.dataSource.transaction { session ->
-            session.update(queryOf(readFromResource("/database/skrivreturfil/avregningsretur_ikke_sendt.sql")))
-        }
-        Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().size shouldBe 32
-        Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 10
-
-        When("skriv retur filen prosess starter") {
-            val ftpServiceMock = mockk<FtpService>()
-            every { ftpServiceMock.createFile(any(), any(), any()) } throws IOException("Ftp server can not move file!")
-            val sendAvregningsreturServiceMock = SendAvregningsreturService(dataSource = Db2Listener.dataSource, ftpService = ftpServiceMock)
-
-            Then("skal det kastet en MottakException med ftp feil") {
-                val exception = shouldThrow<MottakException> { sendAvregningsreturServiceMock.writeAvregningsreturFile() }
-                exception.message shouldBe "Skriving av avregningfil feilet. Feilmelding: Ftp server can not move file!"
-
-                Db2Listener.avregningsreturRepository.getReturTilAnviserWhichIsNotSent().size shouldBe 32
-                Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_RET, listOf("000011")).shouldBeEmpty()
-                Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_AVREGNING) shouldBe 10
-            }
-        }
-    }
-})
+    })

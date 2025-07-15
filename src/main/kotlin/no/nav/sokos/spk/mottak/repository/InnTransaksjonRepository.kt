@@ -252,8 +252,8 @@ class InnTransaksjonRepository(
             }
         } ?: 0
 
-    private fun List<TransaksjonRecord>.convertToListMap(filInfoId: Long): List<Map<String, Any?>> {
-        return this.map { transaksjonRecord ->
+    private fun List<TransaksjonRecord>.convertToListMap(filInfoId: Long): List<Map<String, Any?>> =
+        this.map { transaksjonRecord ->
             mapOf(
                 "filInfoId" to filInfoId,
                 "transaksjonStatus" to null,
@@ -284,7 +284,6 @@ class InnTransaksjonRepository(
                 "gradStr" to transaksjonRecord.grad.trim().ifBlank { null },
             )
         }
-    }
 
     private val mapToInntransaksjon: (Row) -> InnTransaksjon = { row ->
         InnTransaksjon(

@@ -35,34 +35,34 @@ class ScheduledTaskRepository(
         }
     }
 
-    fun getLastScheduledTask(): Map<String, ScheduledTaskHistory> {
-        return using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    SELECT t.id, t.ident, t.task_name, t.timestamp
-                    FROM scheduled_tasks_history t
-                    JOIN (
-                        SELECT task_name, MAX(timestamp) AS max_timestamp
-                        FROM scheduled_tasks_history
-                        GROUP BY task_name
-                    ) latest_tasks ON t.task_name = latest_tasks.task_name AND t.timestamp = latest_tasks.max_timestamp;
-                    """.trimIndent(),
-                ),
-            ) { row ->
-                row.string("task_name") to
-                    ScheduledTaskHistory(
-                        id = row.string("id"),
-                        ident = row.string("ident"),
-                        timestamp = row.localDateTime("timestamp").toKotlinLocalDateTime(),
-                        taskName = row.string("task_name"),
-                    )
-            }.toMap()
+    fun getLastScheduledTask(): Map<String, ScheduledTaskHistory> =
+        using(sessionOf(dataSource)) { session ->
+            session
+                .list(
+                    queryOf(
+                        """
+                        SELECT t.id, t.ident, t.task_name, t.timestamp
+                        FROM scheduled_tasks_history t
+                        JOIN (
+                            SELECT task_name, MAX(timestamp) AS max_timestamp
+                            FROM scheduled_tasks_history
+                            GROUP BY task_name
+                        ) latest_tasks ON t.task_name = latest_tasks.task_name AND t.timestamp = latest_tasks.max_timestamp;
+                        """.trimIndent(),
+                    ),
+                ) { row ->
+                    row.string("task_name") to
+                        ScheduledTaskHistory(
+                            id = row.string("id"),
+                            ident = row.string("ident"),
+                            timestamp = row.localDateTime("timestamp").toKotlinLocalDateTime(),
+                            taskName = row.string("task_name"),
+                        )
+                }.toMap()
         }
-    }
 
-    fun getAllScheduledTasks(): List<ScheduledTask> {
-        return using(sessionOf(dataSource)) { session ->
+    fun getAllScheduledTasks(): List<ScheduledTask> =
+        using(sessionOf(dataSource)) { session ->
             session.list(
                 queryOf(
                     """
@@ -81,5 +81,4 @@ class ScheduledTaskRepository(
                 )
             }
         }
-    }
 }

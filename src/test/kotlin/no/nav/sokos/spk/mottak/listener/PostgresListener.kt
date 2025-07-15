@@ -29,8 +29,7 @@ object PostgresListener : TestListener {
             .withEnv("POSTGRES_PASSWORD", "postgres")
             .withCreateContainerCmdModifier { cmd ->
                 cmd.hostConfig!!.withPortBindings(PortBinding(Ports.Binding.bindPort(5432), ExposedPort(5432)))
-            }
-            .waitingFor(Wait.forLogMessage(".*ready to accept connections*\\n", 1))
+            }.waitingFor(Wait.forLogMessage(".*ready to accept connections*\\n", 1))
 
     val dataSource: HikariDataSource by lazy {
         HikariDataSource(DatabaseTestConfig.hikariPostgresConfig(container.host))

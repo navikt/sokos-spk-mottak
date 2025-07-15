@@ -4,4 +4,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AvstemmingRequest(val fromDate: LocalDate?, val toDate: LocalDate?)
+data class AvstemmingRequest(
+    val fromDate: LocalDate?,
+    val toDate: LocalDate?,
+)

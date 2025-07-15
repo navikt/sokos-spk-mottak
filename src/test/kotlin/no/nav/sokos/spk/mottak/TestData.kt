@@ -33,8 +33,8 @@ const val SPK_FEIL_UGYLDIG_TRANSAKSJONS_BELOP = "P611.ANV.NAV.HUB.SPK.L003919.D2
 const val SPK_FEIL_UGYLDIG_TRANSAKSJON_RECTYPE = "P611.ANV.NAV.HUB.SPK.L003919.D240104.T003017_UGYLDIG_TRANSAKSJON_RECTYPE.txt"
 
 object TestData {
-    fun transaksjonMock(): Transaksjon {
-        return Transaksjon(
+    fun transaksjonMock(): Transaksjon =
+        Transaksjon(
             transaksjonId = 36799719,
             filInfoId = 123,
             transaksjonStatus = TransaksjonStatus.OK.code,
@@ -71,7 +71,6 @@ object TestData {
             grad = 100,
             gyldigKombinasjon = GyldigKombinasjon(fagomrade = "PENSPK", osKlassifikasjon = "PENSPKALD01"),
         )
-    }
 
     fun hentIdenterBolkResultMock(
         fnr: String,

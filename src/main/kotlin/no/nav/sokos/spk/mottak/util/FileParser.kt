@@ -152,13 +152,12 @@ object FileParser {
         return stringBuilder.toString()
     }
 
-    private fun filterType(utbetalingtype: String): String {
-        return when (utbetalingtype) {
+    private fun filterType(utbetalingtype: String): String =
+        when (utbetalingtype) {
             "UEU" -> "UTK"
             "UIG" -> "UTK"
             else -> utbetalingtype
         }
-    }
 
     fun createSluttRecord(
         antallTransaksjon: Int,
