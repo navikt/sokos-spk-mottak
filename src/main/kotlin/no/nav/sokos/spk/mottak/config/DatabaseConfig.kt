@@ -61,7 +61,15 @@ object DatabaseConfig {
             poolName = "db2-pool"
             minimumIdle = 1
             maximumPoolSize = 10
+            connectionTimeout = Duration.ofSeconds(5).toMillis()
+            idleTimeout = Duration.ofMinutes(1).toMillis()
+            maxLifetime = Duration.ofMinutes(5).toMillis()
+            keepaliveTime = Duration.ofMinutes(5).toMillis()
+            leakDetectionThreshold = Duration.ofSeconds(30).toMillis()
+
             connectionTestQuery = "select 1 from sysibm.sysdummy1"
+            validationTimeout = Duration.ofSeconds(5).toMillis()
+
             dataSource =
                 DB2SimpleDataSource().apply {
                     driverType = 4
@@ -70,8 +78,6 @@ object DatabaseConfig {
                     serverName = db2Properties.host
                     portNumber = db2Properties.port.toInt()
                     currentSchema = db2Properties.schema
-                    connectionTimeout = 1000
-                    commandTimeout = 10000
                     user = db2Properties.username
                     setPassword(db2Properties.password)
                 }
