@@ -41,7 +41,7 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "3.2.1"
+val ktorVersion = "3.2.2"
 val jschVersion = "2.27.2"
 val logbackVersion = "1.5.18"
 val logstashVersion = "8.1"
@@ -54,22 +54,22 @@ val wiremockVersion = "3.13.1"
 val kotlinxSerializationVersion = "1.9.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 val mockOAuth2ServerVersion = "2.2.1"
-val mockkVersion = "1.14.4"
-val hikariVersion = "6.3.0"
+val mockkVersion = "1.14.5"
+val hikariVersion = "6.3.1"
 val db2JccVersion = "12.1.2.0"
 val kotliqueryVersion = "1.9.1"
 val testcontainersVersion = "1.21.3"
 val h2Version = "2.3.232"
-val flywayVersion = "11.10.2"
+val flywayVersion = "11.10.3"
 val postgresVersion = "42.7.7"
-val dbSchedulerVersion = "15.6.0"
+val dbSchedulerVersion = "16.0.0"
 val vaultVersion = "1.3.10"
-val tjenestespesifikasjonVersion = "1.0_20250414143240_7082707"
+val tjenestespesifikasjonVersion = "1.0_20250715173022_23638f4"
 val ibmmqVersion = "9.4.3.0"
-val activemqVersion = "2.41.0"
+val activemqVersion = "2.42.0"
 val graphqlClientVersion = "8.8.1"
 val jaxbVersion = "4.0.5"
-val opentelemetryVersion = "2.17.1-alpha"
+val opentelemetryVersion = "2.18.0-alpha"
 
 dependencies {
 
