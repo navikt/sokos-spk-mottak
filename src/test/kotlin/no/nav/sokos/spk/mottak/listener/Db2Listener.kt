@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
 import io.kotest.core.test.TestCase
-import io.kotest.core.test.TestResult
+import io.kotest.engine.test.TestResult
 import io.kotest.matchers.shouldNotBe
 import io.mockk.spyk
 import kotliquery.queryOf
@@ -57,7 +57,6 @@ object Db2Listener : TestListener {
     }
 
     override suspend fun afterEach(
-        @OptIn(io.kotest.common.KotestInternal::class)
         testCase: TestCase,
         result: TestResult,
     ) {
