@@ -38,6 +38,10 @@ import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_AVV
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
 import no.nav.sokos.spk.mottak.domain.FilStatus
+import no.nav.sokos.spk.mottak.domain.FilStatus.OK
+import no.nav.sokos.spk.mottak.domain.FilStatus.UGYLDIG_ANVISER
+import no.nav.sokos.spk.mottak.domain.FilStatus.UGYLDIG_MOTTAKER
+import no.nav.sokos.spk.mottak.domain.FilStatus.UGYLDIG_SUMBELOP
 import no.nav.sokos.spk.mottak.domain.InnTransaksjon
 import no.nav.sokos.spk.mottak.domain.LopeNummer
 import no.nav.sokos.spk.mottak.domain.READ_FILE_SERVICE
@@ -47,6 +51,7 @@ import no.nav.sokos.spk.mottak.exception.MottakException
 import no.nav.sokos.spk.mottak.listener.Db2Listener
 import no.nav.sokos.spk.mottak.listener.Db2Listener.dataSource
 import no.nav.sokos.spk.mottak.listener.SftpListener
+import no.nav.sokos.spk.mottak.service.Directories.INBOUND
 
 private const val MAX_LOPENUMMER = 33
 
@@ -68,14 +73,14 @@ internal class ReadFileServiceTest :
 
         afterEach {
             SftpListener.deleteFile(
-                Directories.INBOUND.value + "/P611*",
+                INBOUND.value + "/P611*",
                 Directories.ANVISNINGSFIL_BEHANDLET.value + "/P611*",
                 Directories.ANVISNINGSRETUR.value + "/SPK_NAV_*",
             )
         }
 
         Given("det finnes en ubehandlet fil i \"inbound\" på FTP-serveren ") {
-            ftpService.createFile(SPK_OK, Directories.INBOUND, readFromResource("/spk/$SPK_OK"))
+            ftpService.createFile(SPK_OK, INBOUND, readFromResource("/spk/$SPK_OK"))
 
             When("leser filen og parser") {
                 readFileService.readAndParseFile()
@@ -88,7 +93,7 @@ internal class ReadFileServiceTest :
                     verifyLopenummer(lopeNummer)
 
                     val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_GOD, listOf(lopeNummerFraFil))
-                    verifyFilInfo(filInfoList.first(), FilStatus.OK, FILTILSTANDTYPE_GOD)
+                    verifyFilInfo(filInfoList.first(), OK, FILTILSTANDTYPE_GOD)
 
                     val inntransaksjonList = Db2Listener.innTransaksjonRepository.getByFilInfoId(filInfoList.first().filInfoId!!)
                     inntransaksjonList.size shouldBe 8
@@ -98,8 +103,8 @@ internal class ReadFileServiceTest :
         }
 
         Given("det finnes to ubehandlede filer i \"inbound\" på FTP-serveren ") {
-            ftpService.createFile(SPK_OK, Directories.INBOUND, readFromResource("/spk/$SPK_OK"))
-            ftpService.createFile(SPK_FILE_FEIL, Directories.INBOUND, readFromResource("/spk/$SPK_FILE_FEIL"))
+            ftpService.createFile(SPK_OK, INBOUND, readFromResource("/spk/$SPK_OK"))
+            ftpService.createFile(SPK_FILE_FEIL, INBOUND, readFromResource("/spk/$SPK_FILE_FEIL"))
 
             When("leser begge filene og parser") {
                 readFileService.readAndParseFile()
@@ -118,7 +123,7 @@ internal class ReadFileServiceTest :
 
                     val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
                     val feiltekst = "Total beløp 2775100 stemmer ikke med summeringen av enkelt beløpene 2775200"
-                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, feiltekst)
+                    verifyFilInfo(filInfoList.first(), UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, feiltekst)
 
                     val inntransaksjonList = Db2Listener.innTransaksjonRepository.getByFilInfoId(filInfoList.first().filInfoId!!)
                     inntransaksjonList.shouldBeEmpty()
@@ -171,7 +176,7 @@ internal class ReadFileServiceTest :
                 Then("skal fil info inneholde en filestatus UGYLDIG_ANVISER") {
                     val lopeNummerFraFil = "000034"
                     val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
-                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_ANVISER, FILTILSTANDTYPE_AVV, "Ugyldig anviser")
+                    verifyFilInfo(filInfoList.first(), UGYLDIG_ANVISER, FILTILSTANDTYPE_AVV, "Ugyldig anviser")
                     Db2Listener.lopeNummerRepository.findMaxLopeNummer(FILTYPE_ANVISER) shouldBe MAX_LOPENUMMER
                 }
             }
@@ -185,7 +190,7 @@ internal class ReadFileServiceTest :
                 Then("skal fil info inneholde en filestatus UGYLDIG_MOTTAKER") {
                     val lopeNummerFraFil = "000034"
                     val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
-                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_MOTTAKER, FILTILSTANDTYPE_AVV, "Ugyldig mottaker")
+                    verifyFilInfo(filInfoList.first(), UGYLDIG_MOTTAKER, FILTILSTANDTYPE_AVV, "Ugyldig mottaker")
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }
@@ -273,7 +278,7 @@ internal class ReadFileServiceTest :
                 Then("skal fil info inneholde en filestatus UGYLDIG_SUMBELOP") {
                     val lopeNummerFraFil = "000034"
                     val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
-                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, "Total beløp 2775100 stemmer ikke med summeringen av enkelt beløpene 346900")
+                    verifyFilInfo(filInfoList.first(), UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, "Total beløp 2775100 stemmer ikke med summeringen av enkelt beløpene 346900")
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }
@@ -329,7 +334,7 @@ internal class ReadFileServiceTest :
                 Then("skal fil info inneholde en filestatus UGYLDIG_SUMBELOP") {
                     val lopeNummerFraFil = "000034"
                     val filInfoList = Db2Listener.filInfoRepository.getByLopenummerAndFilTilstand(FILTILSTANDTYPE_AVV, listOf(lopeNummerFraFil))
-                    verifyFilInfo(filInfoList.first(), FilStatus.UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, "Total beløp 346900 stemmer ikke med summeringen av enkelt beløpene 0")
+                    verifyFilInfo(filInfoList.first(), UGYLDIG_SUMBELOP, FILTILSTANDTYPE_AVV, "Total beløp 346900 stemmer ikke med summeringen av enkelt beløpene 0")
                     verifyLopenummer(Db2Listener.lopeNummerRepository.getLopeNummer(lopeNummerFraFil))
                 }
             }

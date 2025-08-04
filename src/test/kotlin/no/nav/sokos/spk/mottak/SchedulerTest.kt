@@ -1,12 +1,12 @@
 package no.nav.sokos.spk.mottak
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.logging.LogLevel.ERROR
 import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.engine.runBlocking
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
