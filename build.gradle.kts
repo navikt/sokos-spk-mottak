@@ -209,7 +209,7 @@ tasks {
             attributes["Class-Path"] = "/var/run/secrets/db2license/db2jcc_license_cisuz.jar"
         }
         finalizedBy(koverHtmlReport)
-        mergeServiceFiles("META-INF/services/org.flywaydb.core.extensibility.Plugin")
+        mergeServiceFiles()
     }
 
     withType<Test>().configureEach {
