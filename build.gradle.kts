@@ -11,7 +11,7 @@ plugins {
     kotlin("jvm") version "2.2.0"
     kotlin("plugin.serialization") version "2.2.0"
     id("com.expediagroup.graphql") version "8.8.1"
-    id("com.gradleup.shadow") version "8.3.8"
+    id("com.gradleup.shadow") version "9.0.0"
     id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
@@ -209,9 +209,7 @@ tasks {
             attributes["Class-Path"] = "/var/run/secrets/db2license/db2jcc_license_cisuz.jar"
         }
         finalizedBy(koverHtmlReport)
-        mergeServiceFiles {
-            setPath("META-INF/services/org.flywaydb.core.extensibility.Plugin")
-        }
+        mergeServiceFiles("META-INF/services/org.flywaydb.core.extensibility.Plugin")
     }
 
     withType<Test>().configureEach {
@@ -229,7 +227,7 @@ tasks {
     }
 
     withType<Wrapper> {
-        gradleVersion = "8.14"
+        gradleVersion = "9.0.0"
     }
 
     ("jar") {
