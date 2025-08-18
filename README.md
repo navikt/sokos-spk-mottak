@@ -47,6 +47,7 @@ For å kjøre applikasjonen lokalt må du gjøre følgende:
 
 - Må også ha med `db2jcc_license_cisuz.jar` for at `sokos-spk-mottak` skal kunne koble seg til DB2.
   Denne må ligge i `Classpath` som JVM options. F.eks på Mac/Linux blir følgende lagt til:
+
 ```
 -cp $Classpath$:path/db2jcc_license_cisuz.jar
 ```
@@ -54,6 +55,7 @@ For å kjøre applikasjonen lokalt må du gjøre følgende:
 ### Miljøer
 
 `sokos-spk-mottak` kjøres i følgende miljøer:
+
 - q1
 - qx
 - prod
@@ -78,6 +80,7 @@ Applikasjonen bruker [AzureAD](https://docs.nais.io/security/auth/azure-ad/) for
 # 7. Drift og støtte
 
 Du kan trigge jobber fra Spk Mottak Dashboard i Utbetalingsportalen. For å gjøre dette kreves det at du har tilgang til riktig AD-gruppe for skjermbildet.
+
 - [Spk Mottak Dashboard i test](https://utbetalingsportalen.intern.dev.nav.no/spk-mottak)
 - [Spk Mottak Dashboard i prod](https://utbetalingsportalen.intern.nav.no/spk-mottak)
 
@@ -116,9 +119,19 @@ kubectl logs -f sokos-spk-mottak-<POD-ID> --namespace okonomi -c sokos-spk-motta
 
 ### Alarmer
 
-Vi bruker [nais-alerts](https://doc.nais.io/observability/alerts) for å sette opp alarmer.
-Disse finner man konfigurert i [.nais/alerts-dev.yaml](.nais/alerts-dev.yaml) filen og [.nais/alerts-prod.yaml](.nais/alerts-prod.yaml).
-Alarmene blir publisert i Slack kanalen [#team-mob-alerts-dev](https://nav-it.slack.com/archives/C042SF2FEQM) og [#team-mob-alerts-prod](https://nav-it.slack.com/archives/C042ESY71GX).
+Applikasjonen bruker [Grafana Alerting](https://grafana.nav.cloud.nais.io/alerting/) for overvåkning og varsling.
+Dette er konfigurert via NAIS sin [alerting-integrasjon](https://doc.nais.io/observability/alerts).
+
+Alarmene overvåker metrics som:
+
+- HTTP-feilrater
+- JVM-metrikker
+
+Varsler blir sendt til følgende Slack-kanaler:
+
+- Dev-miljø: [#team-mob-alerts-dev](https://nav-it.slack.com/archives/C042SF2FEQM)
+- Prod-miljø: [#team-mob-alerts-prod](https://nav-it.slack.com/archives/C042ESY71GX)
+-
 
 ### Grafana
 
