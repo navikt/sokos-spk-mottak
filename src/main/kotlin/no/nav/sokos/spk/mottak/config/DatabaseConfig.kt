@@ -48,6 +48,9 @@ object DatabaseConfig {
                 .initSql("""SET ROLE "${PropertiesConfig.PostgresProperties().adminUser}"""")
                 .lockRetryCount(-1)
                 .validateMigrationNaming(true)
+                .validateMigrationNaming(true)
+                .sqlMigrationSeparator("__")
+                .sqlMigrationPrefix("V")
                 .load()
                 .migrate()
                 .migrationsExecuted
