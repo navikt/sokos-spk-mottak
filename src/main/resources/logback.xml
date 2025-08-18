@@ -42,18 +42,10 @@
         </filter>
     </appender>
 
-    <appender name="default-json-async" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="default-json"/>
-        <queueSize>512</queueSize>
-        <discardingThreshold>0</discardingThreshold>
-        <includeCallerData>false</includeCallerData>
-        <neverBlock>true</neverBlock>
-    </appender>
-
     <if condition='isDefined("NAIS_CLUSTER_NAME")'>
         <then>
             <root level="INFO">
-                <appender-ref ref="${LOG_APPENDER:-default-json-async}"/>
+                <appender-ref ref="${LOG_APPENDER:-default-json}"/>
                 <appender-ref ref="${LOG_APPENDER:-team-logs}"/>
             </root>
         </then>
