@@ -11,7 +11,7 @@ plugins {
     kotlin("jvm") version "2.2.10"
     kotlin("plugin.serialization") version "2.2.10"
     id("com.expediagroup.graphql") version "8.8.1"
-    id("com.gradleup.shadow") version "9.0.0"
+    id("com.gradleup.shadow") version "9.0.2"
     id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
@@ -58,7 +58,7 @@ val db2JccVersion = "12.1.2.0"
 val kotliqueryVersion = "1.9.1"
 val testcontainersVersion = "1.21.3"
 val h2Version = "2.3.232"
-val flywayVersion = "11.10.5"
+val flywayVersion = "11.11.1"
 val postgresVersion = "42.7.7"
 val dbSchedulerVersion = "16.0.0"
 val vaultVersion = "1.3.10"
@@ -208,8 +208,9 @@ tasks {
             attributes["Main-Class"] = "no.nav.sokos.spk.mottak.ApplicationKt"
             attributes["Class-Path"] = "/var/run/secrets/db2license/db2jcc_license_cisuz.jar"
         }
-        finalizedBy(koverHtmlReport)
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         mergeServiceFiles()
+        finalizedBy(koverHtmlReport)
     }
 
     withType<Test>().configureEach {
