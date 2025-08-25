@@ -88,16 +88,8 @@ Applikasjonen bruker sikker SFTP for filoverføring til/fra SPK. Problemer med S
 
 ### Logging
 
-https://logs.adeo.no.
-
-Feilmeldinger og infomeldinger som ikke innheholder sensitive data logges til data view `Applikasjonslogger`.  
-Sensetive meldinger logges til data view `Securelogs` [sikker-utvikling/logging](https://sikkerhet.nav.no/docs/sikker-utvikling/logging)).
-
-- Filter for Produksjon
-    * application:sokos-spk-mottak AND envclass:p
-
-- Filter for Dev
-    * application:sokos-spk-mottak AND envclass:q
+Feilmeldinger og infomeldinger som ikke innheholder sensitive data logges til [Grafana Loki](https://docs.nais.io/observability/logging/#grafana-loki).  
+Sensitive meldinger logges til [Team Logs](https://doc.nais.io/observability/logging/how-to/team-logs/).
 
 ### Kubectl
 
@@ -131,7 +123,6 @@ Varsler blir sendt til følgende Slack-kanaler:
 
 - Dev-miljø: [#team-mob-alerts-dev](https://nav-it.slack.com/archives/C042SF2FEQM)
 - Prod-miljø: [#team-mob-alerts-prod](https://nav-it.slack.com/archives/C042ESY71GX)
--
 
 ### Grafana
 
