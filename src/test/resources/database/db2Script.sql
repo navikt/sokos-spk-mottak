@@ -422,7 +422,13 @@ values (1, 'ALD', '01', null, null, null, 'SPK', 'PENSPK', 'PENSPKALD01', '1899-
         'PATCH_PK-17312'),
        (82, 'UFT', '04', null, null, null, 'SPK', 'UFORESPK', 'UFORESPKUT-OP', '1899-12-31', null, '1', '2014-12-01 17:12:08.306580', 'PATCH_PK-17312', '2014-12-01 17:12:08.306580', 'PATCH_PK-17312'),
        (83, 'UFT', '01', null, null, null, 'SPK', 'UFORESPK', 'UFORESPKUT', '1899-12-31', null, '1', '2014-12-01 17:12:08.307946', 'PATCH_PK-17312', '2014-12-01 17:12:08.307946', 'PATCH_PK-17312'),
-       (84, 'UFE', '01', null, null, null, 'SPK', 'UFORESPK', 'UFORESPKUT', '1899-12-31', null, '1', '2016-09-24 00:54:10.005838', 'PK-30848', '2016-09-24 00:54:10.005838', 'PK-30848');
+       (84, 'UFE', '01', null, null, null, 'SPK', 'UFORESPK', 'UFORESPKUT', '1899-12-31', null, '1', '2016-09-24 00:54:10.005838', 'PK-30848', '2016-09-24 00:54:10.005838', 'PK-30848'),
+       (85, 'UFE', '02', null, null, null, 'SPK', 'UFORESPK', 'UFORESPKUT-OP', {d '2025-09-01'}, null, '1', '2025-09-01 00:00:00.000000', 'TOB-5354', '2025-09-01 00:00:00.000000', 'TOB-5354'),
+       (86, 'ALP', '02', null, null, null, 'SPK', 'PENSPK', 'PENSPKAPF2020-OP', {d '2025-09-01'}, null, '1', '2025-09-01 00:00:00.000000', 'TOB-5354', '2025-09-01 00:00:00.000000', 'TOB-5354'),
+       (87, 'PSL', '02', null, null, null, 'SPK', 'PENSPK', 'PENSPKAPE2020-OP', {d '2025-09-01'}, null, '1', '2025-09-01 00:00:00.000000', 'TOB-5354', '2025-09-01 00:00:00.000000', 'TOB-5354'),
+       (88, 'AFL', '02', null, null, null, 'SPK', 'PENSPK', 'PENSPKAFPLIV-OP', {d '2025-09-01'}, null, '1', '2025-09-01 00:00:00.000000', 'TOB-5354', '2025-09-01 00:00:00.000000', 'TOB-5354'),
+       (89, 'BTP', '02', null, null, null, 'SPK', 'PENSPK', 'PENSPKAFPBTJ-OP', {d '2025-09-01'}, null, '1', '2025-09-01 00:00:00.000000', 'TOB-5354', '2025-09-01 00:00:00.000000', 'TOB-5354'),
+       (90, 'OVT', '02', null, null, null, 'SPK', 'PENSPK', 'PENSPKAFPOT-OP', {d '2025-09-01'}, null, '1', '2025-09-01 00:00:00.000000', 'TOB-5354', '2025-09-01 00:00:00.000000', 'TOB-5354');
 
 -- TABLE T_RETUR_TIL_ANV
 
