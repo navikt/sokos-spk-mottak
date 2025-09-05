@@ -66,8 +66,8 @@ object DatabaseConfig {
             maximumPoolSize = 10
             connectionTimeout = Duration.ofSeconds(5).toMillis()
             idleTimeout = Duration.ofMinutes(5).toMillis()
-            keepaliveTime = Duration.ofMinutes(5).toMillis()
-            maxLifetime = Duration.ofMinutes(30).toMillis()
+            keepaliveTime = Duration.ofMinutes(6).toMillis()
+            maxLifetime = Duration.ofMinutes(15).toMillis()
 
             connectionTestQuery = "select 1 from sysibm.sysdummy1"
             validationTimeout = Duration.ofSeconds(5).toMillis()
