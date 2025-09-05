@@ -134,7 +134,7 @@ class TransaksjonRepository(
                     WHERE TRANSAKSJON_ID IN (SELECT DISTINCT t1.TRANSAKSJON_ID
                                              FROM T_TRANSAKSJON t1
                                                       INNER JOIN T_K_GYLDIG_KOMBIN k1 on (t1.K_ART = k1.K_ART AND t1.K_BELOP_T = k1.K_BELOP_T AND k1.ER_GYLDIG = '1')
-                                                      INNER JOIN T_TRANSAKSJON t2 ON (t1.PERSON_ID = t2.PERSON_ID AND t1.FIL_INFO_ID = t2.FIL_INFO_ID)
+                                                      INNER JOIN T_TRANSAKSJON t2 ON (t1.PERSON_ID = t2.PERSON_ID)
                                                       INNER JOIN T_K_GYLDIG_KOMBIN k2 on (t2.K_ART = k2.K_ART AND t2.K_BELOP_T = k2.K_BELOP_T AND k2.ER_GYLDIG = '1')
                                              WHERE t1.K_TRANS_TOLKNING = '$TRANS_TOLKNING_NY'
                                                AND t1.K_TRANS_TILST_T = '$TRANS_TILSTAND_OPPRETTET'
