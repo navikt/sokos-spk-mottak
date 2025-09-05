@@ -81,7 +81,7 @@ class SendUtbetalingService(
                     var transaksjonerSendt = 0
                     var oppdragsmeldingerSendt = 0
 
-                    logger.info { "Starter sending fileInfoId: $filInfoId av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
+                    logger.info { "Starter sending filInfoId: $filInfoId av ${transaksjonList.size} utbetalingstransaksjoner til OppdragZ" }
                     if (transaksjonList.isNotEmpty()) {
                         val oppdragList =
                             transaksjonList
