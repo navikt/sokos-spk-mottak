@@ -4,13 +4,13 @@ RUN apk update && apk add --no-cache \
   dumb-init \
   && rm -rf /var/lib/apt/lists/*
 
-COPY build/libs/*.jar app.jar
+COPY build/install/*/lib /lib
 COPY java-opts.sh /
 
 RUN chmod +x /java-opts.sh
 
 ENV TZ="Europe/Oslo"
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
+ENV JDK_JAVA_OPTIONS="-XX:MaxRAMPercentage=75"
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", ". /java-opts.sh && exec java ${JAVA_OPTS} -jar app.jar"]
+CMD ["sh", "-c", "java -cp /lib/*:/var/run/secrets/db2license/db2jcc_license_cisuz.jar no.nav.sokos.spk.mottak.ApplicationKt"]
