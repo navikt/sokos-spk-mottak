@@ -3,9 +3,7 @@ FROM bellsoft/liberica-openjdk-alpine:21.0.8@sha256:c4052811bba52c7a06ebde235c83
 RUN apk add --no-cache dumb-init
 
 COPY build/install/*/lib /lib
-COPY java-opts.sh /
 
-RUN chmod +x /java-opts.sh
 
 ENV TZ="Europe/Oslo"
 ENV JDK_JAVA_OPTIONS="-XX:MaxRAMPercentage=75"
