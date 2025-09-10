@@ -5,4 +5,4 @@ COPY build/install/*/lib /lib
 ENV TZ="Europe/Oslo"
 ENV JDK_JAVA_OPTIONS="-XX:MaxRAMPercentage=75"
 
-CMD ["java", "-cp", "/lib/*:/var/run/secrets/db2license/db2jcc_license_cisuz.jar", "no.nav.sokos.spk.mottak.ApplicationKt"]
+ENTRYPOINT ["java", "-cp", "/lib/*:/var/run/secrets/db2license/db2jcc_license_cisuz.jar", "no.nav.sokos.spk.mottak.ApplicationKt"]
