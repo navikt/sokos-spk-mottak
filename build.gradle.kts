@@ -157,6 +157,14 @@ application {
     mainClass.set("no.nav.sokos.spk.mottak.ApplicationKt")
 }
 
+sourceSets {
+    main {
+        java {
+            srcDirs("${layout.buildDirectory.get()}/generated/src/main/kotlin")
+        }
+    }
+}
+
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
@@ -214,10 +222,6 @@ tasks {
 
     withType<Wrapper> {
         gradleVersion = "9.0.0"
-    }
-
-    ("jar") {
-        enabled = false
     }
 
     ("build") {
