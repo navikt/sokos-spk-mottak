@@ -12,4 +12,5 @@ RUN chmod +x /java-opts.sh
 ENV TZ="Europe/Oslo"
 ENV JDK_JAVA_OPTIONS="-XX:MaxRAMPercentage=75"
 
-ENTRYPOINT ["java", "-cp", "/lib/*", "no.nav.sokos.spk.mottak.ApplicationKt"]
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["sh", "-c", "exec java -cp /lib/*:/var/run/secrets/db2license/db2jcc_license_cisuz.jar no.nav.sokos.spk.mottak.ApplicationKt"]
