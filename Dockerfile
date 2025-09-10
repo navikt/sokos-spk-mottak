@@ -13,4 +13,4 @@ ENV TZ="Europe/Oslo"
 ENV JDK_JAVA_OPTIONS="-XX:MaxRAMPercentage=75"
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "java -cp /lib/*:/var/run/secrets/db2license/db2jcc_license_cisuz.jar no.nav.sokos.spk.mottak.ApplicationKt"]
+CMD ["sh", "-c", ". /java-opts.sh && exec java ${JAVA_OPTS} -cp /lib/*:/var/run/secrets/db2license/db2jcc_license_cisuz.jar no.nav.sokos.spk.mottak.ApplicationKt"]
