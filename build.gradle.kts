@@ -217,6 +217,7 @@ tasks {
         }
 
         reports.forEach { report -> report.required.value(false) }
+
         finalizedBy(koverHtmlReport)
     }
 
