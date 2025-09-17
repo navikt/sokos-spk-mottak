@@ -69,9 +69,6 @@ object DatabaseConfig {
             keepaliveTime = Duration.ofMinutes(6).toMillis()
             maxLifetime = Duration.ofMinutes(15).toMillis()
 
-            connectionTestQuery = "select 1 from sysibm.sysdummy1"
-            validationTimeout = Duration.ofSeconds(5).toMillis()
-
             dataSource =
                 DB2SimpleDataSource().apply {
                     driverType = 4
