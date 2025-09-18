@@ -72,6 +72,33 @@ internal class ValidateTransaksjonServiceTest :
 
         every { Db2Listener.innTransaksjonRepository.findAllFnrWithoutPersonId() } returns emptyList()
 
+        Given("det finnes 6 innTransaksjoner som ikke er behandlet") {
+            Db2Listener.dataSource.transaction { session ->
+                session.update(queryOf(readFromResource("/database/person.sql")))
+                session.update(queryOf(readFromResource("/database/innTransaksjonerNyeArtKombinasjoner.sql")))
+            }
+            Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 6
+            When("det valideres") {
+                validateTransaksjonService.validateInnTransaksjon()
+                Then("skal det opprettes 6 ok-transaksjoner") {
+                    val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
+
+                    val innTransaksjonMap = innTransaksjonList.groupBy { it.isTransaksjonStatusOk() }
+                    innTransaksjonMap[true]!!.size shouldBe 6
+
+                    innTransaksjonMap[true]!!.forEach { innTransaksjon ->
+                        val transaksjon =
+                            Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                        verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
+
+                        val transaksjonTilstand =
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                        verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
+                    }
+                }
+            }
+        }
+
         Given("det finnes innTransaksjoner som ikke er behandlet") {
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(readFromResource("/database/person.sql")))

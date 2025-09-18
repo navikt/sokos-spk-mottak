@@ -338,8 +338,7 @@ internal class TransaksjonstolkningTest :
         }
 
         Given(
-            "det finnes 4 innTransaksjoner med 4 ulike fnr hvor en har en ny art tilhørende et nytt fagområde, en har en ny art tilhørende et eksisterende fagområde, " +
-                "en har en eksisterende art, og en har ingen tidligere art i T_TRANSAKSJON",
+            "det finnes 4 innTransaksjoner med 4 ulike fnr hvor en har en ny art tilhørende et nytt fagområde, en har en ny art tilhørende et eksisterende fagområde, en har en eksisterende art, og en har ingen tidligere art i T_TRANSAKSJON",
         ) {
             Db2Listener.dataSource.transaction { session ->
                 session.update(
@@ -372,8 +371,7 @@ internal class TransaksjonstolkningTest :
         }
 
         Given(
-            "det finnes 3 innTransaksjoner med 3 ulike fnr hvor en har en ny art tilhørende et nytt fagområde og endret fnr, en har en ny art tilhørende et eksisterende fagområde og endret fnr, " +
-                "og en har en eksisterende art og endret fnr ",
+            "det finnes 3 innTransaksjoner med 3 ulike fnr hvor en har en ny art tilhørende et nytt fagområde og endret fnr, en har en ny art tilhørende et eksisterende fagområde og endret fnr, og en har en eksisterende art og endret fnr ",
         ) {
             Db2Listener.dataSource.transaction { session ->
                 session.update(
@@ -398,6 +396,42 @@ internal class TransaksjonstolkningTest :
                                 else -> TRANS_TOLKNING_NY_EKSIST
                             }
                         verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_ENDRET)
+
+                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                        verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
+                    }
+                }
+            }
+        }
+
+        Given(
+            "det finnes 4 innTransaksjoner med samme fnr der de 3 første transaksjonene tilhører én filinfoId, mens den siste transaksjonen tilhører en annen filinfoId. Alle leses og valideres samtidig. Personen har ingen transaksjoner fra før i databasen.",
+        ) {
+            Db2Listener.dataSource.transaction { session ->
+                session.update(
+                    queryOf(
+                        TestHelper.readFromResource(
+                            "/database/validering/innTransaksjon_med_ny_person_med_2_ulike_filInfoId.sql",
+                        ),
+                    ),
+                )
+            }
+            Db2Listener.innTransaksjonRepository.getByBehandlet().size shouldBe 4
+            When("det valideres med 2 ulike filinfoId") {
+                validateTransaksjonService.validateInnTransaksjon()
+
+                Then("skal det opprettes 4 transaksjon med tolkning NY på den første transaksjoner og restende transaksjoner skal være NY_EKSIST") {
+                    val innTransaksjonList = Db2Listener.innTransaksjonRepository.getByBehandlet(BEHANDLET_JA)
+                    innTransaksjonList.filter { it.isTransaksjonStatusOk() }.size shouldBe 4
+                    innTransaksjonList.forEachIndexed { index, innTransaksjon ->
+                        val transaksjon = Db2Listener.transaksjonRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                        val tolkning =
+                            when (index) {
+                                0 -> TRANS_TOLKNING_NY
+                                1, 2, 3 -> TRANS_TOLKNING_NY_EKSIST
+                                else -> throw IllegalStateException("Ukjent index")
+                            }
+                        verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
