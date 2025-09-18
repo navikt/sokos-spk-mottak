@@ -34,7 +34,7 @@ jobs:
 
   deploy-dev:
     needs: [ assemble-build-push-image-dev ]
-    name: Deploy to dev-fss
+    name: Deploy to dev-fss-${{ inputs.environment }}
     uses: navikt/mob-gha-workflows/.github/workflows/nais-app-deploy.yaml@main
     with:
       cluster: dev-fss
