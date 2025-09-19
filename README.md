@@ -30,9 +30,7 @@ sokos-spk-mottak er en applikasjon som mottar utbetalings- og trekktransaksjoner
 
 Du må ha Docker på for å bygge prosjektet da bygging også kjører tester med testcontainers.
 
-```
-./gradlew clean build shadowJar
-```
+`./gradlew build installDist`
 
 ### Lokal utvikling
 
