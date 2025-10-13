@@ -39,7 +39,7 @@ repositories {
     }
 }
 
-val ktorVersion = "3.3.0"
+val ktorVersion = "3.3.1"
 val jschVersion = "2.27.3"
 val logbackVersion = "1.5.19"
 val logstashVersion = "8.1"
@@ -58,11 +58,11 @@ val db2JccVersion = "12.1.2.0"
 val kotliqueryVersion = "1.9.1"
 val testcontainersVersion = "1.21.3"
 val h2Version = "2.4.240"
-val flywayVersion = "11.13.2"
+val flywayVersion = "11.14.0"
 val postgresVersion = "42.7.8"
 val dbSchedulerVersion = "16.2.0"
 val vaultVersion = "1.3.10"
-val tjenestespesifikasjonVersion = "1.0_20250925121216_22d0e01"
+val tjenestespesifikasjonVersion = "1.0_20251006130758_015dee0"
 val ibmmqVersion = "9.4.3.1"
 val activemqVersion = "2.42.0"
 val graphqlClientVersion = "8.8.1"
