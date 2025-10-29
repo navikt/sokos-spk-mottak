@@ -118,8 +118,7 @@ object OppdragConverter {
             "AFL" to "AFPG",
             "BTP" to "UBGR",
             "OVT" to "UBGR",
-            // TODO: avklaring for disse
-            "TPE" to "",
-            "SPA" to "",
+            "TPE" to "UTAP",
+            "SPA" to "UTAP",
         )
 }
