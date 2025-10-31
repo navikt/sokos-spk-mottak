@@ -26,8 +26,12 @@
 - [Transaksjonvalidering tester](tester/transaksjonsvalidering-tester.md)
 
 
-## Kodeverk
+## Hvordan legge inn nye kodeverk
 Noen ganger får vi inn nye kodeverk fra SPK som må legges til i applikasjonen. Her er en oversikt over hvordan dette gjøres:
-- [Hvordan legger man nye kodeverk](kodeverk/kodeverk.md)
+- [Hvordan legger inn nye kodeverk](nye-kodeverk.md)
+
+## Hvordan teste før produksjonssetting
+- [Hvordan teste før produksjonssetting](produksjonsetting.md)
+
 
 

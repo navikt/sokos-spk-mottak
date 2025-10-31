@@ -1,3 +1,5 @@
+# Hvordan legge inn nye kodeverk
+
 Vi trenger å legge til nye kodeverk i databasen når SPK sender oss nye koder som skal brukes i applikasjonen.
 
 Arttype (K_ART) og klassifikasjon (OS_KLASSIFIKASJON) skal vi få fra den som bestiller endringen i SPK.
@@ -19,7 +21,7 @@ Nedenfor er et eksempel:
     VALUES (91, 'TPE', '01', NULL, NULL, NULL, 'SPK', 'PENSPK', 'PENSPKTIDLPENSJ', DATE ('2025-11-01'), NULL, '1', CURRENT_TIMESTAMP, 'TOB-5450', CURRENT_TIMESTAMP, 'TOB-5450');
 ```
 
-Oppdatering i kode. [OppdragConverter.kt](../../src/main/kotlin/no/nav/sokos/spk/mottak/domain/converter/OppdragConverter.kt):
+Oppdatering i kode. [OppdragConverter.kt](../src/main/kotlin/no/nav/sokos/spk/mottak/domain/converter/OppdragConverter.kt):
 
 Legg til nye kodeverk som skal mappes til OppdragZ i `gradTypeMap`.
 
@@ -43,4 +45,4 @@ Legg til nye kodeverk som skal mappes til OppdragZ i `gradTypeMap`.
     )
 ```
 
-NB! Husk å oppdatere [db2Script.sql](../../src/test/resources/database/db2Script.sql) med nye insert-setninger for kodeverkene som legges til i databasen.
+NB! Husk å oppdatere [db2Script.sql](../src/test/resources/database/db2Script.sql) med nye insert-setninger for kodeverkene som legges til i databasen.
