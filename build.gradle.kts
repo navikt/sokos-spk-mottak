@@ -40,7 +40,7 @@ repositories {
 }
 
 val ktorVersion = "3.3.1"
-val jschVersion = "2.27.4"
+val jschVersion = "2.27.5"
 val logbackVersion = "1.5.20"
 val logstashVersion = "9.0"
 val micrometerVersion = "1.15.5"
