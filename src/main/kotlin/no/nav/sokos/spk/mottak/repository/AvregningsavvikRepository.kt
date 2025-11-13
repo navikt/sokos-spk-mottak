@@ -1,5 +1,9 @@
 package no.nav.sokos.spk.mottak.repository
 
+import java.util.Optional
+
+import kotlin.jvm.optionals.getOrNull
+
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Session
 import kotliquery.queryOf
@@ -24,41 +28,44 @@ class AvregningsavvikRepository(
         session: Session,
     ): Long? {
         val systemId = AVREGNING_LISTENER_SERVICE
-        return insertTimer.recordCallable {
-            session.updateAndReturnGeneratedKey(
-                queryOf(
-                    """
-                    INSERT INTO T_AVREGNING_AVVIK (
-                    OPPDRAGS_ID,
-                    LINJE_ID,
-                    TREKKVEDTAK_ID,
-                    GJELDER_ID,
-                    UTBETALES_TIL,
-                    DATO_STATUS_SATT,
-                    STATUS,
-                    BILAGSNR_SERIE,
-                    BILAGSNR,
-                    KONTO,
-                    FOM_DATO,
-                    TOM_DATO,
-                    BELOP,
-                    DEBET_KREDIT,
-                    UTBETALING_TYPE,
-                    TRANS_TEKST,
-                    DATO_VALUTERT,
-                    DELYTELSE_ID,
-                    FAGSYSTEM_ID,
-                    KREDITOR_REF,
-                    FEILMELDING,
-                    DATO_OPPRETTET,
-                    OPPRETTET_AV,
-                    DATO_ENDRET,
-                    ENDRET_AV ) VALUES (:oppdragsId, :linjeId, :trekkvedtakId, :gjelderId, :utbetalesTil, :datoStatusSatt, :status, :bilagsnrSerie, :bilagsnr, :konto, :fomdato, :tomdato, :belop, :debetKredit, :utbetalingsType, :transTekst, :datoValutert, :delytelseId, :fagSystemId, :kreditorRef, '$feilmelding', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId')
-                    """.trimIndent(),
-                    avregningsgrunnlagAvvik.asMap(),
-                ),
-            )
-        }
+        return insertTimer
+            .recordCallable {
+                Optional.ofNullable(
+                    session.updateAndReturnGeneratedKey(
+                        queryOf(
+                            """
+                            INSERT INTO T_AVREGNING_AVVIK (
+                            OPPDRAGS_ID,
+                            LINJE_ID,
+                            TREKKVEDTAK_ID,
+                            GJELDER_ID,
+                            UTBETALES_TIL,
+                            DATO_STATUS_SATT,
+                            STATUS,
+                            BILAGSNR_SERIE,
+                            BILAGSNR,
+                            KONTO,
+                            FOM_DATO,
+                            TOM_DATO,
+                            BELOP,
+                            DEBET_KREDIT,
+                            UTBETALING_TYPE,
+                            TRANS_TEKST,
+                            DATO_VALUTERT,
+                            DELYTELSE_ID,
+                            FAGSYSTEM_ID,
+                            KREDITOR_REF,
+                            FEILMELDING,
+                            DATO_OPPRETTET,
+                            OPPRETTET_AV,
+                            DATO_ENDRET,
+                            ENDRET_AV ) VALUES (:oppdragsId, :linjeId, :trekkvedtakId, :gjelderId, :utbetalesTil, :datoStatusSatt, :status, :bilagsnrSerie, :bilagsnr, :konto, :fomdato, :tomdato, :belop, :debetKredit, :utbetalingsType, :transTekst, :datoValutert, :delytelseId, :fagSystemId, :kreditorRef, '$feilmelding', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId')
+                            """.trimIndent(),
+                            avregningsgrunnlagAvvik.asMap(),
+                        ),
+                    ),
+                )
+            }.getOrNull()
     }
 
     // Kun for testing

@@ -1,6 +1,9 @@
 package no.nav.sokos.spk.mottak.repository
 
 import java.time.LocalDate
+import java.util.Optional
+
+import kotlin.jvm.optionals.getOrNull
 
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
@@ -90,29 +93,32 @@ class FilInfoRepository(
         filInfo: FilInfo,
         session: Session,
     ): Long? =
-        insertTimer.recordCallable {
-            session.updateAndReturnGeneratedKey(
-                queryOf(
-                    """
-                    INSERT INTO T_FIL_INFO (
-                    K_FIL_S,
-                    K_FIL_TILSTAND_T,
-                    K_ANVISER,
-                    FIL_NAVN,
-                    LOPENR,
-                    DATO_MOTTATT,
-                    DATO_OPPRETTET,
-                    OPPRETTET_AV,
-                    DATO_ENDRET,
-                    ENDRET_AV,
-                    VERSJON,
-                    K_FIL_T,
-                    FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopeNr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feilTekst)
-                    """.trimIndent(),
-                    filInfo.asMap(),
-                ),
-            )
-        }
+        insertTimer
+            .recordCallable {
+                Optional.ofNullable(
+                    session.updateAndReturnGeneratedKey(
+                        queryOf(
+                            """
+                            INSERT INTO T_FIL_INFO (
+                            K_FIL_S,
+                            K_FIL_TILSTAND_T,
+                            K_ANVISER,
+                            FIL_NAVN,
+                            LOPENR,
+                            DATO_MOTTATT,
+                            DATO_OPPRETTET,
+                            OPPRETTET_AV,
+                            DATO_ENDRET,
+                            ENDRET_AV,
+                            VERSJON,
+                            K_FIL_T,
+                            FEILTEKST ) VALUES (:filStatus, :filTilstandType, :anviser, :filNavn, :lopeNr, :datoMottatt, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon, :filType, :feilTekst)
+                            """.trimIndent(),
+                            filInfo.asMap(),
+                        ),
+                    ),
+                )
+            }.getOrNull()
 
     fun updateAvstemmingStatus(
         filInfoIdList: List<Int>,

@@ -1,6 +1,9 @@
 package no.nav.sokos.spk.mottak.repository
 
 import java.time.LocalDate
+import java.util.Optional
+
+import kotlin.jvm.optionals.getOrNull
 
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
@@ -311,42 +314,48 @@ class TransaksjonRepository(
         tomDato: LocalDate,
     ): Avregningstransaksjon? =
         using(sessionOf(dataSource)) { session ->
-            findTransaksjonByMotIdAndTomDatoTimer.recordCallable {
-                session.single(
-                    queryOf(
-                        """
-                        SELECT t.TRANSAKSJON_ID,
-                        t.FNR_FK,
-                        t.TRANS_EKS_ID_FK,
-                        t.DATO_ANVISER
-                                FROM T_TRANSAKSJON t
-                                WHERE t.MOT_ID = '$motId'
-                                AND t.PERSON_ID = $personId
-                                AND t.DATO_TOM = '$tomDato'
-                        """.trimIndent(),
-                    ),
-                    mapToAvregningstransaksjon,
-                )
-            }
+            findTransaksjonByMotIdAndTomDatoTimer
+                .recordCallable {
+                    Optional.ofNullable(
+                        session.single(
+                            queryOf(
+                                """
+                                SELECT t.TRANSAKSJON_ID,
+                                t.FNR_FK,
+                                t.TRANS_EKS_ID_FK,
+                                t.DATO_ANVISER
+                                        FROM T_TRANSAKSJON t
+                                        WHERE t.MOT_ID = '$motId'
+                                        AND t.PERSON_ID = $personId
+                                        AND t.DATO_TOM = '$tomDato'
+                                """.trimIndent(),
+                            ),
+                            mapToAvregningstransaksjon,
+                        ),
+                    )
+                }.getOrNull()
         }
 
     fun findTransaksjonByTrekkvedtakId(trekkvedtakId: Int): Avregningstransaksjon? =
         using(sessionOf(dataSource)) { session ->
-            findTransaksjonByTrekkvedtakIdTimer.recordCallable {
-                session.single(
-                    queryOf(
-                        """
-                        SELECT t.TRANSAKSJON_ID,
-                        t.FNR_FK,
-                        t.TRANS_EKS_ID_FK,
-                        t.DATO_ANVISER
-                                FROM T_TRANSAKSJON t
-                                WHERE t.TREKKVEDTAK_ID_FK = '$trekkvedtakId'
-                        """.trimIndent(),
-                    ),
-                    mapToAvregningstransaksjon,
-                )
-            }
+            findTransaksjonByTrekkvedtakIdTimer
+                .recordCallable {
+                    Optional.ofNullable(
+                        session.single(
+                            queryOf(
+                                """
+                                SELECT t.TRANSAKSJON_ID,
+                                t.FNR_FK,
+                                t.TRANS_EKS_ID_FK,
+                                t.DATO_ANVISER
+                                        FROM T_TRANSAKSJON t
+                                        WHERE t.TREKKVEDTAK_ID_FK = '$trekkvedtakId'
+                                """.trimIndent(),
+                            ),
+                            mapToAvregningstransaksjon,
+                        ),
+                    )
+                }.getOrNull()
         }
 
     /** Bruker kun for testing */

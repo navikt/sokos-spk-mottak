@@ -1,6 +1,9 @@
 package no.nav.sokos.spk.mottak.repository
 
 import java.time.LocalDateTime
+import java.util.Optional
+
+import kotlin.jvm.optionals.getOrDefault
 
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
@@ -240,17 +243,20 @@ class InnTransaksjonRepository(
 
     fun countByInnTransaksjon(): Int =
         using(sessionOf(dataSource)) { session ->
-            countByInnTransaksjonTimer.recordCallable {
-                session.single(
-                    queryOf(
-                        """
-                        SELECT count(*) AS ANTALL 
-                        FROM T_INN_TRANSAKSJON             
-                        """.trimIndent(),
-                    ),
-                ) { row -> row.int("ANTALL") }
-            }
-        } ?: 0
+            countByInnTransaksjonTimer
+                .recordCallable {
+                    Optional.ofNullable(
+                        session.single(
+                            queryOf(
+                                """
+                                SELECT count(*) AS ANTALL 
+                                FROM T_INN_TRANSAKSJON             
+                                """.trimIndent(),
+                            ),
+                        ) { row -> row.int("ANTALL") },
+                    )
+                }.getOrDefault(0)
+        }
 
     private fun List<TransaksjonRecord>.convertToListMap(filInfoId: Long): List<Map<String, Any?>> =
         this.map { transaksjonRecord ->

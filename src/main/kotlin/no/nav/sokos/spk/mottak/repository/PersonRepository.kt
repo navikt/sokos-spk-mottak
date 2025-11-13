@@ -1,5 +1,9 @@
 package no.nav.sokos.spk.mottak.repository
 
+import java.util.Optional
+
+import kotlin.jvm.optionals.getOrNull
+
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.Session
@@ -41,21 +45,24 @@ class PersonRepository(
         session: Session,
     ): Long? {
         val systemId = VALIDATE_TRANSAKSJON_SERVICE
-        return insertTimer.recordCallable {
-            session.updateAndReturnGeneratedKey(
-                queryOf(
-                    """
-                    INSERT INTO T_PERSON (FNR_FK, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON)
-                    VALUES (:fnr, CURRENT_TIMESTAMP, :opprettetAv, CURRENT_TIMESTAMP, :endretAv, 1)
-                    """.trimIndent(),
-                    mapOf(
-                        "fnr" to fnr,
-                        "opprettetAv" to systemId,
-                        "endretAv" to systemId,
+        return insertTimer
+            .recordCallable {
+                Optional.ofNullable(
+                    session.updateAndReturnGeneratedKey(
+                        queryOf(
+                            """
+                            INSERT INTO T_PERSON (FNR_FK, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON)
+                            VALUES (:fnr, CURRENT_TIMESTAMP, :opprettetAv, CURRENT_TIMESTAMP, :endretAv, 1)
+                            """.trimIndent(),
+                            mapOf(
+                                "fnr" to fnr,
+                                "opprettetAv" to systemId,
+                                "endretAv" to systemId,
+                            ),
+                        ),
                     ),
-                ),
-            )
-        }
+                )
+            }.getOrNull()
     }
 
     fun update(
