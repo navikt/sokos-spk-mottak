@@ -1,5 +1,9 @@
 package no.nav.sokos.spk.mottak.repository
 
+import java.util.Optional
+
+import kotlin.jvm.optionals.getOrNull
+
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.Session
@@ -20,19 +24,22 @@ class LopenummerRepository(
 
     fun findMaxLopeNummer(filType: String): Int? =
         using(sessionOf(dataSource)) { session ->
-            findMaxLopeNummerTimer.recordCallable {
-                session.single(
-                    queryOf(
-                        """
-                        SELECT MAX(SISTE_LOPENR)
-                        FROM  T_LOPENR
-                        WHERE K_ANVISER = 'SPK'
-                        AND K_FIL_T = (:filType)
-                        """.trimIndent(),
-                        mapOf("filType" to filType),
-                    ),
-                ) { row -> row.int(1) }
-            }
+            findMaxLopeNummerTimer
+                .recordCallable {
+                    Optional.ofNullable(
+                        session.single(
+                            queryOf(
+                                """
+                                SELECT MAX(SISTE_LOPENR)
+                                FROM  T_LOPENR
+                                WHERE K_ANVISER = 'SPK'
+                                AND K_FIL_T = (:filType)
+                                """.trimIndent(),
+                                mapOf("filType" to filType),
+                            ),
+                        ) { row -> row.int(1) },
+                    )
+                }.getOrNull()
         }
 
     fun updateLopeNummer(

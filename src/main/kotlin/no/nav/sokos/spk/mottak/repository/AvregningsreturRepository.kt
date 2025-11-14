@@ -1,5 +1,9 @@
 package no.nav.sokos.spk.mottak.repository
 
+import java.util.Optional
+
+import kotlin.jvm.optionals.getOrNull
+
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.Session
@@ -32,53 +36,56 @@ class AvregningsreturRepository(
         avregningsretur: Avregningsretur,
         session: Session,
     ): Long? =
-        insertTimer.recordCallable {
-            session.updateAndReturnGeneratedKey(
-                queryOf(
-                    """
-                    INSERT INTO T_RETUR_TIL_ANV (
-                    RECTYPE,
-                    K_RETUR_T,
-                    K_ANVISER,
-                    OS_ID_FK,
-                    OS_LINJE_ID_FK,
-                    TREKKVEDTAK_ID_FK,
-                    GJELDER_ID,
-                    FNR_FK,
-                    DATO_STATUS,
-                    STATUS,
-                    BILAGSNR_SERIE,
-                    BILAGSNR,
-                    DATO_FOM,
-                    DATO_TOM,
-                    BELOP,
-                    DEBET_KREDIT,
-                    UTBETALING_TYPE,
-                    TRANS_TEKST,
-                    TRANS_EKS_ID_FK,
-                    DATO_AVSENDER,
-                    UTBETALES_TIL,
-                    STATUS_TEKST,
-                    RETURTYPE_KODE,
-                    DUPLIKAT,
-                    TRANSAKSJON_ID,
-                    FIL_INFO_INN_ID,
-                    FIL_INFO_UT_ID,
-                    DATO_VALUTERING,
-                    KONTO,
-                    MOT_ID,
-                    PERSON_ID,
-                    KREDITOR_REF,
-                    DATO_OPPRETTET,
-                    OPPRETTET_AV,
-                    DATO_ENDRET,
-                    ENDRET_AV,
-                    VERSJON ) VALUES (:rectype, :returtype, :anviser, :osId, :osLinjeId, :trekkvedtakId, :gjelderId, :fnr, :datoStatus, :status, :bilagsnrSerie, :bilagsnr, :datoFom, :datoTom, :belop, :debetKredit, :utbetalingtype, :transTekst, :transEksId, :datoAvsender, :utbetalesTil, :statusTekst, :returtypeKode, :duplikat, :transaksjonId, :filInfoInnId, :filInfoUtId, :datoValutering, :konto, :motId, :personId, :kreditorRef, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon)
-                    """.trimIndent(),
-                    avregningsretur.asMap(),
-                ),
-            )
-        }
+        insertTimer
+            .recordCallable {
+                Optional.ofNullable(
+                    session.updateAndReturnGeneratedKey(
+                        queryOf(
+                            """
+                            INSERT INTO T_RETUR_TIL_ANV (
+                            RECTYPE,
+                            K_RETUR_T,
+                            K_ANVISER,
+                            OS_ID_FK,
+                            OS_LINJE_ID_FK,
+                            TREKKVEDTAK_ID_FK,
+                            GJELDER_ID,
+                            FNR_FK,
+                            DATO_STATUS,
+                            STATUS,
+                            BILAGSNR_SERIE,
+                            BILAGSNR,
+                            DATO_FOM,
+                            DATO_TOM,
+                            BELOP,
+                            DEBET_KREDIT,
+                            UTBETALING_TYPE,
+                            TRANS_TEKST,
+                            TRANS_EKS_ID_FK,
+                            DATO_AVSENDER,
+                            UTBETALES_TIL,
+                            STATUS_TEKST,
+                            RETURTYPE_KODE,
+                            DUPLIKAT,
+                            TRANSAKSJON_ID,
+                            FIL_INFO_INN_ID,
+                            FIL_INFO_UT_ID,
+                            DATO_VALUTERING,
+                            KONTO,
+                            MOT_ID,
+                            PERSON_ID,
+                            KREDITOR_REF,
+                            DATO_OPPRETTET,
+                            OPPRETTET_AV,
+                            DATO_ENDRET,
+                            ENDRET_AV,
+                            VERSJON ) VALUES (:rectype, :returtype, :anviser, :osId, :osLinjeId, :trekkvedtakId, :gjelderId, :fnr, :datoStatus, :status, :bilagsnrSerie, :bilagsnr, :datoFom, :datoTom, :belop, :debetKredit, :utbetalingtype, :transTekst, :transEksId, :datoAvsender, :utbetalesTil, :statusTekst, :returtypeKode, :duplikat, :transaksjonId, :filInfoInnId, :filInfoUtId, :datoValutering, :konto, :motId, :personId, :kreditorRef, :datoOpprettet, :opprettetAv, :datoEndret, :endretAv, :versjon)
+                            """.trimIndent(),
+                            avregningsretur.asMap(),
+                        ),
+                    ),
+                )
+            }.getOrNull()
 
     fun getReturTilAnviserWhichIsNotSent(): List<Avregningsretur> =
         using(sessionOf(dataSource)) { session ->
@@ -160,109 +167,115 @@ class AvregningsreturRepository(
     // Kun for testing
     fun getByMotId(motId: String): Avregningsretur? =
         using(sessionOf(dataSource)) { session ->
-            getByMotIdTimer.recordCallable {
-                session.single(
-                    queryOf(
-                        """
-                        SELECT RETUR_TIL_ANV_ID,
-                        RECTYPE,
-                        K_RETUR_T,
-                        K_ANVISER,
-                        OS_ID_FK,
-                        OS_LINJE_ID_FK,
-                        TREKKVEDTAK_ID_FK,
-                        GJELDER_ID,
-                        FNR_FK,
-                        DATO_STATUS,
-                        STATUS,
-                        BILAGSNR_SERIE,
-                        BILAGSNR,
-                        DATO_FOM,
-                        DATO_TOM,
-                        BELOP,
-                        DEBET_KREDIT,
-                        UTBETALING_TYPE,
-                        TRANS_TEKST,
-                        TRANS_EKS_ID_FK,
-                        DATO_AVSENDER,
-                        UTBETALES_TIL,
-                        STATUS_TEKST,
-                        RETURTYPE_KODE,
-                        DUPLIKAT,
-                        TRANSAKSJON_ID,
-                        FIL_INFO_INN_ID,
-                        FIL_INFO_UT_ID,
-                        DATO_VALUTERING,
-                        KONTO,
-                        MOT_ID,
-                        PERSON_ID,
-                        KREDITOR_REF,
-                        DATO_OPPRETTET,
-                        OPPRETTET_AV,
-                        DATO_ENDRET,
-                        ENDRET_AV,
-                        VERSJON
-                            FROM T_RETUR_TIL_ANV
-                            WHERE MOT_ID = '$motId'
-                        """.trimIndent(),
-                    ),
-                    mapToAvregningsretur,
-                )
-            }
+            getByMotIdTimer
+                .recordCallable {
+                    Optional.ofNullable(
+                        session.single(
+                            queryOf(
+                                """
+                                SELECT RETUR_TIL_ANV_ID,
+                                RECTYPE,
+                                K_RETUR_T,
+                                K_ANVISER,
+                                OS_ID_FK,
+                                OS_LINJE_ID_FK,
+                                TREKKVEDTAK_ID_FK,
+                                GJELDER_ID,
+                                FNR_FK,
+                                DATO_STATUS,
+                                STATUS,
+                                BILAGSNR_SERIE,
+                                BILAGSNR,
+                                DATO_FOM,
+                                DATO_TOM,
+                                BELOP,
+                                DEBET_KREDIT,
+                                UTBETALING_TYPE,
+                                TRANS_TEKST,
+                                TRANS_EKS_ID_FK,
+                                DATO_AVSENDER,
+                                UTBETALES_TIL,
+                                STATUS_TEKST,
+                                RETURTYPE_KODE,
+                                DUPLIKAT,
+                                TRANSAKSJON_ID,
+                                FIL_INFO_INN_ID,
+                                FIL_INFO_UT_ID,
+                                DATO_VALUTERING,
+                                KONTO,
+                                MOT_ID,
+                                PERSON_ID,
+                                KREDITOR_REF,
+                                DATO_OPPRETTET,
+                                OPPRETTET_AV,
+                                DATO_ENDRET,
+                                ENDRET_AV,
+                                VERSJON
+                                    FROM T_RETUR_TIL_ANV
+                                    WHERE MOT_ID = '$motId'
+                                """.trimIndent(),
+                            ),
+                            mapToAvregningsretur,
+                        ),
+                    )
+                }.getOrNull()
         }
 
     // Kun for testing
     fun getByTrekkvedtakId(trekkvedtakId: String): Avregningsretur? =
         using(sessionOf(dataSource)) { session ->
-            getByTrekkedtakIdTimer.recordCallable {
-                session.single(
-                    queryOf(
-                        """
-                        SELECT RETUR_TIL_ANV_ID,
-                        RECTYPE,
-                        K_RETUR_T,
-                        K_ANVISER,
-                        OS_ID_FK,
-                        OS_LINJE_ID_FK,
-                        TREKKVEDTAK_ID_FK,
-                        GJELDER_ID,
-                        FNR_FK,
-                        DATO_STATUS,
-                        STATUS,
-                        BILAGSNR_SERIE,
-                        BILAGSNR,
-                        DATO_FOM,
-                        DATO_TOM,
-                        BELOP,
-                        DEBET_KREDIT,
-                        UTBETALING_TYPE,
-                        TRANS_TEKST,
-                        TRANS_EKS_ID_FK,
-                        DATO_AVSENDER,
-                        UTBETALES_TIL,
-                        STATUS_TEKST,
-                        RETURTYPE_KODE,
-                        DUPLIKAT,
-                        TRANSAKSJON_ID,
-                        FIL_INFO_INN_ID,
-                        FIL_INFO_UT_ID,
-                        DATO_VALUTERING,
-                        KONTO,
-                        MOT_ID,
-                        PERSON_ID,
-                        KREDITOR_REF,
-                        DATO_OPPRETTET,
-                        OPPRETTET_AV,
-                        DATO_ENDRET,
-                        ENDRET_AV,
-                        VERSJON
-                            FROM T_RETUR_TIL_ANV
-                            WHERE TREKKVEDTAK_ID_FK = '$trekkvedtakId';
-                        """.trimIndent(),
-                    ),
-                    mapToAvregningsretur,
-                )
-            }
+            getByTrekkedtakIdTimer
+                .recordCallable {
+                    Optional.ofNullable(
+                        session.single(
+                            queryOf(
+                                """
+                                SELECT RETUR_TIL_ANV_ID,
+                                RECTYPE,
+                                K_RETUR_T,
+                                K_ANVISER,
+                                OS_ID_FK,
+                                OS_LINJE_ID_FK,
+                                TREKKVEDTAK_ID_FK,
+                                GJELDER_ID,
+                                FNR_FK,
+                                DATO_STATUS,
+                                STATUS,
+                                BILAGSNR_SERIE,
+                                BILAGSNR,
+                                DATO_FOM,
+                                DATO_TOM,
+                                BELOP,
+                                DEBET_KREDIT,
+                                UTBETALING_TYPE,
+                                TRANS_TEKST,
+                                TRANS_EKS_ID_FK,
+                                DATO_AVSENDER,
+                                UTBETALES_TIL,
+                                STATUS_TEKST,
+                                RETURTYPE_KODE,
+                                DUPLIKAT,
+                                TRANSAKSJON_ID,
+                                FIL_INFO_INN_ID,
+                                FIL_INFO_UT_ID,
+                                DATO_VALUTERING,
+                                KONTO,
+                                MOT_ID,
+                                PERSON_ID,
+                                KREDITOR_REF,
+                                DATO_OPPRETTET,
+                                OPPRETTET_AV,
+                                DATO_ENDRET,
+                                ENDRET_AV,
+                                VERSJON
+                                    FROM T_RETUR_TIL_ANV
+                                    WHERE TREKKVEDTAK_ID_FK = '$trekkvedtakId';
+                                """.trimIndent(),
+                            ),
+                            mapToAvregningsretur,
+                        ),
+                    )
+                }.getOrNull()
         }
 
     // Kun for testing

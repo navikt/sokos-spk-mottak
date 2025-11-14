@@ -1,5 +1,9 @@
 package no.nav.sokos.spk.mottak.repository
 
+import java.util.Optional
+
+import kotlin.jvm.optionals.getOrNull
+
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.Session
@@ -63,18 +67,21 @@ class TransaksjonTilstandRepository(
     /** Bruker kun for testing */
     fun getByTransaksjonId(transaksjonId: Int): TransaksjonTilstand? =
         using(sessionOf(dataSource)) { session ->
-            getByTransaksjonIdTimer.recordCallable {
-                session.single(
-                    queryOf(
-                        """
-                        SELECT TRANS_TILSTAND_ID, TRANSAKSJON_ID, K_TRANS_TILST_T, FEILKODE, FEILKODEMELDING, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
-                        FROM T_TRANS_TILSTAND 
-                        WHERE TRANSAKSJON_ID = $transaksjonId;
-                        """.trimIndent(),
-                    ),
-                    mapToTransaksjonTilstand,
-                )
-            }
+            getByTransaksjonIdTimer
+                .recordCallable {
+                    Optional.ofNullable(
+                        session.single(
+                            queryOf(
+                                """
+                                SELECT TRANS_TILSTAND_ID, TRANSAKSJON_ID, K_TRANS_TILST_T, FEILKODE, FEILKODEMELDING, DATO_OPPRETTET, OPPRETTET_AV, DATO_ENDRET, ENDRET_AV, VERSJON
+                                FROM T_TRANS_TILSTAND 
+                                WHERE TRANSAKSJON_ID = $transaksjonId;
+                                """.trimIndent(),
+                            ),
+                            mapToTransaksjonTilstand,
+                        ),
+                    )
+                }.getOrNull()
         }
 
     fun findAllByTransaksjonId(transaksjonId: List<Int>): List<TransaksjonTilstand> =
