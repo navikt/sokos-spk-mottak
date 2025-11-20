@@ -42,6 +42,9 @@ Legg til nye kodeverk som skal mappes til OppdragZ i `gradTypeMap`.
         "AFL" to "AFPG",
         "BTP" to "UBGR",
         "OVT" to "UBGR",
+        "TPE" to "UTAP",
+        "SPA" to "UTAP",
+        "SKF" to "UTAP"
     )
 ```
 

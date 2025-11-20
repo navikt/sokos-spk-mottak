@@ -98,7 +98,7 @@ object OppdragConverter {
             }
         }
 
-    private val gradArtSett = setOf("AFP", "ALD", "BPE", "ETT", "RNT", "UFO", "UFT", "U67", "UFE", "ALP", "PSL", "AFL", "BTP", "OVT", "TPE", "SPA")
+    private val gradArtSett = setOf("AFP", "ALD", "BPE", "ETT", "RNT", "UFO", "UFT", "U67", "UFE", "ALP", "PSL", "AFL", "BTP", "OVT", "TPE", "SPA", "SKF")
 
     private fun skalHaGrad(art: String): Boolean = art in gradArtSett
 
@@ -120,5 +120,6 @@ object OppdragConverter {
             "OVT" to "UBGR",
             "TPE" to "UTAP",
             "SPA" to "UTAP",
+            "SKF" to "UTAP",
         )
 }
