@@ -1,7 +1,5 @@
 # sokos-spk-mottak
 
-# Innholdsoversikt
-
 * [1. Dokumentasjon](dokumentasjon/dokumentasjon.md)
 * [2. Funksjonelle krav](#2-funksjonelle-krav)
 * [3. Utviklingsmiljø](#3-utviklingsmiljø)
@@ -21,7 +19,7 @@ sokos-spk-mottak er en applikasjon som mottar utbetalings- og trekktransaksjoner
 
 ### Forutsetninger
 
-* Java 21
+* Java 25
 * [Gradle](https://gradle.org/)
 * [Kotest](https://plugins.jetbrains.com/plugin/14080-kotest) plugin for å kjøre tester
 * [Docker](https://www.docker.com/) for å kjøre testcontainers
