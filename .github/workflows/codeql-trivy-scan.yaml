@@ -11,7 +11,6 @@ jobs:
       contents: read
       id-token: write
       security-events: write
-    name: CodeQL/Trivy Scan
     if: success() || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     uses: navikt/mob-gha-workflows/.github/workflows/codeql-trivy-scan.yaml@main
     secrets: inherit
