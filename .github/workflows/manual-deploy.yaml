@@ -19,7 +19,7 @@ jobs:
     permissions:
       contents: read
     name: Build and test
-    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-test.yaml@gradle_optimized
+    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-test-app.yaml@main
 
   build-push-image-dev:
     permissions:
@@ -27,7 +27,7 @@ jobs:
       id-token: write
     needs: [build-and-test]
     name: Build push dev image
-    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-push-image.yaml@gradle_optimized
+    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-push-image.yaml@main
     secrets: inherit
     with:
       image-suffix: "dev"
