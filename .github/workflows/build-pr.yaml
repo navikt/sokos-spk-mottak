@@ -21,4 +21,4 @@ jobs:
   build-and-test:
     permissions:
       contents: read
-    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-test.yaml@gradle_optimized
+    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-test-app.yaml@main

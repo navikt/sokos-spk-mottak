@@ -27,7 +27,7 @@ jobs:
     permissions:
       contents: write
     name: Build and test
-    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-test.yaml@gradle_optimized
+    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-test-app.yaml@main
     with:
       upload-artifact: true
       generate-dependency-graph: true
@@ -38,7 +38,7 @@ jobs:
       id-token: write
     needs: [build-and-test]
     name: Build push dev image
-    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-push-image.yaml@gradle_optimized
+    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-push-image.yaml@main
     secrets: inherit
     with:
       image-suffix: "dev"
@@ -51,7 +51,7 @@ jobs:
       id-token: write
     needs: [build-and-test]
     name: Build push prod image
-    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-push-image.yaml@gradle_optimized
+    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-push-image.yaml@main
     secrets: inherit
     with:
       dockerfile: "./.nais/prod/Dockerfile"
