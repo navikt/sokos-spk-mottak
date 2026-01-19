@@ -45,7 +45,7 @@ internal class TransaksjonstolkningTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -68,7 +68,7 @@ internal class TransaksjonstolkningTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY_EKSIST, FNR_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -91,7 +91,7 @@ internal class TransaksjonstolkningTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY_EKSIST, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -114,7 +114,7 @@ internal class TransaksjonstolkningTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -137,7 +137,7 @@ internal class TransaksjonstolkningTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY_EKSIST, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -160,7 +160,7 @@ internal class TransaksjonstolkningTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -183,7 +183,7 @@ internal class TransaksjonstolkningTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY_EKSIST, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -206,7 +206,7 @@ internal class TransaksjonstolkningTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -229,7 +229,7 @@ internal class TransaksjonstolkningTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY_EKSIST, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -252,7 +252,7 @@ internal class TransaksjonstolkningTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -278,7 +278,7 @@ internal class TransaksjonstolkningTest :
                             }
                         verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_IKKE_ENDRET)
 
-                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -304,7 +304,7 @@ internal class TransaksjonstolkningTest :
                             }
                         verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_IKKE_ENDRET)
 
-                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -330,7 +330,7 @@ internal class TransaksjonstolkningTest :
                             }
                         verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_IKKE_ENDRET)
 
-                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -363,7 +363,7 @@ internal class TransaksjonstolkningTest :
                             }
                         verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_IKKE_ENDRET)
 
-                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -397,7 +397,7 @@ internal class TransaksjonstolkningTest :
                             }
                         verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_ENDRET)
 
-                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -433,7 +433,7 @@ internal class TransaksjonstolkningTest :
                             }
                         verifyTransaksjon(transaksjon, innTransaksjon, tolkning, FNR_IKKE_ENDRET)
 
-                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                        val transaksjonTilstand = Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
