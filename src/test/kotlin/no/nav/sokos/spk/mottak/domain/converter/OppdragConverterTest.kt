@@ -42,9 +42,9 @@ class OppdragConverterTest :
                 val oppdrag150 = oppdrag110.oppdragsLinje150.first()
                 oppdrag150.kodeEndringLinje shouldBe "NY"
                 oppdrag150.delytelseId shouldBe transaksjon.motId
-                oppdrag150.kodeKlassifik shouldBe transaksjon.gyldigKombinasjon!!.osKlassifikasjon
+                oppdrag150.kodeKlassifik shouldBe transaksjon.gyldigKombinasjon.osKlassifikasjon
                 oppdrag150.datoKlassifikFom shouldBe LocalDate.of(1900, 1, 1).toXMLGregorianCalendar()
-                oppdrag150.datoVedtakFom shouldBe transaksjon.datoFom!!.toXMLGregorianCalendar()
+                oppdrag150.datoVedtakFom shouldBe transaksjon.datoFom.toXMLGregorianCalendar()
                 oppdrag150.datoVedtakTom shouldBe transaksjon.datoTom!!.toXMLGregorianCalendar()
                 oppdrag150.sats shouldBe (transaksjon.belop / 100).toBigDecimal()
                 oppdrag150.fradragTillegg shouldBe TfradragTillegg.T
