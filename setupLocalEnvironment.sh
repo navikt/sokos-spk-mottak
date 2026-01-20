@@ -6,24 +6,36 @@ gcloud auth print-identity-token &> /dev/null
 if [ $? -gt 0 ]; then
     gcloud auth login
 fi
+
+# Suppress kubectl config output
 kubectl config use-context dev-fss
 kubectl config set-context --current --namespace=okonomi
+
+# Get pod name
+POD_NAME=$(kubectl get pods --no-headers | grep sokos-spk-mottak | head -n1 | awk '{print $1}')
+
+if [ -z "$POD_NAME" ]; then
+    echo "Error: No sokos-spk-mottak pod found" >&2
+    exit 1
+fi
 
 # Get database username and password secret from Vault
 [[ "$(vault token lookup -format=json | jq '.data.display_name' -r; exit ${PIPESTATUS[0]})" =~ "nav.no" ]] &>/dev/null || vault login -method=oidc -no-print
 
-# Get AZURE system variables
-envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-spk-mottak | cut -f1 -d' ') -c sokos-spk-mottak -- env | egrep "^AZURE|^DATABASE|^SFTP|SPK_SFTP_PASSWORD|SPK_SFTP_USERNAME|^MQ_SERVICE|^PDL|VAULT_MOUNTPATH" | sort)
+echo "Fetching environment variables from pod: $POD_NAME"
+
+# Get system variables
+envValue=$(kubectl exec "$POD_NAME" -c sokos-spk-mottak -- env | egrep "^AZURE|^DATABASE|^SFTP|SPK_SFTP_PASSWORD|SPK_SFTP_USERNAME|^MQ_SERVICE|^PDL|VAULT_MOUNTPATH" | sort)
 
 PRIVATE_KEY=$(kubectl get secret spk-sftp-private-key -o jsonpath='{.data.spk-sftp-private-key}' | base64 --decode)
 
 POSTGRES_USER=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-spk-mottak-user)
 POSTGRES_ADMIN=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-spk-mottak-admin)
 
-# Set AZURE as local environment variables
+# Set local environment variables
 rm -f defaults.properties
 echo "$envValue" > defaults.properties
-echo "AZURE stores as defaults.properties"
+echo "Environment variables saved to defaults.properties"
 
 username=$(echo "$POSTGRES_USER" | awk -F 'username:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
 password=$(echo "$POSTGRES_USER" | awk -F 'password:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
