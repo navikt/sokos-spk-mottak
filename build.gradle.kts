@@ -43,7 +43,7 @@ val ktorVersion = "3.3.3"
 val jschVersion = "2.27.7"
 val logbackVersion = "1.5.24"
 val logstashVersion = "9.0"
-val micrometerVersion = "1.16.1"
+val micrometerVersion = "1.16.2"
 val kotlinLoggingVersion = "3.0.5"
 val janinoVersion = "3.1.12"
 val natpryceVersion = "1.6.10.0"
@@ -58,8 +58,8 @@ val db2JccVersion = "12.1.3.0"
 val kotliqueryVersion = "2.0.1"
 val testcontainersVersion = "1.21.4"
 val h2Version = "2.4.240"
-val flywayVersion = "11.20.0"
-val postgresVersion = "42.7.8"
+val flywayVersion = "11.20.2"
+val postgresVersion = "42.7.9"
 val dbSchedulerVersion = "16.7.0"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20251217153210_84e9478"
@@ -141,7 +141,7 @@ dependencies {
     testImplementation("io.kotest:kotest-extensions-now:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
-    testImplementation("net.bytebuddy:byte-buddy:1.18.3") // TEMP: Needed for mockk 1.14.6 with java25. Remove when Mockk is updated and bytebuddy is no longer needed.
+    testImplementation("net.bytebuddy:byte-buddy:1.18.4") // TEMP: Needed for mockk 1.14.6 with java25. Remove when Mockk is updated and bytebuddy is no longer needed.
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("com.h2database:h2:$h2Version")
