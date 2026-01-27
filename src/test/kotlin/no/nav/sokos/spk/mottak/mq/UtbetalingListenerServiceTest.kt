@@ -1,7 +1,6 @@
 package no.nav.sokos.spk.mottak.mq
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -61,7 +60,7 @@ class UtbetalingListenerServiceTest :
 
                 Then("skal det returneres en OK-utbetalingsmelding tilbake") {
                     Metrics.mqUtbetalingProducerMetricCounter.longValue shouldBe 1
-                    runBlocking {
+                    run {
                         delay(2000)
                         Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe 2
                         val transaksjonIdList = listOf(20025925, 20025926)
@@ -85,7 +84,7 @@ class UtbetalingListenerServiceTest :
 
                 Then("skal det returneres en utbetalingsfeilmelding tilbake") {
                     Metrics.mqUtbetalingProducerMetricCounter.longValue shouldBe 2
-                    runBlocking {
+                    run {
                         delay(1000)
                         Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe 3
                         val transaksjonIdList = listOf(20025934)
@@ -110,7 +109,7 @@ class UtbetalingListenerServiceTest :
 
                 Then("skal det returneres en utbetalingsduplikatmelding tilbake") {
                     Metrics.mqUtbetalingProducerMetricCounter.longValue shouldBe 3
-                    runBlocking {
+                    run {
                         delay(1000)
                         Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe 3
                         val transaksjonIdList = listOf(20025934)
