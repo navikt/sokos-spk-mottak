@@ -39,7 +39,7 @@ repositories {
     }
 }
 
-val ktorVersion = "3.3.3"
+val ktorVersion = "3.4.0"
 val jschVersion = "2.27.7"
 val logbackVersion = "1.5.25"
 val logstashVersion = "9.0"
@@ -47,7 +47,7 @@ val micrometerVersion = "1.16.2"
 val kotlinLoggingVersion = "3.0.5"
 val janinoVersion = "3.1.12"
 val natpryceVersion = "1.6.10.0"
-val kotestVersion = "6.0.7"
+val kotestVersion = "6.1.0"
 val wiremockVersion = "3.13.2"
 val kotlinxSerializationVersion = "1.9.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
