@@ -3,7 +3,6 @@ package no.nav.sokos.spk.mottak.mq
 import java.time.LocalDate
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -100,7 +99,7 @@ internal class AvregningListenerServiceTest :
 
                     Then("blir det mottatt en melding") {
 
-                        runBlocking {
+                        run {
                             delay(2000)
                             Metrics.mqAvregningListenerMetricCounter.longValue shouldBe scenario.expectedMetricValue
 
@@ -152,7 +151,7 @@ internal class AvregningListenerServiceTest :
                 jmsProducerAvregning.send(listOf(avregningsmelding))
 
                 Then("blir meldingen forkastet pga formatsfeil i 'tomdato'") {
-                    runBlocking {
+                    run {
                         delay(2000)
 
                         MQListener.tempMetric.longValue shouldBe 1

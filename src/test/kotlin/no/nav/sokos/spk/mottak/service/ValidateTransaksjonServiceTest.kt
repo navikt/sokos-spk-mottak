@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.common.ContentTypes
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
@@ -17,7 +18,6 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
 import kotliquery.queryOf
-import org.apache.http.entity.ContentType.APPLICATION_JSON
 
 import no.nav.pdl.HentIdenterBolk
 import no.nav.sokos.spk.mottak.TestData.FNR_LIST
@@ -92,7 +92,7 @@ internal class ValidateTransaksjonServiceTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                 }
@@ -121,7 +121,7 @@ internal class ValidateTransaksjonServiceTest :
                         verifyTransaksjon(transaksjon, innTransaksjon, TRANS_TOLKNING_NY, FNR_IKKE_ENDRET)
 
                         val transaksjonTilstand =
-                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId!!)!!
+                            Db2Listener.transaksjonTilstandRepository.getByTransaksjonId(innTransaksjon.innTransaksjonId)!!
                         verifyTransaksjonTilstand(transaksjonTilstand, innTransaksjon)
                     }
                     innTransaksjonMap[false]!!.forEach { innTransaksjon ->
@@ -481,7 +481,7 @@ internal class ValidateTransaksjonServiceTest :
                         .post(urlEqualTo("/graphql"))
                         .willReturn(
                             aResponse()
-                                .withHeader(HttpHeaders.ContentType, APPLICATION_JSON.mimeType)
+                                .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
                                 .withStatus(HttpStatusCode.OK.value)
                                 .withBody(Json.encodeToString(response)),
                         ),
@@ -527,7 +527,7 @@ internal class ValidateTransaksjonServiceTest :
                         .post(urlEqualTo("/graphql"))
                         .willReturn(
                             aResponse()
-                                .withHeader(HttpHeaders.ContentType, APPLICATION_JSON.mimeType)
+                                .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
                                 .withStatus(HttpStatusCode.OK.value)
                                 .withBody(Json.encodeToString(response)),
                         ),
@@ -570,7 +570,7 @@ internal class ValidateTransaksjonServiceTest :
                         .post(urlEqualTo("/graphql"))
                         .willReturn(
                             aResponse()
-                                .withHeader(HttpHeaders.ContentType, APPLICATION_JSON.mimeType)
+                                .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
                                 .withStatus(HttpStatusCode.OK.value)
                                 .withBody(Json.encodeToString(response)),
                         ),
