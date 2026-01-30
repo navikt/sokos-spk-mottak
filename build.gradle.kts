@@ -55,7 +55,7 @@ val mockOAuth2ServerVersion = "3.0.1"
 val mockkVersion = "1.14.7"
 val hikariVersion = "7.0.2"
 val db2JccVersion = "12.1.3.0"
-val kotliqueryVersion = "2.0.1"
+val kotliqueryVersion = "1.9.1"
 val testcontainersVersion = "1.21.4"
 val h2Version = "2.4.240"
 val flywayVersion = "11.20.2"
@@ -108,7 +108,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("com.ibm.db2:jcc:$db2JccVersion")
     implementation("org.postgresql:postgresql:$postgresVersion")
-    implementation("no.nav:kotliquery:$kotliqueryVersion")
+    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
