@@ -13,7 +13,7 @@ jobs:
       security-events: write
     name: CodeQL/Trivy Scan
     if: success() || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    uses: navikt/mob-gha-workflows/.github/workflows/codeql-trivy-scan.yaml@main
+    uses: navikt/mob-gha-workflows/.github/workflows/codeql-trivy-scan.yaml@chore/remove_workaround_codeql
     secrets: inherit
     with:
       language: 'kotlin'
