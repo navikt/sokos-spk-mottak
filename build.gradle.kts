@@ -11,7 +11,7 @@ plugins {
     kotlin("plugin.serialization") version "2.3.0"
     id("com.expediagroup.graphql") version "8.8.1"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
-    id("org.jetbrains.kotlinx.kover") version "0.9.4"
+    id("org.jetbrains.kotlinx.kover") version "0.9.5"
 
     application
 }
@@ -41,7 +41,7 @@ repositories {
 
 val ktorVersion = "3.4.0"
 val jschVersion = "2.27.7"
-val logbackVersion = "1.5.26"
+val logbackVersion = "1.5.27"
 val logstashVersion = "9.0"
 val micrometerVersion = "1.16.2"
 val kotlinLoggingVersion = "3.0.5"
@@ -60,7 +60,7 @@ val testcontainersVersion = "1.21.4"
 val h2Version = "2.4.240"
 val flywayVersion = "12.0.0"
 val postgresVersion = "42.7.9"
-val dbSchedulerVersion = "16.7.0"
+val dbSchedulerVersion = "16.7.1"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20251217153210_84e9478"
 val ibmmqVersion = "9.4.4.1"
