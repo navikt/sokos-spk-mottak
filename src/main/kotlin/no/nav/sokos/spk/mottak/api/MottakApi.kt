@@ -20,13 +20,13 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.AUTHENTICATION_JWT
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
+import no.nav.sokos.spk.mottak.security.AuthorizationGuard.isM2mToken
+import no.nav.sokos.spk.mottak.security.AuthorizationGuard.isOboToken
+import no.nav.sokos.spk.mottak.security.AuthorizationGuard.requireRole
+import no.nav.sokos.spk.mottak.security.AuthorizationGuard.requireScope
 import no.nav.sokos.spk.mottak.security.NavIdentClaim.getSaksbehandler
 import no.nav.sokos.spk.mottak.security.Role
 import no.nav.sokos.spk.mottak.security.Scope
-import no.nav.sokos.spk.mottak.security.TokenGuard.isM2mToken
-import no.nav.sokos.spk.mottak.security.TokenGuard.isOboToken
-import no.nav.sokos.spk.mottak.security.TokenGuard.requireRole
-import no.nav.sokos.spk.mottak.security.TokenGuard.requireScope
 import no.nav.sokos.spk.mottak.service.LeveAttestService
 import no.nav.sokos.spk.mottak.service.ScheduledTaskService
 import no.nav.sokos.spk.mottak.validator.validateDateQueryParameter

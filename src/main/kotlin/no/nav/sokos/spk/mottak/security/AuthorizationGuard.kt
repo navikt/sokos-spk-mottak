@@ -13,7 +13,7 @@ private val logger = KotlinLogging.logger {}
  * Permission validator for fine-grained access control.
  * Validates scopes (OBO tokens) and roles (M2M tokens) for endpoints.
  */
-object TokenGuard {
+object AuthorizationGuard {
     /**
      * Check if the current token is an OBO (On-Behalf-Of) token.
      * OBO tokens have NAVident claim and scp (scopes) claim.
