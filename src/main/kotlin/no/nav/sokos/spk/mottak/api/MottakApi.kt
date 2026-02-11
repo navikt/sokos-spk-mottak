@@ -40,13 +40,13 @@ fun Route.mottakApi(
     scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
     leveAttestService: LeveAttestService = LeveAttestService(),
 ) {
-    route("api/v1") {
+    route(API_BASE_PATH) {
         authenticate(AUTHENTICATION_JWT) {
             post("readParseFileAndValidateTransactions") {
                 val tokenType = if (call.isOboToken()) "OBO" else "M2M"
                 logger.info { "readParseFileAndValidateTransactions called with $tokenType token" }
 
-                if (!call.requireScope(Scope.READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_READ.value)) return@post
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@post
                 val ident = call.getSaksbehandler()
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringReadParseFileAndValidateTransactionsTask()
@@ -56,7 +56,7 @@ fun Route.mottakApi(
             }
 
             post("sendUtbetalingTransaksjonToOppdragZ") {
-                if (!call.requireScope(Scope.SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAG_Z_READ.value)) return@post
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@post
                 val ident = call.getSaksbehandler()
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask()
@@ -66,7 +66,7 @@ fun Route.mottakApi(
             }
 
             post("sendTrekkTransaksjonToOppdragZ") {
-                if (!call.requireScope(Scope.SEND_TREKK_TRANSAKSJON_TO_OPPDRAG_Z_READ.value)) return@post
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@post
                 val ident = call.getSaksbehandler()
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask()
@@ -76,7 +76,7 @@ fun Route.mottakApi(
             }
 
             post("avstemming") {
-                if (!call.requireScope(Scope.AVSTEMMING_WRITE.value)) return@post
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@post
                 val ident = call.getSaksbehandler()
                 val request = call.receive<AvstemmingRequest>()
                 call.launch(Dispatchers.IO) {
@@ -88,7 +88,7 @@ fun Route.mottakApi(
             }
 
             post("writeAvregningsreturFile") {
-                if (!call.requireScope(Scope.WRITE_AVREGNINGSRETUR_FILE_READ.value)) return@post
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@post
                 val ident = call.getSaksbehandler()
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringWriteAvregningsreturFileTask()
@@ -98,7 +98,7 @@ fun Route.mottakApi(
             }
 
             get("jobTaskInfo") {
-                if (!call.requireScope(Scope.JOB_TASK_INFO_READ.value)) return@get
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@get
                 call.respond(HttpStatusCode.OK, scheduledTaskService.getScheduledTaskInformation())
             }
 

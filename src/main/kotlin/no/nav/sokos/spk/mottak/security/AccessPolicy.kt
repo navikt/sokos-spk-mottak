@@ -7,13 +7,7 @@ package no.nav.sokos.spk.mottak.security
 enum class Scope(
     val value: String,
 ) {
-    LEVEATTESTER_READ("leveattester.read"),
-    READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_READ("read-parse-file-and-validate-transactions.read"),
-    SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAG_Z_READ("send-utbetaling-transaksjon-to-oppdrag-z.read"),
-    SEND_TREKK_TRANSAKSJON_TO_OPPDRAG_Z_READ("send-trekk-transaksjon-to-oppdrag-z.read"),
-    AVSTEMMING_WRITE("avstemming.write"),
-    WRITE_AVREGNINGSRETUR_FILE_READ("write-avregningsretur-file.read"),
-    JOB_TASK_INFO_READ("job-task-info.read"),
+    SPK_MOTTAK_ADMIN("spk-mottak.admin"),
     ;
 
     override fun toString() = value

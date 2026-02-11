@@ -57,12 +57,7 @@ spec:
           cluster: dev-gcp
           permissions:
             scopes:
-              - "read-parse-file-and-validate-transactions.read"
-              - "send-utbetaling-transaksjon-to-oppdrag-z.read"
-              - "send-trekk-transaksjon-to-oppdrag-z.read"
-              - "avstemming.write"
-              - "write-avregningsretur-file.read"
-              - "job-task-info.read"
+              - "spk-mottak.admin"
     outbound:
       rules:
         - application: logging

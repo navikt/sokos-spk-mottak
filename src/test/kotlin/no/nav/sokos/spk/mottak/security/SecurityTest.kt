@@ -328,7 +328,7 @@ private fun MockOAuth2Server.oboTokenWithRequiredScope() =
                 claims =
                     mapOf(
                         "NAVident" to "X123456",
-                        "scp" to Scope.JOB_TASK_INFO_READ.value,
+                        "scp" to Scope.SPK_MOTTAK_ADMIN.value,
                     ),
             ),
     ).serialize()
