@@ -52,13 +52,17 @@ spec:
         - application: azure-token-generator
           namespace: nais
           cluster: dev-gcp
-
         - application: sokos-utbetalingsportalen
           namespace: okonomi
           cluster: dev-gcp
           permissions:
             scopes:
               - "spk-mottak.admin"
+        - application: pensjon-pen-q1
+          namespace: pensjon-q1
+          permissions:
+            roles:
+              - "leveattester.read"
         - application: pensjon-pen-q2
           namespace: pensjon-q2
           permissions:
