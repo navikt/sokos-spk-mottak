@@ -57,12 +57,12 @@ spec:
           cluster: dev-gcp
           permissions:
             scopes:
-              - "readParseFileAndValidateTransactions.read"
-              - "sendUtbetalingTransaksjonToOppdragZ.read"
-              - "sendTrekkTransaksjonToOppdragZ.read"
+              - "read-parse-file-and-validate-transactions.read"
+              - "send-utbetaling-transaksjon-to-oppdrag-z.read"
+              - "send-trekk-transaksjon-to-oppdrag-z.read"
               - "avstemming.write"
-              - "writeAvregningsreturFile.read"
-              - "jobTaskInfo.read"
+              - "write-avregningsretur-file.read"
+              - "job-task-info.read"
         - application: sokos-ktor-template
           namespace: okonomi
           cluster: dev-gcp

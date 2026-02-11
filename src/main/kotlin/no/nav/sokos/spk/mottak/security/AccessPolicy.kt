@@ -2,16 +2,18 @@ package no.nav.sokos.spk.mottak.security
 
 /**
  * Allowed scopes for OBO (On-Behalf-Of) tokens.
+ * These represent user-initiated operations.
  */
 enum class Scope(
     val value: String,
 ) {
-    READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_READ("readParseFileAndValidateTransactions.read"),
-    SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAG_Z_READ("sendUtbetalingTransaksjonToOppdragZ.read"),
-    SEND_TREKK_TRANSAKSJON_TO_OPPDRAG_Z_READ("sendTrekkTransaksjonToOppdragZ.read"),
+    LEVEATTESTER_READ("leveattester.read"),
+    READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_READ("read-parse-file-and-validate-transactions.read"),
+    SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAG_Z_READ("send-utbetaling-transaksjon-to-oppdrag-z.read"),
+    SEND_TREKK_TRANSAKSJON_TO_OPPDRAG_Z_READ("send-trekk-transaksjon-to-oppdrag-z.read"),
     AVSTEMMING_WRITE("avstemming.write"),
-    WRITE_AVREGNINGSRETUR_FILE_READ("writeAvregningsreturFile.read"),
-    JOB_TASK_INFO_READ("jobTaskInfo.read"),
+    WRITE_AVREGNINGSRETUR_FILE_READ("write-avregningsretur-file.read"),
+    JOB_TASK_INFO_READ("job-task-info.read"),
     ;
 
     override fun toString() = value

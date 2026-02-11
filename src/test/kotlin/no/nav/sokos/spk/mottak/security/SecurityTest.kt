@@ -36,268 +36,276 @@ internal class SecurityTest :
         val scheduledTaskService = mockk<ScheduledTaskService>()
         val leveAttestService = mockk<LeveAttestService>()
 
-        test("GET endpoint uten token skal returnere 401 Unauthorized") {
-            withMockOAuth2Server {
-                testApplication {
-                    application {
-                        securityConfig(true, authConfig())
-                        routing {
-                            mottakApi(scheduler, scheduledTaskService, leveAttestService)
-                        }
-                    }
-                    val response = client.get("$API_BASE_PATH/jobTaskInfo")
-                    response.status shouldBe HttpStatusCode.Unauthorized
-                }
-            }
-        }
-
-        test("GET endpoint med ugyldig token skal returnere 401 Unauthorized") {
-            withMockOAuth2Server {
-                testApplication {
-                    application {
-                        securityConfig(true, authConfig())
-                        routing {
-                            mottakApi(scheduler, scheduledTaskService, leveAttestService)
-                        }
-                    }
-                    val response =
-                        client.get("$API_BASE_PATH/jobTaskInfo") {
-                            header("Authorization", "Bearer invalid-token")
-                            contentType(ContentType.Application.Json)
-                        }
-                    response.status shouldBe HttpStatusCode.Unauthorized
-                }
-            }
-        }
-
-        test("GET endpoint med gyldig OBO token men uten required scope skal returnere 403 Forbidden") {
-            withMockOAuth2Server {
-                val mockOAuth2Server = this
-                testApplication {
-                    val client =
-                        createClient {
-                            install(ContentNegotiation) {
-                                json(
-                                    Json {
-                                        prettyPrint = true
-                                        ignoreUnknownKeys = true
-                                        encodeDefaults = true
-                                        explicitNulls = false
-                                    },
-                                )
+        context("Authentication - Token Validation (401 Unauthorized)") {
+            test("GET endpoint uten token skal returnere 401 Unauthorized") {
+                withMockOAuth2Server {
+                    testApplication {
+                        application {
+                            securityConfig(true, authConfig())
+                            routing {
+                                mottakApi(scheduler, scheduledTaskService, leveAttestService)
                             }
                         }
-                    application {
-                        commonConfig()
-                        securityConfig(true, authConfig())
-                        routing {
-                            mottakApi(scheduler, scheduledTaskService, leveAttestService)
-                        }
+                        val response = client.get("$API_BASE_PATH/jobTaskInfo")
+                        response.status shouldBe HttpStatusCode.Unauthorized
                     }
+                }
+            }
 
-                    val response =
-                        client.get("$API_BASE_PATH/jobTaskInfo") {
-                            header("Authorization", "Bearer ${mockOAuth2Server.oboTokenWithoutRequiredScope()}")
-                            contentType(ContentType.Application.Json)
+            test("GET endpoint med ugyldig token skal returnere 401 Unauthorized") {
+                withMockOAuth2Server {
+                    testApplication {
+                        application {
+                            securityConfig(true, authConfig())
+                            routing {
+                                mottakApi(scheduler, scheduledTaskService, leveAttestService)
+                            }
                         }
-
-                    response.status shouldBe HttpStatusCode.Forbidden
-                    val body = response.bodyAsText()
-                    body shouldContain "Forbidden"
-                    body shouldContain "Missing required scope"
+                        val response =
+                            client.get("$API_BASE_PATH/jobTaskInfo") {
+                                header("Authorization", "Bearer invalid-token")
+                                contentType(ContentType.Application.Json)
+                            }
+                        response.status shouldBe HttpStatusCode.Unauthorized
+                    }
                 }
             }
         }
 
-        test("GET endpoint med gyldig OBO token og required scope skal returnere 200 OK") {
-            every { scheduledTaskService.getScheduledTaskInformation() } returns emptyList()
-
-            withMockOAuth2Server {
-                val mockOAuth2Server = this
-                testApplication {
-                    val client =
-                        createClient {
-                            install(ContentNegotiation) {
-                                json(
-                                    Json {
-                                        prettyPrint = true
-                                        ignoreUnknownKeys = true
-                                        encodeDefaults = true
-                                        explicitNulls = false
-                                    },
-                                )
+        context("Authorization - OBO Pattern (requireScope)") {
+            test("GET endpoint med gyldig OBO token men uten required scope skal returnere 403 Forbidden") {
+                withMockOAuth2Server {
+                    val mockOAuth2Server = this
+                    testApplication {
+                        val client =
+                            createClient {
+                                install(ContentNegotiation) {
+                                    json(
+                                        Json {
+                                            prettyPrint = true
+                                            ignoreUnknownKeys = true
+                                            encodeDefaults = true
+                                            explicitNulls = false
+                                        },
+                                    )
+                                }
+                            }
+                        application {
+                            commonConfig()
+                            securityConfig(true, authConfig())
+                            routing {
+                                mottakApi(scheduler, scheduledTaskService, leveAttestService)
                             }
                         }
-                    application {
-                        commonConfig()
-                        securityConfig(true, authConfig())
-                        routing {
-                            mottakApi(scheduler, scheduledTaskService, leveAttestService)
-                        }
+
+                        val response =
+                            client.get("$API_BASE_PATH/jobTaskInfo") {
+                                header("Authorization", "Bearer ${mockOAuth2Server.oboTokenWithoutRequiredScope()}")
+                                contentType(ContentType.Application.Json)
+                            }
+
+                        response.status shouldBe HttpStatusCode.Forbidden
+                        val body = response.bodyAsText()
+                        body shouldContain "Forbidden"
+                        body shouldContain "Missing required scope"
                     }
+                }
+            }
 
-                    val response =
-                        client.get("$API_BASE_PATH/jobTaskInfo") {
-                            header("Authorization", "Bearer ${mockOAuth2Server.oboTokenWithRequiredScope()}")
-                            contentType(ContentType.Application.Json)
+            test("GET endpoint med gyldig OBO token og required scope skal returnere 200 OK") {
+                every { scheduledTaskService.getScheduledTaskInformation() } returns emptyList()
+
+                withMockOAuth2Server {
+                    val mockOAuth2Server = this
+                    testApplication {
+                        val client =
+                            createClient {
+                                install(ContentNegotiation) {
+                                    json(
+                                        Json {
+                                            prettyPrint = true
+                                            ignoreUnknownKeys = true
+                                            encodeDefaults = true
+                                            explicitNulls = false
+                                        },
+                                    )
+                                }
+                            }
+                        application {
+                            commonConfig()
+                            securityConfig(true, authConfig())
+                            routing {
+                                mottakApi(scheduler, scheduledTaskService, leveAttestService)
+                            }
                         }
 
-                    response.status shouldBe HttpStatusCode.OK
+                        val response =
+                            client.get("$API_BASE_PATH/jobTaskInfo") {
+                                header("Authorization", "Bearer ${mockOAuth2Server.oboTokenWithRequiredScope()}")
+                                contentType(ContentType.Application.Json)
+                            }
+
+                        response.status shouldBe HttpStatusCode.OK
+                    }
                 }
             }
         }
 
-        test("M2M endpoint med M2M token uten required role skal returnere 403 Forbidden") {
-            withMockOAuth2Server {
-                val mockOAuth2Server = this
-                testApplication {
-                    val client =
-                        createClient {
-                            install(ContentNegotiation) {
-                                json(
-                                    Json {
-                                        prettyPrint = true
-                                        ignoreUnknownKeys = true
-                                        encodeDefaults = true
-                                        explicitNulls = false
-                                    },
-                                )
+        context("Authorization - M2M Pattern (requireRole)") {
+            test("M2M endpoint med M2M token uten required role skal returnere 403 Forbidden") {
+                withMockOAuth2Server {
+                    val mockOAuth2Server = this
+                    testApplication {
+                        val client =
+                            createClient {
+                                install(ContentNegotiation) {
+                                    json(
+                                        Json {
+                                            prettyPrint = true
+                                            ignoreUnknownKeys = true
+                                            encodeDefaults = true
+                                            explicitNulls = false
+                                        },
+                                    )
+                                }
+                            }
+                        application {
+                            commonConfig()
+                            securityConfig(true, authConfig())
+                            routing {
+                                mottakApi(scheduler, scheduledTaskService, leveAttestService)
                             }
                         }
-                    application {
-                        commonConfig()
-                        securityConfig(true, authConfig())
-                        routing {
-                            mottakApi(scheduler, scheduledTaskService, leveAttestService)
-                        }
+
+                        val response =
+                            client.get("$API_BASE_PATH/leveattester/2024-01-01") {
+                                header("Authorization", "Bearer ${mockOAuth2Server.m2mTokenWithoutRequiredRole()}")
+                                contentType(ContentType.Application.Json)
+                            }
+
+                        response.status shouldBe HttpStatusCode.Forbidden
+                        val body = response.bodyAsText()
+                        body shouldContain "Forbidden"
+                        body shouldContain "Missing required role"
                     }
+                }
+            }
 
-                    val response =
-                        client.get("$API_BASE_PATH/leveattester/2024-01-01") {
-                            header("Authorization", "Bearer ${mockOAuth2Server.m2mTokenWithoutRequiredRole()}")
-                            contentType(ContentType.Application.Json)
+            test("M2M endpoint med M2M token og required role skal returnere 200 OK") {
+                every { leveAttestService.getLeveAttester(any()) } returns emptyList()
+
+                withMockOAuth2Server {
+                    val mockOAuth2Server = this
+                    testApplication {
+                        val client =
+                            createClient {
+                                install(ContentNegotiation) {
+                                    json(
+                                        Json {
+                                            prettyPrint = true
+                                            ignoreUnknownKeys = true
+                                            encodeDefaults = true
+                                            explicitNulls = false
+                                        },
+                                    )
+                                }
+                            }
+                        application {
+                            commonConfig()
+                            securityConfig(true, authConfig())
+                            routing {
+                                mottakApi(scheduler, scheduledTaskService, leveAttestService)
+                            }
                         }
 
-                    response.status shouldBe HttpStatusCode.Forbidden
-                    val body = response.bodyAsText()
-                    body shouldContain "Forbidden"
-                    body shouldContain "Missing required role"
+                        val response =
+                            client.get("$API_BASE_PATH/leveattester/2024-01-01") {
+                                header("Authorization", "Bearer ${mockOAuth2Server.m2mTokenWithRequiredRole()}")
+                                contentType(ContentType.Application.Json)
+                            }
+
+                        response.status shouldBe HttpStatusCode.OK
+                    }
                 }
             }
         }
 
-        test("M2M endpoint med M2M token og required role skal returnere 200 OK") {
-            every { leveAttestService.getLeveAttester(any()) } returns emptyList()
-
-            withMockOAuth2Server {
-                val mockOAuth2Server = this
-                testApplication {
-                    val client =
-                        createClient {
-                            install(ContentNegotiation) {
-                                json(
-                                    Json {
-                                        prettyPrint = true
-                                        ignoreUnknownKeys = true
-                                        encodeDefaults = true
-                                        explicitNulls = false
-                                    },
-                                )
+        context("Authorization - Cross-Contamination (Token Separation)") {
+            test("OBO token på M2M-only endpoint skal returnere 403 Forbidden") {
+                withMockOAuth2Server {
+                    val mockOAuth2Server = this
+                    testApplication {
+                        val client =
+                            createClient {
+                                install(ContentNegotiation) {
+                                    json(
+                                        Json {
+                                            prettyPrint = true
+                                            ignoreUnknownKeys = true
+                                            encodeDefaults = true
+                                            explicitNulls = false
+                                        },
+                                    )
+                                }
+                            }
+                        application {
+                            commonConfig()
+                            securityConfig(true, authConfig())
+                            routing {
+                                mottakApi(scheduler, scheduledTaskService, leveAttestService)
                             }
                         }
-                    application {
-                        commonConfig()
-                        securityConfig(true, authConfig())
-                        routing {
-                            mottakApi(scheduler, scheduledTaskService, leveAttestService)
-                        }
+
+                        val response =
+                            client.get("$API_BASE_PATH/leveattester/2024-01-01") {
+                                header("Authorization", "Bearer ${mockOAuth2Server.oboTokenWithRequiredScope()}")
+                                contentType(ContentType.Application.Json)
+                            }
+
+                        response.status shouldBe HttpStatusCode.Forbidden
+                        val body = response.bodyAsText()
+                        body shouldContain "Forbidden"
+                        body shouldContain "Missing required role"
                     }
-
-                    val response =
-                        client.get("$API_BASE_PATH/leveattester/2024-01-01") {
-                            header("Authorization", "Bearer ${mockOAuth2Server.m2mTokenWithRequiredRole()}")
-                            contentType(ContentType.Application.Json)
-                        }
-
-                    response.status shouldBe HttpStatusCode.OK
                 }
             }
-        }
 
-        test("OBO token på M2M-only endpoint skal returnere 403 Forbidden") {
-            withMockOAuth2Server {
-                val mockOAuth2Server = this
-                testApplication {
-                    val client =
-                        createClient {
-                            install(ContentNegotiation) {
-                                json(
-                                    Json {
-                                        prettyPrint = true
-                                        ignoreUnknownKeys = true
-                                        encodeDefaults = true
-                                        explicitNulls = false
-                                    },
-                                )
+            test("M2M token på OBO-only endpoint skal returnere 403 Forbidden") {
+                withMockOAuth2Server {
+                    val mockOAuth2Server = this
+                    testApplication {
+                        val client =
+                            createClient {
+                                install(ContentNegotiation) {
+                                    json(
+                                        Json {
+                                            prettyPrint = true
+                                            ignoreUnknownKeys = true
+                                            encodeDefaults = true
+                                            explicitNulls = false
+                                        },
+                                    )
+                                }
+                            }
+                        application {
+                            commonConfig()
+                            securityConfig(true, authConfig())
+                            routing {
+                                mottakApi(scheduler, scheduledTaskService, leveAttestService)
                             }
                         }
-                    application {
-                        commonConfig()
-                        securityConfig(true, authConfig())
-                        routing {
-                            mottakApi(scheduler, scheduledTaskService, leveAttestService)
-                        }
-                    }
 
-                    val response =
-                        client.get("$API_BASE_PATH/leveattester/2024-01-01") {
-                            header("Authorization", "Bearer ${mockOAuth2Server.oboTokenWithRequiredScope()}")
-                            contentType(ContentType.Application.Json)
-                        }
-
-                    response.status shouldBe HttpStatusCode.Forbidden
-                    val body = response.bodyAsText()
-                    body shouldContain "Forbidden"
-                    body shouldContain "Missing required role"
-                }
-            }
-        }
-
-        test("M2M token på OBO-only endpoint skal returnere 403 Forbidden") {
-            withMockOAuth2Server {
-                val mockOAuth2Server = this
-                testApplication {
-                    val client =
-                        createClient {
-                            install(ContentNegotiation) {
-                                json(
-                                    Json {
-                                        prettyPrint = true
-                                        ignoreUnknownKeys = true
-                                        encodeDefaults = true
-                                        explicitNulls = false
-                                    },
-                                )
+                        val response =
+                            client.get("$API_BASE_PATH/jobTaskInfo") {
+                                header("Authorization", "Bearer ${mockOAuth2Server.m2mTokenWithRequiredRole()}")
+                                contentType(ContentType.Application.Json)
                             }
-                        }
-                    application {
-                        commonConfig()
-                        securityConfig(true, authConfig())
-                        routing {
-                            mottakApi(scheduler, scheduledTaskService, leveAttestService)
-                        }
+
+                        response.status shouldBe HttpStatusCode.Forbidden
+                        val body = response.bodyAsText()
+                        body shouldContain "Forbidden"
+                        body shouldContain "Missing required scope"
                     }
-
-                    val response =
-                        client.get("$API_BASE_PATH/jobTaskInfo") {
-                            header("Authorization", "Bearer ${mockOAuth2Server.m2mTokenWithRequiredRole()}")
-                            contentType(ContentType.Application.Json)
-                        }
-
-                    response.status shouldBe HttpStatusCode.Forbidden
-                    val body = response.bodyAsText()
-                    body shouldContain "Forbidden"
-                    body shouldContain "Missing required scope"
                 }
             }
         }
@@ -320,7 +328,7 @@ private fun MockOAuth2Server.oboTokenWithRequiredScope() =
                 claims =
                     mapOf(
                         "NAVident" to "X123456",
-                        "scp" to "jobTaskInfo.read",
+                        "scp" to Scope.JOB_TASK_INFO_READ.value,
                     ),
             ),
     ).serialize()
@@ -351,7 +359,7 @@ private fun MockOAuth2Server.m2mTokenWithRequiredRole() =
                 issuerId = "default",
                 claims =
                     mapOf(
-                        "roles" to listOf("leveattester.read"),
+                        "roles" to listOf(Role.LEVEATTESTER_READ.value),
                     ),
             ),
     ).serialize()
