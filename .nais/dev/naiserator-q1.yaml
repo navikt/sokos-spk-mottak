@@ -52,6 +52,11 @@ spec:
         - application: azure-token-generator
           namespace: nais
           cluster: dev-gcp
+          permissions:
+            scopes:
+              - "spk-mottak.admin"
+            roles:
+              - "leveattester.read"
         - application: sokos-utbetalingsportalen
           namespace: okonomi
           cluster: dev-gcp
