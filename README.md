@@ -69,9 +69,21 @@ Push/merge til main branch direkte er ikke mulig. Det må opprettes PR og godkje
 Når PR er merged til main branch vil Github Actions bygge og deploye til dev-fss og prod-fss.
 Har også mulighet for å deploye manuelt til testmiljø ved å deploye PR.
 
-# 6. Autentisering
+# 6. Autentisering og Autorisasjon
 
-Applikasjonen bruker [AzureAD](https://docs.nais.io/security/auth/azure-ad/) for å sikre at kun autoriserte brukere har tilgang til tjenesten.
+Applikasjonen bruker [Azure AD](https://docs.nais.io/security/auth/azure-ad/) for autentisering og implementerer finkornet autorisasjon basert på scopes og roller.
+
+## Sikkerhetslag
+
+### 1. **Autentisering**
+- JWT token-validering
+
+### 2. **Autorisasjon**
+- **OBO (On-Behalf-Of)**: For brukerinitiierte operasjoner
+  - Krever `NAVident` claim og gyldig scope
+  
+- **M2M (Machine-to-Machine)**: For system-til-system integrasjoner
+  - Krever gyldig role (ingen NAVident)
 
 # 7. Drift og støtte
 
