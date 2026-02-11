@@ -76,7 +76,7 @@ spec:
     - secret: spk-mottak-mq-credentials
   env:
     - name: USE_AUTHENTICATION
-      value: "true"  # ✅ ENABLE AUTHENTICATION - required for scope/role validation
+      value: "true"
 
     # DB2
     - name: DATABASE_HOST

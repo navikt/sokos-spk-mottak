@@ -15,36 +15,6 @@ private val logger = KotlinLogging.logger {}
  */
 object AuthorizationGuard {
     /**
-     * Check if the current token is an OBO (On-Behalf-Of) token.
-     * OBO tokens have NAVident claim and scp (scopes) claim.
-     */
-    fun ApplicationCall.isOboToken(): Boolean {
-        val principal = principal<JWTPrincipal>() ?: return false
-        val hasNavIdent = principal.payload.getClaim(JWT_CLAIM_NAVIDENT)?.asString() != null
-        val hasScopes =
-            principal.payload
-                .getClaim("scp")
-                ?.asString()
-                ?.isNotBlank() == true
-        return hasNavIdent && hasScopes
-    }
-
-    /**
-     * Check if the current token is an M2M (Machine-to-Machine) token.
-     * M2M tokens have roles claim but NO NAVident.
-     */
-    fun ApplicationCall.isM2mToken(): Boolean {
-        val principal = principal<JWTPrincipal>() ?: return false
-        val hasRoles =
-            principal.payload
-                .getClaim("roles")
-                ?.asList(String::class.java)
-                ?.isNotEmpty() == true
-        val hasNavIdent = principal.payload.getClaim(JWT_CLAIM_NAVIDENT)?.asString() != null
-        return hasRoles && !hasNavIdent
-    }
-
-    /**
      * Get NAVident from OBO token, or null if M2M token.
      * Use this when you need to handle both OBO and M2M tokens differently.
      */

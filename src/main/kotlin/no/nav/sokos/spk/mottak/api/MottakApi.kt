@@ -20,8 +20,6 @@ import mu.KotlinLogging
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.AUTHENTICATION_JWT
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
-import no.nav.sokos.spk.mottak.security.AuthorizationGuard.isM2mToken
-import no.nav.sokos.spk.mottak.security.AuthorizationGuard.isOboToken
 import no.nav.sokos.spk.mottak.security.AuthorizationGuard.requireRole
 import no.nav.sokos.spk.mottak.security.AuthorizationGuard.requireScope
 import no.nav.sokos.spk.mottak.security.NavIdentClaim.getSaksbehandler
@@ -43,9 +41,6 @@ fun Route.mottakApi(
     route(API_BASE_PATH) {
         authenticate(AUTHENTICATION_JWT) {
             post("readParseFileAndValidateTransactions") {
-                val tokenType = if (call.isOboToken()) "OBO" else "M2M"
-                logger.info { "readParseFileAndValidateTransactions called with $tokenType token" }
-
                 if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@post
                 val ident = call.getSaksbehandler()
                 call.launch(Dispatchers.IO) {
@@ -104,10 +99,6 @@ fun Route.mottakApi(
 
             get("leveattester/{datoFom}") {
                 if (!call.requireRole(Role.LEVEATTESTER_READ.value)) return@get
-
-                val tokenType = if (call.isM2mToken()) "M2M" else "OBO"
-                logger.info { "leveattester called with $tokenType token" }
-
                 call.respond(
                     leveAttestService.getLeveAttester(call.pathParameters["datoFom"].orEmpty().validateDateQueryParameter()),
                 )
