@@ -55,6 +55,20 @@ spec:
         - application: sokos-utbetalingsportalen-qx
           namespace: okonomi
           cluster: dev-gcp
+          permissions:
+            scopes:
+              - "readParseFileAndValidateTransactions.read"
+              - "sendUtbetalingTransaksjonToOppdragZ.read"
+              - "sendTrekkTransaksjonToOppdragZ.read"
+              - "avstemming.write"
+              - "writeAvregningsreturFile.read"
+              - "jobTaskInfo.read"
+        - application: sokos-ktor-template
+          namespace: okonomi
+          cluster: dev-gcp
+          permissions:
+            roles:
+              - "leveattester.read"
     outbound:
       rules:
         - application: logging
@@ -73,7 +87,7 @@ spec:
     - secret: spk-mottak-mq-credentials
   env:
     - name: USE_AUTHENTICATION
-      value: "false"
+      value: "true"  # ✅ ENABLE AUTHENTICATION - required for scope/role validation
 
     # DB2
     - name: DATABASE_HOST

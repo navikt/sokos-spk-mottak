@@ -27,7 +27,7 @@ private fun Application.module() {
     commonConfig()
     applicationLifecycleConfig(applicationState)
     securityConfig(useAuthentication)
-    routingConfig(useAuthentication, applicationState)
+    routingConfig(applicationState)
 
     DatabaseConfig.postgresMigrate()
     if (PropertiesConfig.MQProperties().mqListenerEnabled) {

@@ -18,7 +18,7 @@ import io.ktor.server.auth.jwt.jwt
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
-const val AUTHENTICATION_NAME = "azureAd"
+const val AUTHENTICATION_JWT = "jwtAuth"
 
 fun Application.securityConfig(
     useAuthentication: Boolean,
@@ -30,7 +30,7 @@ fun Application.securityConfig(
         val jwkProvider = cachedJwkProvider(openIdMetadata.jwksUri)
 
         authentication {
-            jwt(AUTHENTICATION_NAME) {
+            jwt(AUTHENTICATION_JWT) {
                 realm = PropertiesConfig.Configuration().naisAppName
                 verifier(
                     jwkProvider = jwkProvider,
@@ -46,9 +46,12 @@ fun Application.securityConfig(
                             logger.info { "Auth: Valid audience not found in claims" }
                             "Auth: Valid audience not found in claims"
                         }
+
+                        // Accept both OBO and M2M tokens - validation of specific scopes/roles happens in endpoints
+                        logger.debug { "Auth: Token validated successfully" }
                         JWTPrincipal(credential.payload)
                     } catch (e: Exception) {
-                        logger.warn(e) { "Client authentication failed" }
+                        logger.warn(e) { "Token authentication failed" }
                         null
                     }
                 }

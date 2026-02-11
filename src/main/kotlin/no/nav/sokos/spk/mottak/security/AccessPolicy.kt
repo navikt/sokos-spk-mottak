@@ -1,0 +1,64 @@
+package no.nav.sokos.spk.mottak.security
+
+/**
+ * Allowed scopes for OBO (On-Behalf-Of) tokens.
+ */
+enum class Scope(
+    val value: String,
+) {
+    READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_READ("readParseFileAndValidateTransactions.read"),
+    SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAG_Z_READ("sendUtbetalingTransaksjonToOppdragZ.read"),
+    SEND_TREKK_TRANSAKSJON_TO_OPPDRAG_Z_READ("sendTrekkTransaksjonToOppdragZ.read"),
+    AVSTEMMING_WRITE("avstemming.write"),
+    WRITE_AVREGNINGSRETUR_FILE_READ("writeAvregningsreturFile.read"),
+    JOB_TASK_INFO_READ("jobTaskInfo.read"),
+    ;
+
+    override fun toString() = value
+}
+
+/**
+ * Allowed roles for M2M (Machine-to-Machine) tokens.
+ */
+enum class Role(
+    val value: String,
+) {
+    LEVEATTESTER_READ("leveattester.read"),
+    ;
+
+    override fun toString() = value
+}
+
+/**
+ * Defines allowed scopes and roles for fine-grained access control.
+ *
+ * OBO (On-Behalf-Of) tokens use scopes from the 'scp' claim.
+ * M2M (Machine-to-Machine) tokens use roles from the 'roles' claim.
+ */
+object AccessPolicy {
+    /**
+     * Allowed scopes for OBO tokens.
+     */
+    val ALLOWED_SCOPES = Scope.entries.map { it.value }.toSet()
+
+    /**
+     * Allowed roles for M2M tokens.
+     */
+    val ALLOWED_ROLES = Role.entries.map { it.value }.toSet()
+
+    /**
+     * Check if the provided scopes contain a specific required scope.
+     */
+    fun hasRequiredScope(
+        scopes: List<String>,
+        requiredScope: String,
+    ): Boolean = requiredScope in scopes && requiredScope in ALLOWED_SCOPES
+
+    /**
+     * Check if the provided roles contain a specific required role.
+     */
+    fun hasRequiredRole(
+        roles: List<String>,
+        requiredRole: String,
+    ): Boolean = requiredRole in roles && requiredRole in ALLOWED_ROLES
+}
