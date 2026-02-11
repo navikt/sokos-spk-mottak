@@ -23,7 +23,7 @@ import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import no.nav.sokos.spk.mottak.security.NavIdentClaim.getSaksbehandler
 import no.nav.sokos.spk.mottak.security.Role
 import no.nav.sokos.spk.mottak.security.Scope
-import no.nav.sokos.spk.mottak.security.TokenGuard.getNavIdentOrNull
+import no.nav.sokos.spk.mottak.security.TokenGuard.isM2mToken
 import no.nav.sokos.spk.mottak.security.TokenGuard.isOboToken
 import no.nav.sokos.spk.mottak.security.TokenGuard.requireRole
 import no.nav.sokos.spk.mottak.security.TokenGuard.requireScope
@@ -43,6 +43,9 @@ fun Route.mottakApi(
     route("api/v1") {
         authenticate(AUTHENTICATION_JWT) {
             post("readParseFileAndValidateTransactions") {
+                val tokenType = if (call.isOboToken()) "OBO" else "M2M"
+                logger.info { "leveattester called with $tokenType token" }
+
                 if (!call.requireScope(Scope.READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_READ.value)) return@post
                 val ident = call.getSaksbehandler()
                 call.launch(Dispatchers.IO) {
@@ -102,11 +105,8 @@ fun Route.mottakApi(
             get("leveattester/{datoFom}") {
                 if (!call.requireRole(Role.LEVEATTESTER_READ.value)) return@get
 
-                // Get NAVident if OBO token (for audit logging), null if M2M
-                val navIdent = call.getNavIdentOrNull()
-                val tokenType = if (call.isOboToken()) "OBO" else "M2M"
-
-                logger.info { "leveattester called with $tokenType token${navIdent?.let { " by user $it" } ?: ""}" }
+                val tokenType = if (call.isM2mToken()) "M2M" else "OBO"
+                logger.info { "leveattester called with $tokenType token" }
 
                 call.respond(
                     leveAttestService.getLeveAttester(call.pathParameters["datoFom"].orEmpty().validateDateQueryParameter()),
