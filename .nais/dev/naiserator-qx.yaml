@@ -63,12 +63,6 @@ spec:
               - "avstemming.write"
               - "write-avregningsretur-file.read"
               - "job-task-info.read"
-        - application: sokos-ktor-template
-          namespace: okonomi
-          cluster: dev-gcp
-          permissions:
-            roles:
-              - "leveattester.read"
     outbound:
       rules:
         - application: logging

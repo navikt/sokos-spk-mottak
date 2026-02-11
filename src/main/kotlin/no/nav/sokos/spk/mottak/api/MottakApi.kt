@@ -44,7 +44,7 @@ fun Route.mottakApi(
         authenticate(AUTHENTICATION_JWT) {
             post("readParseFileAndValidateTransactions") {
                 val tokenType = if (call.isOboToken()) "OBO" else "M2M"
-                logger.info { "leveattester called with $tokenType token" }
+                logger.info { "readParseFileAndValidateTransactions called with $tokenType token" }
 
                 if (!call.requireScope(Scope.READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_READ.value)) return@post
                 val ident = call.getSaksbehandler()
