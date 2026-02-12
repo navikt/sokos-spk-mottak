@@ -8,24 +8,22 @@ import kotlinx.serialization.Serializable
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.log
 import io.ktor.server.plugins.statuspages.StatusPagesConfig
-import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.response.respond
+import org.apache.hc.client5.http.auth.AuthenticationException
+
+import no.nav.sokos.spk.mottak.security.AuthorizationException
 
 fun StatusPagesConfig.statusPageConfig() {
     exception<Throwable> { call, cause ->
         val (responseStatus, apiError) =
             when (cause) {
                 is IllegalArgumentException -> createApiError(HttpStatusCode.BadRequest, cause.message, call)
+                is AuthorizationException -> createApiError(HttpStatusCode.Forbidden, cause.message, call)
+                is AuthenticationException -> createApiError(HttpStatusCode.Unauthorized, cause.message, call)
                 else -> createApiError(HttpStatusCode.InternalServerError, cause.message ?: "En teknisk feil har oppstått. Ta kontakt med utviklerne", call)
             }
-
-        call.application.log.error(
-            "Feilet håndtering av ${call.request.httpMethod} - ${call.request.path()} - Status=$responseStatus - Message=${cause.message}",
-            cause,
-        )
         call.respond(responseStatus, apiError)
     }
 }
