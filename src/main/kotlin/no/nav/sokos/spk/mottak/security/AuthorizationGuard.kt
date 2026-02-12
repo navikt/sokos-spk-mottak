@@ -24,6 +24,19 @@ object AuthorizationGuard {
     }
 
     /**
+     * Get calling system name from JWT token (azp_name or client_id).
+     * Useful for logging which application is calling the endpoint.
+     * Returns "Ukjent" if not found.
+     */
+    fun ApplicationCall.getCallingSystem(): String {
+        val principal = principal<JWTPrincipal>() ?: return "Ukjent"
+        val azpName =
+            principal.payload.getClaim("azp_name")?.asString()
+                ?: principal.payload.getClaim("client_id")?.asString()
+        return TokenUtils.extractApplicationName(azpName)
+    }
+
+    /**
      * Require a specific scope (OBO token) OR a specific role (M2M token).
      * Returns true if authorized, false (and sends 403) if not.
      */
@@ -32,6 +45,8 @@ object AuthorizationGuard {
             principal<JWTPrincipal>()
                 ?: throw IllegalStateException("No principal found - authentication not configured")
 
+        val callingSystem = getCallingSystem()
+
         // Check OBO token scope
         val scopes =
             principal.payload
@@ -39,20 +54,20 @@ object AuthorizationGuard {
                 ?.asString()
                 ?.split(" ") ?: emptyList()
         if (AccessPolicy.hasRequiredScope(scopes, scopeOrRole)) {
-            logger.debug { "Authorized: OBO token has required scope '$scopeOrRole'" }
+            logger.debug { "Authorized: '$callingSystem' with OBO token has required scope '$scopeOrRole'" }
             return true
         }
 
         // Check M2M token role
         val roles = principal.payload.getClaim("roles")?.asList(String::class.java) ?: emptyList()
         if (AccessPolicy.hasRequiredRole(roles, scopeOrRole)) {
-            logger.debug { "Authorized: M2M token has required role '$scopeOrRole'" }
+            logger.debug { "Authorized: '$callingSystem' with M2M token has required role '$scopeOrRole'" }
             return true
         }
 
         // Neither scope nor role found
         logger.warn {
-            "Authorization failed: Missing required scope/role '$scopeOrRole'. " +
+            "Authorization failed: '$callingSystem' missing required scope/role '$scopeOrRole'. " +
                 "Found scopes: $scopes, roles: $roles"
         }
         respond(
@@ -74,6 +89,7 @@ object AuthorizationGuard {
             principal<JWTPrincipal>()
                 ?: throw IllegalStateException("No principal found - authentication not configured")
 
+        val callingSystem = getCallingSystem()
         val scopes =
             principal.payload
                 .getClaim("scp")
@@ -82,7 +98,7 @@ object AuthorizationGuard {
 
         if (!AccessPolicy.hasRequiredScope(scopes, requiredScope)) {
             logger.warn {
-                "Authorization failed: Missing required scope '$requiredScope'. Found scopes: $scopes"
+                "Authorization failed: '$callingSystem' missing required scope '$requiredScope'. Found scopes: $scopes"
             }
             respond(
                 HttpStatusCode.Forbidden,
@@ -94,7 +110,7 @@ object AuthorizationGuard {
             return false
         }
 
-        logger.debug { "Authorized: Token has required scope '$requiredScope'" }
+        logger.debug { "Authorized: '$callingSystem' has required scope '$requiredScope'" }
         return true
     }
 
@@ -107,11 +123,12 @@ object AuthorizationGuard {
             principal<JWTPrincipal>()
                 ?: throw IllegalStateException("No principal found - authentication not configured")
 
+        val callingSystem = getCallingSystem()
         val roles = principal.payload.getClaim("roles")?.asList(String::class.java) ?: emptyList()
 
         if (!AccessPolicy.hasRequiredRole(roles, requiredRole)) {
             logger.warn {
-                "Authorization failed: Missing required role '$requiredRole'. Found roles: $roles"
+                "Authorization failed: '$callingSystem' missing required role '$requiredRole'. Found roles: $roles"
             }
             respond(
                 HttpStatusCode.Forbidden,
@@ -123,7 +140,7 @@ object AuthorizationGuard {
             return false
         }
 
-        logger.debug { "Authorized: Token has required role '$requiredRole'" }
+        logger.debug { "Authorized: '$callingSystem' has required role '$requiredRole'" }
         return true
     }
 }
