@@ -52,9 +52,17 @@ spec:
         - application: azure-token-generator
           namespace: nais
           cluster: dev-gcp
+          permissions:
+            scopes:
+              - "spk-mottak.admin"
+            roles:
+              - "leveattester.read"
         - application: sokos-utbetalingsportalen-qx
           namespace: okonomi
           cluster: dev-gcp
+          permissions:
+            scopes:
+              - "spk-mottak.admin"
     outbound:
       rules:
         - application: logging
@@ -73,7 +81,7 @@ spec:
     - secret: spk-mottak-mq-credentials
   env:
     - name: USE_AUTHENTICATION
-      value: "false"
+      value: "true"
 
     # DB2
     - name: DATABASE_HOST

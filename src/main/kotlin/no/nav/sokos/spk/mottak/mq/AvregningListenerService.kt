@@ -58,7 +58,7 @@ class AvregningListenerService(
             var avregningsgrunnlagWrapper: AvregningsgrunnlagWrapper? = null
             runCatching {
                 avregningsgrunnlagWrapper = json.decodeFromString<AvregningsgrunnlagWrapper>(jmsMessage)
-                processAvregningsgrunnlagMessage(avregningsgrunnlagWrapper!!.avregningsgrunnlag)
+                processAvregningsgrunnlagMessage(avregningsgrunnlagWrapper.avregningsgrunnlag)
                 message.acknowledge()
             }.onFailure { exception ->
                 logger.error(exception) { "Feiler ved mottak av avregningsmelding fra UR: ${exception.message}" }

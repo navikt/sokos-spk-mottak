@@ -3,14 +3,16 @@ package no.nav.sokos.spk.mottak
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.server.routing.routing
 
+import no.nav.sokos.spk.mottak.api.mottakApi
 import no.nav.sokos.spk.mottak.config.ApplicationState
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.applicationLifecycleConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
-import no.nav.sokos.spk.mottak.config.routingConfig
+import no.nav.sokos.spk.mottak.config.internalNaisRoutes
 import no.nav.sokos.spk.mottak.config.securityConfig
 import no.nav.sokos.spk.mottak.mq.AvregningListenerService
 import no.nav.sokos.spk.mottak.mq.TrekkListenerService
@@ -27,7 +29,10 @@ private fun Application.module() {
     commonConfig()
     applicationLifecycleConfig(applicationState)
     securityConfig(useAuthentication)
-    routingConfig(useAuthentication, applicationState)
+    routing {
+        internalNaisRoutes(applicationState)
+        mottakApi()
+    }
 
     DatabaseConfig.postgresMigrate()
     if (PropertiesConfig.MQProperties().mqListenerEnabled) {

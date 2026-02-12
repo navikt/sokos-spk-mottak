@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
 
 import com.github.kagkarlsson.scheduler.Scheduler
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -16,75 +17,90 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
+import no.nav.sokos.spk.mottak.config.AUTHENTICATION_JWT
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
-import no.nav.sokos.spk.mottak.security.AuthToken
+import no.nav.sokos.spk.mottak.security.AuthorizationGuard.requireRole
+import no.nav.sokos.spk.mottak.security.AuthorizationGuard.requireScope
+import no.nav.sokos.spk.mottak.security.NavIdentClaim.getSaksbehandler
+import no.nav.sokos.spk.mottak.security.Role
+import no.nav.sokos.spk.mottak.security.Scope
 import no.nav.sokos.spk.mottak.service.LeveAttestService
 import no.nav.sokos.spk.mottak.service.ScheduledTaskService
 import no.nav.sokos.spk.mottak.validator.validateDateQueryParameter
 
 private const val RECURRING = "recurring"
+const val API_BASE_PATH = "/api/v1"
 
 fun Route.mottakApi(
     scheduler: Scheduler = JobTaskConfig.scheduler(),
     scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
     leveAttestService: LeveAttestService = LeveAttestService(),
 ) {
-    route("api/v1") {
-        post("readParseFileAndValidateTransactions") {
-            val ident = AuthToken.getSaksbehandler(call)
-            call.launch(Dispatchers.IO) {
-                val task = JobTaskConfig.recurringReadParseFileAndValidateTransactionsTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
+    route(API_BASE_PATH) {
+        authenticate(AUTHENTICATION_JWT) {
+            post("readParseFileAndValidateTransactions") {
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@post
+                val ident = call.getSaksbehandler()
+                call.launch(Dispatchers.IO) {
+                    val task = JobTaskConfig.recurringReadParseFileAndValidateTransactionsTask()
+                    scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
+                }
+                call.respond(HttpStatusCode.Accepted, "ReadAndParseFile av filer har startet, sjekk logger for status")
             }
-            call.respond(HttpStatusCode.Accepted, "ReadAndParseFile av filer har startet, sjekk logger for status")
-        }
 
-        post("sendUtbetalingTransaksjonToOppdragZ") {
-            val ident = AuthToken.getSaksbehandler(call)
-            call.launch(Dispatchers.IO) {
-                val task = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
+            post("sendUtbetalingTransaksjonToOppdragZ") {
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@post
+                val ident = call.getSaksbehandler()
+                call.launch(Dispatchers.IO) {
+                    val task = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask()
+                    scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
+                }
+                call.respond(HttpStatusCode.Accepted, "SendUtbetalingTransaksjonTilOppdrag har startet, sjekk logger for status")
             }
-            call.respond(HttpStatusCode.Accepted, "SendUtbetalingTransaksjonTilOppdrag har startet, sjekk logger for status")
-        }
 
-        post("sendTrekkTransaksjonToOppdragZ") {
-            val ident = AuthToken.getSaksbehandler(call)
-            call.launch(Dispatchers.IO) {
-                val task = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
+            post("sendTrekkTransaksjonToOppdragZ") {
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@post
+                val ident = call.getSaksbehandler()
+                call.launch(Dispatchers.IO) {
+                    val task = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask()
+                    scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
+                }
+                call.respond(HttpStatusCode.Accepted, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
             }
-            call.respond(HttpStatusCode.Accepted, "SendTrekkTransaksjonTilOppdrag har startet, sjekk logger for status")
-        }
 
-        post("avstemming") {
-            val ident = AuthToken.getSaksbehandler(call)
-            val request = call.receive<AvstemmingRequest>()
-            call.launch(Dispatchers.IO) {
-                val task = JobTaskConfig.recurringGrensesnittAvstemmingTask()
-                val requestData = Json.encodeToString(Pair(ident, request))
-                scheduler.reschedule(task.instance(RECURRING), Instant.now(), requestData)
+            post("avstemming") {
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@post
+                val ident = call.getSaksbehandler()
+                val request = call.receive<AvstemmingRequest>()
+                call.launch(Dispatchers.IO) {
+                    val task = JobTaskConfig.recurringGrensesnittAvstemmingTask()
+                    val requestData = Json.encodeToString(Pair(ident, request))
+                    scheduler.reschedule(task.instance(RECURRING), Instant.now(), requestData)
+                }
+                call.respond(HttpStatusCode.Accepted, "GrensesnittAvstemming har startet, sjekk logger for status")
             }
-            call.respond(HttpStatusCode.Accepted, "GrensesnittAvstemming har startet, sjekk logger for status")
-        }
 
-        post("writeAvregningsreturFile") {
-            val ident = AuthToken.getSaksbehandler(call)
-            call.launch(Dispatchers.IO) {
-                val task = JobTaskConfig.recurringWriteAvregningsreturFileTask()
-                scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
+            post("writeAvregningsreturFile") {
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@post
+                val ident = call.getSaksbehandler()
+                call.launch(Dispatchers.IO) {
+                    val task = JobTaskConfig.recurringWriteAvregningsreturFileTask()
+                    scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
+                }
+                call.respond(HttpStatusCode.Accepted, "WriteAvregningsreturFile har startet, sjekk logger for status")
             }
-            call.respond(HttpStatusCode.Accepted, "WriteAvregningsreturFile har startet, sjekk logger for status")
-        }
 
-        get("jobTaskInfo") {
-            call.respond(HttpStatusCode.OK, scheduledTaskService.getScheduledTaskInformation())
-        }
+            get("jobTaskInfo") {
+                if (!call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)) return@get
+                call.respond(HttpStatusCode.OK, scheduledTaskService.getScheduledTaskInformation())
+            }
 
-        get("leveattester/{datoFom}") {
-            call.respond(
-                leveAttestService.getLeveAttester(call.pathParameters["datoFom"].orEmpty().validateDateQueryParameter()),
-            )
+            get("leveattester/{datoFom}") {
+                if (!call.requireRole(Role.LEVEATTESTER_READ.value)) return@get
+                call.respond(
+                    leveAttestService.getLeveAttester(call.pathParameters["datoFom"].orEmpty().validateDateQueryParameter()),
+                )
+            }
         }
     }
 }

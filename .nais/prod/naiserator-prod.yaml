@@ -52,9 +52,14 @@ spec:
         - application: sokos-utbetalingsportalen
           namespace: okonomi
           cluster: prod-gcp
+          permissions:
+            scopes:
+              - "spk-mottak.admin"
         - application: pensjon-pen
           namespace: pensjondeployer
-          cluster: prod-fss
+          permissions:
+            roles:
+              - "leveattester.read"
     outbound:
       rules:
         - application: logging
