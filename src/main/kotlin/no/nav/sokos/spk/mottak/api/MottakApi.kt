@@ -15,7 +15,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import mu.KotlinLogging
 
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.AUTHENTICATION_JWT
@@ -29,7 +28,6 @@ import no.nav.sokos.spk.mottak.service.LeveAttestService
 import no.nav.sokos.spk.mottak.service.ScheduledTaskService
 import no.nav.sokos.spk.mottak.validator.validateDateQueryParameter
 
-private val logger = KotlinLogging.logger {}
 private const val RECURRING = "recurring"
 const val API_BASE_PATH = "/api/v1"
 
