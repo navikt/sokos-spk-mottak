@@ -10,7 +10,6 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
@@ -25,6 +24,7 @@ import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.mock.oauth2.withMockOAuth2Server
 import no.nav.sokos.spk.mottak.api.API_BASE_PATH
 import no.nav.sokos.spk.mottak.api.mottakApi
+import no.nav.sokos.spk.mottak.config.ApiError
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.securityConfig
@@ -106,9 +106,10 @@ internal class SecurityTest :
                             }
 
                         response.status shouldBe HttpStatusCode.Forbidden
-                        val body = response.bodyAsText()
-                        body shouldContain "Forbidden"
-                        body shouldContain "Missing required scope"
+                        val apiError = response.body<ApiError>()
+                        apiError.status shouldBe HttpStatusCode.Forbidden.value
+                        apiError.error shouldBe "Forbidden"
+                        apiError.message shouldContain "Missing required scope"
                     }
                 }
             }
@@ -185,9 +186,10 @@ internal class SecurityTest :
                             }
 
                         response.status shouldBe HttpStatusCode.Forbidden
-                        val body = response.bodyAsText()
-                        body shouldContain "Forbidden"
-                        body shouldContain "Missing required role"
+                        val apiError = response.body<ApiError>()
+                        apiError.status shouldBe HttpStatusCode.Forbidden.value
+                        apiError.error shouldBe "Forbidden"
+                        apiError.message shouldContain "Missing required role"
                     }
                 }
             }
@@ -264,9 +266,10 @@ internal class SecurityTest :
                             }
 
                         response.status shouldBe HttpStatusCode.Forbidden
-                        val body = response.bodyAsText()
-                        body shouldContain "Forbidden"
-                        body shouldContain "Missing required role"
+                        val apiError = response.body<ApiError>()
+                        apiError.status shouldBe HttpStatusCode.Forbidden.value
+                        apiError.error shouldBe "Forbidden"
+                        apiError.message shouldContain "Missing required role"
                     }
                 }
             }
@@ -303,9 +306,10 @@ internal class SecurityTest :
                             }
 
                         response.status shouldBe HttpStatusCode.Forbidden
-                        val body = response.bodyAsText()
-                        body shouldContain "Forbidden"
-                        body shouldContain "Missing required scope"
+                        val apiError = response.body<ApiError>()
+                        apiError.status shouldBe HttpStatusCode.Forbidden.value
+                        apiError.error shouldBe "Forbidden"
+                        apiError.message shouldContain "Missing required scope"
                     }
                 }
             }

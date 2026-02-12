@@ -1,11 +1,16 @@
 package no.nav.sokos.spk.mottak.security
 
+import kotlin.time.Clock
+
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
+import io.ktor.server.request.path
 import io.ktor.server.response.respond
 import mu.KotlinLogging
+
+import no.nav.sokos.spk.mottak.config.ApiError
 
 private val logger = KotlinLogging.logger {}
 
@@ -72,9 +77,12 @@ object AuthorizationGuard {
         }
         respond(
             HttpStatusCode.Forbidden,
-            mapOf(
-                "error" to "Forbidden",
-                "message" to "Missing required permission: $scopeOrRole",
+            ApiError(
+                timestamp = Clock.System.now(),
+                status = HttpStatusCode.Forbidden.value,
+                error = "Forbidden",
+                message = "Missing required permission: $scopeOrRole",
+                path = this.request.path(),
             ),
         )
         return false
@@ -102,9 +110,12 @@ object AuthorizationGuard {
             }
             respond(
                 HttpStatusCode.Forbidden,
-                mapOf(
-                    "error" to "Forbidden",
-                    "message" to "Missing required scope: $requiredScope",
+                ApiError(
+                    timestamp = Clock.System.now(),
+                    status = HttpStatusCode.Forbidden.value,
+                    error = "Forbidden",
+                    message = "Missing required scope: $requiredScope",
+                    path = this.request.path(),
                 ),
             )
             return false
@@ -132,9 +143,12 @@ object AuthorizationGuard {
             }
             respond(
                 HttpStatusCode.Forbidden,
-                mapOf(
-                    "error" to "Forbidden",
-                    "message" to "Missing required role: $requiredRole",
+                ApiError(
+                    timestamp = Clock.System.now(),
+                    status = HttpStatusCode.Forbidden.value,
+                    error = "Forbidden",
+                    message = "Missing required role: $requiredRole",
+                    path = this.request.path(),
                 ),
             )
             return false
