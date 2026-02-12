@@ -31,10 +31,10 @@ object AuthorizationGuard {
     /**
      * Get calling system name from JWT token (azp_name or client_id).
      * Useful for logging which application is calling the endpoint.
-     * Returns "Ukjent" if not found.
+     * Returns "Unknown" if not found.
      */
     fun ApplicationCall.getCallingSystem(): String {
-        val principal = principal<JWTPrincipal>() ?: return "Ukjent"
+        val principal = principal<JWTPrincipal>() ?: return "Unknown"
         val azpName =
             principal.payload.getClaim("azp_name")?.asString()
                 ?: principal.payload.getClaim("client_id")?.asString()
