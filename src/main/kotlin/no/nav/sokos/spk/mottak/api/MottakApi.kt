@@ -19,9 +19,9 @@ import io.ktor.server.routing.route
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.AUTHENTICATION_JWT
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
+import no.nav.sokos.spk.mottak.security.AuthorizationGuard.getNavIdentOrNull
 import no.nav.sokos.spk.mottak.security.AuthorizationGuard.requireRole
 import no.nav.sokos.spk.mottak.security.AuthorizationGuard.requireScope
-import no.nav.sokos.spk.mottak.security.NavIdentClaim.getSaksbehandler
 import no.nav.sokos.spk.mottak.security.Role
 import no.nav.sokos.spk.mottak.security.Scope
 import no.nav.sokos.spk.mottak.service.LeveAttestService
@@ -39,8 +39,8 @@ fun Route.mottakApi(
     route(API_BASE_PATH) {
         authenticate(AUTHENTICATION_JWT) {
             post("readParseFileAndValidateTransactions") {
-                call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)
-                val ident = call.getSaksbehandler()
+                call.requireScope(Scope.SPK_MOTTAK_ADMIN)
+                val ident = call.getNavIdentOrNull()
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringReadParseFileAndValidateTransactionsTask()
                     scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
@@ -49,8 +49,8 @@ fun Route.mottakApi(
             }
 
             post("sendUtbetalingTransaksjonToOppdragZ") {
-                call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)
-                val ident = call.getSaksbehandler()
+                call.requireScope(Scope.SPK_MOTTAK_ADMIN)
+                val ident = call.getNavIdentOrNull()
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask()
                     scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
@@ -59,8 +59,8 @@ fun Route.mottakApi(
             }
 
             post("sendTrekkTransaksjonToOppdragZ") {
-                call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)
-                val ident = call.getSaksbehandler()
+                call.requireScope(Scope.SPK_MOTTAK_ADMIN)
+                val ident = call.getNavIdentOrNull()
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask()
                     scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
@@ -69,8 +69,8 @@ fun Route.mottakApi(
             }
 
             post("avstemming") {
-                call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)
-                val ident = call.getSaksbehandler()
+                call.requireScope(Scope.SPK_MOTTAK_ADMIN)
+                val ident = call.getNavIdentOrNull()
                 val request = call.receive<AvstemmingRequest>()
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringGrensesnittAvstemmingTask()
@@ -81,8 +81,8 @@ fun Route.mottakApi(
             }
 
             post("writeAvregningsreturFile") {
-                call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)
-                val ident = call.getSaksbehandler()
+                call.requireScope(Scope.SPK_MOTTAK_ADMIN)
+                val ident = call.getNavIdentOrNull()
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringWriteAvregningsreturFileTask()
                     scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
@@ -91,12 +91,12 @@ fun Route.mottakApi(
             }
 
             get("jobTaskInfo") {
-                call.requireScope(Scope.SPK_MOTTAK_ADMIN.value)
+                call.requireScope(Scope.SPK_MOTTAK_ADMIN)
                 call.respond(HttpStatusCode.OK, scheduledTaskService.getScheduledTaskInformation())
             }
 
             get("leveattester/{datoFom}") {
-                call.requireRole(Role.LEVEATTESTER_READ.value)
+                call.requireRole(Role.LEVEATTESTER_READ)
                 call.respond(
                     leveAttestService.getLeveAttester(call.pathParameters["datoFom"].orEmpty().validateDateQueryParameter()),
                 )
