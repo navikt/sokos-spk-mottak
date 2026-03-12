@@ -2,9 +2,9 @@
 export VAULT_ADDR=https://vault.adeo.no
 
 # Ensure user is authenicated, and run login if not.
-gcloud auth print-identity-token &> /dev/null
+nais auth print-access-token &> /dev/null
 if [ $? -gt 0 ]; then
-    gcloud auth login
+    nais auth login
 fi
 
 # Suppress kubectl config output
@@ -20,14 +20,17 @@ if [ -z "$POD_NAME" ]; then
 fi
 
 # Get database username and password secret from Vault
-[[ "$(vault token lookup -format=json | jq '.data.display_name' -r; exit ${PIPESTATUS[0]})" =~ "nav.no" ]] &>/dev/null || vault login -method=oidc -no-print
+VAULT_DISPLAY_NAME=$(vault token lookup -format=json 2>/dev/null | jq -er '.data.display_name // empty' 2>/dev/null)
+if [ $? -ne 0 ]; then
+    vault login -method=oidc -no-print
+fi
 
 echo "Fetching environment variables from pod: $POD_NAME"
 
 # Get system variables
 envValue=$(kubectl exec "$POD_NAME" -c sokos-spk-mottak -- env | egrep "^AZURE|^DATABASE|^SFTP|SPK_SFTP_PASSWORD|SPK_SFTP_USERNAME|^MQ_SERVICE|^PDL|VAULT_MOUNTPATH" | sort)
 
-PRIVATE_KEY=$(kubectl get secret spk-sftp-private-key -o jsonpath='{.data.spk-sftp-private-key}' | base64 --decode)
+PRIVATE_KEY=$(kubectl exec -n okonomi "$POD_NAME" -- cat /var/run/secrets/sokos-spk-mottak-sftp-private-key/private-key)
 
 POSTGRES_USER=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-spk-mottak-user)
 POSTGRES_ADMIN=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-spk-mottak-admin)
@@ -52,5 +55,3 @@ echo "$PRIVATE_KEY" > privateKey
 
 sed -i '' '/^SFTP_SERVER=/ s/=.*/=155.55.161.44/' defaults.properties
 sed -i '' '/^SFTP_PRIVATE_KEY_FILE_PATH=/ s/=.*/=privateKey/' defaults.properties
-
-
