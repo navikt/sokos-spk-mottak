@@ -65,7 +65,7 @@ val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20251217153210_84e9478"
 val ibmmqVersion = "9.4.5.0"
 val activemqVersion = "2.52.0"
-val graphqlClientVersion = "8.8.1"
+val graphqlClientVersion = "9.0.0"
 val jaxbVersion = "4.0.6"
 val opentelemetryVersion = "2.25.0-alpha"
 
