@@ -70,8 +70,8 @@ spec:
   filesFrom:
     - secret: db2license
       mountPath: /var/run/secrets/db2license
-    - secret: spk-sftp-private-key
-      mountPath: /var/run/secrets/spk-sftp-private-key
+    - secret: sokos-spk-mottak-sftp-private-key
+      mountPath: /var/run/secrets/sokos-spk-mottak-sftp-private-key
   envFrom:
     - secret: sokos-spk-mottak-secrets
   env:
@@ -138,7 +138,7 @@ spec:
     - name: SFTP_PORT
       value: "22"
     - name: SFTP_PRIVATE_KEY_FILE_PATH
-      value: /var/run/secrets/spk-sftp-private-key/spk-sftp-private-key
+      value: /var/run/secrets/sokos-spk-mottak-sftp-private-key/private-key
 
     # DB-SCHEDULER
     - name: SCHEDULER_ENABLED # Settes til true for å aktivere scheduler
