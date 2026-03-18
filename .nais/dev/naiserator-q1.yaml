@@ -73,6 +73,11 @@ spec:
           permissions:
             roles:
               - "leveattester.read"
+        - application: pensjon-pen-q5
+          namespace: pensjon-q5
+          permissions:
+            roles:
+              - "leveattester.read"
     outbound:
       rules:
         - application: logging
