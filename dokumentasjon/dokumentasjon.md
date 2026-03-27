@@ -33,5 +33,7 @@ Noen ganger får vi inn nye kodeverk fra SPK som må legges til i applikasjonen.
 ## Hvordan teste før produksjonssetting
 - [Hvordan teste før produksjonssetting](produksjonsetting.md)
 
+## Kjente feil
+- [Kjente feil](kjente-feil.md)
 
 
