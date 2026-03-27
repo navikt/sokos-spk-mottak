@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "2.3.20"
     kotlin("plugin.serialization") version "2.3.20"
-    id("com.expediagroup.graphql") version "9.0.0"
+    id("com.expediagroup.graphql") version "9.1.0"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.7"
 
@@ -65,7 +65,7 @@ val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20260311085905_5544925"
 val ibmmqVersion = "9.4.5.0"
 val activemqVersion = "2.52.0"
-val graphqlClientVersion = "9.0.0"
+val graphqlClientVersion = "9.1.0"
 val jaxbVersion = "4.0.7"
 val opentelemetryVersion = "2.26.0-alpha"
 
