@@ -11,7 +11,7 @@ plugins {
     kotlin("plugin.serialization") version "2.3.10"
     id("com.expediagroup.graphql") version "9.1.0"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-    id("org.jetbrains.kotlinx.kover") version "0.9.7"
+    id("org.jetbrains.kotlinx.kover") version "0.9.8"
 
     application
 }
@@ -39,7 +39,7 @@ repositories {
     }
 }
 
-val ktorVersion = "3.4.1"
+val ktorVersion = "3.4.2"
 val jschVersion = "2.27.9"
 val logbackVersion = "1.5.32"
 val logstashVersion = "9.0"
@@ -47,7 +47,7 @@ val micrometerVersion = "1.16.4"
 val kotlinLoggingVersion = "3.0.5"
 val janinoVersion = "3.1.12"
 val natpryceVersion = "1.6.10.0"
-val kotestVersion = "6.1.7"
+val kotestVersion = "6.1.10"
 val wiremockVersion = "3.13.2"
 val kotlinxSerializationVersion = "1.10.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
@@ -58,16 +58,16 @@ val db2JccVersion = "12.1.4.0"
 val kotliqueryVersion = "2.0.4"
 val testcontainersVersion = "1.21.4"
 val h2Version = "2.4.240"
-val flywayVersion = "12.1.1"
+val flywayVersion = "12.2.0"
 val postgresVersion = "42.7.10"
 val dbSchedulerVersion = "16.7.1"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20260311085905_5544925"
 val ibmmqVersion = "9.4.5.0"
-val activemqVersion = "2.52.0"
+val activemqVersion = "2.53.0"
 val graphqlClientVersion = "9.1.0"
 val jaxbVersion = "4.0.7"
-val opentelemetryVersion = "2.26.0-alpha"
+val opentelemetryVersion = "2.26.1-alpha"
 
 dependencies {
 
