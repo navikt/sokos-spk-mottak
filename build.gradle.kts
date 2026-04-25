@@ -167,6 +167,10 @@ configurations.all {
                 useVersion("4.2.11.Final")
                 because("Netty HTTP/2 CONTINUATION Frame Flood DoS via Zero-Byte Frame Bypass. Affected version >= 4.2.0.Alpha1, < 4.2.10.Final")
             }
+            if (requested.group == "org.eclipse.jetty" && requested.name == "jetty-http") {
+                useVersion("12.1.8")
+                because("Jetty has HTTP Request Smuggling via Chunked Extension Quoted-String Parsing. Affected version >= 11.0.0, <= 11.0.27")
+            }
         }
     }
 }
