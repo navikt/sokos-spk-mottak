@@ -144,7 +144,7 @@ class AvregningListenerService(
     private fun setKreditorRefToTransEksId(avregningsgrunnlag: Avregningsgrunnlag): Avregningsretur =
         avregningsgrunnlag.toAvregningsretur(
             Avregningstransaksjon(
-                transEksId = avregningsgrunnlag.kreditorRef,
+                transEksId = avregningsgrunnlag.kreditorRef?.let { it.takeIf { it.trim().length > 20 }?.substring(0, 20) ?: it.trim() },
                 datoAnviser = UNKNOWN_TRANSACTION_DATE.toIsoDate(),
             ),
         )
