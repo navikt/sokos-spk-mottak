@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "Europe/Oslo"
+    cooldown:
+      default-days: 7
+    groups:
+      kotlin-plugins:
+        patterns:
+          - "jvm"
+          - "plugin.serialization"
+        update-types:
+          - minor
+          - patch
+      gradle-minor-patch:
+        update-types:
+          - minor
+          - patch
+        exclude-patterns:
+          - "jvm"
+          - "plugin.serialization"

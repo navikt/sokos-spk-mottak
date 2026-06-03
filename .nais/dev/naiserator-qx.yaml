@@ -1,0 +1,158 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: sokos-spk-mottak-qx
+  namespace: okonomi
+  labels:
+    team: okonomi
+spec:
+  image: "{{{ image }}}"
+  port: 8080
+  replicas:
+    min: 1
+    max: 2
+    cpuThresholdPercentage: 75
+  liveness:
+    path: /internal/isAlive
+    initialDelay: 5
+    timeout: 5
+    periodSeconds: 5
+    failureThreshold: 30
+  readiness:
+    path: /internal/isReady
+    initialDelay: 5
+    periodSeconds: 5
+    timeout: 5
+  resources:
+    limits:
+      memory: 4096Mi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  ingresses:
+    - https://sokos-spk-mottak-qx.intern.dev.nav.no
+    - https://sokos-spk-mottak-qx.dev-fss-pub.nais.io
+  prometheus:
+    enabled: true
+    path: /internal/metrics
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: true
+      claims:
+        extra:
+          - NAVident
+  accessPolicy:
+    inbound:
+      rules:
+        - application: azure-token-generator
+          namespace: nais
+          cluster: dev-gcp
+          permissions:
+            scopes:
+              - "spk-mottak.admin"
+            roles:
+              - "leveattester.read"
+        - application: sokos-utbetalingsportalen-qx
+          namespace: okonomi
+          cluster: dev-gcp
+          permissions:
+            scopes:
+              - "spk-mottak.admin"
+    outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
+  webproxy: true
+  vault:
+    enabled: true
+  filesFrom:
+    - secret: db2license
+      mountPath: /var/run/secrets/db2license
+    - secret: sokos-spk-mottak-sftp-private-key
+      mountPath: /var/run/secrets/sokos-spk-mottak-sftp-private-key
+  envFrom:
+    - secret: sokos-spk-mottak-qx-secrets
+  env:
+    - name: USE_AUTHENTICATION
+      value: "true"
+
+    # DB2
+    - name: DATABASE_HOST
+      value: "155.55.1.82"
+    - name: DATABASE_PORT
+      value: "5025"
+    - name: DATABASE_NAME
+      value: "QDB2"
+    - name: DATABASE_SCHEMA
+      value: "MO611QX"
+
+    # Postgres
+    - name: POSTGRES_HOST
+      value: b27dbvl034.preprod.local
+    - name: POSTGRES_PORT
+      value: "5432"
+    - name: POSTGRES_NAME
+      value: sokos-spk-mottak-qx
+    - name: VAULT_MOUNTPATH
+      value: postgresql/preprod-fss/
+
+    # MQ
+    - name: MQ_HOSTNAME
+      value: mqls02.preprod.local
+    - name: MQ_PORT
+      value: "1413"
+    - name: MQ_QUEUE_MANAGER_NAME
+      value: MQLS02
+    - name: MQ_CHANNEL_NAME
+      value: QX_MOT
+    - name: MQ_UTBETALING_QUEUE_NAME
+      value: QA.QX_231.OB04_OPPDRAG_MOT_XML
+    - name: MQ_UTBETALING_REPLY_QUEUE_NAME
+      value: QA.QX_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY
+    - name: MQ_TREKK_QUEUE_NAME
+      value: QA.QX_231.OB04_TREKK_MOT_JSON
+    - name: MQ_TREKK_REPLY_QUEUE_NAME
+      value: QA.QX_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY
+    - name: MQ_AVREGNINGSGRUNNLAG_QUEUE_NAME
+      value: QA.QX_MOT.AVREGNINGSGRUNNLAG_MOT_JSON
+    - name: MQ_AVSTEMMING_QUEUE_NAME
+      value: QA.QX_234.OB29_AVSTEMMING_XML
+    - name: MQ_BATCH_SIZE
+      value: "200"
+    - name: MQ_LISTENER_ENABLED
+      value: "false"
+    - name: AVREGNING_LISTENER_ENABLED
+      value: "false"
+
+    # PDL
+    - name: PDL_URL
+      value: "https://pdl-api.dev.intern.nav.no"
+    - name: PDL_SCOPE
+      value: "api://dev-fss.pdl.pdl-api/.default"
+
+    # SFTP
+    - name: SFTP_SERVER
+      value: sftp.oera-q.local
+    - name: SFTP_PORT
+      value: "22"
+    - name: SFTP_PRIVATE_KEY_FILE_PATH
+      value: /var/run/secrets/sokos-spk-mottak-sftp-private-key/private-key
+
+    # DB-SCHEDULER
+    - name: SCHEDULER_ENABLED
+      value: "true"
+    - name: READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN
+      value: "0 0 0 1 1 ?"
+    - name: SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
+      value: "0 0 0 1 1 ?"
+    - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
+      value: "0 0 0 1 1 ?"
+    - name: GRENSESNITT_AVSTEMMING_CRON_PATTERN
+      value: "0 0 0 1 1 ?"
+    - name: WRITE_AVREGNINGSRETUR_FILE_CRON_PATTERN
+      value: "0 0 0 1 1 ?"
