@@ -160,8 +160,8 @@ configurations.all {
                 because("OpenTelemetry Java SDK has Unbounded Memory Allocation in W3C Baggage Propagation. Affected version <= 1.61.0")
             }
             if (requested.group == "io.netty") {
-                useVersion("4.2.13.Final")
-                because("Align Netty to 4.2.13.Final due to CVE-2026-42579")
+                useVersion("4.2.15.Final")
+                because("Resolves production Dependabot alerts #CVE-2026-44249 and CVE-2026-45416")
             }
             if (requested.group == "org.bouncycastle" && requested.name == "bcprov-jdk18on") {
                 useVersion("1.84")
