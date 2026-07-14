@@ -45,7 +45,6 @@ val logbackVersion = "1.5.34"
 val logstashVersion = "9.0"
 val micrometerVersion = "1.17.0"
 val kotlinLoggingVersion = "3.0.5"
-val janinoVersion = "3.1.12"
 val natpryceVersion = "1.6.10.0"
 val kotestVersion = "6.2.1"
 val wiremockVersion = "3.13.2"
@@ -62,7 +61,7 @@ val flywayVersion = "12.9.0"
 val postgresVersion = "42.7.11"
 val dbSchedulerVersion = "16.12.0"
 val vaultVersion = "1.3.10"
-val tjenestespesifikasjonVersion = "1.0_20260311085905_5544925"
+val tjenestespesifikasjonVersion = "1.0_20260628105133_e9177d7"
 val ibmmqVersion = "10.0.0.0"
 val activemqVersion = "2.54.0"
 val graphqlClientVersion = "10.0.1"
@@ -97,7 +96,6 @@ dependencies {
 
     // Logging
     implementation("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
-    runtimeOnly("org.codehaus.janino:janino:$janinoVersion")
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
 
