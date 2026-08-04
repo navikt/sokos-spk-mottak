@@ -40,13 +40,13 @@ repositories {
 }
 
 val ktorVersion = "3.5.1"
-val jschVersion = "2.28.4"
-val logbackVersion = "1.5.38"
+val jschVersion = "2.28.5"
+val logbackVersion = "1.6.0"
 val logstashVersion = "9.0"
 val micrometerVersion = "1.17.0"
 val kotlinLoggingVersion = "3.0.5"
 val natpryceVersion = "1.6.10.0"
-val kotestVersion = "6.2.2"
+val kotestVersion = "6.2.3"
 val wiremockVersion = "3.13.2"
 val kotlinxSerializationVersion = "1.11.0"
 val kotlinxDatetimeVersion = "0.8.0-0.6.x-compat"
@@ -66,7 +66,7 @@ val ibmmqVersion = "10.0.0.0"
 val activemqVersion = "2.55.0"
 val graphqlClientVersion = "10.1.2"
 val jaxbVersion = "4.0.9"
-val opentelemetryVersion = "2.29.0-alpha"
+val opentelemetryVersion = "2.30.0-alpha"
 
 dependencies {
 
