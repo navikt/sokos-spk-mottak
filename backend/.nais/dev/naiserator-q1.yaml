@@ -57,7 +57,7 @@ spec:
               - "spk-mottak.admin"
             roles:
               - "leveattester.read"
-        - application: sokos-utbetalingsportalen
+        - application: sokos-spk-mottak-admin
           namespace: okonomi
           cluster: dev-gcp
           permissions:

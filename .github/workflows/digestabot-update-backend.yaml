@@ -1,0 +1,18 @@
+name: Digestabot Update (backend)
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+env:
+  TZ: Europe/Oslo
+
+jobs:
+  digestabot-update:
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    name: Digestabot Update
+    uses: navikt/mob-gha-workflows/.github/workflows/digestabot-update.yaml@7fc3c6ff7c787dd0bc5b89f4f1a588f670764d75 # ratchet:navikt/mob-gha-workflows/.github/workflows/digestabot-update.yaml@v1.1.1

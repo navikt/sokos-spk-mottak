@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"outDir": "build",
+		"rootDir": "./src",
+		"target": "ESNext",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"skipLibCheck": true
+	},
+	"include": ["src/**/*"]
+}

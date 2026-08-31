@@ -1,0 +1,399 @@
+#!/usr/bin/env node
+// Resolves eligible pnpm versions that satisfy the repo's minimumReleaseAge
+// policy and lets you pick from the 5 most recent. Prints the matching
+// packageManager string with SHA-512 integrity hash. The script independently
+// downloads the tarball and verifies the hash before printing, so what you
+// paste into package.json is provably bound to real bytes — not just whatever
+// the registry manifest claimed.
+//
+// Usage:
+//   node scripts/resolve-pnpm-version.mjs                       # major 11, min age 7d
+//   node scripts/resolve-pnpm-version.mjs --major 11 --min-age-days 7
+
+import { Buffer } from "node:buffer";
+import {
+	createHash,
+	timingSafeEqual as cryptoTimingSafeEqual,
+} from "node:crypto";
+import { readFile, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import {
+	argv,
+	env,
+	stdin,
+	version as nodeVersion,
+	stderr,
+	stdout,
+} from "node:process";
+import { createInterface } from "node:readline";
+import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
+
+const REGISTRY_URL = "https://registry.npmjs.org/pnpm";
+// Full manifest required: the slim "install-v1+json" view omits the top-level
+// 'time' field that we need for the minimumReleaseAge cutoff.
+const REGISTRY_ACCEPT = "application/json";
+const NETWORK_TIMEOUT_MS = 15_000;
+const ALLOWED_ALGO = "sha512";
+const SEMVER_RE = /^\d+\.\d+\.\d+$/;
+const SRI_RE = /^sha(?:256|384|512)-[A-Za-z0-9+/]+={0,2}$/;
+const TARBALL_HOST = "registry.npmjs.org";
+const MS_PER_DAY = 86_400_000;
+
+const useColor = stdout.isTTY && stderr.isTTY && !env.NO_COLOR;
+const c = {
+	reset: useColor ? "\x1b[0m" : "",
+	bold: useColor ? "\x1b[1m" : "",
+	dim: useColor ? "\x1b[2m" : "",
+	red: useColor ? "\x1b[31m" : "",
+	green: useColor ? "\x1b[32m" : "",
+	yellow: useColor ? "\x1b[33m" : "",
+	cyan: useColor ? "\x1b[36m" : "",
+};
+
+const nodeMajor = Number(nodeVersion.slice(1).split(".")[0]);
+if (!Number.isFinite(nodeMajor) || nodeMajor < 20) {
+	fatal(`This script requires Node.js >= 20 (got ${nodeVersion}).`);
+}
+
+const { values: args } = parseArgs({
+	args: argv.slice(2),
+	options: {
+		major: { type: "string", default: "11" },
+		"min-age-days": { type: "string", default: "7" },
+	},
+	strict: true,
+});
+const MAJOR = requirePositiveInt(args.major, "--major");
+const MIN_AGE_DAYS = requirePositiveInt(args["min-age-days"], "--min-age-days");
+const CUTOFF = Date.now() - MIN_AGE_DAYS * MS_PER_DAY;
+
+info(`${c.dim}Fetching pnpm metadata from npm registry…${c.reset}`);
+const meta = await fetchJson(REGISTRY_URL, REGISTRY_ACCEPT);
+assertManifestShape(meta);
+
+// Parse each timestamp once, then filter+sort.
+const eligible = Object.entries(meta.time)
+	.map(([v, t]) => [v, Date.parse(t), t])
+	.filter(
+		([v, ts]) =>
+			SEMVER_RE.test(v) &&
+			Number.isFinite(ts) &&
+			ts <= CUTOFF &&
+			Number(v.split(".")[0]) === MAJOR,
+	)
+	.sort(([, a], [, b]) => b - a);
+
+if (eligible.length === 0) {
+	fatal(`No pnpm@${MAJOR}.x release is at least ${MIN_AGE_DAYS} days old.`);
+}
+
+const candidates = eligible.slice(0, 5);
+
+let chosen;
+if (candidates.length === 1 || !stdin.isTTY) {
+	chosen = candidates[0];
+} else {
+	chosen = await arrowSelect(candidates);
+}
+
+const [version, releasedAtMs, releasedAt] = chosen;
+const versionMeta = meta.versions?.[version];
+if (!versionMeta || typeof versionMeta !== "object") {
+	fatal(`Manifest for ${version} is missing or malformed.`);
+}
+
+const dist = versionMeta.dist;
+if (!dist || typeof dist !== "object") {
+	fatal(`Manifest for ${version} is missing 'dist'.`);
+}
+const { integrity: sri, tarball } = dist;
+
+if (typeof sri !== "string" || !SRI_RE.test(sri)) {
+	fatal(`Manifest integrity field is not a valid SRI string: ${sri}`);
+}
+
+const [algo, b64] = sri.split("-");
+if (algo !== ALLOWED_ALGO) {
+	fatal(`Refusing to use non-${ALLOWED_ALGO} integrity (got '${algo}').`);
+}
+
+if (typeof tarball !== "string") {
+	fatal("Tarball URL missing from manifest.");
+}
+
+const tarballUrl = new URL(tarball);
+if (tarballUrl.protocol !== "https:" || tarballUrl.host !== TARBALL_HOST) {
+	fatal(`Refusing tarball from unexpected origin: ${tarballUrl.origin}`);
+}
+
+info(`${c.dim}Downloading tarball and verifying SHA-512…${c.reset}`);
+const expected = Buffer.from(b64, "base64");
+const actual = await downloadAndHash(tarballUrl.toString());
+if (
+	expected.length !== actual.length ||
+	!cryptoTimingSafeEqual(expected, actual)
+) {
+	fatal("Tarball SHA-512 does NOT match advertised integrity. Aborting.");
+}
+
+const hex = expected.toString("hex");
+const packageManager = `pnpm@${version}+${algo}.${hex}`;
+const ageDays = ((Date.now() - releasedAtMs) / MS_PER_DAY).toFixed(1);
+const bar = `${c.bold}${c.yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${c.reset}\n`;
+
+// Single batched stderr write — fewer syscalls, source easier to read.
+stderr.write(
+	`\n${c.bold}${c.cyan}Resolved pnpm version${c.reset}\n` +
+		`  ${c.bold}Version${c.reset}            ${c.green}${version}${c.reset}\n` +
+		`  ${c.bold}Released${c.reset}           ${releasedAt} ${c.dim}(${ageDays} days ago)${c.reset}\n` +
+		`  ${c.bold}Tarball check${c.reset}      ${c.green}OK${c.reset} ${c.dim}(independently re-hashed)${c.reset}\n` +
+		`  ${c.bold}Integrity (SRI)${c.reset}    ${sri}\n\n` +
+		`${c.bold}${c.cyan}Verdier som skal inn i BEGGE package.json-filer (root + server/):${c.reset}\n\n`,
+);
+
+// stdout = the only thing meant to be piped/copied. NO COLOR codes here.
+stdout.write(
+	`"engines": { "pnpm": ">=${version}" },\n"packageManager": "${packageManager}"\n`,
+);
+
+stderr.write(
+	`\n${c.dim}Keep the version in "engines.pnpm" aligned with "packageManager" so${c.reset}\n` +
+		`${c.dim}'engineStrict' rejects mismatched local pnpm installs.${c.reset}\n\n`,
+);
+
+if (stdin.isTTY) {
+	const updated = await promptAndUpdate(version, packageManager);
+	if (!updated) {
+		stderr.write(
+			bar +
+				`${c.bold}${c.yellow}!  VERIFY BEFORE PUSHING TO GITHUB${c.reset}\n` +
+				bar +
+				`  1. Confirm version on the official release page:\n` +
+				`     ${c.cyan}https://github.com/pnpm/pnpm/releases/tag/v${version}${c.reset}\n` +
+				`  2. Compare the integrity hash above with npm's published value:\n` +
+				`     ${c.cyan}https://registry.npmjs.org/pnpm/${version}${c.reset}\n` +
+				`  3. Make sure the version exists on pnpm's GitHub releases (not yanked).\n` +
+				`  4. Oppdater manuelt ${c.bold}engines.pnpm${c.reset} i BEGGE package.json-filer til ${c.green}">=${version}"${c.reset}.\n` +
+				`  5. Run ${c.bold}pnpm install${c.reset} locally and verify it succeeds before committing.\n` +
+				`  6. Open a PR — let CI run before merging.\n` +
+				bar,
+		);
+	}
+} else {
+	stderr.write(
+		bar +
+			`${c.bold}${c.yellow}!  VERIFY BEFORE PUSHING TO GITHUB${c.reset}\n` +
+			bar +
+			`  1. Confirm version on the official release page:\n` +
+			`     ${c.cyan}https://github.com/pnpm/pnpm/releases/tag/v${version}${c.reset}\n` +
+			`  2. Compare the integrity hash above with npm's published value:\n` +
+			`     ${c.cyan}https://registry.npmjs.org/pnpm/${version}${c.reset}\n` +
+			`  3. Make sure the version exists on pnpm's GitHub releases (not yanked).\n` +
+			`  4. Update ${c.bold}engines.pnpm${c.reset} in BOTH package.json files to ${c.green}">=${version}"${c.reset}.\n` +
+			`  5. Run ${c.bold}pnpm install${c.reset} locally and verify it succeeds before committing.\n` +
+			`  6. Open a PR — let CI run before merging.\n` +
+			bar,
+	);
+}
+
+// ---------- helpers ----------
+
+async function arrowSelect(candidates) {
+	let selected = 0;
+	const lines = candidates.length;
+
+	function renderList() {
+		const items = candidates.map(([v, ts, t], i) => {
+			const age = ((Date.now() - ts) / MS_PER_DAY).toFixed(1);
+			const pointer = i === selected ? `${c.cyan}❯${c.reset}` : " ";
+			const label =
+				i === selected
+					? `${c.bold}${c.green}${v}${c.reset}`
+					: `${c.dim}${v}${c.reset}`;
+			// \x1b[2K clears the entire line before writing
+			return `\x1b[2K${pointer} ${label}  ${c.dim}${t} (${age} dager)${c.reset}`;
+		});
+		return items.join("\n");
+	}
+
+	stderr.write(
+		`\n${c.bold}${c.cyan}Gyldige pnpm-versjoner${c.reset} ${c.dim}(minst ${MIN_AGE_DAYS} dager gamle)${c.reset}\n` +
+			`${c.dim}Bruk ↑/↓ piltaster for å velge, Enter for å bekrefte${c.reset}\n\n`,
+	);
+	stderr.write(renderList());
+
+	return new Promise((resolve) => {
+		stdin.setRawMode(true);
+		stdin.resume();
+		stdin.setEncoding("utf8");
+
+		const cleanup = () => {
+			try { stdin.setRawMode(false); } catch {}
+		};
+		process.on("exit", cleanup);
+		process.on("SIGTERM", cleanup);
+
+		function redraw() {
+			// Move cursor to start of list and redraw all lines
+			stderr.write(`\x1b[${lines - 1}A\r`);
+			stderr.write(renderList());
+		}
+
+		function onData(key) {
+			if (key === "\u0003") {
+				stderr.write("\n");
+				stdin.setRawMode(false);
+				stdin.removeListener("data", onData);
+				process.exit(130);
+			}
+			if (key === "\r" || key === "\n") {
+				stdin.setRawMode(false);
+				stdin.pause();
+				stdin.removeListener("data", onData);
+				stderr.write("\n\n");
+				resolve(candidates[selected]);
+				return;
+			}
+			if (key === "\u001b[A" || key === "k") {
+				if (selected > 0) {
+					selected--;
+					redraw();
+				}
+				return;
+			}
+			if (key === "\u001b[B" || key === "j") {
+				if (selected < candidates.length - 1) {
+					selected++;
+					redraw();
+				}
+				return;
+			}
+		}
+
+		stdin.on("data", onData);
+	});
+}
+
+function info(msg) {
+	stderr.write(`${msg}\n`);
+}
+
+function fatal(msg) {
+	stderr.write(`${c.bold}${c.red}error:${c.reset} ${msg}\n`);
+	process.exit(1);
+}
+
+function requirePositiveInt(raw, label) {
+	const n = Number(raw);
+	if (!Number.isInteger(n) || n <= 0) {
+		fatal(`${label} must be a positive integer (got '${raw}').`);
+	}
+	return n;
+}
+
+async function promptAndUpdate(version, packageManager) {
+	const rl = createInterface({ input: stdin, output: stderr });
+	const answer = await new Promise((res) => {
+		rl.question(
+			`\n${c.bold}${c.cyan}Ønsker du å oppdatere begge package.json-filene automatisk?${c.reset} ${c.dim}(j/n)${c.reset} `,
+			(a) => {
+				rl.close();
+				res(a.trim().toLowerCase());
+			},
+		);
+	});
+
+	if (answer !== "j" && answer !== "ja") {
+		stderr.write(
+			`\n${c.dim}Ingen filer ble endret. Kopier verdiene manuelt.${c.reset}\n\n`,
+		);
+		return false;
+	}
+
+	const root = dirname(fileURLToPath(import.meta.url));
+	const targets = [
+		resolve(root, "../package.json"),
+		resolve(root, "../server/package.json"),
+	];
+
+	for (const filePath of targets) {
+		await updatePackageJson(filePath, version, packageManager);
+	}
+
+	stderr.write(
+		`\n${c.bold}${c.green}✔ Verdiene er oppdatert i begge package.json-filene.${c.reset}\n` +
+			`  Du kan nå kjøre ${c.bold}pnpm install${c.reset}\n\n` +
+			bar +
+			`${c.bold}${c.yellow}!  VERIFY BEFORE PUSHING TO GITHUB${c.reset}\n` +
+			bar +
+			`  1. Confirm version on the official release page:\n` +
+			`     ${c.cyan}https://github.com/pnpm/pnpm/releases/tag/v${version}${c.reset}\n` +
+			`  2. Compare the integrity hash above with npm's published value:\n` +
+			`     ${c.cyan}https://registry.npmjs.org/pnpm/${version}${c.reset}\n` +
+			`  3. Make sure the version exists on pnpm's GitHub releases (not yanked).\n` +
+			`  4. Run ${c.bold}pnpm install${c.reset} locally and verify it succeeds before committing.\n` +
+			`  5. Open a PR — let CI run before merging.\n` +
+			bar,
+	);
+	return true;
+}
+
+async function updatePackageJson(filePath, version, packageManager) {
+	const raw = await readFile(filePath, "utf8");
+	const pkg = JSON.parse(raw);
+
+	if (!pkg.engines || typeof pkg.engines !== "object") {
+		pkg.engines = {};
+	}
+	pkg.engines.pnpm = `>=${version}`;
+	pkg.packageManager = packageManager;
+
+	// Preserve tab indentation and trailing newline.
+	await writeFile(filePath, JSON.stringify(pkg, null, "\t") + "\n", "utf8");
+	stderr.write(
+		`  ${c.green}✔${c.reset} Oppdaterte ${c.bold}${filePath.replace(resolve(dirname(fileURLToPath(import.meta.url)), "..") + "/", "")}${c.reset}\n`,
+	);
+}
+
+async function fetchJson(url, accept) {
+	const ctrl = new AbortController();
+	const timer = setTimeout(() => ctrl.abort(), NETWORK_TIMEOUT_MS);
+	try {
+		const res = await fetch(url, {
+			signal: ctrl.signal,
+			redirect: "error",
+			headers: { accept },
+		});
+		if (!res.ok) throw new Error(`Registry returned HTTP ${res.status}`);
+		const ct = res.headers.get("content-type") ?? "";
+		if (!ct.includes("json")) {
+			throw new Error(`Unexpected content-type: ${ct}`);
+		}
+		return await res.json();
+	} finally {
+		clearTimeout(timer);
+	}
+}
+
+async function downloadAndHash(url) {
+	const ctrl = new AbortController();
+	const timer = setTimeout(() => ctrl.abort(), NETWORK_TIMEOUT_MS);
+	try {
+		const res = await fetch(url, { signal: ctrl.signal, redirect: "error" });
+		if (!res.ok) throw new Error(`Tarball returned HTTP ${res.status}`);
+		const hash = createHash("sha512");
+		for await (const chunk of res.body) hash.update(chunk);
+		return hash.digest();
+	} finally {
+		clearTimeout(timer);
+	}
+}
+
+function assertManifestShape(m) {
+	if (!m || typeof m !== "object") fatal("Manifest is not an object.");
+	if (!m.time || typeof m.time !== "object")
+		fatal("Manifest 'time' is not an object.");
+	if (!m.versions || typeof m.versions !== "object")
+		fatal("Manifest 'versions' is not an object.");
+}

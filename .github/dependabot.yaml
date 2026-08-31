@@ -1,7 +1,12 @@
 version: 2
+registries:
+  npm-github:
+    type: npm-registry
+    url: https://npm.pkg.github.com
+    token: ${{ secrets.READER_TOKEN }}
 updates:
   - package-ecosystem: gradle
-    directory: "/"
+    directory: "/backend"
     schedule:
       interval: "weekly"
       day: "tuesday"
@@ -28,6 +33,50 @@ updates:
           - "jvm"
           - "plugin.serialization"
           - "io.ktor:*"
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    registries: "*"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "Europe/Oslo"
+    cooldown:
+      default-days: 7
+    groups:
+      aksel:
+        patterns:
+          - "@navikt/aksel-*"
+          - "@navikt/ds-*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+      minor-and-patch:
+        update-types:
+          - "patch"
+          - "minor"
+        exclude-patterns:
+          - "react"
+          - "react-dom"
+          - "@navikt/aksel-*"
+          - "@navikt/ds-*"
+
+  - package-ecosystem: "npm"
+    directory: "/frontend/server"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "Europe/Oslo"
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"

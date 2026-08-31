@@ -1,0 +1,59 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: sokos-spk-mottak-admin-qx
+  namespace: okonomi
+  labels:
+    team: okonomi
+spec:
+  image: "{{ image }}"
+  port: 8080
+  liveness:
+    path: /internal/isAlive
+    initialDelay: 10
+  readiness:
+    path: /internal/isReady
+    initialDelay: 10
+  replicas:
+    min: 1
+    max: 2
+  ingresses:
+    - "https://sokos-spk-mottak-admin-qx.intern.dev.nav.no"
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: "50m"
+      memory: 256Mi
+  prometheus:
+    enabled: true
+    path: /internal/metrics
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: nodejs
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: false
+      claims:
+        extra:
+          - NAVident
+        groups:
+          - id: "0e58dc41-7c57-4b79-a8c7-d0caec129e53"
+      sidecar:
+        enabled: true
+        autoLogin: true
+        autoLoginIgnorePaths:
+          - /internal/*
+  accessPolicy:
+    outbound:
+      external:
+        - host: sokos-spk-mottak-qx.dev-fss-pub.nais.io
+  env:
+    - name: SOKOS_SPK_MOTTAK_BACKEND_URL
+      value: "https://sokos-spk-mottak-qx.dev-fss-pub.nais.io"
+    - name: SOKOS_SPK_MOTTAK_BACKEND_SCOPE
+      value: "api://dev-fss.okonomi.sokos-spk-mottak-qx/.default"
+    - name: SOKOS_SPK_MOTTAK_BACKEND_AUDIENCE
+      value: "dev-fss:okonomi:sokos-spk-mottak-qx"

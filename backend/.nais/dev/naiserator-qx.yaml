@@ -1,7 +1,7 @@
 apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
-  name: sokos-spk-mottak
+  name: sokos-spk-mottak-qx
   namespace: okonomi
   labels:
     team: okonomi
@@ -9,7 +9,7 @@ spec:
   image: "{{{ image }}}"
   port: 8080
   replicas:
-    min: 2
+    min: 1
     max: 2
     cpuThresholdPercentage: 75
   liveness:
@@ -30,8 +30,8 @@ spec:
       cpu: 100m
       memory: 512Mi
   ingresses:
-    - https://sokos-spk-mottak.intern.nav.no
-    - https://sokos-spk-mottak.prod-fss-pub.nais.io
+    - https://sokos-spk-mottak-qx.intern.dev.nav.no
+    - https://sokos-spk-mottak-qx.dev-fss-pub.nais.io
   prometheus:
     enabled: true
     path: /internal/metrics
@@ -49,17 +49,20 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: sokos-utbetalingsportalen
-          namespace: okonomi
-          cluster: prod-gcp
+        - application: azure-token-generator
+          namespace: nais
+          cluster: dev-gcp
           permissions:
             scopes:
               - "spk-mottak.admin"
-        - application: pensjon-pen
-          namespace: pensjondeployer
-          permissions:
             roles:
               - "leveattester.read"
+        - application: sokos-spk-mottak-admin-qx
+          namespace: okonomi
+          cluster: dev-gcp
+          permissions:
+            scopes:
+              - "spk-mottak.admin"
     outbound:
       rules:
         - application: logging
@@ -73,83 +76,83 @@ spec:
     - secret: sokos-spk-mottak-sftp-private-key
       mountPath: /var/run/secrets/sokos-spk-mottak-sftp-private-key
   envFrom:
-    - secret: sokos-spk-mottak-secrets
+    - secret: sokos-spk-mottak-qx-secrets
   env:
     - name: USE_AUTHENTICATION
       value: "true"
 
     # DB2
     - name: DATABASE_HOST
-      value: "155.55.1.78"
+      value: "155.55.1.82"
     - name: DATABASE_PORT
-      value: "5021"
+      value: "5025"
     - name: DATABASE_NAME
-      value: "DB2"
+      value: "QDB2"
     - name: DATABASE_SCHEMA
-      value: "MO611P"
+      value: "MO611QX"
 
     # Postgres
     - name: POSTGRES_HOST
-      value: A01DBVL036.adeo.no
+      value: b27dbvl034.preprod.local
     - name: POSTGRES_PORT
       value: "5432"
     - name: POSTGRES_NAME
-      value: sokos-spk-mottak
+      value: sokos-spk-mottak-qx
     - name: VAULT_MOUNTPATH
-      value: postgresql/prod-fss/
+      value: postgresql/preprod-fss/
 
-    # MQ Sjekk om alle disse verdiene er riktig
+    # MQ
     - name: MQ_HOSTNAME
-      value: mpls02.adeo.no
+      value: mqls02.preprod.local
     - name: MQ_PORT
-      value: "1414"
+      value: "1413"
     - name: MQ_QUEUE_MANAGER_NAME
-      value: MPLS02
+      value: MQLS02
     - name: MQ_CHANNEL_NAME
-      value: P_MOT
+      value: QX_MOT
     - name: MQ_UTBETALING_QUEUE_NAME
-      value: QA.P231.OB04_OPPDRAG_MOT_XML
+      value: QA.QX_231.OB04_OPPDRAG_MOT_XML
     - name: MQ_UTBETALING_REPLY_QUEUE_NAME
-      value: QA.P_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY
+      value: QA.QX_MOT.UTBET_REQUEST_QUE_MOT_BATCH_REPLY
     - name: MQ_TREKK_QUEUE_NAME
-      value: QA.P231.OB04_TREKK_MOT_JSON
+      value: QA.QX_231.OB04_TREKK_MOT_JSON
     - name: MQ_TREKK_REPLY_QUEUE_NAME
-      value: QA.P_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY
+      value: QA.QX_MOT.TREKK_REQUEST_QUE_MOT_BATCH_REPLY
     - name: MQ_AVREGNINGSGRUNNLAG_QUEUE_NAME
-      value: QA.P_MOT.AVREGNINGSGRUNNLAG_MOT_JSON
+      value: QA.QX_MOT.AVREGNINGSGRUNNLAG_MOT_JSON
     - name: MQ_AVSTEMMING_QUEUE_NAME
-      value: QA.P234.OB29_AVSTEMMING_XML
+      value: QA.QX_234.OB29_AVSTEMMING_XML
     - name: MQ_BATCH_SIZE
       value: "200"
     - name: MQ_LISTENER_ENABLED
-      value: "true"
+      value: "false"
     - name: AVREGNING_LISTENER_ENABLED
-      value: "true"
+      value: "false"
 
     # PDL
     - name: PDL_URL
-      value: "https://pdl-api.intern.nav.no"
+      value: "https://pdl-api.dev.intern.nav.no"
     - name: PDL_SCOPE
-      value: "api://prod-fss.pdl.pdl-api/.default"
+      value: "api://dev-fss.pdl.pdl-api/.default"
 
     # SFTP
     - name: SFTP_SERVER
-      value: sftp.oera.no
+      value: sftp.oera-q.local
     - name: SFTP_PORT
       value: "22"
     - name: SFTP_PRIVATE_KEY_FILE_PATH
       value: /var/run/secrets/sokos-spk-mottak-sftp-private-key/private-key
 
     # DB-SCHEDULER
-    - name: SCHEDULER_ENABLED # Settes til true for å aktivere scheduler
+    - name: SCHEDULER_ENABLED
       value: "true"
     - name: READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS_CRON_PATTERN
-      value: "0 0 7-17 * * *"
+      value: "0 0 0 1 1 ?"
     - name: SEND_UTBETALING_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
-      value: "0 0 7-17 * * *"
+      value: "0 0 0 1 1 ?"
     - name: SEND_TREKK_TRANSAKSJON_TIL_OPPDRAGZ_CRON_PATTERN
-      value: "0 0 7-17 * * *"
+      value: "0 0 0 1 1 ?"
     - name: GRENSESNITT_AVSTEMMING_CRON_PATTERN
-      value: "0 0 5 * * *"
+      value: "0 0 0 1 1 ?"
     - name: WRITE_AVREGNINGSRETUR_FILE_CRON_PATTERN
-      value: "0 30 6 * * *"
+      value: "0 0 0 1 1 ?"

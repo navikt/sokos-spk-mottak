@@ -1,0 +1,36 @@
+name: Build & test PR (backend)
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'frontend/**'
+      - 'backend/**.md'
+      - 'backend/LICENCE'
+      - 'backend/CODEOWNERS'
+      - 'backend/.gitignore'
+      - 'backend/.editorconfig'
+      - 'backend/setupLocalEnvironment.sh'
+      - 'backend/.scripts/**'
+      - 'backend/dokumentasjon/**'
+      - 'backend/.nais/**'
+      - '**.md'
+      - 'LICENCE'
+      - 'CODEOWNERS'
+      - '.github/workflows/*-frontend.yaml'
+      - '.github/workflows/codeql-scan-backend.yaml'
+      - '.github/workflows/deploy-backend.yaml'
+      - '.github/workflows/digestabot-automerge-backend.yaml'
+      - '.github/workflows/digestabot-update-backend.yaml'
+      - '.github/workflows/manual-deploy-backend.yaml'
+      - '.github/dependabot.yaml'
+
+env:
+  TZ: Europe/Oslo
+
+jobs:
+  build-and-test:
+    permissions:
+      contents: read
+    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-test-app.yaml@7fc3c6ff7c787dd0bc5b89f4f1a588f670764d75 # ratchet:navikt/mob-gha-workflows/.github/workflows/gradle-build-test-app.yaml@v1.1.1
+    with:
+      project-directory: backend
