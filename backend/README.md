@@ -87,10 +87,8 @@ Applikasjonen bruker [Azure AD](https://docs.nais.io/security/auth/azure-ad/) fo
 
 # 7. Drift og støtte
 
-Du kan trigge jobber fra Spk Mottak Dashboard i Utbetalingsportalen. For å gjøre dette kreves det at du har tilgang til riktig AD-gruppe for skjermbildet.
-
-- [Spk Mottak Dashboard i test](https://utbetalingsportalen.intern.dev.nav.no/spk-mottak)
-- [Spk Mottak Dashboard i prod](https://utbetalingsportalen.intern.nav.no/spk-mottak)
+Du kan trigge jobber fra Spk Mottak Dashboard, en frittstående admin-app. For å få tilgang kreves det at du har tilgang til riktig AD-gruppe.
+Se [../frontend/README.md](../frontend/README.md) for lenker og mer informasjon om admin-appen.
 
 Applikasjonen bruker sikker SFTP for filoverføring til/fra SPK. Problemer med SFTP kan kan henvendes til [#tech-linux](https://nav-it.slack.com/archives/CA2CM7QTX)
 
