@@ -31,6 +31,6 @@ jobs:
   build-and-test:
     permissions:
       contents: read
-    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-test-app.yaml@7fc3c6ff7c787dd0bc5b89f4f1a588f670764d75 # ratchet:navikt/mob-gha-workflows/.github/workflows/gradle-build-test-app.yaml@v1.1.1
+    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-test-app.yaml@6944959544fb135a3b101ba0078a8fef8870568e # ratchet:navikt/mob-gha-workflows/.github/workflows/gradle-build-test-app.yaml@v1.1.2
     with:
       project-directory: backend
