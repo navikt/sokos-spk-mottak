@@ -4,14 +4,10 @@ on:
   pull_request:
     paths-ignore:
       - 'frontend/**'
-      - 'backend/**.md'
-      - 'backend/LICENCE'
-      - 'backend/CODEOWNERS'
       - 'backend/.gitignore'
       - 'backend/.editorconfig'
       - 'backend/setupLocalEnvironment.sh'
       - 'backend/.scripts/**'
-      - 'backend/dokumentasjon/**'
       - 'backend/.nais/**'
       - '**.md'
       - 'LICENCE'

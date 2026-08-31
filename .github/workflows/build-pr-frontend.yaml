@@ -4,9 +4,7 @@ on:
   pull_request:
     paths-ignore:
       - 'backend/**'
-      - 'frontend/**.md'
-      - 'frontend/LICENSE'
-      - 'frontend/CODEOWNERS'
+      - 'frontend/.gitignore'
       - 'frontend/.nais/**'
       - '**.md'
       - 'LICENCE'

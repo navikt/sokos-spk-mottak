@@ -6,9 +6,7 @@ on:
       - main
     paths-ignore:
       - 'backend/**'
-      - 'frontend/**.md'
-      - 'frontend/LICENSE'
-      - 'frontend/CODEOWNERS'
+      - 'frontend/.gitignore'
       - '**.md'
       - 'LICENCE'
       - 'CODEOWNERS'
@@ -41,18 +39,18 @@ jobs:
       docker-context: frontend
       dockerfile: frontend/Dockerfile
 
-  deploy-dev:
+  deploy-q1:
     permissions:
       contents: read
       id-token: write
       pull-requests: write
       deployments: write
     needs: [build-push-image]
-    name: Deploy to dev-gcp
+    name: Deploy to dev-gcp-q1
     uses: navikt/mob-gha-workflows/.github/workflows/nais-deploy.yaml@9fd407aea00d8a5cc86be201b21b283ad165d82c # ratchet:navikt/mob-gha-workflows/.github/workflows/nais-deploy.yaml@v1.1.0
     with:
       cluster: dev-gcp
-      resource: frontend/.nais/naiserator-dev.yaml
+      resource: frontend/.nais/naiserator-q1.yaml
       image: ${{ needs.build-push-image.outputs.image }}
 
   deploy-dev-qx:
@@ -75,7 +73,7 @@ jobs:
       id-token: write
       pull-requests: write
       deployments: write
-    needs: [build-push-image, deploy-dev, deploy-dev-qx]
+    needs: [build-push-image, deploy-q1, deploy-dev-qx]
     name: Deploy to prod-gcp
     uses: navikt/mob-gha-workflows/.github/workflows/nais-deploy.yaml@9fd407aea00d8a5cc86be201b21b283ad165d82c # ratchet:navikt/mob-gha-workflows/.github/workflows/nais-deploy.yaml@v1.1.0
     with:
