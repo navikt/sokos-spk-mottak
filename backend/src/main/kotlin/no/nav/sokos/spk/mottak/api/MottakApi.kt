@@ -18,6 +18,8 @@ import io.ktor.server.routing.route
 
 import no.nav.sokos.spk.mottak.api.model.AvstemmingRequest
 import no.nav.sokos.spk.mottak.config.AUTHENTICATION_JWT
+import no.nav.sokos.spk.mottak.config.AuditLogg
+import no.nav.sokos.spk.mottak.config.AuditLogger
 import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import no.nav.sokos.spk.mottak.security.AuthorizationGuard.getNavIdentOrNull
 import no.nav.sokos.spk.mottak.security.AuthorizationGuard.requireRole
@@ -35,12 +37,22 @@ fun Route.mottakApi(
     scheduler: Scheduler = JobTaskConfig.scheduler(),
     scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
     leveAttestService: LeveAttestService = LeveAttestService(),
+    auditLogger: AuditLogger = AuditLogger(),
 ) {
     route(API_BASE_PATH) {
         authenticate(AUTHENTICATION_JWT) {
             post("readParseFileAndValidateTransactions") {
                 call.requireScope(Scope.SPK_MOTTAK_ADMIN)
                 val ident = call.getNavIdentOrNull()
+                ident?.let {
+                    auditLogger.auditLog(
+                        AuditLogg(
+                            navIdent = it,
+                            jobName = "readParseFileAndValidateTransactions",
+                            brukerBehandlingTekst = "Trigget jobb: readParseFileAndValidateTransactions",
+                        ),
+                    )
+                }
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringReadParseFileAndValidateTransactionsTask()
                     scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
@@ -51,6 +63,15 @@ fun Route.mottakApi(
             post("sendUtbetalingTransaksjonToOppdragZ") {
                 call.requireScope(Scope.SPK_MOTTAK_ADMIN)
                 val ident = call.getNavIdentOrNull()
+                ident?.let {
+                    auditLogger.auditLog(
+                        AuditLogg(
+                            navIdent = it,
+                            jobName = "sendUtbetalingTransaksjonToOppdragZ",
+                            brukerBehandlingTekst = "Trigget jobb: sendUtbetalingTransaksjonToOppdragZ",
+                        ),
+                    )
+                }
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringSendUtbetalingTransaksjonToOppdragZTask()
                     scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
@@ -61,6 +82,15 @@ fun Route.mottakApi(
             post("sendTrekkTransaksjonToOppdragZ") {
                 call.requireScope(Scope.SPK_MOTTAK_ADMIN)
                 val ident = call.getNavIdentOrNull()
+                ident?.let {
+                    auditLogger.auditLog(
+                        AuditLogg(
+                            navIdent = it,
+                            jobName = "sendTrekkTransaksjonToOppdragZ",
+                            brukerBehandlingTekst = "Trigget jobb: sendTrekkTransaksjonToOppdragZ",
+                        ),
+                    )
+                }
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringSendTrekkTransaksjonToOppdragZTask()
                     scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
@@ -72,6 +102,15 @@ fun Route.mottakApi(
                 call.requireScope(Scope.SPK_MOTTAK_ADMIN)
                 val ident = call.getNavIdentOrNull()
                 val request = call.receive<AvstemmingRequest>()
+                ident?.let {
+                    auditLogger.auditLog(
+                        AuditLogg(
+                            navIdent = it,
+                            jobName = "avstemming",
+                            brukerBehandlingTekst = "Trigget jobb: avstemming",
+                        ),
+                    )
+                }
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringGrensesnittAvstemmingTask()
                     val requestData = Json.encodeToString(Pair(ident, request))
@@ -83,6 +122,15 @@ fun Route.mottakApi(
             post("writeAvregningsreturFile") {
                 call.requireScope(Scope.SPK_MOTTAK_ADMIN)
                 val ident = call.getNavIdentOrNull()
+                ident?.let {
+                    auditLogger.auditLog(
+                        AuditLogg(
+                            navIdent = it,
+                            jobName = "writeAvregningsreturFile",
+                            brukerBehandlingTekst = "Trigget jobb: writeAvregningsreturFile",
+                        ),
+                    )
+                }
                 call.launch(Dispatchers.IO) {
                     val task = JobTaskConfig.recurringWriteAvregningsreturFileTask()
                     scheduler.reschedule(task.instance(RECURRING), Instant.now(), ident)
