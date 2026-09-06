@@ -1,15 +1,17 @@
 import path from "node:path";
+import { collectDefaultMetrics, register } from "@prometheus-io/client";
 import express, {
 	type NextFunction,
 	type Request,
 	type Response,
 } from "express";
 import expressStaticGzip from "express-static-gzip";
-import { collectDefaultMetrics, register } from "@prometheus-io/client";
 import { logger } from "./logger.ts";
 import { proxyRoutes } from "./proxy.ts";
 
 const BUILD_PATH = path.resolve(import.meta.dirname, "../dist");
+const HASHED_ASSETS_PATH = path.join(BUILD_PATH, "assets");
+const ONE_YEAR_IN_SECONDS = 31_536_000;
 const PORT = process.env.PORT || 8080;
 const SOKOS_SPK_MOTTAK_BACKEND_URL = process.env.SOKOS_SPK_MOTTAK_BACKEND_URL;
 
@@ -17,15 +19,28 @@ collectDefaultMetrics();
 
 const server = express();
 
-server.use(express.static(BUILD_PATH, { index: false }));
-server.use(express.json());
-server.use(express.urlencoded({ extended: true }));
 server.use(
 	expressStaticGzip(BUILD_PATH, {
 		enableBrotli: true,
 		orderPreference: ["br"],
+		serveStatic: {
+			setHeaders: (res, filePath) => {
+				// Kun filer under /assets har innholdshash i navnet. index.html og
+				// mockServiceWorker.js har stabile navn, så de må revalideres –
+				// ellers peker en cachet index.html på chunks som deployet slettet.
+				res.setHeader(
+					"Cache-Control",
+					filePath.startsWith(HASHED_ASSETS_PATH)
+						? `public, max-age=${ONE_YEAR_IN_SECONDS}, immutable`
+						: "no-cache",
+				);
+			},
+		},
 	}),
 );
+
+server.use(express.json());
+server.use(express.urlencoded({ extended: true }));
 
 function asyncHandler(
 	fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
