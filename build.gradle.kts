@@ -149,9 +149,9 @@ dependencies {
 configurations.all {
     resolutionStrategy {
         eachDependency {
-            if (requested.group == "io.netty") {
-                useVersion("4.2.16.Final")
-                because("Multiple versions of netty has vulnerable dependencies. Affected version < 4.2.15.Final")
+            if (requested.group == "io.netty" && requested.name == "netty-codec-http") {
+                useVersion("4.2.17.Final")
+                because("Cache Poisoning and Information Disclosure via CORS Vary Header Overwrite. Affected version < 4.2.17.Final")
             }
             if (requested.group == "tools.jackson.core" && requested.name == "jackson-databind") {
                 useVersion("3.2.1")
@@ -168,6 +168,14 @@ configurations.all {
             if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
                 useVersion("2.22.1")
                 because("Multiple versions of jackson-core has vulnerable dependencies.. Affected version >= 2.19.0, <= 2.21.1")
+            }
+            if (requested.group == "org.apache.httpcomponents.core5" && requested.name == "httpcore5") {
+                useVersion("5.4.3")
+                because("HTTP/1 header parsing can cause memory-exhaustion denial of service. Affected version >= 5.0, < 5.4.3")
+            }
+            if (requested.group == "org.apache.httpcomponents.core5" && requested.name == "httpcore5-h2") {
+                useVersion("5.4.3")
+                because("Unlimited Header List Size Before SETTINGS ACK. Affected version >= 5.0, < 5.4.3")
             }
         }
     }
