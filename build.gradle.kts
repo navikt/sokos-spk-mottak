@@ -66,7 +66,7 @@ val ibmmqVersion = "10.0.0.0"
 val activemqVersion = "2.55.0"
 val graphqlClientVersion = "10.2.1"
 val jaxbVersion = "4.0.9"
-val opentelemetryVersion = "2.30.0-alpha"
+val opentelemetryVersion = "1.65.0"
 
 dependencies {
 
@@ -131,7 +131,8 @@ dependencies {
     }
 
     // Opentelemetry
-    implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:$opentelemetryVersion")
+    implementation("io.opentelemetry:opentelemetry-api:$opentelemetryVersion")
+    implementation("io.opentelemetry:opentelemetry-context:$opentelemetryVersion")
 
     // Test
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
