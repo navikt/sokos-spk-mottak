@@ -53,7 +53,7 @@ spec:
   env:
     - name: SOKOS_SPK_MOTTAK_BACKEND_URL
       value: "https://sokos-spk-mottak-qx.dev-fss-pub.nais.io"
-    - name: SOKOS_SPK_MOTTAK_BACKEND_SCOPE
-      value: "api://dev-fss.okonomi.sokos-spk-mottak-qx/.default"
     - name: SOKOS_SPK_MOTTAK_BACKEND_AUDIENCE
+      value: "api://dev-fss.okonomi.sokos-spk-mottak-qx/.default"
+    - name: SOKOS_SPK_MOTTAK_BACKEND_SCOPE
       value: "dev-fss:okonomi:sokos-spk-mottak-qx"
