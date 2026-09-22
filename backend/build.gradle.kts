@@ -7,9 +7,9 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.4.10"
-    kotlin("plugin.serialization") version "2.4.10"
-    id("com.expediagroup.graphql") version "10.2.1"
+    kotlin("jvm") version "2.4.20"
+    kotlin("plugin.serialization") version "2.4.20"
+    id("com.expediagroup.graphql") version "10.2.2"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.9"
 
@@ -40,33 +40,33 @@ repositories {
 }
 
 val ktorVersion = "3.5.2"
-val jschVersion = "2.28.6"
-val logbackVersion = "1.6.1"
+val jschVersion = "2.28.7"
+val logbackVersion = "1.6.3"
 val logstashVersion = "9.0"
-val micrometerVersion = "1.17.0"
+val micrometerVersion = "1.17.1"
 val kotlinLoggingVersion = "3.0.5"
 val natpryceVersion = "1.6.10.0"
-val kotestVersion = "6.2.3"
+val kotestVersion = "6.2.5"
 val wiremockVersion = "3.13.2"
 val kotlinxSerializationVersion = "1.11.0"
 val kotlinxDatetimeVersion = "0.8.0-0.6.x-compat"
-val mockOAuth2ServerVersion = "6.0.0"
+val mockOAuth2ServerVersion = "6.0.2"
 val mockkVersion = "1.14.11"
 val hikariVersion = "7.1.0"
 val db2JccVersion = "12.1.5.0"
-val kotliqueryVersion = "2.1.0"
+val kotliqueryVersion = "2.1.1"
 val testcontainersVersion = "1.21.4"
-val h2Version = "2.4.240"
-val flywayVersion = "13.2.0"
+val h2Version = "2.5.250"
+val flywayVersion = "13.6.0"
 val postgresVersion = "42.7.13"
 val dbSchedulerVersion = "16.12.0"
 val vaultVersion = "1.3.10"
 val tjenestespesifikasjonVersion = "1.0_20260628105133_e9177d7"
 val ibmmqVersion = "10.0.0.0"
-val activemqVersion = "2.55.0"
-val graphqlClientVersion = "10.2.1"
+val activemqVersion = "2.57.0"
+val graphqlClientVersion = "10.2.2"
 val jaxbVersion = "4.0.9"
-val opentelemetryVersion = "2.30.0-alpha"
+val opentelemetryVersion = "1.66.0"
 
 dependencies {
 
@@ -131,7 +131,8 @@ dependencies {
     }
 
     // Opentelemetry
-    implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:$opentelemetryVersion")
+    implementation("io.opentelemetry:opentelemetry-api:$opentelemetryVersion")
+    implementation("io.opentelemetry:opentelemetry-context:$opentelemetryVersion")
 
     // Test
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
@@ -149,9 +150,9 @@ dependencies {
 configurations.all {
     resolutionStrategy {
         eachDependency {
-            if (requested.group == "io.netty") {
-                useVersion("4.2.16.Final")
-                because("Multiple versions of netty has vulnerable dependencies. Affected version < 4.2.15.Final")
+            if (requested.group == "io.netty" && requested.name == "netty-codec-http") {
+                useVersion("4.2.17.Final")
+                because("Cache Poisoning and Information Disclosure via CORS Vary Header Overwrite. Affected version < 4.2.17.Final")
             }
             if (requested.group == "tools.jackson.core" && requested.name == "jackson-databind") {
                 useVersion("3.2.1")
@@ -168,6 +169,14 @@ configurations.all {
             if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
                 useVersion("2.22.1")
                 because("Multiple versions of jackson-core has vulnerable dependencies.. Affected version >= 2.19.0, <= 2.21.1")
+            }
+            if (requested.group == "org.apache.httpcomponents.core5" && requested.name == "httpcore5") {
+                useVersion("5.4.3")
+                because("HTTP/1 header parsing can cause memory-exhaustion denial of service. Affected version >= 5.0, < 5.4.3")
+            }
+            if (requested.group == "org.apache.httpcomponents.core5" && requested.name == "httpcore5-h2") {
+                useVersion("5.4.3")
+                because("Unlimited Header List Size Before SETTINGS ACK. Affected version >= 5.0, < 5.4.3")
             }
         }
     }
