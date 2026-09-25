@@ -11,6 +11,9 @@ importers:
       '@navikt/oasis':
         specifier: 4.2.2
         version: 4.2.2
+      '@opentelemetry/api':
+        specifier: 1.9.1
+        version: 1.9.1
       '@prometheus-io/client':
         specifier: 0.16.0
         version: 0.16.0

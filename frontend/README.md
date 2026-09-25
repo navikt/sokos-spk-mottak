@@ -13,11 +13,8 @@
 # 1. Funksjonelle krav
 
 `sokos-spk-mottak-admin` er et frittstående admin-dashboard for [sokos-spk-mottak](../backend/README.md)-applikasjonen.
-Kun utviklere og andre teammedlemmer (ikke saksbehandlere) skal ha tilgang. Herfra kan man blant annet trigge jobber
-for lesing/validering av filer og sending av transaksjoner/oppdrag til Oppdrag Z.
-
-Appen var tidligere en mikrofrontend lastet inn av Utbetalingsportalen, men kjører nå som en frittstående Vite-SPA
-med egen URL og egen Nais-deployment.
+Du må være medlem av AD-gruppen som er konfigurert for miljøet for å få tilgang til frontend. Herfra kan du trigge jobber
+for lesing og validering av filer og sending av transaksjoner og oppdrag til Oppdrag Z.
 
 # 2. Arkitektur
 
@@ -26,7 +23,7 @@ Appen består av to deler:
 - **`src/`** – Vite + React SPA (klient). Se [vite.config.ts](vite.config.ts).
 - **`server/`** – Express-server som:
   - serverer det bygde klient-buntet (`dist/`)
-  - fungerer som en reverse proxy mot backend-API-et (`sokos-spk-mottak`)
+  - kaller backend-API-et (`sokos-spk-mottak`) på vegne av klienten
   - bytter innkommende Azure AD-token til et OBO-token mot backend via [@navikt/oasis](https://github.com/navikt/oasis)
   - eksponerer `/internal/isAlive`, `/internal/isReady` og `/internal/metrics`
 
@@ -55,7 +52,7 @@ cd server && pnpm install
 | `pnpm run dev:backend` | Kjører mot lokal backend på `http://localhost:8080` (`--mode backend`) |
 | `pnpm run dev:backend-q1` | Kjører mot backend i `q1`-miljøet (`--mode backend-q1`) |
 
-For å kjøre serveren lokalt (Express + proxy):
+For å kjøre serveren lokalt (Express):
 
 ```shell
 cd server && pnpm run dev
@@ -82,8 +79,8 @@ cd server && pnpm run build   # server (tsc --build)
 # 4. Autentisering
 
 Appen er beskyttet med [Azure AD](https://docs.nais.io/security/auth/azure-ad/) og bruker
-[wonderwall](https://docs.nais.io/auth/sidecar/) (`azure.application.sidecar`) for automatisk innloggingsflyt.
-Kun brukere i den konfigurerte AD-gruppen (se `.nais/*.yaml`) slipper inn.
+[wonderwall](https://docs.nais.io/auth/sidecar/) (`azure.sidecar`) for automatisk innlogging.
+Du må være direkte medlem av AD-gruppen som er konfigurert for miljøet i `.nais/*.yaml` for å få tilgang.
 
 Server-siden bytter det innkommende Azure AD-tokenet til et On-Behalf-Of-token mot backend
 (`SOKOS_SPK_MOTTAK_BACKEND_AUDIENCE`) via `requestOboToken` fra `@navikt/oasis`, se

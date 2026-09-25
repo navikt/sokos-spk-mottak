@@ -6,8 +6,8 @@ import express, {
 	type Response,
 } from "express";
 import expressStaticGzip from "express-static-gzip";
+import { sendRequest } from "./client.ts";
 import { logger } from "./logger.ts";
-import { proxyRoutes } from "./proxy.ts";
 
 const BUILD_PATH = path.resolve(import.meta.dirname, "../dist");
 const HASHED_ASSETS_PATH = path.join(BUILD_PATH, "assets");
@@ -53,10 +53,11 @@ function asyncHandler(
 server.post(
 	`/spk-mottak-api/api/v1/readParseFileAndValidateTransactions`,
 	asyncHandler(async (req: Request, res: Response) => {
-		await proxyRoutes(
+		await sendRequest(
 			req,
 			res,
 			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/readParseFileAndValidateTransactions`,
+			"Starter jobb: readParseFileAndValidateTransactions",
 		);
 	}),
 );
@@ -64,10 +65,11 @@ server.post(
 server.post(
 	`/spk-mottak-api/api/v1/sendUtbetalingTransaksjonToOppdragZ`,
 	asyncHandler(async (req: Request, res: Response) => {
-		await proxyRoutes(
+		await sendRequest(
 			req,
 			res,
 			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/sendUtbetalingTransaksjonToOppdragZ`,
+			"Starter jobb: sendUtbetalingTransaksjonToOppdragZ",
 		);
 	}),
 );
@@ -75,10 +77,11 @@ server.post(
 server.post(
 	`/spk-mottak-api/api/v1/sendTrekkTransaksjonToOppdragZ`,
 	asyncHandler(async (req: Request, res: Response) => {
-		await proxyRoutes(
+		await sendRequest(
 			req,
 			res,
 			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/sendTrekkTransaksjonToOppdragZ`,
+			"Starter jobb: sendTrekkTransaksjonToOppdragZ",
 		);
 	}),
 );
@@ -86,10 +89,11 @@ server.post(
 server.post(
 	`/spk-mottak-api/api/v1/writeAvregningsreturFile`,
 	asyncHandler(async (req: Request, res: Response) => {
-		await proxyRoutes(
+		await sendRequest(
 			req,
 			res,
 			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/writeAvregningsreturFile`,
+			"Starter jobb: writeAvregningsreturFile",
 		);
 	}),
 );
@@ -97,10 +101,11 @@ server.post(
 server.post(
 	`/spk-mottak-api/api/v1/avstemming`,
 	asyncHandler(async (req: Request, res: Response) => {
-		await proxyRoutes(
+		await sendRequest(
 			req,
 			res,
 			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/avstemming`,
+			"Starter jobb: avstemming",
 		);
 	}),
 );
@@ -108,10 +113,11 @@ server.post(
 server.get(
 	`/spk-mottak-api/api/v1/jobTaskInfo`,
 	asyncHandler(async (req: Request, res: Response) => {
-		await proxyRoutes(
+		await sendRequest(
 			req,
 			res,
 			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/jobTaskInfo`,
+			"Henter jobbstatus: jobTaskInfo",
 		);
 	}),
 );

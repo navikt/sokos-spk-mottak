@@ -2,23 +2,23 @@ import type { Request, Response } from "express";
 import { logger } from "./logger.ts";
 import { getOboToken } from "./token.ts";
 
-export async function proxyRoutes(
+export async function sendRequest(
 	req: Request,
 	res: Response,
-	proxyUrl: string,
+	backendUrl: string,
+	logMessage: string,
 ) {
 	const oboToken = await getOboToken(req);
+	const endpoint = new URL(backendUrl).pathname.split("/").pop();
 	logger.info(
 		{
 			method: req.method,
-			url: proxyUrl,
-			proxyFrom: req.originalUrl,
-			proxyTo: proxyUrl,
+			url: backendUrl,
 		},
-		"Reverse Proxy HTTP Request",
+		logMessage,
 	);
 
-	const response = await fetch(proxyUrl, {
+	const response = await fetch(backendUrl, {
 		method: req.method,
 		headers: {
 			Authorization: `Bearer ${oboToken}`,
@@ -32,7 +32,7 @@ export async function proxyRoutes(
 			url: response.url,
 			status: response.status,
 		},
-		"Reverse Proxy HTTP Response",
+		`Svar fra backend: ${endpoint}`,
 	);
 
 	const responseData = await response.text();
