@@ -98,6 +98,12 @@ Appen deployes med [GitHub Actions](https://github.com/navikt/sokos-spk-mottak/a
 Logger uten sensitive data går til [Grafana Loki](https://doc.nais.io/observability/logging/#grafana-loki).
 Logglinjene har `trace_id` og `span_id`, slik at du kan koble dem til traces i Nais APM.
 
+### Frontend-telemetri
+
+Klienten sender Web Vitals, JavaScript-feil og traces til Nais APM med
+[@nais/apm](https://doc.nais.io/observability/apm/tutorials/track-frontend-errors/). Se [src/util/apm.ts](src/util/apm.ts).
+Lokalt sendes ingenting.
+
 ### Kubectl
 
 For dev-gcp:

@@ -62,7 +62,10 @@ export default defineConfig(({ command, mode }) => {
 								name: "react",
 							},
 							{ test: /node_modules[\\/]@navikt[\\/]/, name: "aksel" },
-							{ test: /node_modules[\\/]@grafana[\\/]/, name: "faro" },
+							{
+								test: /node_modules[\\/](@grafana|@nais)[\\/]/,
+								name: "apm",
+							},
 							{ test: /node_modules[\\/]/, name: "vendor" },
 						],
 					},
