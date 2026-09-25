@@ -41,11 +41,11 @@ spec:
           - NAVident
         groups:
           - id: "f49b797d-600d-46da-8061-7746e48d1aca"
-      sidecar:
-        enabled: true
-        autoLogin: true
-        autoLoginIgnorePaths:
-          - /internal/*
+    sidecar:
+      enabled: true
+      autoLogin: true
+      autoLoginIgnorePaths:
+        - /internal/*
   accessPolicy:
     outbound:
       external:
