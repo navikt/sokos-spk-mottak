@@ -26,7 +26,7 @@ jobs:
     permissions:
       contents: read
     name: Build & test application
-    uses: navikt/mob-gha-workflows/.github/workflows/node-build-pr.yaml@9fd407aea00d8a5cc86be201b21b283ad165d82c # ratchet:navikt/mob-gha-workflows/.github/workflows/node-build-pr.yaml@v1.1.0
+    uses: navikt/mob-gha-workflows/.github/workflows/node-build-pr.yaml@9f663f4e1ff4f85a52efa067fbf53c5a6bbaede9 # ratchet:navikt/mob-gha-workflows/.github/workflows/node-build-pr.yaml@v1.1.2
     secrets: inherit
     with:
       project-directory: frontend
