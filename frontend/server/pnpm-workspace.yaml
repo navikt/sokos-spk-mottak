@@ -4,5 +4,3 @@
 
 allowBuilds:
   esbuild: true
-minimumReleaseAgeExclude:
-  - '@prometheus-io/client@0.16.0'
