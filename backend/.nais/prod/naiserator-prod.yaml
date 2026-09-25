@@ -46,6 +46,8 @@ spec:
       claims:
         extra:
           - NAVident
+        groups:
+          - id: "f49b797d-600d-46da-8061-7746e48d1aca"
   accessPolicy:
     inbound:
       rules:
