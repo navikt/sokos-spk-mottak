@@ -1,36 +1,28 @@
 # sokos-spk-mottak-admin
 
-* [1. Funksjonelle krav](#1-funksjonelle-krav)
-* [2. Arkitektur](#2-arkitektur)
-* [3. Utviklingsmiljø](#3-utviklingsmiljø)
-* [4. Autentisering](#4-autentisering)
+Vite/React admin-dashboard for å trigge jobber manuelt i [sokos-spk-mottak](../backend/README.md).
+
+* [1. Arkitektur](#1-arkitektur)
+* [2. Utviklingsmiljø](#2-utviklingsmiljø)
+* [3. Miljøer](#3-miljøer)
+* [4. Autentisering og autorisasjon](#4-autentisering-og-autorisasjon)
 * [5. Deployment](#5-deployment)
 * [6. Drift og støtte](#6-drift-og-støtte)
 * [7. Henvendelser](#7-henvendelser)
 
 ---
 
-# 1. Funksjonelle krav
-
-`sokos-spk-mottak-admin` er et frittstående admin-dashboard for [sokos-spk-mottak](../backend/README.md)-applikasjonen.
-Du må være medlem av AD-gruppen som er konfigurert for miljøet for å få tilgang til frontend. Herfra kan du trigge jobber
-for lesing og validering av filer og sending av transaksjoner og oppdrag til Oppdrag Z.
-
-# 2. Arkitektur
+## 1. Arkitektur
 
 Appen består av to deler:
 
-- **`src/`** – Vite + React SPA (klient). Se [vite.config.ts](vite.config.ts).
-- **`server/`** – Express-server som:
-  - serverer det bygde klient-buntet (`dist/`)
-  - kaller backend-API-et (`sokos-spk-mottak`) på vegne av klienten
-  - bytter innkommende Azure AD-token til et OBO-token mot backend via [@navikt/oasis](https://github.com/navikt/oasis)
-  - eksponerer `/internal/isAlive`, `/internal/isReady` og `/internal/metrics`
+- **`src/`** er klienten, en Vite/React-app. Se [vite.config.ts](vite.config.ts).
+- **`server/`** er en Express-server som
+  - serverer den bygde klienten fra `dist/`
+  - bytter brukerens Azure AD-token til et OBO-token og kaller backend med det
+  - eksponerer helsesjekker og metrikker for Nais
 
-Se [server/src](server/src) for serverkoden, satt opp etter samme mønster som
-[sokos-frivillig-skattetrekk-frontend](https://github.com/navikt/sokos-frivillig-skattetrekk-frontend/tree/main/server/src).
-
-# 3. Utviklingsmiljø
+## 2. Utviklingsmiljø
 
 ### Forutsetninger
 
@@ -39,72 +31,84 @@ Se [server/src](server/src) for serverkoden, satt opp etter samme mønster som
 
 ### Installere avhengigheter
 
+Klienten og serveren har hver sin `package.json` og installeres hver for seg:
+
 ```shell
 pnpm install
 cd server && pnpm install
+```
+
+### Bygge
+
+```shell
+pnpm run build                # klient (tsc + vite build)
+cd server && pnpm run build   # server (tsc --build)
 ```
 
 ### Kjøre lokalt
 
 | Kommando | Beskrivelse |
 |---|---|
-| `pnpm run dev` | Starter Vite dev-server med [MSW](https://mswjs.io/) mock-data (`--mode mock`) |
-| `pnpm run dev:backend` | Kjører mot lokal backend på `http://localhost:8080` (`--mode backend`) |
-| `pnpm run dev:backend-q1` | Kjører mot backend i `q1`-miljøet (`--mode backend-q1`) |
+| `pnpm run dev` | Starter Vite med mock-data fra [MSW](https://mswjs.io/) |
+| `pnpm run dev:backend` | Kjører mot lokal backend på `http://localhost:8080` |
+| `pnpm run dev:backend-q1` | Kjører mot backend i q1 |
 
-For å kjøre serveren lokalt (Express):
+Slik kjører du Express-serveren lokalt:
 
 ```shell
 cd server && pnpm run dev
 ```
 
-> `NODE_ENV !== "production"` gjør at serveren returnerer et mock-OBO-token lokalt i stedet for å utføre en ekte
-> token-utveksling, siden wonderwall/Azure AD-innlogging ikke er tilgjengelig utenfor Nais.
+Utenfor Nais finnes ikke Azure AD-innloggingen. Når `NODE_ENV` ikke er `production`, bruker serveren derfor et
+mock-token i stedet for å hente et ekte OBO-token.
 
-### Bygge
+## 3. Miljøer
 
-```shell
-pnpm run build          # klient (tsc + vite build)
-cd server && pnpm run build   # server (tsc --build)
-```
+| Miljø | Cluster | URL |
+|---|---|---|
+| q1 | dev-gcp | https://sokos-spk-mottak-admin.intern.dev.nav.no |
+| qx | dev-gcp | https://sokos-spk-mottak-admin-qx.intern.dev.nav.no |
+| prod | prod-gcp | https://sokos-spk-mottak-admin.intern.nav.no |
 
-### Miljøer
+Manifestene ligger i [.nais](.nais).
 
-`sokos-spk-mottak-admin` kjøres i følgende miljøer:
+## 4. Autentisering og autorisasjon
 
-- dev (dev-gcp)
-- qx (dev-gcp)
-- prod (prod-gcp)
+Appen bruker [Azure AD](https://doc.nais.io/auth/entra-id/) med
+[innlogging via sidecar](https://doc.nais.io/auth/entra-id/how-to/login/) (`azure.sidecar`). Brukere som ikke er
+logget inn, sendes automatisk til innlogging.
 
-# 4. Autentisering
+Du må være direkte medlem av AD-gruppen som er konfigurert for miljøet i `.nais/*.yaml`, for å få tilgang.
 
-Appen er beskyttet med [Azure AD](https://docs.nais.io/security/auth/azure-ad/) og bruker
-[wonderwall](https://docs.nais.io/auth/sidecar/) (`azure.sidecar`) for automatisk innlogging.
-Du må være direkte medlem av AD-gruppen som er konfigurert for miljøet i `.nais/*.yaml` for å få tilgang.
+Serveren bytter brukerens token til et OBO-token for backend (`SOKOS_SPK_MOTTAK_BACKEND_AUDIENCE`) med
+`requestOboToken` fra [@navikt/oasis](https://github.com/navikt/oasis). Se [server/src/token.ts](server/src/token.ts).
 
-Server-siden bytter det innkommende Azure AD-tokenet til et On-Behalf-Of-token mot backend
-(`SOKOS_SPK_MOTTAK_BACKEND_AUDIENCE`) via `requestOboToken` fra `@navikt/oasis`, se
-[server/src/token.ts](server/src/token.ts).
+## 5. Deployment
 
-# 5. Deployment
+Appen deployes med [GitHub Actions](https://github.com/navikt/sokos-spk-mottak/actions).
 
-Distribusjon av tjenesten er gjort med bruk av Github Actions.
-[sokos-spk-mottak CI / CD](https://github.com/navikt/sokos-spk-mottak/actions)
+- Du kan ikke pushe direkte til `main`. Endringer må gå via en godkjent PR.
+- Merge til `main` bygger appen, deployer til q1 og qx, og deretter til prod.
+- Du kan deploye manuelt til q1 eller qx med [manual-deploy-frontend.yaml](../.github/workflows/manual-deploy-frontend.yaml).
 
-Push/merge til main branch direkte er ikke mulig. Det må opprettes PR og godkjennes før merge til main branch.
-Når PR er merged til main branch vil Github Actions bygge og deploye til dev-gcp og prod-gcp.
-Har også mulighet for å deploye manuelt til `dev` eller `qx` via [manual-deploy-frontend.yaml](../.github/workflows/manual-deploy-frontend.yaml).
+## 6. Drift og støtte
 
-# 6. Drift og støtte
+### Logging
 
-- [Spk Mottak Dashboard i dev](https://sokos-spk-mottak-admin.intern.dev.nav.no)
-- [Spk Mottak Dashboard i prod](https://sokos-spk-mottak-admin.intern.nav.no)
+Logger uten sensitive data går til [Grafana Loki](https://doc.nais.io/observability/logging/#grafana-loki).
+Logglinjene har `trace_id` og `span_id`, slik at du kan koble dem til traces i Nais APM.
+
+### Frontend-telemetri
+
+Klienten sender Web Vitals, JavaScript-feil og traces til Nais APM med
+[@nais/apm](https://doc.nais.io/observability/apm/tutorials/track-frontend-errors/). Se [src/util/apm.ts](src/util/apm.ts).
+Lokalt sendes ingenting.
 
 ### Kubectl
 
 For dev-gcp:
 
-```shell script
+```shell
 kubectl config use-context dev-gcp
 kubectl get pods -n okonomi | grep sokos-spk-mottak-admin
 kubectl logs -f sokos-spk-mottak-admin-<POD-ID> --namespace okonomi -c sokos-spk-mottak-admin
@@ -112,17 +116,13 @@ kubectl logs -f sokos-spk-mottak-admin-<POD-ID> --namespace okonomi -c sokos-spk
 
 For prod-gcp:
 
-```shell script
+```shell
 kubectl config use-context prod-gcp
 kubectl get pods -n okonomi | grep sokos-spk-mottak-admin
 kubectl logs -f sokos-spk-mottak-admin-<POD-ID> --namespace okonomi -c sokos-spk-mottak-admin
 ```
 
-### Logging
+## 7. Henvendelser
 
-Feilmeldinger og infomeldinger som ikke inneholder sensitive data logges til [Grafana Loki](https://docs.nais.io/observability/logging/#grafana-loki).
-
-# 7. Henvendelser
-
-Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på Github.
-Interne henvendelser kan sendes via Slack i kanalen [#utbetaling](https://nav-it.slack.com/archives/CKZADNFBP)
+Spørsmål om koden eller prosjektet kan stilles som issues her på GitHub.
+Interne henvendelser kan sendes i Slack-kanalen [#utbetaling](https://nav-it.slack.com/archives/CKZADNFBP).

@@ -39,7 +39,7 @@ repositories {
     }
 }
 
-val ktorVersion = "3.5.2"
+val ktorVersion = "3.6.0"
 val jschVersion = "2.28.7"
 val logbackVersion = "1.6.3"
 val logstashVersion = "9.0"
@@ -57,7 +57,7 @@ val db2JccVersion = "12.1.5.0"
 val kotliqueryVersion = "2.1.1"
 val testcontainersVersion = "1.21.4"
 val h2Version = "2.5.250"
-val flywayVersion = "13.6.0"
+val flywayVersion = "13.7.0"
 val postgresVersion = "42.7.13"
 val dbSchedulerVersion = "16.12.0"
 val vaultVersion = "1.3.10"

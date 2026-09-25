@@ -1,40 +1,36 @@
 import { getToken, requestOboToken, validateToken } from "@navikt/oasis";
 import type { Request } from "express";
-import { logger } from "./logger.ts";
+import { config } from "./config.ts";
+
+export class UnauthorizedError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = "UnauthorizedError";
+	}
+}
 
 async function getRequiredToken(req: Request): Promise<string> {
-	if (process.env.NODE_ENV !== "production") {
+	if (!config.isProduction) {
 		return "mock-token";
 	}
 
 	const initialToken = getToken(req);
 	if (!initialToken) {
-		logger.error("Missing wonderwall cookie");
-		throw new Error("Missing wonderwall cookie");
+		throw new UnauthorizedError("Missing wonderwall cookie");
 	}
 
 	const tokenValidationResult = await validateToken(initialToken);
 	if (!tokenValidationResult.ok) {
-		logger.error(
-			{ error: tokenValidationResult.error },
-			"Token validation failed",
-		);
-		throw new Error(`Token validation failed: ${tokenValidationResult.error}`);
-	}
-
-	const backendAudience = process.env.SOKOS_SPK_MOTTAK_BACKEND_AUDIENCE;
-	if (!backendAudience) {
-		logger.error(
-			"Missing SOKOS_SPK_MOTTAK_BACKEND_AUDIENCE environment variable",
-		);
-		throw new Error(
-			"Missing SOKOS_SPK_MOTTAK_BACKEND_AUDIENCE environment variable",
+		throw new UnauthorizedError(
+			`Token validation failed: ${tokenValidationResult.error}`,
 		);
 	}
 
-	const oboTokenResult = await requestOboToken(initialToken, backendAudience);
+	const oboTokenResult = await requestOboToken(
+		initialToken,
+		config.backendAudience,
+	);
 	if (!oboTokenResult.ok) {
-		logger.error({ error: oboTokenResult.error }, "Token exchange failed");
 		throw new Error(`Token exchange failed: ${oboTokenResult.error}`);
 	}
 
@@ -43,8 +39,7 @@ async function getRequiredToken(req: Request): Promise<string> {
 
 export async function getOboToken(req: Request): Promise<string> {
 	if (!req.headers.authorization) {
-		logger.error("Authorization header is missing");
-		throw new Error("Authorization header is missing");
+		throw new UnauthorizedError("Authorization header is missing");
 	}
 
 	return await getRequiredToken(req);

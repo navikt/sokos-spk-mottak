@@ -1,8 +1,8 @@
 import { isSpanContextValid, trace } from "@opentelemetry/api";
 import pino, { type DestinationStream, type LoggerOptions } from "pino";
 
-// OpenTelemetry-agenten instrumenterer ikke pino når serveren kjører som ESM,
-// så vi henter trace-konteksten selv for å koble logger til traces i Tempo.
+// Legger trace_id og span_id fra aktiv span inn i loggene, slik at logglinjer
+// kan kobles til traces.
 const traceContext = () => {
 	const spanContext = trace.getActiveSpan()?.spanContext();
 	if (!spanContext || !isSpanContextValid(spanContext)) {

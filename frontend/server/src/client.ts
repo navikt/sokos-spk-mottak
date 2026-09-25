@@ -9,15 +9,11 @@ export async function sendRequest(
 	logMessage: string,
 ) {
 	const oboToken = await getOboToken(req);
-	const endpoint = new URL(backendUrl).pathname.split("/").pop();
-	logger.info(
-		{
-			method: req.method,
-			url: backendUrl,
-		},
-		logMessage,
-	);
+	const path = new URL(backendUrl).pathname;
+	const endpoint = path.split("/").pop();
+	logger.info({ method: req.method, path }, logMessage);
 
+	const start = performance.now();
 	const response = await fetch(backendUrl, {
 		method: req.method,
 		headers: {
@@ -26,17 +22,22 @@ export async function sendRequest(
 		},
 		...(req.method === "POST" && { body: JSON.stringify(req.body) }),
 	});
+	const durationMs = Math.round(performance.now() - start);
 
-	logger.info(
-		{
-			url: response.url,
-			status: response.status,
-		},
+	const level =
+		response.status >= 500 ? "error" : response.status >= 400 ? "warn" : "info";
+	logger[level](
+		{ method: req.method, path, status: response.status, durationMs },
 		`Svar fra backend: ${endpoint}`,
 	);
 
 	const responseData = await response.text();
 	res.status(response.status);
+
+	const contentType = response.headers.get("content-type");
+	if (contentType) {
+		res.type(contentType);
+	}
 
 	if (responseData) {
 		res.send(responseData);
