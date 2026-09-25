@@ -1,0 +1,32 @@
+name: Build & test PR (frontend)
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'backend/**'
+      - 'frontend/.gitignore'
+      - 'frontend/.nais/**'
+      - '**.md'
+      - 'LICENCE'
+      - 'CODEOWNERS'
+      - '.github/workflows/*-backend.yaml'
+      - '.github/workflows/deploy-frontend.yaml'
+      - '.github/workflows/digestabot-automerge-frontend.yaml'
+      - '.github/workflows/digestabot-update-frontend.yaml'
+      - '.github/workflows/dependabot-automerge-frontend.yaml'
+      - '.github/workflows/manual-deploy-frontend.yaml'
+      - '.github/workflows/codeql-scan-frontend.yaml'
+      - '.github/dependabot.yaml'
+
+env:
+  TZ: Europe/Oslo
+
+jobs:
+  build-test-pr:
+    permissions:
+      contents: read
+    name: Build & test application
+    uses: navikt/mob-gha-workflows/.github/workflows/node-build-pr.yaml@9fd407aea00d8a5cc86be201b21b283ad165d82c # ratchet:navikt/mob-gha-workflows/.github/workflows/node-build-pr.yaml@v1.1.0
+    secrets: inherit
+    with:
+      project-directory: frontend

@@ -1,0 +1,70 @@
+{
+	"name": "sokos-spk-mottak-admin",
+	"version": "1.0.0",
+	"description": "Admin-dashboard for sokos-spk-mottak",
+	"type": "module",
+	"scripts": {
+		"dev": "vite --mode mock",
+		"dev:backend": "vite --mode backend",
+		"dev:backend-q1": "vite --mode backend-q1",
+		"build": "tsc && vite build",
+		"biome:check": "biome check --files-ignore-unknown=true",
+		"biome:fix": "biome check --write --no-errors-on-unmatched",
+		"stylelint:check": "stylelint '**/*.css'",
+		"stylelint:fix": "stylelint '**/*.css' --fix",
+		"prepare": "husky",
+		"pnpm:resolve": "node scripts/resolve-pnpm-version.mjs"
+	},
+	"dependencies": {
+		"@grafana/faro-web-sdk": "2.10.0",
+		"@navikt/aksel-icons": "8.16.1",
+		"@navikt/ds-css": "8.16.1",
+		"@navikt/ds-react": "8.16.1",
+		"axios": "1.19.0",
+		"dayjs": "1.11.23",
+		"react": "19.2.8",
+		"react-dom": "19.2.8",
+		"swr": "2.5.1",
+		"zod": "4.4.3",
+		"zustand": "5.0.15"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.9",
+		"@navikt/aksel-stylelint": "8.16.1",
+		"@types/node": "26.2.0",
+		"@types/react": "19.2.18",
+		"@types/react-dom": "19.2.4",
+		"@vitejs/plugin-react": "6.0.5",
+		"husky": "9.1.7",
+		"lint-staged": "17.3.0",
+		"msw": "2.15.0",
+		"stylelint": "17.14.1",
+		"stylelint-config-standard": "40.0.0",
+		"typescript": "7.0.2",
+		"vite": "8.2.1"
+	},
+	"msw": {
+		"workerDirectory": [
+			"public"
+		]
+	},
+	"stylelint": {
+		"extends": [
+			"stylelint-config-standard",
+			"@navikt/aksel-stylelint/recommended"
+		],
+		"rules": {
+			"selector-class-pattern": "^[a-z][a-z0-9-]*(__[a-z][a-z0-9-]*)*(--[a-z][a-z0-9-]*)?$",
+			"custom-property-pattern": "[a-z][a-zA-Z0-9-]+"
+		}
+	},
+	"lint-staged": {
+		"*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": "biome check --write --no-errors-on-unmatched",
+		"*.css": "stylelint --fix"
+	},
+	"engines": {
+		"pnpm": ">=11.25.0",
+		"node": ">=24.14.1"
+	},
+	"packageManager": "pnpm@11.25.0+sha512.5cde925b4f075f725eb71fbae18a42ffe784524789f19b61c731cb8721ec28aaee160e01a8d5af4fedb2a42cdbf300efe23db356b0d4a17b4d63e11f8ab7c956"
+}

@@ -1,0 +1,4 @@
+# MSW brukes kun av `vite --mode mock`, aldri av et bygg.
+dist/mockServiceWorker.js
+dist/mockServiceWorker.js.br
+dist/mockServiceWorker.js.gz

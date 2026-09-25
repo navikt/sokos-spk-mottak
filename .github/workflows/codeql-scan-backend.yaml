@@ -1,0 +1,21 @@
+name: CodeQL Scan (backend)
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+env:
+  TZ: Europe/Oslo
+
+jobs:
+  codeql-scan:
+    permissions:
+      contents: read
+      security-events: write
+    name: CodeQL Scan
+    uses: navikt/mob-gha-workflows/.github/workflows/codeql-scan.yaml@9fd407aea00d8a5cc86be201b21b283ad165d82c # ratchet:navikt/mob-gha-workflows/.github/workflows/codeql-scan.yaml@v1.1.0
+    secrets: inherit
+    with:
+      language: 'kotlin'
+      project-directory: backend
