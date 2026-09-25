@@ -1,9 +1,7 @@
-export class HttpStatusCodeError extends Error {
-	statusCode: number;
+export class ApiError extends Error {}
 
-	constructor(statusCode: number, message: string) {
-		super(message);
-		this.statusCode = statusCode;
-		this.name = "HttpStatusCodeError";
+export class HttpStatusCodeError extends Error {
+	constructor(readonly statusCode: number) {
+		super(`HTTP ${statusCode}`);
 	}
 }

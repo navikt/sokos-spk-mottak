@@ -1,4 +1,11 @@
-import { Box, Heading, InlineMessage, VStack } from "@navikt/ds-react";
+import { captureException } from "@nais/apm";
+import {
+	Box,
+	Heading,
+	InlineMessage,
+	Skeleton,
+	VStack,
+} from "@navikt/ds-react";
 import { useEffect, useState } from "react";
 import {
 	postAvstemming,
@@ -6,22 +13,29 @@ import {
 	postSendAvregningsretur,
 	postSendTrekkTransaksjon,
 	postSendUtbetalingTransaksjon,
-	useGetjobTaskInfo,
+	useGetJobTaskInfo,
 } from "../api/apiService";
-import type { AvstemmingRequest } from "../api/models/AvstemmingRequest";
 import { useStore } from "../store/AppState";
 import { toIsoDate } from "../util/datoUtil";
 import DateRangePicker from "./components/DateRangePicker";
 import JobCard from "./components/JobCard";
 import styles from "./Dashboard.module.css";
 
+const JOB_COOLDOWN_MS = 30000;
+const JOB_CARD_SKELETONS = [
+	"read",
+	"utbetaling",
+	"trekk",
+	"avstemming",
+	"avregning",
+];
+
 const Dashboard = () => {
-	const { data, error, mutate } = useGetjobTaskInfo();
+	const { data, error, isLoading, mutate } = useGetJobTaskInfo();
 
 	const [alert, setAlert] = useState<{
 		id: string;
 		type: "success" | "error";
-		message: string;
 	} | null>(null);
 
 	const { taskInfoStateRecord, setTaskInfoStateItem, removeTaskInfoStateItem } =
@@ -38,57 +52,66 @@ const Dashboard = () => {
 		toDate: null as string | null,
 	});
 
-	const handleStartJob = async (taskId: string) => {
+	const taskMap = new Map(data?.map((task) => [task.taskName, task]));
+
+	const jobDefinitions = [
+		{
+			title: "Les inn fil og valider transaksjoner",
+			taskName: "readParseFileAndValidateTransactions",
+			start: postReadAndParseFile,
+			hasDatePicker: false,
+		},
+		{
+			title: "Send utbetalingstransaksjoner",
+			taskName: "sendUtbetalingTransaksjonToOppdragZ",
+			start: postSendUtbetalingTransaksjon,
+			hasDatePicker: false,
+		},
+		{
+			title: "Send trekktransaksjoner",
+			taskName: "sendTrekkTransaksjonToOppdragZ",
+			start: postSendTrekkTransaksjon,
+			hasDatePicker: false,
+		},
+		{
+			title: "Send avregningsretur",
+			taskName: "writeAvregningsreturFile",
+			start: postSendAvregningsretur,
+			hasDatePicker: false,
+		},
+		{
+			title: "Grensesnittavstemming",
+			taskName: "grensesnittAvstemming",
+			start: () =>
+				postAvstemming({
+					fromDate: dateRange.fromDate
+						? toIsoDate(dateRange.fromDate)
+						: undefined,
+					toDate: dateRange.toDate ? toIsoDate(dateRange.toDate) : undefined,
+				}),
+			hasDatePicker: true,
+		},
+	] as const;
+
+	const handleStartJob = async (
+		taskId: string,
+		startJob: () => Promise<unknown>,
+	) => {
 		setLoadingButtons((prev) => ({ ...prev, [taskId]: true }));
 		setalertVisibility((prev) => ({ ...prev, [taskId]: true }));
 
 		const currentTime = Date.now();
 		setTaskInfoStateItem(taskId, { disabled: true, timestamp: currentTime });
 
-		const apiPromises: Record<string, () => Promise<unknown>> = {
-			readParseFileAndValidateTransactions: postReadAndParseFile,
-			sendUtbetalingTransaksjonToOppdragZ: postSendUtbetalingTransaksjon,
-			sendTrekkTransaksjonToOppdragZ: postSendTrekkTransaksjon,
-			writeAvregningsreturFile: postSendAvregningsretur,
-			grensesnittAvstemming: () => {
-				const request: AvstemmingRequest = {
-					fromDate: dateRange.fromDate
-						? toIsoDate(dateRange.fromDate)
-						: undefined,
-					toDate: dateRange.toDate ? toIsoDate(dateRange.toDate) : undefined,
-				};
-				return postAvstemming(request);
-			},
-		};
-
-		await (apiPromises[taskId]
-			? apiPromises[taskId]()
-			: Promise.reject(new Error("Unknown task ID"))
-		)
-			.then((data) => {
-				setAlert({
-					id: taskId,
-					type: "success",
-					message: data as string,
-				});
+		await startJob()
+			.then(() => {
+				setAlert({ id: taskId, type: "success" });
 				mutate();
 			})
 			.catch((error) => {
-				const errorMessage =
-					error instanceof Error ? error.message : "An unknown error occurred.";
-
-				setAlert({
-					id: taskId,
-					type: "error",
-					message: `Error occurred: ${errorMessage}`,
-				});
+				captureException(error, { context: { taskId } });
+				setAlert({ id: taskId, type: "error" });
 			});
-
-		setTimeout(() => {
-			setLoadingButtons((prev) => ({ ...prev, [taskId]: false }));
-			setalertVisibility((prev) => ({ ...prev, [taskId]: false }));
-			removeTaskInfoStateItem(taskId);
-		}, 30000);
 	};
 
 	useEffect(() => {
@@ -106,13 +129,13 @@ const Dashboard = () => {
 			const now = Date.now();
 			const elapsedTime = now - timestamp;
 
-			if (elapsedTime < 30000) {
+			if (elapsedTime < JOB_COOLDOWN_MS) {
 				// Still within disabled period - set UI state
 				setLoadingButtons((prev) => ({ ...prev, [taskId]: true }));
 				setalertVisibility((prev) => ({ ...prev, [taskId]: true }));
 
 				// Schedule reset
-				const remainingTime = 30000 - elapsedTime;
+				const remainingTime = JOB_COOLDOWN_MS - elapsedTime;
 				timeouts[taskId] = window.setTimeout(
 					() => resetButtonState(taskId),
 					remainingTime,
@@ -132,38 +155,13 @@ const Dashboard = () => {
 			});
 		}
 
-		if (Array.isArray(data)) {
-			data.forEach((task) => {
-				const savedTimestamp = taskInfoStateRecord[task.taskName]?.timestamp;
-				if (savedTimestamp) {
-					processTask(task.taskName, savedTimestamp);
-				}
-			});
-		}
-
 		// Clean up all timeouts on unmount
 		return () => {
 			Object.values(timeouts).forEach((timeoutId) => {
 				window.clearTimeout(timeoutId);
 			});
 		};
-	}, [data, taskInfoStateRecord, removeTaskInfoStateItem]);
-
-	const taskMap = Array.isArray(data)
-		? data.reduce(
-				(acc, task) => {
-					acc[task.taskName] = task;
-					return acc;
-				},
-				{} as Record<string, (typeof data)[0]>,
-			)
-		: {};
-
-	const readTaskInfo = taskMap.readParseFileAndValidateTransactions;
-	const utbetalingTaskInfo = taskMap.sendUtbetalingTransaksjonToOppdragZ;
-	const trekkTaskInfo = taskMap.sendTrekkTransaksjonToOppdragZ;
-	const avstemmingTaskInfo = taskMap.grensesnittAvstemming;
-	const writeAvregningTaskInfo = taskMap.writeAvregningsreturFile;
+	}, [taskInfoStateRecord, removeTaskInfoStateItem]);
 
 	return (
 		<>
@@ -174,7 +172,18 @@ const Dashboard = () => {
 					</Heading>
 				</Box>
 			</VStack>
-			{error ? (
+			{isLoading ? (
+				<VStack gap="space-16" align="stretch" aria-busy="true">
+					{JOB_CARD_SKELETONS.map((key) => (
+						<Skeleton
+							key={key}
+							variant="rounded"
+							height={130}
+							className={styles["job-card-skeleton"]}
+						/>
+					))}
+				</VStack>
+			) : error ? (
 				<VStack align="center" justify="center" gap="space-32">
 					<InlineMessage status="error">
 						Det oppstod en feil ved henting av data fra serveren. Vennligst prøv
@@ -183,111 +192,52 @@ const Dashboard = () => {
 				</VStack>
 			) : (
 				<VStack gap="space-16" align="stretch">
-					<JobCard
-						title="Les inn fil og valider transaksjoner"
-						attributes={{
-							alertType:
-								alert?.id === readTaskInfo?.taskName
-									? alert?.type || null
-									: "info",
-							isAlertVisible: alertVisibility[readTaskInfo?.taskName],
-							isJobRunning: !!readTaskInfo?.isPicked,
-							isLoading: loadingButtons[readTaskInfo?.taskName],
-							isButtonDisabled:
-								taskInfoStateRecord[readTaskInfo?.taskName]?.disabled || false,
-						}}
-						jobTaskInfo={readTaskInfo}
-						onStartClick={() => handleStartJob(readTaskInfo?.taskName)}
-					/>
-					<JobCard
-						title="Send utbetalingtransaksjoner"
-						attributes={{
-							alertType:
-								alert?.id === utbetalingTaskInfo?.taskName
-									? alert?.type || null
-									: "info",
-							isAlertVisible: alertVisibility[utbetalingTaskInfo?.taskName],
-							isJobRunning: !!utbetalingTaskInfo?.isPicked,
-							isLoading: loadingButtons[utbetalingTaskInfo?.taskName],
-							isButtonDisabled:
-								taskInfoStateRecord[utbetalingTaskInfo?.taskName]?.disabled ||
-								false,
-						}}
-						jobTaskInfo={utbetalingTaskInfo}
-						onStartClick={() => handleStartJob(utbetalingTaskInfo?.taskName)}
-					/>
+					{jobDefinitions.map((job) => {
+						const taskInfo = taskMap.get(job.taskName);
+						const jobCard = (
+							<JobCard
+								key={job.taskName}
+								title={job.title}
+								attributes={{
+									alertType: alert?.id === job.taskName ? alert.type : "info",
+									isAlertVisible: alertVisibility[job.taskName] ?? false,
+									isJobRunning: taskInfo?.isPicked ?? false,
+									isLoading: loadingButtons[job.taskName] ?? false,
+									isButtonDisabled:
+										taskInfoStateRecord[job.taskName]?.disabled ?? false,
+								}}
+								jobTaskInfo={taskInfo}
+								onStartClick={() => {
+									if (taskInfo) {
+										void handleStartJob(taskInfo.taskName, job.start);
+									}
+								}}
+							>
+								{job.hasDatePicker && (
+									<div className={styles.datePickerWrapper}>
+										<DateRangePicker
+											onDateChange={(fromDate, toDate) => {
+												if (
+													fromDate !== dateRange.fromDate ||
+													toDate !== dateRange.toDate
+												) {
+													setDateRange({ fromDate, toDate });
+												}
+											}}
+										/>
+									</div>
+								)}
+							</JobCard>
+						);
 
-					<JobCard
-						title="Send trekktransaksjoner"
-						attributes={{
-							alertType:
-								alert?.id === trekkTaskInfo?.taskName
-									? alert?.type || null
-									: "info",
-							isAlertVisible: alertVisibility[trekkTaskInfo?.taskName],
-							isJobRunning: !!trekkTaskInfo?.isPicked,
-							isLoading: loadingButtons[trekkTaskInfo?.taskName],
-							isButtonDisabled:
-								taskInfoStateRecord[trekkTaskInfo?.taskName]?.disabled || false,
-						}}
-						jobTaskInfo={trekkTaskInfo}
-						onStartClick={() => handleStartJob(trekkTaskInfo?.taskName)}
-					/>
-
-					<JobCard
-						title="Send avregningsretur"
-						attributes={{
-							alertType:
-								alert?.id === writeAvregningTaskInfo?.taskName
-									? alert?.type || null
-									: "info",
-							isAlertVisible: alertVisibility[writeAvregningTaskInfo?.taskName],
-							isJobRunning: !!writeAvregningTaskInfo?.isPicked,
-							isLoading: loadingButtons[writeAvregningTaskInfo?.taskName],
-							isButtonDisabled:
-								taskInfoStateRecord[writeAvregningTaskInfo?.taskName]
-									?.disabled || false,
-						}}
-						jobTaskInfo={writeAvregningTaskInfo}
-						onStartClick={() =>
-							handleStartJob(writeAvregningTaskInfo?.taskName)
-						}
-					/>
-
-					<div className={styles.bottomSpacing}>
-						<JobCard
-							title="Grensesnittavstemming"
-							attributes={{
-								alertType:
-									alert?.id === avstemmingTaskInfo?.taskName
-										? alert?.type || null
-										: "info",
-								isAlertVisible: alertVisibility[avstemmingTaskInfo?.taskName],
-								isJobRunning: !!avstemmingTaskInfo?.isPicked,
-								isLoading: loadingButtons[avstemmingTaskInfo?.taskName],
-								isButtonDisabled:
-									taskInfoStateRecord[avstemmingTaskInfo?.taskName]?.disabled ||
-									false,
-							}}
-							jobTaskInfo={avstemmingTaskInfo}
-							onStartClick={() => handleStartJob(avstemmingTaskInfo?.taskName)}
-						>
-							<div className={styles.datePickerWrapper}>
-								<DateRangePicker
-									onDateChange={(fromDate, toDate) => {
-										if (
-											fromDate !== dateRange.fromDate ||
-											toDate !== dateRange.toDate
-										)
-											setDateRange(() => ({
-												fromDate,
-												toDate,
-											}));
-									}}
-								/>
+						return job.hasDatePicker ? (
+							<div key={job.taskName} className={styles.bottomSpacing}>
+								{jobCard}
 							</div>
-						</JobCard>
-					</div>
+						) : (
+							jobCard
+						);
+					})}
 				</VStack>
 			)}
 		</>

@@ -28,6 +28,7 @@ Appen består av to deler:
 
 * Node (se `engines` i [package.json](package.json))
 * pnpm (se `packageManager` i [package.json](package.json))
+* GitHub-token med `read:packages` for å installere pakker under `@navikt` og `@nais` fra GitHub Packages
 
 ### Installere avhengigheter
 
@@ -36,6 +37,13 @@ Klienten og serveren har hver sin `package.json` og installeres hver for seg:
 ```shell
 pnpm install
 cd server && pnpm install
+```
+
+`pnpm-workspace.yaml` setter `ignoreScripts: true`, så MSW lager ikke `public/mockServiceWorker.js` automatisk. Lag den
+én gang før du kjører `pnpm run dev`:
+
+```shell
+pnpm exec msw init
 ```
 
 ### Bygge
@@ -56,11 +64,15 @@ cd server && pnpm run build   # server (tsc --build)
 Slik kjører du Express-serveren lokalt:
 
 ```shell
-cd server && pnpm run dev
+cd server && SOKOS_SPK_MOTTAK_BACKEND_URL=http://localhost:8080 pnpm run dev
 ```
 
+Serveren starter ikke hvis `SOKOS_SPK_MOTTAK_BACKEND_URL` mangler. I prod må også `SOKOS_SPK_MOTTAK_BACKEND_AUDIENCE`
+være satt. Se [server/src/config.ts](server/src/config.ts).
+
 Utenfor Nais finnes ikke Azure AD-innloggingen. Når `NODE_ENV` ikke er `production`, bruker serveren derfor et
-mock-token i stedet for å hente et ekte OBO-token.
+mock-token i stedet for å hente et ekte OBO-token. Kallet må likevel ha en `Authorization`-header, ellers svarer
+serveren 401.
 
 ## 3. Miljøer
 
@@ -102,7 +114,8 @@ Logglinjene har `trace_id` og `span_id`, slik at du kan koble dem til traces i N
 
 Klienten sender Web Vitals, JavaScript-feil og traces til Nais APM med
 [@nais/apm](https://doc.nais.io/observability/apm/tutorials/track-frontend-errors/). Se [src/util/apm.ts](src/util/apm.ts).
-Lokalt sendes ingenting.
+Data havner under `sokos-spk-mottak-admin` eller `sokos-spk-mottak-admin-qx` i
+[Nais APM](https://grafana.nav.cloud.nais.io/a/nais-apm-app/services). Lokalt sendes ingenting.
 
 ### Kubectl
 

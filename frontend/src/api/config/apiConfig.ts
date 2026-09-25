@@ -1,5 +1,5 @@
-import axios, { type CreateAxiosDefaults } from "axios";
-import { HttpStatusCodeError } from "../types/Error";
+import axios, { type AxiosInstance, type CreateAxiosDefaults } from "axios";
+import { ApiError, HttpStatusCodeError } from "../../types/Error";
 
 const config = (baseUri: string): CreateAxiosDefaults => ({
 	baseURL: baseUri,
@@ -13,24 +13,36 @@ const config = (baseUri: string): CreateAxiosDefaults => ({
 	validateStatus: (status) => status < 400,
 });
 
-function api(baseUri: string) {
+function createApi(baseUri: string): AxiosInstance {
 	const instance = axios.create(config(baseUri));
 
 	instance.interceptors.response.use(
 		(response) => response,
 		(error) => {
-			if (error.response?.status === 401 || error.response?.status === 403) {
+			const status: number | undefined = error.response?.status;
+			if (status === 400) {
+				throw new HttpStatusCodeError(status);
+			}
+			if (status === 401 || status === 403) {
 				// Uinnlogget - vil ikke skje i miljø da appen er beskyttet
 				return Promise.reject(error);
-			} else {
-				throw new HttpStatusCodeError(
-					error.response?.status || 500, // Default 500 hvis status ikke er definert
-					error.response?.data?.message ||
-						"Nettverksproblemer. Hvis feilen oppstår, meld sak i Porten.", // Default melding hvis message ikke er definert
-				);
 			}
+			throw new ApiError(
+				`Issues with connection to backend${status ? ` (HTTP ${status})` : ""}`,
+			);
 		},
 	);
+	return instance;
+}
+
+const instances = new Map<string, AxiosInstance>();
+
+function api(baseUri: string): AxiosInstance {
+	let instance = instances.get(baseUri);
+	if (!instance) {
+		instance = createApi(baseUri);
+		instances.set(baseUri, instance);
+	}
 	return instance;
 }
 

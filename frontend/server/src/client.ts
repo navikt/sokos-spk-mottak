@@ -13,7 +13,6 @@ export async function sendRequest(
 	const endpoint = path.split("/").pop();
 	logger.info({ method: req.method, path }, logMessage);
 
-	const start = performance.now();
 	const response = await fetch(backendUrl, {
 		method: req.method,
 		headers: {
@@ -22,12 +21,11 @@ export async function sendRequest(
 		},
 		...(req.method === "POST" && { body: JSON.stringify(req.body) }),
 	});
-	const durationMs = Math.round(performance.now() - start);
 
 	const level =
 		response.status >= 500 ? "error" : response.status >= 400 ? "warn" : "info";
 	logger[level](
-		{ method: req.method, path, status: response.status, durationMs },
+		{ method: req.method, path, status: response.status },
 		`Svar fra backend: ${endpoint}`,
 	);
 

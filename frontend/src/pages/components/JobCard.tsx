@@ -67,18 +67,18 @@ const JobCard: React.FC<JobCardProps> = (props: JobCardProps) => {
 					{isoDatoTilNorskDato(props.jobTaskInfo?.executionTime)}
 				</BodyShort>
 				<BodyShort size="small">
-					<b>Jobb Kjører:</b> {props.jobTaskInfo?.isPicked ? "Ja" : "Nei"}
+					<b>Jobb kjører:</b> {props.jobTaskInfo?.isPicked ? "Ja" : "Nei"}
 				</BodyShort>
 				<BodyShort size="small">
 					<b>Siste vellykkede kjøringstidspunkt:</b>{" "}
-					{isoDatoTilNorskDato(props.jobTaskInfo?.lastSuccess) || "N/A"}
+					{isoDatoTilNorskDato(props.jobTaskInfo?.lastSuccess) || "Ingen"}
 				</BodyShort>
 				<BodyShort size="small">
 					<b>Sist kjørt av:</b> {props.jobTaskInfo?.ident}
 				</BodyShort>
 				<BodyShort size="small">
 					<b>Siste mislykkede kjøringstidspunkt:</b>{" "}
-					{isoDatoTilNorskDato(props.jobTaskInfo?.lastFailure) || "N/A"}
+					{isoDatoTilNorskDato(props.jobTaskInfo?.lastFailure) || "Ingen"}
 					{props.jobTaskInfo?.lastFailure && (
 						<>
 							<br />
@@ -140,6 +140,7 @@ const JobCard: React.FC<JobCardProps> = (props: JobCardProps) => {
 						size="small"
 						onClick={props.onStartClick}
 						disabled={
+							!props.jobTaskInfo ||
 							props.attributes.isButtonDisabled ||
 							props.attributes.isLoading ||
 							props.attributes.isJobRunning

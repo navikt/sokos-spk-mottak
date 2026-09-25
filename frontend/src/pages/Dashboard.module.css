@@ -5,3 +5,8 @@
 .bottomSpacing {
 	margin-bottom: 30px;
 }
+
+.job-card-skeleton {
+	width: 65%;
+	margin: 0 auto;
+}

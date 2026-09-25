@@ -10,7 +10,6 @@ type AppState = {
 };
 
 type AppStateActions = {
-	resetState: () => void;
 	setTaskInfoStateItem: (taskId: string, taskInfoState: TaskInfoState) => void;
 	removeTaskInfoStateItem: (taskId: string) => void;
 };
@@ -24,7 +23,6 @@ export const useStore = create<AppState & AppStateActions>()(
 		persist(
 			(set) => ({
 				...initAppState,
-				resetState: () => set({ ...initAppState }),
 				setTaskInfoStateItem: (taskId: string, taskInfoState: TaskInfoState) =>
 					set((state) => ({
 						taskInfoStateRecord: {
