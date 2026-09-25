@@ -7,17 +7,18 @@ import express, {
 } from "express";
 import expressStaticGzip from "express-static-gzip";
 import { sendRequest } from "./client.ts";
+import { config } from "./config.ts";
 import { logger } from "./logger.ts";
+import { UnauthorizedError } from "./token.ts";
 
 const BUILD_PATH = path.resolve(import.meta.dirname, "../dist");
 const HASHED_ASSETS_PATH = path.join(BUILD_PATH, "assets");
 const ONE_YEAR_IN_SECONDS = 31_536_000;
-const PORT = process.env.PORT || 8080;
-const SOKOS_SPK_MOTTAK_BACKEND_URL = process.env.SOKOS_SPK_MOTTAK_BACKEND_URL;
 
 collectDefaultMetrics();
 
 const server = express();
+server.disable("x-powered-by");
 
 server.use(
 	expressStaticGzip(BUILD_PATH, {
@@ -40,7 +41,6 @@ server.use(
 );
 
 server.use(express.json());
-server.use(express.urlencoded({ extended: true }));
 
 function asyncHandler(
 	fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
@@ -50,77 +50,58 @@ function asyncHandler(
 	};
 }
 
-server.post(
-	`/spk-mottak-api/api/v1/readParseFileAndValidateTransactions`,
-	asyncHandler(async (req: Request, res: Response) => {
-		await sendRequest(
-			req,
-			res,
-			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/readParseFileAndValidateTransactions`,
-			"Starter jobb: readParseFileAndValidateTransactions",
-		);
-	}),
-);
+type BackendRoute = {
+	method: "get" | "post";
+	endpoint: string;
+	logMessage: string;
+};
 
-server.post(
-	`/spk-mottak-api/api/v1/sendUtbetalingTransaksjonToOppdragZ`,
-	asyncHandler(async (req: Request, res: Response) => {
-		await sendRequest(
-			req,
-			res,
-			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/sendUtbetalingTransaksjonToOppdragZ`,
-			"Starter jobb: sendUtbetalingTransaksjonToOppdragZ",
-		);
-	}),
-);
+const backendRoutes: BackendRoute[] = [
+	{
+		method: "post",
+		endpoint: "readParseFileAndValidateTransactions",
+		logMessage: "Starter jobb: readParseFileAndValidateTransactions",
+	},
+	{
+		method: "post",
+		endpoint: "sendUtbetalingTransaksjonToOppdragZ",
+		logMessage: "Starter jobb: sendUtbetalingTransaksjonToOppdragZ",
+	},
+	{
+		method: "post",
+		endpoint: "sendTrekkTransaksjonToOppdragZ",
+		logMessage: "Starter jobb: sendTrekkTransaksjonToOppdragZ",
+	},
+	{
+		method: "post",
+		endpoint: "writeAvregningsreturFile",
+		logMessage: "Starter jobb: writeAvregningsreturFile",
+	},
+	{
+		method: "post",
+		endpoint: "avstemming",
+		logMessage: "Starter jobb: avstemming",
+	},
+	{
+		method: "get",
+		endpoint: "jobTaskInfo",
+		logMessage: "Henter jobbstatus: jobTaskInfo",
+	},
+];
 
-server.post(
-	`/spk-mottak-api/api/v1/sendTrekkTransaksjonToOppdragZ`,
-	asyncHandler(async (req: Request, res: Response) => {
-		await sendRequest(
-			req,
-			res,
-			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/sendTrekkTransaksjonToOppdragZ`,
-			"Starter jobb: sendTrekkTransaksjonToOppdragZ",
-		);
-	}),
-);
-
-server.post(
-	`/spk-mottak-api/api/v1/writeAvregningsreturFile`,
-	asyncHandler(async (req: Request, res: Response) => {
-		await sendRequest(
-			req,
-			res,
-			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/writeAvregningsreturFile`,
-			"Starter jobb: writeAvregningsreturFile",
-		);
-	}),
-);
-
-server.post(
-	`/spk-mottak-api/api/v1/avstemming`,
-	asyncHandler(async (req: Request, res: Response) => {
-		await sendRequest(
-			req,
-			res,
-			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/avstemming`,
-			"Starter jobb: avstemming",
-		);
-	}),
-);
-
-server.get(
-	`/spk-mottak-api/api/v1/jobTaskInfo`,
-	asyncHandler(async (req: Request, res: Response) => {
-		await sendRequest(
-			req,
-			res,
-			`${SOKOS_SPK_MOTTAK_BACKEND_URL}/api/v1/jobTaskInfo`,
-			"Henter jobbstatus: jobTaskInfo",
-		);
-	}),
-);
+for (const { method, endpoint, logMessage } of backendRoutes) {
+	server[method](
+		`/spk-mottak-api/api/v1/${endpoint}`,
+		asyncHandler(async (req: Request, res: Response) => {
+			await sendRequest(
+				req,
+				res,
+				`${config.backendUrl}/api/v1/${endpoint}`,
+				logMessage,
+			);
+		}),
+	);
+}
 
 const internalRouter = express.Router();
 
@@ -142,13 +123,22 @@ internalRouter.get(
 
 server.use("/internal", internalRouter);
 
-server.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-	logger.error({ err }, "Request error occurred");
+server.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+	const logContext = { err, method: req.method, path: req.path };
 
+	if (err instanceof UnauthorizedError) {
+		logger.warn(logContext, "Ikke autentisert");
+		res.status(401).json({ message: err.message });
+		return;
+	}
+
+	logger.error(logContext, "Feil ved behandling av request");
 	res.status(500).json({
 		message: err.message,
-		...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
+		...(!config.isProduction && { stack: err.stack }),
 	});
 });
 
-server.listen(PORT, () => logger.info(`Server listening on port ${PORT}`));
+server.listen(config.port, () =>
+	logger.info(`Server listening on port ${config.port}`),
+);
