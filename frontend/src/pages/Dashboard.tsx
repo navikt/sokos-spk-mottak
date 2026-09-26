@@ -1,5 +1,6 @@
 import { captureException } from "@nais/apm";
 import {
+	BodyShort,
 	Box,
 	Heading,
 	InlineMessage,
@@ -33,20 +34,15 @@ const JOB_CARD_SKELETONS = [
 const Dashboard = () => {
 	const { data, error, isLoading, mutate } = useGetJobTaskInfo();
 
-	const [alert, setAlert] = useState<{
-		id: string;
-		type: "success" | "error";
-	} | null>(null);
+	const [alerts, setAlerts] = useState<
+		Record<string, { type: "success" | "error"; timestamp: number }>
+	>({});
 
 	const { taskInfoStateRecord, setTaskInfoStateItem, removeTaskInfoStateItem } =
 		useStore();
 	const [loadingButtons, setLoadingButtons] = useState<{
 		[key: string]: boolean;
 	}>({});
-	const [alertVisibility, setalertVisibility] = useState<{
-		[key: string]: boolean;
-	}>({});
-
 	const [dateRange, setDateRange] = useState({
 		fromDate: null as string | null,
 		toDate: null as string | null,
@@ -98,21 +94,50 @@ const Dashboard = () => {
 		startJob: () => Promise<unknown>,
 	) => {
 		setLoadingButtons((prev) => ({ ...prev, [taskId]: true }));
-		setalertVisibility((prev) => ({ ...prev, [taskId]: true }));
+		setAlerts((prev) => {
+			const next = { ...prev };
+			delete next[taskId];
+			return next;
+		});
 
 		const currentTime = Date.now();
 		setTaskInfoStateItem(taskId, { disabled: true, timestamp: currentTime });
 
-		await startJob()
-			.then(() => {
-				setAlert({ id: taskId, type: "success" });
-				mutate();
-			})
-			.catch((error) => {
-				captureException(error, { context: { taskId } });
-				setAlert({ id: taskId, type: "error" });
-			});
+		try {
+			await startJob();
+			setAlerts((prev) => ({
+				...prev,
+				[taskId]: { type: "success", timestamp: Date.now() },
+			}));
+			void mutate();
+		} catch (error) {
+			captureException(error, { context: { taskId } });
+			setAlerts((prev) => ({
+				...prev,
+				[taskId]: { type: "error", timestamp: Date.now() },
+			}));
+		}
 	};
+
+	useEffect(() => {
+		const timeouts = Object.entries(alerts).map(([taskId, alert]) =>
+			window.setTimeout(
+				() =>
+					setAlerts((prev) => {
+						const next = { ...prev };
+						delete next[taskId];
+						return next;
+					}),
+				Math.max(0, JOB_COOLDOWN_MS - (Date.now() - alert.timestamp)),
+			),
+		);
+
+		return () => {
+			timeouts.forEach((timeoutId) => {
+				window.clearTimeout(timeoutId);
+			});
+		};
+	}, [alerts]);
 
 	useEffect(() => {
 		// Track timeouts for cleanup
@@ -121,7 +146,6 @@ const Dashboard = () => {
 		// Single function to handle button state reset
 		const resetButtonState = (key: string) => {
 			setLoadingButtons((prev) => ({ ...prev, [key]: false }));
-			setalertVisibility((prev) => ({ ...prev, [key]: false }));
 			removeTaskInfoStateItem(key);
 		};
 
@@ -132,7 +156,6 @@ const Dashboard = () => {
 			if (elapsedTime < JOB_COOLDOWN_MS) {
 				// Still within disabled period - set UI state
 				setLoadingButtons((prev) => ({ ...prev, [taskId]: true }));
-				setalertVisibility((prev) => ({ ...prev, [taskId]: true }));
 
 				// Schedule reset
 				const remainingTime = JOB_COOLDOWN_MS - elapsedTime;
@@ -173,16 +196,23 @@ const Dashboard = () => {
 				</Box>
 			</VStack>
 			{isLoading ? (
-				<VStack gap="space-16" align="stretch" aria-busy="true">
-					{JOB_CARD_SKELETONS.map((key) => (
-						<Skeleton
-							key={key}
-							variant="rounded"
-							height={130}
-							className={styles["job-card-skeleton"]}
-						/>
-					))}
-				</VStack>
+				<>
+					<div className={styles["loading-message"]}>
+						<BodyShort size="large" weight="semibold" role="status">
+							Laster jobber …
+						</BodyShort>
+					</div>
+					<VStack gap="space-16" align="stretch" aria-busy="true">
+						{JOB_CARD_SKELETONS.map((key) => (
+							<Skeleton
+								key={key}
+								variant="rounded"
+								height={130}
+								className={styles["job-card-skeleton"]}
+							/>
+						))}
+					</VStack>
+				</>
 			) : error ? (
 				<VStack align="center" justify="center" gap="space-32">
 					<InlineMessage status="error">
@@ -199,8 +229,7 @@ const Dashboard = () => {
 								key={job.taskName}
 								title={job.title}
 								attributes={{
-									alertType: alert?.id === job.taskName ? alert.type : "info",
-									isAlertVisible: alertVisibility[job.taskName] ?? false,
+									alertType: alerts[job.taskName]?.type,
 									isJobRunning: taskInfo?.isPicked ?? false,
 									isLoading: loadingButtons[job.taskName] ?? false,
 									isButtonDisabled:

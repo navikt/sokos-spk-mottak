@@ -10,3 +10,8 @@
 	width: 65%;
 	margin: 0 auto;
 }
+
+.loading-message {
+	display: flex;
+	justify-content: center;
+}

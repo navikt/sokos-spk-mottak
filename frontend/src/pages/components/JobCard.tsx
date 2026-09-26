@@ -13,8 +13,7 @@ import { getEnvironment } from "../../util/environment";
 import styles from "./JobCard.module.css";
 
 type JobCardAttributes = {
-	alertType: "success" | "error" | "info" | null;
-	isAlertVisible: boolean;
+	alertType?: "success" | "error";
 	isJobRunning: boolean;
 	isLoading: boolean;
 	isButtonDisabled: boolean;
@@ -101,20 +100,15 @@ const JobCard: React.FC<JobCardProps> = (props: JobCardProps) => {
 			</div>
 			{props.children}
 			<div className={styles["button-and-alert-container"]}>
-				{props.attributes.isAlertVisible && (
+				{props.attributes.alertType && (
 					<div className={styles["alert-wrapper"]}>
 						<InlineMessage
 							role="alert"
 							size="small"
-							status={
-								props.jobTaskInfo
-									? props.attributes.alertType || "success"
-									: "error"
-							}
+							status={props.attributes.alertType}
 							className={styles["small-alert"]}
 						>
-							{props.jobTaskInfo === undefined ||
-							props.attributes.alertType === "error" ? (
+							{props.attributes.alertType === "error" ? (
 								<span>Jobb kan ikke kjøres, sjekk logger for status</span>
 							) : (
 								<span>Jobb har startet, sjekk logger for status</span>
@@ -125,7 +119,7 @@ const JobCard: React.FC<JobCardProps> = (props: JobCardProps) => {
 				{props.attributes.isJobRunning && (
 					<div className={styles["alert-wrapper"]}>
 						<InlineMessage
-							role="alert"
+							role="status"
 							size="small"
 							status="info"
 							className={styles["small-alert"]}
