@@ -1,4 +1,4 @@
-name: Digestabot Update (frontend)
+name: Digestabot Update
 
 on:
   schedule:

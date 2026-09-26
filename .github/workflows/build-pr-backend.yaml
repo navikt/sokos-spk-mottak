@@ -15,8 +15,8 @@ on:
       - '.github/workflows/*-frontend.yaml'
       - '.github/workflows/codeql-scan-backend.yaml'
       - '.github/workflows/deploy-backend.yaml'
-      - '.github/workflows/digestabot-automerge-backend.yaml'
-      - '.github/workflows/digestabot-update-backend.yaml'
+      - '.github/workflows/digestabot-automerge.yaml'
+      - '.github/workflows/digestabot-update.yaml'
       - '.github/workflows/manual-deploy-backend.yaml'
       - '.github/dependabot.yaml'
 

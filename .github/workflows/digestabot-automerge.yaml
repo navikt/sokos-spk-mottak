@@ -1,4 +1,4 @@
-name: Digestabot Auto-merge (frontend)
+name: Digestabot Auto-merge
 
 on:
   workflow_dispatch:
