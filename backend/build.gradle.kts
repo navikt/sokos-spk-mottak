@@ -164,19 +164,11 @@ configurations.all {
             }
             if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-databind") {
                 useVersion("2.22.1")
-                because("Multiple versions of jackson-databind has vulnerable dependencies. Affected version >= 2.19.0, <= 2.21.3")
+                because("Multiple versions of jackson-databind has vulnerable dependencies. Affected version >= 2.19.0, < 2.21.4")
             }
-            if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
-                useVersion("2.22.1")
-                because("Multiple versions of jackson-core has vulnerable dependencies.. Affected version >= 2.19.0, <= 2.21.1")
-            }
-            if (requested.group == "org.apache.httpcomponents.core5" && requested.name == "httpcore5") {
-                useVersion("5.4.3")
-                because("HTTP/1 header parsing can cause memory-exhaustion denial of service. Affected version >= 5.0, < 5.4.3")
-            }
-            if (requested.group == "org.apache.httpcomponents.core5" && requested.name == "httpcore5-h2") {
-                useVersion("5.4.3")
-                because("Unlimited Header List Size Before SETTINGS ACK. Affected version >= 5.0, < 5.4.3")
+            if (requested.group == "org.bouncycastle" && requested.name == "bcprov-jdk18on") {
+                useVersion("1.85")
+                because("Affected version < 1.85")
             }
         }
     }
