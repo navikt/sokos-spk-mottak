@@ -83,27 +83,13 @@ jobs:
       resource: backend/.nais/dev/naiserator-q1.yaml
       image: ${{ needs.build-push-image-dev.outputs.image }}
 
-  deploy-dev-qx:
-    permissions:
-      contents: read
-      id-token: write
-      pull-requests: write
-      deployments: write
-    needs: [build-push-image-dev]
-    name: Deploy to dev-fss-qx
-    uses: navikt/mob-gha-workflows/.github/workflows/nais-deploy.yaml@ef9d193067cf5fcce3a63ebb53c7cda7ef9c2541 # ratchet:navikt/mob-gha-workflows/.github/workflows/nais-deploy.yaml@v1.2.0
-    with:
-      cluster: dev-fss
-      resource: backend/.nais/dev/naiserator-qx.yaml
-      image: ${{ needs.build-push-image-dev.outputs.image }}
-
   deploy-prod:
     permissions:
       contents: read
       id-token: write
       pull-requests: write
       deployments: write
-    needs: [build-push-image-prod, deploy-dev-q1, deploy-dev-qx]
+    needs: [build-push-image-prod, deploy-dev-q1]
     name: Deploy to prod-fss
     uses: navikt/mob-gha-workflows/.github/workflows/nais-deploy.yaml@ef9d193067cf5fcce3a63ebb53c7cda7ef9c2541 # ratchet:navikt/mob-gha-workflows/.github/workflows/nais-deploy.yaml@v1.2.0
     with:

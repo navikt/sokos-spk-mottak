@@ -67,7 +67,6 @@ Bygget kjører også testene med Testcontainers, så Docker må kjøre.
 | Miljø | Cluster | URL |
 |---|---|---|
 | q1 | dev-fss | https://sokos-spk-mottak.intern.dev.nav.no |
-| qx | dev-fss | https://sokos-spk-mottak-qx.intern.dev.nav.no |
 | prod | prod-fss | https://sokos-spk-mottak.intern.nav.no |
 
 Manifestene ligger i [.nais](.nais).
@@ -89,8 +88,8 @@ Brukere må være direkte medlem av AD-gruppen som er konfigurert for miljøet, 
 Applikasjonen deployes med [GitHub Actions](https://github.com/navikt/sokos-spk-mottak/actions).
 
 - Du kan ikke pushe direkte til `main`. Endringer må gå via en godkjent PR.
-- Merge til `main` bygger og tester applikasjonen, deployer til q1 og qx, og deretter til prod.
-- Du kan deploye manuelt til q1 eller qx med [manual-deploy-backend.yaml](../.github/workflows/manual-deploy-backend.yaml).
+- Merge til `main` bygger og tester applikasjonen, deployer til q1 og deretter til prod.
+- Du kan deploye manuelt til q1 med [manual-deploy-backend.yaml](../.github/workflows/manual-deploy-backend.yaml).
 
 ## 6. Drift og støtte
 

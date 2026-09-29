@@ -79,7 +79,6 @@ serveren 401.
 | Miljø | Cluster | URL |
 |---|---|---|
 | q1 | dev-gcp | https://sokos-spk-mottak-admin.intern.dev.nav.no |
-| qx | dev-gcp | https://sokos-spk-mottak-admin-qx.intern.dev.nav.no |
 | prod | prod-gcp | https://sokos-spk-mottak-admin.intern.nav.no |
 
 Manifestene ligger i [.nais](.nais).
@@ -100,8 +99,8 @@ Serveren bytter brukerens token til et OBO-token for backend (`SOKOS_SPK_MOTTAK_
 Appen deployes med [GitHub Actions](https://github.com/navikt/sokos-spk-mottak/actions).
 
 - Du kan ikke pushe direkte til `main`. Endringer må gå via en godkjent PR.
-- Merge til `main` bygger appen, deployer til q1 og qx, og deretter til prod.
-- Du kan deploye manuelt til q1 eller qx med [manual-deploy-frontend.yaml](../.github/workflows/manual-deploy-frontend.yaml).
+- Merge til `main` bygger appen, deployer til q1 og deretter til prod.
+- Du kan deploye manuelt til q1 med [manual-deploy-frontend.yaml](../.github/workflows/manual-deploy-frontend.yaml).
 
 ## 6. Drift og støtte
 
@@ -114,8 +113,8 @@ Logglinjene har `trace_id` og `span_id`, slik at du kan koble dem til traces i N
 
 Klienten sender Web Vitals, JavaScript-feil og traces til Nais APM med
 [@nais/apm](https://doc.nais.io/observability/apm/tutorials/track-frontend-errors/). Se [src/util/apm.ts](src/util/apm.ts).
-Data havner under `sokos-spk-mottak-admin` eller `sokos-spk-mottak-admin-qx` i
-[Nais APM](https://grafana.nav.cloud.nais.io/a/nais-apm-app/services). Lokalt sendes ingenting.
+Data havner under `sokos-spk-mottak-admin` i [Nais APM](https://grafana.nav.cloud.nais.io/a/nais-apm-app/services).
+Lokalt sendes ingenting.
 
 ### Kubectl
 

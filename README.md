@@ -61,7 +61,7 @@ Workflowene i [.github/workflows](.github/workflows) finnes i en `-backend`- og 
 kjører bare når filer i sin app endres (se `paths-ignore`). En PR som bare endrer frontend, bygger og tester derfor ikke
 backend, og omvendt.
 
-Merge til `main` deployer appen til q1 og qx, og deretter til prod. Se Deployment i README-en for hver app.
+Merge til `main` deployer appen til q1 og deretter til prod. Se Deployment i README-en for hver app.
 
 ## Henvendelser
 
