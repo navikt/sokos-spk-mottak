@@ -13,7 +13,7 @@ on:
       - '.github/workflows/deploy-frontend.yaml'
       - '.github/workflows/digestabot-automerge.yaml'
       - '.github/workflows/digestabot-update.yaml'
-      - '.github/workflows/dependabot-automerge-frontend.yaml'
+      - 'dependabot-automerge.yaml'
       - '.github/workflows/manual-deploy-frontend.yaml'
       - '.github/workflows/codeql-scan-frontend.yaml'
       - '.github/dependabot.yaml'
@@ -26,7 +26,7 @@ jobs:
     permissions:
       contents: read
     name: Build & test application
-    uses: navikt/mob-gha-workflows/.github/workflows/node-build-pr.yaml@9f663f4e1ff4f85a52efa067fbf53c5a6bbaede9 # ratchet:navikt/mob-gha-workflows/.github/workflows/node-build-pr.yaml@v1.1.2
+    uses: navikt/mob-gha-workflows/.github/workflows/node-build-pr.yaml@ef9d193067cf5fcce3a63ebb53c7cda7ef9c2541 # ratchet:navikt/mob-gha-workflows/.github/workflows/node-build-pr.yaml@v1.2.0
     secrets: inherit
     with:
       project-directory: frontend

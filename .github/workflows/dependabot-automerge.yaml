@@ -1,4 +1,4 @@
-name: Dependabot Auto-merge (frontend)
+name: Dependabot Auto-merge
 
 on:
   workflow_dispatch:
@@ -14,7 +14,9 @@ jobs:
       contents: read
       pull-requests: write
     name: Dependabot Auto-merge
-    uses: navikt/mob-gha-workflows/.github/workflows/dependabot-automerge.yaml@9f663f4e1ff4f85a52efa067fbf53c5a6bbaede9 # ratchet:navikt/mob-gha-workflows/.github/workflows/dependabot-automerge.yaml@v1.1.2
+    uses: navikt/mob-gha-workflows/.github/workflows/dependabot-automerge.yaml@ef9d193067cf5fcce3a63ebb53c7cda7ef9c2541 # ratchet:navikt/mob-gha-workflows/.github/workflows/dependabot-automerge.yaml@v1.2.0
+    with:
+      required-labels: "javascript"
     secrets:
       APP_ID: ${{ vars.APP_ID }}
       PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
