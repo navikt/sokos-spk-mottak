@@ -1,5 +1,10 @@
 # Innholdsoversikt
 
+Her finner du løsningsbeskrivelser, testbeskrivelser og driftsrutiner for `sokos-spk-mottak`.
+
+## Drift
+- [Driftsdokumentasjon](drift/)
+
 ## Overordnet beskrivelse
 - [Overordnet](løsningsbeskrivelse/overordnet/overordnet.md)
 - [Domenemodell](løsningsbeskrivelse/overordnet/domenemodell.md)
@@ -24,16 +29,3 @@
 - [Filformat tester](tester/filformat-tester.md)
 - [Transaksjonstolkning tester](tester/transaksjonstolkning-tester.md)
 - [Transaksjonvalidering tester](tester/transaksjonsvalidering-tester.md)
-
-
-## Hvordan legge inn nye kodeverk
-Noen ganger får vi inn nye kodeverk fra SPK som må legges til i applikasjonen. Her er en oversikt over hvordan dette gjøres:
-- [Hvordan legger inn nye kodeverk](nye-kodeverk.md)
-
-## Hvordan teste før produksjonssetting
-- [Hvordan teste før produksjonssetting](produksjonsetting.md)
-
-## Kjente feil
-- [Kjente feil](kjente-feil.md)
-
-

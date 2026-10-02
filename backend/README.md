@@ -25,7 +25,7 @@ Applikasjonen integrerer med:
 - **IBM MQ** for å sende utbetalinger, trekk og avstemming til Oppdrag Z, og ta imot kvitteringer og avregningsgrunnlag
 - **PDL** for å hente personidenter
 
-Detaljert løsningsbeskrivelse, domenemodell og testdokumentasjon ligger i [dokumentasjon](dokumentasjon/dokumentasjon.md).
+Detaljert løsningsbeskrivelse, domenemodell og testdokumentasjon ligger i [dokumentasjonen](../dokumentasjon/README.md).
 
 ## 2. Utviklingsmiljø
 

@@ -6,7 +6,8 @@ Statens pensjonskasse (SPK) og sender dem til Oppdrag Z.
 | Mappe | Beskrivelse | README |
 |---|---|---|
 | [`backend/`](backend) | Kotlin/Ktor-applikasjon som mottar utbetalings- og trekktransaksjoner fra SPK og sender oppdrag til Oppdrag Z | [backend/README.md](backend/README.md) |
-| [`frontend/`](frontend) | Vite/React admin-dashboard for å trigge jobber i backend manuelt | [frontend/README.md](frontend/README.md) |
+| [`frontend/`](frontend) | Vite/React-admin-dashboard for å trigge jobber i backend manuelt | [frontend/README.md](frontend/README.md) |
+| [`dokumentasjon/`](dokumentasjon) | Løsningsbeskrivelser, tester og driftsrutiner, inkludert kjente feil, avviste transaksjoner, nye kodeverk og testing før produksjonssetting | [dokumentasjon/README.md](dokumentasjon/README.md) |
 
 ## Funksjonelle krav
 
@@ -40,9 +41,10 @@ Se [autentisering i backend](backend/README.md#4-autentisering-og-autorisasjon) 
 
 ```
 sokos-spk-mottak/
-├── backend/     # Kotlin/Ktor, Gradle-prosjekt, kjører i dev-fss/prod-fss
-├── frontend/    # Vite/React-SPA og Express-server, kjører i dev-gcp/prod-gcp
-└── .github/     # GitHub Actions-workflows for hver app
+├── backend/       # Kotlin/Ktor, Gradle-prosjekt, kjører i dev-fss/prod-fss
+├── frontend/      # Vite/React-SPA og Express-server, kjører i dev-gcp/prod-gcp
+├── dokumentasjon/ # Løsningsbeskrivelse, tester og driftsrutiner
+└── .github/       # GitHub Actions-workflows for hver app
 ```
 
 Backend og frontend er uavhengige applikasjoner som deployes hver for seg, men deler samme repo og

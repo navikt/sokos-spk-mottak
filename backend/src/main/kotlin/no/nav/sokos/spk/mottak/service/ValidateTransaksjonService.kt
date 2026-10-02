@@ -125,7 +125,7 @@ class ValidateTransaksjonService(
 
             innTransaksjonMap[false]?.takeIf { it.isNotEmpty() }?.apply {
                 val avvikTransaksjonIdList = avvikTransaksjonRepository.insertBatch(this, session)
-                logger.debug { "${avvikTransaksjonIdList.size} avvikstransaksjoner opprettet" }
+                logger.error { "${avvikTransaksjonIdList.size} avvikstransaksjoner opprettet. Sjekk i databasen for årsak" }
             }
 
             innTransaksjonRepository.updateBehandletStatusBatch(innTransaksjonList.map { it.innTransaksjonId!! }, session = session)
