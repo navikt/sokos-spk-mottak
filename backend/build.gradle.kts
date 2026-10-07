@@ -67,6 +67,7 @@ val activemqVersion = "2.57.0"
 val graphqlClientVersion = "10.2.2"
 val jaxbVersion = "4.0.9"
 val opentelemetryVersion = "1.66.0"
+val unleashedVersion = "12.3.0"
 
 dependencies {
 
@@ -129,6 +130,9 @@ dependencies {
     implementation("com.expediagroup:graphql-kotlin-ktor-client:$graphqlClientVersion") {
         exclude("com.expediagroup:graphql-kotlin-client-jackson")
     }
+
+    // Feature switches
+    implementation("io.getunleash:unleash-client-java:$unleashedVersion")
 
     // Opentelemetry
     implementation("io.opentelemetry:opentelemetry-api:$opentelemetryVersion")

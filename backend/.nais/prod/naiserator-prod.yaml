@@ -76,6 +76,7 @@ spec:
       mountPath: /var/run/secrets/sokos-spk-mottak-sftp-private-key
   envFrom:
     - secret: sokos-spk-mottak-secrets
+    - secret: sokos-spk-mottak-unleash-api-token
   env:
     - name: USE_AUTHENTICATION
       value: "true"
