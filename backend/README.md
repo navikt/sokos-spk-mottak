@@ -102,6 +102,16 @@ Spørsmål om SFTP-tilkoblingen til SPK kan rettes til [#tech-linux](https://nav
 Logger uten sensitive data går til [Grafana Loki](https://doc.nais.io/observability/logging/#grafana-loki).
 Sensitive meldinger går til [Team Logs](https://doc.nais.io/observability/logging/how-to/team-logs/).
 
+### Helsesjekker
+
+`/internal/isReady` returnerer 200 når serveren er klar og tilkoblinger fra både DB2- og Postgres-poolen
+består JDBC-validering. Ellers returnerer endpointet 503, og Kubernetes tar podden ut av Service-trafikken.
+Begge databaser sjekkes parallelt utenfor HTTP-trådene. Pool-ventetiden er to sekunder, og
+valideringstidsgrensen er ett sekund. Pool-ventetiden gjelder også vanlige databasekall.
+
+`/internal/isAlive` sjekker bare applikasjonens livssyklus. Databaseutfall skal ikke utløse restarter.
+Readiness stopper ikke MQ-lyttere eller planlagte jobber, og sjekker ikke MQ, SFTP eller PDL.
+
 ### Kubectl
 
 For dev-fss:
