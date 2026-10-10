@@ -1,6 +1,13 @@
 package no.nav.sokos.spk.mottak.config
 
+import java.sql.SQLException
 import java.time.Duration
+import javax.sql.DataSource
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 import com.ibm.db2.jcc.DB2BaseDataSource
 import com.ibm.db2.jcc.DB2SimpleDataSource
@@ -15,6 +22,34 @@ import no.nav.sokos.spk.mottak.metrics.Metrics.prometheusMeterRegistry
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 
 private val logger = KotlinLogging.logger {}
+
+internal suspend fun databasesHealthy(
+    db2DataSource: DataSource,
+    postgresDataSource: DataSource,
+): Boolean =
+    coroutineScope {
+        listOf(
+            async(Dispatchers.IO) { databaseHealthy("DB2", db2DataSource) },
+            async(Dispatchers.IO) { databaseHealthy("Postgres", postgresDataSource) },
+        ).awaitAll().all { it }
+    }
+
+private fun databaseHealthy(
+    name: String,
+    dataSource: DataSource,
+): Boolean =
+    try {
+        dataSource.connection.use { connection ->
+            connection.isValid(1).also { healthy ->
+                if (!healthy) {
+                    logger.warn { "Readiness check failed for $name: connection is invalid" }
+                }
+            }
+        }
+    } catch (exception: SQLException) {
+        logger.warn { "Readiness check failed for $name (SQL state: ${exception.sqlState})" }
+        false
+    }
 
 object DatabaseConfig {
     val db2DataSource: HikariDataSource by lazy {
@@ -66,7 +101,8 @@ object DatabaseConfig {
             poolName = "db2-pool"
             minimumIdle = 1
             maximumPoolSize = 10
-            connectionTimeout = Duration.ofSeconds(5).toMillis()
+            connectionTimeout = Duration.ofSeconds(2).toMillis()
+            validationTimeout = Duration.ofSeconds(1).toMillis()
             idleTimeout = Duration.ofMinutes(5).toMillis()
             keepaliveTime = Duration.ofMinutes(6).toMillis()
             maxLifetime = Duration.ofMinutes(15).toMillis()
@@ -92,6 +128,8 @@ object DatabaseConfig {
             poolName = poolname
             maximumPoolSize = 5
             minimumIdle = 1
+            connectionTimeout = Duration.ofSeconds(2).toMillis()
+            validationTimeout = Duration.ofSeconds(1).toMillis()
             idleTimeout = Duration.ofMinutes(4).toMillis()
             maxLifetime = Duration.ofMinutes(5).toMillis()
             dataSource =
@@ -103,7 +141,6 @@ object DatabaseConfig {
                     serverNames = arrayOf(postgresProperties.host)
                     databaseName = postgresProperties.databaseName
                     portNumbers = intArrayOf(postgresProperties.port.toInt())
-                    connectionTimeout = Duration.ofSeconds(10).toMillis()
                     initializationFailTimeout = Duration.ofMinutes(5).toMillis()
                 }
             metricsTrackerFactory = MicrometerMetricsTrackerFactory(prometheusMeterRegistry)

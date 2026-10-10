@@ -96,7 +96,7 @@ private fun ApplicationCall.extractCallingSystemFromJwtToken(): String {
 
 fun Routing.internalNaisRoutes(
     applicationState: ApplicationState,
-    readynessCheck: () -> Boolean = { applicationState.ready },
+    readynessCheck: suspend () -> Boolean = { applicationState.ready },
     alivenessCheck: () -> Boolean = { applicationState.alive },
 ) {
     route("internal") {
@@ -116,7 +116,7 @@ fun Routing.internalNaisRoutes(
                 else ->
                     call.respondText(
                         text = "Wait! I'm not ready yet! :O",
-                        status = HttpStatusCode.InternalServerError,
+                        status = HttpStatusCode.ServiceUnavailable,
                     )
             }
         }
