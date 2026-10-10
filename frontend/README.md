@@ -116,6 +116,13 @@ Klienten sender Web Vitals, JavaScript-feil og traces til Nais APM med
 Data havner under `sokos-spk-mottak-admin` i [Nais APM](https://grafana.nav.cloud.nais.io/a/nais-apm-app/services).
 Lokalt sendes ingenting.
 
+### Varsler
+
+Varsler sendes til disse Slack-kanalene:
+
+- Dev: [#utbetaling-team-beregningsplattform-alerts-dev](https://nav-it.slack.com/archives/C0BHK19HMPD)
+- Prod: [#utbetaling-team-beregningsplattform-alerts-prod](https://nav-it.slack.com/archives/C0BUZH3FLLF)
+
 ### Kubectl
 
 For dev-gcp:
