@@ -155,16 +155,20 @@ configurations.all {
                 because("Cache Poisoning and Information Disclosure via CORS Vary Header Overwrite. Affected version < 4.2.17.Final")
             }
             if (requested.group == "tools.jackson.core" && requested.name == "jackson-databind") {
-                useVersion("3.2.1")
-                because("Multiple versions of jackson-databind has vulnerable dependencies. Affected version < >= 3.0.0, <= 3.1.3")
+                useVersion("3.2.3")
+                because("Multiple versions of jackson-databind has vulnerable dependencies. Affected version >= 3.2.0, <= 3.2.2")
             }
             if (requested.group == "tools.jackson.core" && requested.name == "jackson-core") {
-                useVersion("3.2.1")
-                because("Multiple versions of jackson-core has vulnerable dependencies. Affected version >= 3.0.0, <= 3.1.0")
+                useVersion("3.2.3")
+                because("Multiple versions of jackson-core has vulnerable dependencies. Affected version >= 3.2.0, <= 3.2.1")
             }
             if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-databind") {
-                useVersion("2.22.1")
-                because("Multiple versions of jackson-databind has vulnerable dependencies. Affected version >= 2.19.0, < 2.21.4")
+                useVersion("2.22.3")
+                because("Multiple versions of jackson-databind has vulnerable dependencies. Affected version >= 2.22.0, < 2.22.2")
+            }
+            if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
+                useVersion("2.22.3")
+                because("Multiple versions of jackson-core has vulnerable dependencies. Affected version >= 2.22.0, <= 2.22.2")
             }
             if (requested.group == "org.bouncycastle" && requested.name == "bcprov-jdk18on") {
                 useVersion("1.85")
