@@ -12,3 +12,10 @@
 
 ### Node.js ###
 node_modules/
+
+build
+docs
+.gradle
+
+### Generated SFTP test key ###
+/src/test/resources/privateKey

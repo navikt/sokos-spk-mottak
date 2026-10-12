@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Timer
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.prometheus.metrics.core.metrics.Counter
+import io.prometheus.metrics.core.metrics.Gauge
 
 private const val METRICS_NAMESPACE = "sokos_spk_mottak"
 const val DATABASE_CALL = "database_call"
@@ -11,6 +12,35 @@ const val SERVICE_CALL = "service_call"
 
 object Metrics {
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+
+    //For å gjøre det enkelt å fjerne rydde-metrikker når vi er ferdige med rydding
+    private fun ryddeTeller(navn: String, vararg etiketter: String): Counter =
+        Counter.builder()
+            .name("${METRICS_NAMESPACE}_tilstandsrydding_$navn")
+            .help("Aggregert tilstandsrydding")
+            .labelNames(*etiketter)
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    //For å gjøre det enkelt å fjerne rydde-metrikker når vi er ferdige med rydding
+    private fun ryddeGauge(navn: String): Gauge =
+        Gauge.builder()
+            .name("${METRICS_NAMESPACE}_tilstandsrydding_$navn")
+            .help("Status for tilstandsrydding")
+            .withoutExemplars()
+            .register(prometheusMeterRegistry.prometheusRegistry)
+
+    val tilstandsryddingKandidater = ryddeTeller("kandidater", "fase")
+    val tilstandsryddingSlettede = ryddeTeller("slettede", "fase")
+    val tilstandsryddingNullstilteReferanser = ryddeTeller("nullstilte_referanser")
+    val tilstandsryddingSqlfeil = ryddeTeller("sqlfeil", "type")
+    val tilstandsryddingKjoringer = ryddeTeller("kjoringer", "utfall")
+    val tilstandsryddingRunderFullfort = ryddeTeller("runder_fullfort")
+    val tilstandsryddingPause = ryddeGauge("pause_sekunder")
+    val tilstandsryddingMarkor = ryddeGauge("markor_id")
+    val tilstandsryddingOvre = ryddeGauge("ovre_id")
+    val tilstandsryddingAktiv = ryddeGauge("aktiv")
+    val tilstandsryddingSisteFullfort = ryddeGauge("siste_fullfort_timestamp_sekunder")
 
     val timer: (metricName: String, className: String, method: String) -> Timer = { metricName, className, method ->
         Timer

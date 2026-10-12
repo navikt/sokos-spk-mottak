@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak.config
 
 import java.io.File
+import java.time.Duration
 
 import com.natpryce.konfig.ConfigurationMap
 import com.natpryce.konfig.ConfigurationProperties
@@ -66,6 +67,26 @@ object PropertiesConfig {
     operator fun get(key: String): String = config[Key(key, stringType)]
 
     fun getOrEmpty(key: String): String = config.getOrElse(Key(key, stringType), "")
+
+    fun tilstandsRyddeKonfigurasjon(hent: (String) -> String = ::getOrEmpty): TilstandsRyddeKonfigurasjon {
+        fun heltall(navn: String, standard: Int): Int =
+            hent("TILSTANDS_RYDDING_$navn").takeIf { it.isNotBlank() }?.toInt() ?: standard
+        fun varighet(navn: String, standard: Duration): Duration =
+            hent("TILSTANDS_RYDDING_$navn").takeIf { it.isNotBlank() }?.toLong()?.let(Duration::ofSeconds) ?: standard
+        val standard = TilstandsRyddeKonfigurasjon()
+        return TilstandsRyddeKonfigurasjon(
+            oppbevaringMaaneder = heltall("OPPBEVARING_MAANEDER", standard.oppbevaringMaaneder),
+            intervallBredde = heltall("INTERVALL_BREDDE", standard.intervallBredde),
+            batchStorrelse = heltall("BATCH_STORRELSE", standard.batchStorrelse),
+            maksReferanserPerBatch = heltall("MAKS_REFERANSER_PER_BATCH", standard.maksReferanserPerBatch),
+            pauseMin = varighet("PAUSE_MIN_SEKUNDER", standard.pauseMin),
+            pauseMaks = varighet("PAUSE_MAKS_SEKUNDER", standard.pauseMaks),
+            terskelEnhetstid = varighet("TERSKEL_ENHET_SEKUNDER", standard.terskelEnhetstid),
+            maksKjoretid = varighet("MAKS_KJOERETID_SEKUNDER", standard.maksKjoretid),
+            maksForsok = heltall("MAKS_FORSOEK", standard.maksForsok),
+            sporringsTimeout = varighet("SPORRING_TIMEOUT_SEKUNDER", standard.sporringsTimeout),
+        )
+    }
 
     data class Configuration(
         val naisAppName: String = get("NAIS_APP_NAME"),

@@ -26,6 +26,7 @@ Her finner du løsningsbeskrivelser, testbeskrivelser og driftsrutiner for `soko
 
 
 ## Tester
+- [Db2-testspesifikasjon for tilstandsrydding (GO/NO-GO)](tester/tilstandsrydding-db2.md)
 - [Filformat tester](tester/filformat-tester.md)
 - [Transaksjonstolkning tester](tester/transaksjonstolkning-tester.md)
 - [Transaksjonvalidering tester](tester/transaksjonsvalidering-tester.md)
