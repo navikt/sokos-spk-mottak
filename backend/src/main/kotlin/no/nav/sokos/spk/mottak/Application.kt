@@ -12,6 +12,7 @@ import no.nav.sokos.spk.mottak.config.JobTaskConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.applicationLifecycleConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
+import no.nav.sokos.spk.mottak.config.databasesHealthy
 import no.nav.sokos.spk.mottak.config.internalNaisRoutes
 import no.nav.sokos.spk.mottak.config.securityConfig
 import no.nav.sokos.spk.mottak.mq.AvregningListenerService
@@ -29,8 +30,16 @@ private fun Application.module() {
     commonConfig()
     applicationLifecycleConfig(applicationState)
     securityConfig(useAuthentication)
+
+    val db2DataSource = DatabaseConfig.db2DataSource
+    val postgresDataSource = DatabaseConfig.postgresDataSource
     routing {
-        internalNaisRoutes(applicationState)
+        internalNaisRoutes(
+            applicationState = applicationState,
+            readynessCheck = {
+                applicationState.ready && databasesHealthy(db2DataSource, postgresDataSource)
+            },
+        )
         mottakApi()
     }
 
