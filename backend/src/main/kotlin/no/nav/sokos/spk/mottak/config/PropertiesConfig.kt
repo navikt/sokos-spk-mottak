@@ -69,10 +69,15 @@ object PropertiesConfig {
     fun getOrEmpty(key: String): String = config.getOrElse(Key(key, stringType), "")
 
     fun tilstandsRyddeKonfigurasjon(hent: (String) -> String = ::getOrEmpty): TilstandsRyddeKonfigurasjon {
-        fun heltall(navn: String, standard: Int): Int =
-            hent("TILSTANDS_RYDDING_$navn").takeIf { it.isNotBlank() }?.toInt() ?: standard
-        fun varighet(navn: String, standard: Duration): Duration =
-            hent("TILSTANDS_RYDDING_$navn").takeIf { it.isNotBlank() }?.toLong()?.let(Duration::ofSeconds) ?: standard
+        fun heltall(
+            navn: String,
+            standard: Int,
+        ): Int = hent("TILSTANDS_RYDDING_$navn").takeIf { it.isNotBlank() }?.toInt() ?: standard
+
+        fun varighet(
+            navn: String,
+            standard: Duration,
+        ): Duration = hent("TILSTANDS_RYDDING_$navn").takeIf { it.isNotBlank() }?.toLong()?.let(Duration::ofSeconds) ?: standard
         val standard = TilstandsRyddeKonfigurasjon()
         return TilstandsRyddeKonfigurasjon(
             oppbevaringMaaneder = heltall("OPPBEVARING_MAANEDER", standard.oppbevaringMaaneder),

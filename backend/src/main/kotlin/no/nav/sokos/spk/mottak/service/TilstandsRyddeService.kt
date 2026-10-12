@@ -48,8 +48,7 @@ class TilstandsRyddeService(
         require(regel.oppbevaringMaaneder == konfigurasjon.oppbevaringMaaneder)
     }
 
-    fun kjor(): TilstandsRyddeOppsummering =
-        Metrics.timer(SERVICE_CALL, "TilstandsRyddeService", "kjor").recordCallable { gjennomfor() }!!
+    fun kjor(): TilstandsRyddeOppsummering = Metrics.timer(SERVICE_CALL, "TilstandsRyddeService", "kjor").recordCallable { gjennomfor() }!!
 
     private fun gjennomfor(): TilstandsRyddeOppsummering {
         val struping = RyddeStruping(konfigurasjon, nanoTime, vent, stoppindikator)
@@ -60,10 +59,12 @@ class TilstandsRyddeService(
         var utfall = RyddeStoppgrunn.FEIL
         var opprinneligFeil: Exception? = null
 
-        fun oppsummering(grunn: RyddeStoppgrunn): TilstandsRyddeOppsummering =
-            TilstandsRyddeOppsummering(kandidater, slettede, nullstilte, struping.varighet(), grunn)
+        fun oppsummering(grunn: RyddeStoppgrunn): TilstandsRyddeOppsummering = TilstandsRyddeOppsummering(kandidater, slettede, nullstilte, struping.varighet(), grunn)
 
-        fun opptell(fase: String, resultat: RyddeBatchresultat) {
+        fun opptell(
+            fase: String,
+            resultat: RyddeBatchresultat,
+        ) {
             slettede += resultat.slettede.toLong()
             nullstilte += resultat.nullstilteReferanser.toLong()
             Metrics.tilstandsryddingSlettede.labelValues(fase).inc(resultat.slettede.toLong())
@@ -80,80 +81,90 @@ class TilstandsRyddeService(
                 Metrics.tilstandsryddingKjoringer.labelValues("opptatt").inc()
                 return oppsummering(RyddeStoppgrunn.OPPTATT)
             }
-            val las = object : Kjoringslas {
-                override fun kontroller(timeoutSekunder: Int) {
-                    postgresEnhet { opprinneligLas.kontroller(timeoutSekunder) }
-                }
+            val las =
+                object : Kjoringslas {
+                    override fun kontroller(timeoutSekunder: Int) {
+                        postgresEnhet { opprinneligLas.kontroller(timeoutSekunder) }
+                    }
 
-                override fun close() {
-                    postgresEnhet { opprinneligLas.close() }
-                }
-            }
-            val resultat = medKjoringslas(las) {
-                struping.kontroller()
-                aktiv = true
-                Metrics.tilstandsryddingAktiv.set(1.0)
-                las.kontroller(kontroll.timeoutSekunder())
-                kontroll.timeoutSekunder()
-                var status = postgresEnhet { statuslager.hent(opprinneligLas, kontroll) }
-                struping.kontroller()
-                status?.let(::oppdaterStatusmaalinger)
-                if (status == null || status.fullfort || status.regelversjon != regel.versjon ||
-                    status.oppbevaringMaaneder != regel.oppbevaringMaaneder
-                ) {
-                    val snapshot = db2Enhet(las, struping, kontroll) { db2.hentSnapshot(kontroll) }
-                    val tom = snapshot.minId == null
-                    status = TilstandsRyddeStatus(
-                        regel.versjon,
-                        regel.oppbevaringMaaneder,
-                        regel.grensetidspunkt(snapshot.start),
-                        snapshot.minId?.toLong(),
-                        snapshot.maxId?.toLong(),
-                        null,
-                        tom,
-                        if (tom) klokke.instant() else status?.sisteFullfortTidspunkt,
-                    )
-                    lagreStatus(las, opprinneligLas, status, kontroll)
-                    if (tom) {
-                        return@medKjoringslas oppsummering(RyddeStoppgrunn.FULLFORT)
+                    override fun close() {
+                        postgresEnhet { opprinneligLas.close() }
                     }
                 }
-                var rundestatus = checkNotNull(status)
-                var fraId = rundestatus.sisteFerdigeId?.plus(1) ?: rundestatus.forsteId!!
-                val ovreId = rundestatus.ovreId!!
-                while (fraId <= ovreId) {
-                    val tilId = minOf(fraId + konfigurasjon.intervallBredde.toLong() - 1, ovreId)
-                    val grense = rundestatus.grensetidspunkt
-                    logger.info { "Rydder intervall fra=$fraId til=$tilId regel=${regel.versjon} grense=$grense" }
-                    for (fase in listOf("urefererte", "resterende")) {
-                        val ider = db2Enhet(las, struping, kontroll, { funnet: List<Int> ->
-                            kandidater += funnet.size.toLong()
-                            Metrics.tilstandsryddingKandidater.labelValues(fase).inc(funnet.size.toLong())
-                        }) {
-                            db2.finnKandidater(fraId, tilId, regel, grense, kontroll)
+            val resultat =
+                medKjoringslas(las) {
+                    struping.kontroller()
+                    aktiv = true
+                    Metrics.tilstandsryddingAktiv.set(1.0)
+                    las.kontroller(kontroll.timeoutSekunder())
+                    kontroll.timeoutSekunder()
+                    var status = postgresEnhet { statuslager.hent(opprinneligLas, kontroll) }
+                    struping.kontroller()
+                    status?.let(::oppdaterStatusmaalinger)
+                    if (status == null ||
+                        status.fullfort ||
+                        status.regelversjon != regel.versjon ||
+                        status.oppbevaringMaaneder != regel.oppbevaringMaaneder
+                    ) {
+                        val snapshot = db2Enhet(las, struping, kontroll) { db2.hentSnapshot(kontroll) }
+                        val tom = snapshot.minId == null
+                        status =
+                            TilstandsRyddeStatus(
+                                regel.versjon,
+                                regel.oppbevaringMaaneder,
+                                regel.grensetidspunkt(snapshot.start),
+                                snapshot.minId?.toLong(),
+                                snapshot.maxId?.toLong(),
+                                null,
+                                tom,
+                                if (tom) klokke.instant() else status?.sisteFullfortTidspunkt,
+                            )
+                        lagreStatus(las, opprinneligLas, status, kontroll)
+                        if (tom) {
+                            return@medKjoringslas oppsummering(RyddeStoppgrunn.FULLFORT)
                         }
-                        ider.chunked(konfigurasjon.batchStorrelse).forEach { batch ->
-                            db2Enhet<RyddeBatchresultat>(las, struping, kontroll, { opptell(fase, it) }) {
-                                if (fase == "urefererte") db2.slettUrefererte(batch, regel, grense, kontroll)
-                                else db2.nullstillOgSlett(batch, regel, grense, konfigurasjon.maksReferanserPerBatch, kontroll)
+                    }
+                    var rundestatus = checkNotNull(status)
+                    var fraId = rundestatus.sisteFerdigeId?.plus(1) ?: rundestatus.forsteId!!
+                    val ovreId = rundestatus.ovreId!!
+                    while (fraId <= ovreId) {
+                        val tilId = minOf(fraId + konfigurasjon.intervallBredde.toLong() - 1, ovreId)
+                        val grense = rundestatus.grensetidspunkt
+                        logger.info { "Rydder intervall fra=$fraId til=$tilId regel=${regel.versjon} grense=$grense" }
+                        for (fase in listOf("urefererte", "resterende")) {
+                            val ider =
+                                db2Enhet(las, struping, kontroll, { funnet: List<Int> ->
+                                    kandidater += funnet.size.toLong()
+                                    Metrics.tilstandsryddingKandidater.labelValues(fase).inc(funnet.size.toLong())
+                                }) {
+                                    db2.finnKandidater(fraId, tilId, regel, grense, kontroll)
+                                }
+                            ider.chunked(konfigurasjon.batchStorrelse).forEach { batch ->
+                                db2Enhet<RyddeBatchresultat>(las, struping, kontroll, { opptell(fase, it) }) {
+                                    if (fase == "urefererte") {
+                                        db2.slettUrefererte(batch, regel, grense, kontroll)
+                                    } else {
+                                        db2.nullstillOgSlett(batch, regel, grense, konfigurasjon.maksReferanserPerBatch, kontroll)
+                                    }
+                                }
                             }
                         }
+                        val fullfort = tilId == ovreId
+                        rundestatus =
+                            rundestatus.copy(
+                                sisteFerdigeId = tilId,
+                                fullfort = fullfort,
+                                sisteFullfortTidspunkt = if (fullfort) klokke.instant() else rundestatus.sisteFullfortTidspunkt,
+                            )
+                        lagreStatus(las, opprinneligLas, rundestatus, kontroll)
+                        fraId = tilId + 1
                     }
-                    val fullfort = tilId == ovreId
-                    rundestatus = rundestatus.copy(
-                        sisteFerdigeId = tilId,
-                        fullfort = fullfort,
-                        sisteFullfortTidspunkt = if (fullfort) klokke.instant() else rundestatus.sisteFullfortTidspunkt,
-                    )
-                    lagreStatus(las, opprinneligLas, rundestatus, kontroll)
-                    fraId = tilId + 1
+                    if (!rundestatus.fullfort) {
+                        rundestatus = rundestatus.copy(fullfort = true, sisteFullfortTidspunkt = klokke.instant())
+                        lagreStatus(las, opprinneligLas, rundestatus, kontroll)
+                    }
+                    oppsummering(RyddeStoppgrunn.FULLFORT)
                 }
-                if (!rundestatus.fullfort) {
-                    rundestatus = rundestatus.copy(fullfort = true, sisteFullfortTidspunkt = klokke.instant())
-                    lagreStatus(las, opprinneligLas, rundestatus, kontroll)
-                }
-                oppsummering(RyddeStoppgrunn.FULLFORT)
-            }
             utfall = resultat.stoppgrunn
             Metrics.tilstandsryddingKjoringer.labelValues(resultat.stoppgrunn.utfall).inc()
             return resultat
@@ -173,13 +184,21 @@ class TilstandsRyddeService(
             try {
                 avslutningsobservator(oppsummering(utfall))
             } catch (observatorFeil: Exception) {
-                if (opprinneligFeil != null) opprinneligFeil.addSuppressed(observatorFeil)
-                else throw observatorFeil
+                if (opprinneligFeil != null) {
+                    opprinneligFeil.addSuppressed(observatorFeil)
+                } else {
+                    throw observatorFeil
+                }
             }
         }
     }
 
-    private fun lagreStatus(las: Kjoringslas, opprinneligLas: Kjoringslas, status: TilstandsRyddeStatus, kontroll: RyddeEnhetskontroll) {
+    private fun lagreStatus(
+        las: Kjoringslas,
+        opprinneligLas: Kjoringslas,
+        status: TilstandsRyddeStatus,
+        kontroll: RyddeEnhetskontroll,
+    ) {
         las.kontroller(kontroll.timeoutSekunder())
         kontroll.timeoutSekunder()
         postgresEnhet { statuslager.lagre(opprinneligLas, status, kontroll) }
@@ -201,12 +220,13 @@ class TilstandsRyddeService(
             val kjede = feilkjede(feil)
             val sqlfeil = kjede.filterIsInstance<SQLException>()
             if (sqlfeil.isNotEmpty()) {
-                val type = when {
-                    kjede.any { it is SQLTimeoutException } || sqlfeil.any { it.sqlState in setOf("57014", "HYT00", "HYT01") } -> "timeout"
-                    sqlfeil.any { it.sqlState in setOf("23503", "23504", "23506") } -> "fremmednokkel"
-                    sqlfeil.any { it.sqlState in setOf("40001", "57033", "55P03", "40P01") } -> "las"
-                    else -> "annen"
-                }
+                val type =
+                    when {
+                        kjede.any { it is SQLTimeoutException } || sqlfeil.any { it.sqlState in setOf("57014", "HYT00", "HYT01") } -> "timeout"
+                        sqlfeil.any { it.sqlState in setOf("23503", "23504", "23506") } -> "fremmednokkel"
+                        sqlfeil.any { it.sqlState in setOf("40001", "57033", "55P03", "40P01") } -> "las"
+                        else -> "annen"
+                    }
 
                 Metrics.tilstandsryddingSqlfeil.labelValues(type).inc()
             }
@@ -214,7 +234,10 @@ class TilstandsRyddeService(
         }
     }
 
-    private fun <T> medKjoringslas(las: Kjoringslas, handling: () -> T): T {
+    private fun <T> medKjoringslas(
+        las: Kjoringslas,
+        handling: () -> T,
+    ): T {
         var opprinneligFeil: Throwable? = null
         try {
             return handling()
@@ -256,21 +279,28 @@ class TilstandsRyddeService(
                 val kjede = feilkjede(feil)
                 val sqlfeil = kjede.filterIsInstance<SQLException>()
                 val godkjenteLasetilstander = setOf("40001", "57033")
-                val lasefeil = sqlfeil.any { it.sqlState in godkjenteLasetilstander } &&
-                    sqlfeil.all { it.sqlState == null || it.sqlState in godkjenteLasetilstander } && kjede.size < 64
+                val lasefeil =
+                    sqlfeil.any { it.sqlState in godkjenteLasetilstander } &&
+                        sqlfeil.all { it.sqlState == null || it.sqlState in godkjenteLasetilstander } &&
+                        kjede.size < 64
                 val timeout = kjede.any { it is SQLTimeoutException } || sqlfeil.any { it.sqlState in setOf("57014", "HYT00", "HYT01") }
                 val fremmednokkel = sqlfeil.any { it.sqlState in setOf("23503", "23504", "23506") }
                 if (sqlfeil.isNotEmpty()) {
-                    val type = when {
-                        timeout -> "timeout"
-                        fremmednokkel -> "fremmednokkel"
-                        lasefeil -> "las"
-                        else -> "annen"
-                    }
+                    val type =
+                        when {
+                            timeout -> "timeout"
+                            fremmednokkel -> "fremmednokkel"
+                            lasefeil -> "las"
+                            else -> "annen"
+                        }
                     Metrics.tilstandsryddingSqlfeil.labelValues(type).inc()
                 }
-                val provIgjen = lasefeil && !timeout && !fremmednokkel &&
-                    kjede.none { it is RyddeUavklartUtfall } && forsok < konfigurasjon.maksForsok
+                val provIgjen =
+                    lasefeil &&
+                        !timeout &&
+                        !fremmednokkel &&
+                        kjede.none { it is RyddeUavklartUtfall } &&
+                        forsok < konfigurasjon.maksForsok
                 try {
                     pause(struping, start, lasefeil)
                 } catch (pausefeil: Exception) {
@@ -292,7 +322,11 @@ class TilstandsRyddeService(
         error("Ingen forsøk tilgjengelig")
     }
 
-    private fun pause(struping: RyddeStruping, start: Long, lasefeil: Boolean) {
+    private fun pause(
+        struping: RyddeStruping,
+        start: Long,
+        lasefeil: Boolean,
+    ) {
         val varighet = Duration.ofNanos((nanoTime() - start).coerceAtLeast(0))
         try {
             struping.etterEnhet(varighet, lasefeil)

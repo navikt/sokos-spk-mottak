@@ -13,18 +13,23 @@ const val SERVICE_CALL = "service_call"
 object Metrics {
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-    //For å gjøre det enkelt å fjerne rydde-metrikker når vi er ferdige med rydding
-    private fun ryddeTeller(navn: String, vararg etiketter: String): Counter =
-        Counter.builder()
+    // For å gjøre det enkelt å fjerne rydde-metrikker når vi er ferdige med rydding
+    private fun ryddeTeller(
+        navn: String,
+        vararg etiketter: String,
+    ): Counter =
+        Counter
+            .builder()
             .name("${METRICS_NAMESPACE}_tilstandsrydding_$navn")
             .help("Aggregert tilstandsrydding")
             .labelNames(*etiketter)
             .withoutExemplars()
             .register(prometheusMeterRegistry.prometheusRegistry)
 
-    //For å gjøre det enkelt å fjerne rydde-metrikker når vi er ferdige med rydding
+    // For å gjøre det enkelt å fjerne rydde-metrikker når vi er ferdige med rydding
     private fun ryddeGauge(navn: String): Gauge =
-        Gauge.builder()
+        Gauge
+            .builder()
             .name("${METRICS_NAMESPACE}_tilstandsrydding_$navn")
             .help("Status for tilstandsrydding")
             .withoutExemplars()

@@ -10,21 +10,33 @@ import no.nav.sokos.spk.mottak.domain.TilstandsRyddeRegel
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 
-data class Db2RyddeSnapshot(val start: LocalDateTime, val minId: Int?, val maxId: Int?)
+data class Db2RyddeSnapshot(
+    val start: LocalDateTime,
+    val minId: Int?,
+    val maxId: Int?,
+)
 
-data class RyddeBatchresultat(val slettede: Int, val nullstilteReferanser: Int)
+data class RyddeBatchresultat(
+    val slettede: Int,
+    val nullstilteReferanser: Int,
+)
 
 class ReferansegrenseOverskredet : IllegalStateException("Referansegrensen for batchen er overskredet")
 
 class RyddeSletteavvik : IllegalStateException("Sletteantallet avviker fra bekreftede og låste tilstander")
 
-class RyddeUavklartUtfall(arsak: Throwable) : IllegalStateException("Transaksjonsutfallet er ikke bekreftet", arsak)
+class RyddeUavklartUtfall(
+    arsak: Throwable,
+) : IllegalStateException("Transaksjonsutfallet er ikke bekreftet", arsak)
 
 fun interface RyddeEnhetskontroll {
     fun timeoutSekunder(): Int
 }
 
-enum class RyddeSqlDialekt(val tidspunkt: String, val lasing: String) {
+enum class RyddeSqlDialekt(
+    val tidspunkt: String,
+    val lasing: String,
+) {
     DB2("CURRENT TIMESTAMP", "FOR UPDATE WITH RS USE AND KEEP UPDATE LOCKS"),
     H2("LOCALTIMESTAMP(6)", "FOR UPDATE"),
 }
@@ -143,58 +155,62 @@ class TilstandsRyddeRepository(
         if (ider.isEmpty()) return RyddeBatchresultat(0, 0)
         return transaksjon("nullstillOgSlett", kontroll) { forbindelse ->
             // Db2 z/OS-syntaks og låsevirkning må godkjennes i DBA-testen; H2 beviser bare atomisiteten.
-            val bekreftede = setning(
-                forbindelse,
-                """
-                SELECT TRANS_TILSTAND_ID FROM T_TRANS_TILSTAND
-                WHERE TRANS_TILSTAND_ID IN (${plassholdere(ider)}) AND ${regel.alderspredikat}
-                ${dialekt.lasing}
-                """.trimIndent(),
-                kontroll,
-            ).use {
-                bindIderOgGrense(it, ider, grense)
-                it.executeQuery().use { resultat ->
-                    buildList { while (resultat.next()) add(resultat.getInt(1)) }
+            val bekreftede =
+                setning(
+                    forbindelse,
+                    """
+                    SELECT TRANS_TILSTAND_ID FROM T_TRANS_TILSTAND
+                    WHERE TRANS_TILSTAND_ID IN (${plassholdere(ider)}) AND ${regel.alderspredikat}
+                    ${dialekt.lasing}
+                    """.trimIndent(),
+                    kontroll,
+                ).use {
+                    bindIderOgGrense(it, ider, grense)
+                    it.executeQuery().use { resultat ->
+                        buildList { while (resultat.next()) add(resultat.getInt(1)) }
+                    }
                 }
-            }
             if (bekreftede.isEmpty()) return@transaksjon RyddeBatchresultat(0, 0)
 
-            val referanseantall = setning(
-                forbindelse,
-                """
-                SELECT TRANSAKSJON_ID FROM T_TRANSAKSJON
-                WHERE TRANS_TILSTAND_ID IN (${plassholdere(bekreftede)})
-                FETCH FIRST ${maksReferanser + 1} ROWS ONLY
-                """.trimIndent(),
-                kontroll,
-            ).use {
-                bindIder(it, bekreftede)
-                it.executeQuery().use { resultat ->
-                    var antall = 0
-                    while (resultat.next()) antall++
-                    antall
+            val referanseantall =
+                setning(
+                    forbindelse,
+                    """
+                    SELECT TRANSAKSJON_ID FROM T_TRANSAKSJON
+                    WHERE TRANS_TILSTAND_ID IN (${plassholdere(bekreftede)})
+                    FETCH FIRST ${maksReferanser + 1} ROWS ONLY
+                    """.trimIndent(),
+                    kontroll,
+                ).use {
+                    bindIder(it, bekreftede)
+                    it.executeQuery().use { resultat ->
+                        var antall = 0
+                        while (resultat.next()) antall++
+                        antall
+                    }
                 }
-            }
             if (referanseantall > maksReferanser) throw ReferansegrenseOverskredet()
 
-            val nullstilte = setning(
-                forbindelse,
-                "UPDATE T_TRANSAKSJON SET TRANS_TILSTAND_ID = NULL WHERE TRANS_TILSTAND_ID IN (${plassholdere(bekreftede)})",
-                kontroll,
-            ).use {
-                bindIder(it, bekreftede)
-                it.executeUpdate()
-            }
+            val nullstilte =
+                setning(
+                    forbindelse,
+                    "UPDATE T_TRANSAKSJON SET TRANS_TILSTAND_ID = NULL WHERE TRANS_TILSTAND_ID IN (${plassholdere(bekreftede)})",
+                    kontroll,
+                ).use {
+                    bindIder(it, bekreftede)
+                    it.executeUpdate()
+                }
             if (nullstilte > maksReferanser) throw ReferansegrenseOverskredet()
 
-            val slettede = setning(
-                forbindelse,
-                "DELETE FROM T_TRANS_TILSTAND WHERE TRANS_TILSTAND_ID IN (${plassholdere(bekreftede)}) AND ${regel.alderspredikat}",
-                kontroll,
-            ).use {
-                bindIderOgGrense(it, bekreftede, grense)
-                it.executeUpdate()
-            }
+            val slettede =
+                setning(
+                    forbindelse,
+                    "DELETE FROM T_TRANS_TILSTAND WHERE TRANS_TILSTAND_ID IN (${plassholdere(bekreftede)}) AND ${regel.alderspredikat}",
+                    kontroll,
+                ).use {
+                    bindIderOgGrense(it, bekreftede, grense)
+                    it.executeUpdate()
+                }
             if (slettede != bekreftede.size) throw RyddeSletteavvik()
             RyddeBatchresultat(slettede, nullstilte)
         }
@@ -206,22 +222,37 @@ class TilstandsRyddeRepository(
 
     private fun plassholdere(ider: List<Int>): String = ider.joinToString { "?" }
 
-    private fun bindIder(setning: PreparedStatement, ider: List<Int>) {
+    private fun bindIder(
+        setning: PreparedStatement,
+        ider: List<Int>,
+    ) {
         ider.forEachIndexed { indeks, id -> setning.setInt(indeks + 1, id) }
     }
 
-    private fun bindIderOgGrense(setning: PreparedStatement, ider: List<Int>, grense: LocalDateTime) {
+    private fun bindIderOgGrense(
+        setning: PreparedStatement,
+        ider: List<Int>,
+        grense: LocalDateTime,
+    ) {
         bindIder(setning, ider)
         setning.setTimestamp(ider.size + 1, Timestamp.valueOf(grense))
     }
 
-    private fun setning(forbindelse: Connection, sql: String, kontroll: RyddeEnhetskontroll): PreparedStatement {
+    private fun setning(
+        forbindelse: Connection,
+        sql: String,
+        kontroll: RyddeEnhetskontroll,
+    ): PreparedStatement {
         val timeout = kontroll.timeoutSekunder()
         require(timeout > 0)
         return forbindelse.prepareStatement(sql).also { it.queryTimeout = timeout }
     }
 
-    private fun <T> transaksjon(metode: String, kontroll: RyddeEnhetskontroll, handling: (Connection) -> T): T =
+    private fun <T> transaksjon(
+        metode: String,
+        kontroll: RyddeEnhetskontroll,
+        handling: (Connection) -> T,
+    ): T =
         Metrics.timer(DATABASE_CALL, "TilstandsRyddeRepository", metode).recordCallable {
             kontroll.timeoutSekunder()
             var bekreftetCommit = false

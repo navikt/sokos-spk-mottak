@@ -41,14 +41,21 @@ class RyddeStruping(
         return minOf(avrundet, gjenstaende).toInt()
     }
 
-    fun etterEnhet(varighet: Duration, lasefeil: Boolean = false) {
-        pause = when {
-            lasefeil -> konfigurasjon.pauseMaks
-            varighet > konfigurasjon.terskelEnhetstid ->
-                if (pause >= konfigurasjon.pauseMaks.dividedBy(2)) konfigurasjon.pauseMaks
-                else pause.multipliedBy(2).coerceAtMost(konfigurasjon.pauseMaks)
-            else -> pause.dividedBy(2).coerceAtLeast(konfigurasjon.pauseMin)
-        }
+    fun etterEnhet(
+        varighet: Duration,
+        lasefeil: Boolean = false,
+    ) {
+        pause =
+            when {
+                lasefeil -> konfigurasjon.pauseMaks
+                varighet > konfigurasjon.terskelEnhetstid ->
+                    if (pause >= konfigurasjon.pauseMaks.dividedBy(2)) {
+                        konfigurasjon.pauseMaks
+                    } else {
+                        pause.multipliedBy(2).coerceAtMost(konfigurasjon.pauseMaks)
+                    }
+                else -> pause.dividedBy(2).coerceAtLeast(konfigurasjon.pauseMin)
+            }
         kontroller()
         try {
             vent(minOf(pause, konfigurasjon.maksKjoretid - varighet()))

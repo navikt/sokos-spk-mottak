@@ -252,7 +252,14 @@ tasks {
 
     register<Copy>("copyPreCommitHook") {
         from(".scripts/pre-commit")
-        into(".git/hooks")
+        into(
+            providers
+                .exec {
+                    commandLine("git", "rev-parse", "--path-format=absolute", "--git-path", "hooks")
+                    workingDir(rootDir)
+                }.standardOutput.asText
+                .map { it.trim() },
+        )
         filePermissions {
             user {
                 execute = true
@@ -264,7 +271,7 @@ tasks {
         doLast {
             println("Git hooks installed successfully.")
         }
-        description = "Copy pre-commit hook to .git/hooks"
+        description = "Install the backend pre-commit hook in the repository's Git hooks directory"
         group = "git hooks"
         outputs.upToDateWhen { false }
     }

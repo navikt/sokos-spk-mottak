@@ -9,8 +9,10 @@ interface TilstandsRyddeRegel {
 
     fun grensetidspunkt(db2Tidspunkt: LocalDateTime): LocalDateTime
 
-    fun omfatter(datoEndret: LocalDateTime, grensetidspunkt: LocalDateTime): Boolean =
-        datoEndret.isBefore(grensetidspunkt)
+    fun omfatter(
+        datoEndret: LocalDateTime,
+        grensetidspunkt: LocalDateTime,
+    ): Boolean = datoEndret.isBefore(grensetidspunkt)
 }
 
 class SeksMaanedersRegel(
