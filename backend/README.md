@@ -127,8 +127,8 @@ JVM-metrikker. Se [Nais-dokumentasjonen om alarmer](https://doc.nais.io/observab
 
 Varsler sendes til disse Slack-kanalene:
 
-- Dev: [#utbetaling-team-beregning-alerts-dev](https://nav-it.slack.com/archives/C0BHK19HMPD)
-- Prod: [#utbetaling-team-beregning-alerts-prod](https://nav-it.slack.com/archives/C0BUZH3FLLF)
+- Dev: [#utbetaling-team-beregningsplattform-alerts-dev](https://nav-it.slack.com/archives/C0BHK19HMPD)
+- Prod: [#utbetaling-team-beregningsplattform-alerts-prod](https://nav-it.slack.com/archives/C0BUZH3FLLF)
 
 ### Grafana
 
