@@ -15,8 +15,10 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import kotliquery.TransactionalSession
 
 import no.nav.sokos.spk.mottak.domain.SeksMaanedersRegel
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 class TilstandsRyddeRepositoryTest :
     FunSpec({
@@ -29,7 +31,7 @@ class TilstandsRyddeRepositoryTest :
                 db.tilstand(2, grense.minusDays(1))
                 db.parent(10, 2, "ANNEN")
                 val tidligere = db.parentverdier()
-                db.repository.slettUrefererte(listOf(1, 2), regel, grense, db.kontroll) shouldBe RyddeBatchresultat(1, 0)
+                db.slettUrefererte(listOf(1, 2), regel, grense) shouldBe RyddeBatchresultat(1, 0)
                 db.parentverdier() shouldBe tidligere
                 db.antall("T_RETUR_TIL_ANV") shouldBe 1
                 db.antall("T_TRANS_TILSTAND") shouldBe 1
@@ -43,7 +45,7 @@ class TilstandsRyddeRepositoryTest :
                 db.parent(11, 1, "ANNEN")
                 db.parent(12, 2)
                 val metadata = db.metadata()
-                db.repository.nullstillOgSlett(listOf(1, 2, 99), regel, grense, 200, db.kontroll) shouldBe RyddeBatchresultat(1, 2)
+                db.nullstillOgSlett(listOf(1, 2, 99), regel, grense, 200) shouldBe RyddeBatchresultat(1, 2)
                 db.metadata() shouldBe metadata
                 db.referanser() shouldBe listOf(null, null, 2)
                 db.antall("T_RETUR_TIL_ANV") shouldBe 3
@@ -55,19 +57,19 @@ class TilstandsRyddeRepositoryTest :
                 db.tilstand(1, grense.minusDays(1))
                 db.tilstand(2, grense.plusDays(1))
                 db.parent(10, 1)
-                val kandidater = db.repository.finnKandidater(1, 2, regel, grense, db.kontroll)
+                val kandidater = db.finnKandidater(1, 2, regel, grense)
                 db.sql("UPDATE T_TRANS_TILSTAND SET DATO_ENDRET = TIMESTAMP '$grense' WHERE TRANS_TILSTAND_ID = 1")
                 db.sql("UPDATE T_TRANSAKSJON SET TRANS_TILSTAND_ID = 2 WHERE TRANSAKSJON_ID = 10")
-                db.repository.nullstillOgSlett(kandidater, regel, grense, 200, db.kontroll) shouldBe RyddeBatchresultat(0, 0)
+                db.nullstillOgSlett(kandidater, regel, grense, 200) shouldBe RyddeBatchresultat(0, 0)
                 db.referanser() shouldBe listOf(2)
                 db.antall("T_TRANS_TILSTAND") shouldBe 2
             }
         }
         test("tomme og manglende id-er gir ingen parentendring") {
             RyddeDb().use { db ->
-                db.repository.slettUrefererte(emptyList(), regel, grense, db.kontroll) shouldBe RyddeBatchresultat(0, 0)
-                db.repository.nullstillOgSlett(emptyList(), regel, grense, 200, db.kontroll) shouldBe RyddeBatchresultat(0, 0)
-                db.repository.nullstillOgSlett(listOf(99), regel, grense, 200, db.kontroll) shouldBe RyddeBatchresultat(0, 0)
+                db.slettUrefererte(emptyList(), regel, grense) shouldBe RyddeBatchresultat(0, 0)
+                db.nullstillOgSlett(emptyList(), regel, grense, 200) shouldBe RyddeBatchresultat(0, 0)
+                db.nullstillOgSlett(listOf(99), regel, grense, 200) shouldBe RyddeBatchresultat(0, 0)
             }
         }
         test("referansegrensen gir rollback uten å nullstille noen parent") {
@@ -76,7 +78,7 @@ class TilstandsRyddeRepositoryTest :
                 db.parent(10, 1)
                 db.parent(11, 1)
                 shouldThrow<ReferansegrenseOverskredet> {
-                    db.repository.nullstillOgSlett(listOf(1), regel, grense, 1, db.kontroll)
+                    db.nullstillOgSlett(listOf(1), regel, grense, 1)
                 }
                 db.referanser() shouldBe listOf(1, 1)
                 db.antall("T_TRANS_TILSTAND") shouldBe 1
@@ -92,7 +94,7 @@ class TilstandsRyddeRepositoryTest :
                     }
                 }
                 shouldThrow<ReferansegrenseOverskredet> {
-                    db.repository.nullstillOgSlett(listOf(1), regel, grense, 1, db.kontroll)
+                    db.nullstillOgSlett(listOf(1), regel, grense, 1)
                 }
                 db.referanser() shouldBe listOf(1)
                 db.antall("T_TRANS_TILSTAND") shouldBe 1
@@ -105,7 +107,7 @@ class TilstandsRyddeRepositoryTest :
                 db.sql("CREATE TABLE EKSTRA (ID INT PRIMARY KEY, TILSTAND INT REFERENCES T_TRANS_TILSTAND)")
                 db.sql("INSERT INTO EKSTRA VALUES (1,1)")
                 shouldThrow<SQLException> {
-                    db.repository.nullstillOgSlett(listOf(1), regel, grense, 200, db.kontroll)
+                    db.nullstillOgSlett(listOf(1), regel, grense, 200)
                 }
                 db.referanser() shouldBe listOf(1)
                 db.antall("T_TRANS_TILSTAND") shouldBe 1
@@ -123,10 +125,10 @@ class TilstandsRyddeRepositoryTest :
                     }
                 }
                 shouldThrow<RyddeSletteavvik> {
-                    db.repository.nullstillOgSlett(listOf(1), regel, grense, 200, db.kontroll)
+                    db.nullstillOgSlett(listOf(1), regel, grense, 200)
                 }
                 db.referanser() shouldBe listOf(1)
-                db.repository.finnKandidater(1, 1, regel, grense, db.kontroll) shouldBe listOf(1)
+                db.finnKandidater(1, 1, regel, grense) shouldBe listOf(1)
             }
         }
         test("budsjett kontrolleres på nytt mellom setninger og rollback bevarer referansene") {
@@ -135,7 +137,7 @@ class TilstandsRyddeRepositoryTest :
                 db.parent(10, 1)
                 var kall = 0
                 shouldThrow<IllegalStateException> {
-                    db.repository.nullstillOgSlett(
+                    db.nullstillOgSlett(
                         listOf(1),
                         regel,
                         grense,
@@ -159,11 +161,11 @@ class TilstandsRyddeRepositoryTest :
                 db.forUtforelse = { sql, _ -> if (sql.startsWith("UPDATE")) throw opprinnelig }
                 db.rollbackFeil = rollback
                 val feil =
-                    shouldThrow<RyddeUavklartUtfall> {
-                        db.repository.nullstillOgSlett(listOf(1), regel, grense, 200, db.kontroll)
+                    shouldThrow<SQLException> {
+                        db.nullstillOgSlett(listOf(1), regel, grense, 200)
                     }
-                feil.cause shouldBe opprinnelig
-                feil.cause!!.suppressed.toList() shouldBe listOf(rollback)
+                feil shouldBe opprinnelig
+                feil.suppressed.toList() shouldBe listOf(rollback)
                 db.referanser() shouldBe listOf(1)
             }
         }
@@ -175,7 +177,7 @@ class TilstandsRyddeRepositoryTest :
                     if (sql.startsWith("DELETE")) throw SQLTimeoutException("sensitiv", "57014")
                 }
                 shouldThrow<SQLTimeoutException> {
-                    db.repository.nullstillOgSlett(listOf(1), regel, grense, 200, db.kontroll)
+                    db.nullstillOgSlett(listOf(1), regel, grense, 200)
                 }
                 db.referanser() shouldBe listOf(1)
                 db.antall("T_TRANS_TILSTAND") shouldBe 1
@@ -196,40 +198,63 @@ internal class RyddeDb : AutoCloseable {
     val kontroll = RyddeEnhetskontroll { 3 }
     var forUtforelse: (String, Connection) -> Unit = { _, _ -> }
     var rollbackFeil: SQLException? = null
-    val repository =
-        TilstandsRyddeRepository(
-            object : DataSource by dataSource {
-                override fun getConnection(): Connection {
-                    val forbindelse = dataSource.connection
-                    return Proxy.newProxyInstance(Connection::class.java.classLoader, arrayOf(Connection::class.java)) { _, metode, argumenter ->
-                        try {
-                            if (metode.name == "rollback") rollbackFeil?.let { throw it }
-                            val resultat = metode.invoke(forbindelse, *(argumenter ?: emptyArray()))
-                            if (metode.name != "prepareStatement") {
-                                resultat
-                            } else {
-                                val sql = argumenter!![0] as String
-                                val setning = resultat as PreparedStatement
-                                Proxy.newProxyInstance(PreparedStatement::class.java.classLoader, arrayOf(PreparedStatement::class.java)) { _, kall, verdier ->
-                                    try {
-                                        if (kall.name.startsWith("execute")) {
-                                            timeouter += setning.queryTimeout
-                                            forUtforelse(sql, forbindelse)
-                                        }
-                                        kall.invoke(setning, *(verdier ?: emptyArray()))
-                                    } catch (feil: InvocationTargetException) {
-                                        throw feil.targetException
+    val transactionDataSource =
+        object : DataSource by dataSource {
+            override fun getConnection(): Connection {
+                val forbindelse = dataSource.connection
+                return Proxy.newProxyInstance(Connection::class.java.classLoader, arrayOf(Connection::class.java)) { _, metode, argumenter ->
+                    try {
+                        if (metode.name == "rollback") rollbackFeil?.let { throw it }
+                        val resultat = metode.invoke(forbindelse, *(argumenter ?: emptyArray()))
+                        if (metode.name != "prepareStatement") {
+                            resultat
+                        } else {
+                            val sql = argumenter!![0] as String
+                            val setning = resultat as PreparedStatement
+                            Proxy.newProxyInstance(PreparedStatement::class.java.classLoader, arrayOf(PreparedStatement::class.java)) { _, kall, verdier ->
+                                try {
+                                    if (kall.name.startsWith("execute")) {
+                                        timeouter += setning.queryTimeout
+                                        forUtforelse(sql, forbindelse)
                                     }
+                                    kall.invoke(setning, *(verdier ?: emptyArray()))
+                                } catch (feil: InvocationTargetException) {
+                                    throw feil.targetException
                                 }
                             }
-                        } catch (feil: InvocationTargetException) {
-                            throw feil.targetException
                         }
-                    } as Connection
-                }
-            },
-            RyddeSqlDialekt.H2,
-        )
+                    } catch (feil: InvocationTargetException) {
+                        throw feil.targetException
+                    }
+                } as Connection
+            }
+        }
+    val repository = TilstandsRyddeRepository(RyddeSqlDialekt.H2)
+
+    fun <T> transaksjon(handling: (TransactionalSession) -> T): T = transactionDataSource.transaction({ 3 }, handling)
+
+    fun finnKandidater(
+        fraId: Long,
+        tilId: Long,
+        regel: SeksMaanedersRegel,
+        grense: LocalDateTime,
+        kontroll: RyddeEnhetskontroll = this.kontroll,
+    ): List<Int> = transaksjon { repository.finnKandidater(it, fraId, tilId, regel, grense, kontroll) }
+
+    fun slettUrefererte(
+        ider: List<Int>,
+        regel: SeksMaanedersRegel,
+        grense: LocalDateTime,
+        kontroll: RyddeEnhetskontroll = this.kontroll,
+    ): RyddeBatchresultat = transaksjon { repository.slettUrefererte(it, ider, regel, grense, kontroll) }
+
+    fun nullstillOgSlett(
+        ider: List<Int>,
+        regel: SeksMaanedersRegel,
+        grense: LocalDateTime,
+        maksReferanser: Int,
+        kontroll: RyddeEnhetskontroll = this.kontroll,
+    ): RyddeBatchresultat = transaksjon { repository.nullstillOgSlett(it, ider, regel, grense, maksReferanser, kontroll) }
 
     init {
         sql("CREATE TABLE T_TRANSAKSJON (TRANSAKSJON_ID INT PRIMARY KEY, TRANS_TILSTAND_ID INT, K_ANVISER VARCHAR(20), DATO_ENDRET TIMESTAMP(6), ENDRET_AV VARCHAR(50), VERSJON INT, BELOP INT)")

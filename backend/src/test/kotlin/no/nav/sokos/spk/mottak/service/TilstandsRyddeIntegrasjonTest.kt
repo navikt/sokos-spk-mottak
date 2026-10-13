@@ -32,11 +32,12 @@ class TilstandsRyddeIntegrasjonTest :
                 val service =
                     TilstandsRyddeService(
                         db.repository,
-                        f.lager,
+                        f.lager.repository,
                         TilstandsRyddeKonfigurasjon(intervallBredde = 2),
                         klokke = f.klokke,
                         nanoTime = { 0L },
                         vent = { db.dataSource.hikariPoolMXBean.activeConnections shouldBe 0 },
+                        db2DataSource = db.transactionDataSource,
                     )
                 shouldThrow<SQLException> { service.kjor() }
                 db.antall("T_TRANS_TILSTAND") shouldBe 1
@@ -65,13 +66,14 @@ class TilstandsRyddeIntegrasjonTest :
                 val service =
                     TilstandsRyddeService(
                         db.repository,
-                        f.lager,
+                        f.lager.repository,
                         TilstandsRyddeKonfigurasjon(),
                         nanoTime = { 0L },
                         vent = {
                             db.dataSource.hikariPoolMXBean.activeConnections shouldBe 0
                             if (++ventinger == 2) f.lager.las.tapt = true
                         },
+                        db2DataSource = db.transactionDataSource,
                     )
                 shouldThrow<RyddeLasTapt> { service.kjor() }
                 f.lager.status!!.sisteFerdigeId shouldBe null
@@ -123,11 +125,12 @@ class TilstandsRyddeIntegrasjonTest :
             f.lager.status = f.status(1, 2, null)
             val service =
                 TilstandsRyddeService(
-                    f.db,
-                    f.lager,
+                    f.db.repository,
+                    f.lager.repository,
                     TilstandsRyddeKonfigurasjon(),
                     nanoTime = { 0L },
                     vent = { if (f.db.kall.last() == "urefererte") throw InterruptedException() },
+                    db2DataSource = ryddeTestDataSource,
                 )
             try {
                 service.kjor().slettede shouldBe 1L

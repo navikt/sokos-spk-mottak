@@ -19,17 +19,20 @@ import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 object PostgresListener : TestListener {
     private const val DOCKER_IMAGE_NAME = "postgres:16"
+    private val postgresProperties = PropertiesConfig.PostgresProperties()
     val container =
         PostgreSQLContainer<Nothing>(DockerImageName.parse(DOCKER_IMAGE_NAME)).apply {
             withReuse(false)
-            withUsername("test-admin")
+            withDatabaseName(postgresProperties.databaseName)
+            withUsername(postgresProperties.adminUser)
+            withPassword("postgres")
             waitingFor(Wait.defaultWaitStrategy())
             start()
         }
 
     val dataSource: HikariDataSource by lazy {
         HikariDataSource(
-            DatabaseTestConfig.hikariPostgresConfig(container.host).apply {
+            DatabaseTestConfig.hikariPostgresConfig(container.host, container.getMappedPort(5432)).apply {
                 connectionInitSql = """SET ROLE "${PropertiesConfig.PostgresProperties().adminUser}""""
             },
         )
@@ -41,6 +44,12 @@ object PostgresListener : TestListener {
 
     override suspend fun beforeSpec(spec: Spec) {
         container.start()
+        dataSource.connection.use { connection ->
+            connection.createStatement().use {
+                val role = postgresProperties.user.replace("\"", "\"\"")
+                it.execute("CREATE ROLE \"$role\"")
+            }
+        }
         Flyway
             .configure()
             .dataSource(dataSource)

@@ -119,7 +119,8 @@ private class LasFikstur {
         every { helse.executeQuery() } returns eid
         every { frigjor.executeQuery() } returns frigjort
         listOf(tatt, eid, frigjort).forEach { resultat ->
-            every { resultat.next() } returns true
+            every { resultat.isClosed() } returns false
+            every { resultat.next() } returnsMany listOf(true, false, true, false)
             every { resultat.getBoolean(1) } returns true
         }
     }

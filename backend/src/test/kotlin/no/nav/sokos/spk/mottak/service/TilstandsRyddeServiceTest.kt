@@ -8,13 +8,16 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
 
 import no.nav.sokos.spk.mottak.config.TilstandsRyddeKonfigurasjon
 import no.nav.sokos.spk.mottak.domain.RyddeStoppgrunn
-import no.nav.sokos.spk.mottak.domain.TilstandsRyddeRegel
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.Db2RyddeSnapshot
 import no.nav.sokos.spk.mottak.repository.Kjoringslas
@@ -22,32 +25,40 @@ import no.nav.sokos.spk.mottak.repository.RyddeBatchresultat
 import no.nav.sokos.spk.mottak.repository.RyddeEnhetskontroll
 import no.nav.sokos.spk.mottak.repository.RyddeLasTapt
 import no.nav.sokos.spk.mottak.repository.RyddeUavklartUtfall
-import no.nav.sokos.spk.mottak.repository.TilstandsRyddeDatakilde
+import no.nav.sokos.spk.mottak.repository.TilstandsRyddeRepository
 import no.nav.sokos.spk.mottak.repository.TilstandsRyddeStatus
-import no.nav.sokos.spk.mottak.repository.TilstandsRyddeStatuslager
+import no.nav.sokos.spk.mottak.repository.TilstandsRyddeStatusRepository
+
+internal val ryddeTestDataSource =
+    HikariDataSource(
+        HikariConfig().apply {
+            jdbcUrl = "jdbc:h2:mem:rydding_service_test;MODE=DB2;DB_CLOSE_DELAY=-1"
+            maximumPoolSize = 2
+            minimumIdle = 0
+        },
+    )
 
 class TilstandsRyddeServiceTest :
     FunSpec({
         test("fullført lagret runde forblir fullført når låsefrigjøring passerer budsjettet") {
             val f = RyddeServiceFikstur()
-            val lager =
-                object : TilstandsRyddeStatuslager by f.lager {
-                    override fun provKjoringslas(kontroll: RyddeEnhetskontroll): Kjoringslas =
-                        object : Kjoringslas {
-                            override fun kontroller(timeoutSekunder: Int) {}
+            val lager = f.lager.repository
+            every { lager.provKjoringslas(any()) } returns
+                object : Kjoringslas {
+                    override fun kontroller(timeoutSekunder: Int) {}
 
-                            override fun close() {
-                                f.nanos = f.maksKjoretid.toNanos() + 1
-                            }
-                        }
+                    override fun close() {
+                        f.nanos = f.maksKjoretid.toNanos() + 1
+                    }
                 }
             val resultat =
                 TilstandsRyddeService(
-                    f.db,
+                    f.db.repository,
                     lager,
                     TilstandsRyddeKonfigurasjon(maksKjoretid = f.maksKjoretid),
                     nanoTime = { f.nanos },
                     vent = {},
+                    db2DataSource = ryddeTestDataSource,
                 ).kjor()
             resultat.stoppgrunn shouldBe RyddeStoppgrunn.FULLFORT
             f.lager.status!!.fullfort shouldBe true
@@ -58,10 +69,11 @@ class TilstandsRyddeServiceTest :
             f.db.feil = SQLException("sensitiv", "40001")
             val resultat =
                 TilstandsRyddeService(
-                    f.db,
-                    f.lager,
+                    f.db.repository,
+                    f.lager.repository,
                     nanoTime = { 0L },
                     vent = { throw InterruptedException() },
+                    db2DataSource = ryddeTestDataSource,
                 )
             try {
                 resultat.kjor().stoppgrunn shouldBe RyddeStoppgrunn.AVBRUTT
@@ -79,10 +91,11 @@ class TilstandsRyddeServiceTest :
                     .RyddeStopp(RyddeStoppgrunn.BUDSJETT)
             val service =
                 TilstandsRyddeService(
-                    f.db,
-                    f.lager,
+                    f.db.repository,
+                    f.lager.repository,
                     nanoTime = { 0L },
                     vent = { throw stopp },
+                    db2DataSource = ryddeTestDataSource,
                 )
             service.kjor().stoppgrunn shouldBe RyddeStoppgrunn.BUDSJETT
             stopp.suppressed.toList() shouldBe listOf(f.db.feil)
@@ -95,11 +108,12 @@ class TilstandsRyddeServiceTest :
                 f.db.feil = SQLException("sensitiv", sqlstate)
                 val service =
                     TilstandsRyddeService(
-                        f.db,
-                        f.lager,
+                        f.db.repository,
+                        f.lager.repository,
                         TilstandsRyddeKonfigurasjon(maksForsok = 1),
                         nanoTime = { 0L },
                         vent = { throw InterruptedException() },
+                        db2DataSource = ryddeTestDataSource,
                     )
                 try {
                     shouldThrow<SQLException> { service.kjor() } shouldBe f.db.feil
@@ -116,25 +130,24 @@ class TilstandsRyddeServiceTest :
             val f = RyddeServiceFikstur()
             val cleanupFeil = SQLException("sensitiv close", "08006")
             val observerte = mutableListOf<RyddeStoppgrunn>()
-            val lager =
-                object : TilstandsRyddeStatuslager by f.lager {
-                    override fun provKjoringslas(kontroll: RyddeEnhetskontroll): Kjoringslas =
-                        object : Kjoringslas {
-                            override fun kontroller(timeoutSekunder: Int) {}
+            val lager = f.lager.repository
+            every { lager.provKjoringslas(any()) } returns
+                object : Kjoringslas {
+                    override fun kontroller(timeoutSekunder: Int) {}
 
-                            override fun close(): Unit = throw cleanupFeil
-                        }
+                    override fun close(): Unit = throw cleanupFeil
                 }
             f.lager.etterHent = { f.nanos = f.maksKjoretid.toNanos() }
             val forrige = Metrics.tilstandsryddingSqlfeil.labelValues("annen").get()
             val service =
                 TilstandsRyddeService(
-                    f.db,
+                    f.db.repository,
                     lager,
                     TilstandsRyddeKonfigurasjon(maksKjoretid = f.maksKjoretid),
                     nanoTime = { f.nanos },
                     vent = {},
                     avslutningsobservator = { observerte += it.stoppgrunn },
+                    db2DataSource = ryddeTestDataSource,
                 )
             shouldThrow<SQLException> { service.kjor() } shouldBe cleanupFeil
             (cleanupFeil.suppressed.single() is no.nav.sokos.spk.mottak.domain.RyddeStopp) shouldBe true
@@ -155,32 +168,21 @@ class TilstandsRyddeServiceTest :
                             if (operasjon == "close") throw feil
                         }
                     }
-                val lager =
-                    object : TilstandsRyddeStatuslager {
-                        override fun provKjoringslas(kontroll: RyddeEnhetskontroll): Kjoringslas {
-                            if (operasjon == "anskaffelse") throw feil
-                            return las
-                        }
-
-                        override fun hent(
-                            las: Kjoringslas,
-                            kontroll: RyddeEnhetskontroll,
-                        ): TilstandsRyddeStatus? {
-                            if (operasjon == "hent") throw feil
-                            return null
-                        }
-
-                        override fun lagre(
-                            las: Kjoringslas,
-                            status: TilstandsRyddeStatus,
-                            kontroll: RyddeEnhetskontroll,
-                        ) {
-                            if (operasjon == "lagre") throw feil
-                        }
-                    }
+                val lager = mockk<TilstandsRyddeStatusRepository>()
+                every { lager.provKjoringslas(any()) } answers {
+                    if (operasjon == "anskaffelse") throw feil
+                    las
+                }
+                every { lager.hent(any(), any()) } answers {
+                    if (operasjon == "hent") throw feil
+                    null
+                }
+                every { lager.lagre(any(), any(), any()) } answers {
+                    if (operasjon == "lagre") throw feil
+                }
                 val forrige = Metrics.tilstandsryddingSqlfeil.labelValues("annen").get()
                 shouldThrow<SQLException> {
-                    TilstandsRyddeService(f.db, lager, nanoTime = { 0L }, vent = {}).kjor()
+                    TilstandsRyddeService(f.db.repository, lager, nanoTime = { 0L }, vent = {}, db2DataSource = ryddeTestDataSource).kjor()
                 } shouldBe feil
                 Metrics.tilstandsryddingSqlfeil.labelValues("annen").get() - forrige shouldBe 1.0
             }
@@ -195,13 +197,14 @@ class TilstandsRyddeServiceTest :
                 if (utfall == "feil") f.db.feilVed = "snapshot"
                 val service =
                     TilstandsRyddeService(
-                        f.db,
-                        f.lager,
+                        f.db.repository,
+                        f.lager.repository,
                         TilstandsRyddeKonfigurasjon(maksKjoretid = f.maksKjoretid),
                         nanoTime = { f.nanos },
                         vent = { f.etterVent() },
                         stoppindikator = { f.stopp },
                         avslutningsobservator = { observerte += it },
+                        db2DataSource = ryddeTestDataSource,
                     )
                 if (utfall == "feil") {
                     shouldThrow<SQLException> { service.kjor() } shouldBe f.db.feil
@@ -227,11 +230,12 @@ class TilstandsRyddeServiceTest :
             val observatorFeil = IllegalStateException("Observator")
             val service =
                 TilstandsRyddeService(
-                    f.db,
-                    f.lager,
+                    f.db.repository,
+                    f.lager.repository,
                     nanoTime = { 0L },
                     vent = {},
                     avslutningsobservator = { throw observatorFeil },
+                    db2DataSource = ryddeTestDataSource,
                 )
             shouldThrow<SQLException> { service.kjor() } shouldBe f.db.feil
             f.db.feil.suppressed
@@ -392,8 +396,8 @@ class TilstandsRyddeServiceTest :
 internal class RyddeServiceFikstur {
     val tid = LocalDateTime.parse("2026-10-12T08:00:00.123456")
     val klokke = Clock.fixed(Instant.parse("2026-10-12T06:00:00Z"), ZoneOffset.UTC)
-    val lager = MinneRyddestatus()
-    val db = MinneRyddedata(Db2RyddeSnapshot(tid, 1, 2))
+    val lager = MockRyddestatus()
+    val db = MockRyddedata(Db2RyddeSnapshot(tid, 1, 2))
     var nanos = 0L
     var stopp = false
     var maksKjoretid = Duration.ofSeconds(10)
@@ -409,8 +413,8 @@ internal class RyddeServiceFikstur {
     fun service(oppbevaring: Int = 6): TilstandsRyddeService {
         lager.las = MinneKjoringslas()
         return TilstandsRyddeService(
-            db,
-            lager,
+            db.repository,
+            lager.repository,
             TilstandsRyddeKonfigurasjon(
                 oppbevaringMaaneder = oppbevaring,
                 maksKjoretid = maksKjoretid,
@@ -423,6 +427,7 @@ internal class RyddeServiceFikstur {
                 etterVent()
             },
             stoppindikator = { stopp },
+            db2DataSource = ryddeTestDataSource,
         )
     }
 }
@@ -440,7 +445,8 @@ internal class MinneKjoringslas : Kjoringslas {
     }
 }
 
-internal class MinneRyddestatus : TilstandsRyddeStatuslager {
+internal class MockRyddestatus {
+    val repository = mockk<TilstandsRyddeStatusRepository>()
     var etterHent: () -> Unit = {}
     var las = MinneKjoringslas()
     var opptatt = false
@@ -448,37 +454,60 @@ internal class MinneRyddestatus : TilstandsRyddeStatuslager {
     var lagringer = 0
     var feilVedLagring: Int? = null
 
-    override fun provKjoringslas(kontroll: RyddeEnhetskontroll): Kjoringslas? = if (opptatt) null else las
-
-    override fun hent(
-        las: Kjoringslas,
-        kontroll: RyddeEnhetskontroll,
-    ): TilstandsRyddeStatus? {
-        las.kontroller()
-        etterHent()
-        return status
-    }
-
-    override fun lagre(
-        las: Kjoringslas,
-        status: TilstandsRyddeStatus,
-        kontroll: RyddeEnhetskontroll,
-    ) {
-        las.kontroller()
-        if (++lagringer == feilVedLagring) error("Postgres-feil")
-        this.status = status
+    init {
+        every { repository.provKjoringslas(any()) } answers { if (opptatt) null else las }
+        every { repository.hent(any(), any()) } answers {
+            arg<Kjoringslas>(0).kontroller()
+            etterHent()
+            status
+        }
+        every { repository.lagre(any(), any(), any()) } answers {
+            arg<Kjoringslas>(0).kontroller()
+            if (++lagringer == feilVedLagring) error("Postgres-feil")
+            status = arg<TilstandsRyddeStatus>(1)
+        }
     }
 }
 
-internal class MinneRyddedata(
+internal class MockRyddedata(
     var snapshot: Db2RyddeSnapshot,
-) : TilstandsRyddeDatakilde {
+) {
+    val repository = mockk<TilstandsRyddeRepository>()
     val kall = mutableListOf<String>()
     val timeouter = mutableListOf<Int>()
     val grenser = mutableListOf<LocalDateTime>()
     val rader = linkedMapOf(1 to false, 2 to true)
     var feilVed: String? = null
     var feil: Exception = SQLException("Feil", "23503")
+
+    init {
+        every { repository.hentSnapshot(any(), any()) } answers {
+            kall("snapshot", arg(1))
+            snapshot
+        }
+        every { repository.finnKandidater(any(), any(), any(), any(), any(), any()) } answers {
+            kall("kandidater", arg(5))
+            val fraId = arg<Long>(1)
+            val tilId = arg<Long>(2)
+            grenser += arg<LocalDateTime>(4)
+            rader.keys.filter { it.toLong() in fraId..tilId }
+        }
+        every { repository.slettUrefererte(any(), any(), any(), any(), any()) } answers {
+            kall("urefererte", arg(4))
+            val ider = arg<List<Int>>(1)
+            val slettede = ider.filter { rader[it] == false }
+            slettede.forEach(rader::remove)
+            RyddeBatchresultat(slettede.size, 0)
+        }
+        every { repository.nullstillOgSlett(any(), any(), any(), any(), any(), any()) } answers {
+            kall("resterende", arg(5))
+            val ider = arg<List<Int>>(1)
+            val referanser = ider.count { rader[it] == true }
+            val slettede = ider.count { rader.containsKey(it) }
+            ider.forEach(rader::remove)
+            RyddeBatchresultat(slettede, referanser)
+        }
+    }
 
     private fun kall(
         navn: String,
@@ -487,48 +516,5 @@ internal class MinneRyddedata(
         timeouter += kontroll.timeoutSekunder()
         kall += navn
         if (feilVed == navn) throw feil
-    }
-
-    override fun hentSnapshot(kontroll: RyddeEnhetskontroll): Db2RyddeSnapshot {
-        kall("snapshot", kontroll)
-        return snapshot
-    }
-
-    override fun finnKandidater(
-        fraId: Long,
-        tilId: Long,
-        regel: TilstandsRyddeRegel,
-        grense: LocalDateTime,
-        kontroll: RyddeEnhetskontroll,
-    ): List<Int> {
-        kall("kandidater", kontroll)
-        grenser += grense
-        return rader.keys.filter { it.toLong() in fraId..tilId }
-    }
-
-    override fun slettUrefererte(
-        ider: List<Int>,
-        regel: TilstandsRyddeRegel,
-        grense: LocalDateTime,
-        kontroll: RyddeEnhetskontroll,
-    ): RyddeBatchresultat {
-        kall("urefererte", kontroll)
-        val slettede = ider.filter { rader[it] == false }
-        slettede.forEach(rader::remove)
-        return RyddeBatchresultat(slettede.size, 0)
-    }
-
-    override fun nullstillOgSlett(
-        ider: List<Int>,
-        regel: TilstandsRyddeRegel,
-        grense: LocalDateTime,
-        maksReferanser: Int,
-        kontroll: RyddeEnhetskontroll,
-    ): RyddeBatchresultat {
-        kall("resterende", kontroll)
-        val referanser = ider.count { rader[it] == true }
-        val slettede = ider.count { rader.containsKey(it) }
-        ider.forEach(rader::remove)
-        return RyddeBatchresultat(slettede, referanser)
     }
 }

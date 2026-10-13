@@ -6,9 +6,12 @@ import java.time.Clock
 import java.time.Duration
 import java.util.Collections
 import java.util.IdentityHashMap
+import javax.sql.DataSource
 
+import kotliquery.TransactionalSession
 import mu.KotlinLogging
 
+import no.nav.sokos.spk.mottak.config.DatabaseConfig
 import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.TilstandsRyddeKonfigurasjon
 import no.nav.sokos.spk.mottak.domain.RyddeStopp
@@ -22,15 +25,16 @@ import no.nav.sokos.spk.mottak.repository.Kjoringslas
 import no.nav.sokos.spk.mottak.repository.RyddeBatchresultat
 import no.nav.sokos.spk.mottak.repository.RyddeEnhetskontroll
 import no.nav.sokos.spk.mottak.repository.RyddeUavklartUtfall
-import no.nav.sokos.spk.mottak.repository.TilstandsRyddeDatakilde
+import no.nav.sokos.spk.mottak.repository.TilstandsRyddeRepository
 import no.nav.sokos.spk.mottak.repository.TilstandsRyddeStatus
-import no.nav.sokos.spk.mottak.repository.TilstandsRyddeStatuslager
+import no.nav.sokos.spk.mottak.repository.TilstandsRyddeStatusRepository
+import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
 
 private val logger = KotlinLogging.logger {}
 
 class TilstandsRyddeService(
-    private val db2: TilstandsRyddeDatakilde,
-    private val statuslager: TilstandsRyddeStatuslager,
+    private val db2: TilstandsRyddeRepository,
+    private val statuslager: TilstandsRyddeStatusRepository,
     private val konfigurasjon: TilstandsRyddeKonfigurasjon = PropertiesConfig.tilstandsRyddeKonfigurasjon(),
     private val regel: TilstandsRyddeRegel = SeksMaanedersRegel(konfigurasjon.oppbevaringMaaneder),
     private val klokke: Clock = Clock.systemUTC(),
@@ -43,6 +47,7 @@ class TilstandsRyddeService(
                 "slettede=${resultat.slettede} nullstilte=${resultat.nullstilteReferanser} varighet=${resultat.varighet}"
         }
     },
+    private val db2DataSource: DataSource = DatabaseConfig.db2DataSource,
 ) {
     init {
         require(regel.oppbevaringMaaneder == konfigurasjon.oppbevaringMaaneder)
@@ -106,7 +111,7 @@ class TilstandsRyddeService(
                         status.regelversjon != regel.versjon ||
                         status.oppbevaringMaaneder != regel.oppbevaringMaaneder
                     ) {
-                        val snapshot = db2Enhet(las, struping, kontroll) { db2.hentSnapshot(kontroll) }
+                        val snapshot = db2Enhet(las, struping, kontroll) { session -> db2.hentSnapshot(session, kontroll) }
                         val tom = snapshot.minId == null
                         status =
                             TilstandsRyddeStatus(
@@ -136,15 +141,15 @@ class TilstandsRyddeService(
                                 db2Enhet(las, struping, kontroll, { funnet: List<Int> ->
                                     kandidater += funnet.size.toLong()
                                     Metrics.tilstandsryddingKandidater.labelValues(fase).inc(funnet.size.toLong())
-                                }) {
-                                    db2.finnKandidater(fraId, tilId, regel, grense, kontroll)
+                                }) { session ->
+                                    db2.finnKandidater(session, fraId, tilId, regel, grense, kontroll)
                                 }
                             ider.chunked(konfigurasjon.batchStorrelse).forEach { batch ->
-                                db2Enhet<RyddeBatchresultat>(las, struping, kontroll, { opptell(fase, it) }) {
+                                db2Enhet<RyddeBatchresultat>(las, struping, kontroll, { opptell(fase, it) }) { session ->
                                     if (fase == "urefererte") {
-                                        db2.slettUrefererte(batch, regel, grense, kontroll)
+                                        db2.slettUrefererte(session, batch, regel, grense, kontroll)
                                     } else {
-                                        db2.nullstillOgSlett(batch, regel, grense, konfigurasjon.maksReferanserPerBatch, kontroll)
+                                        db2.nullstillOgSlett(session, batch, regel, grense, konfigurasjon.maksReferanserPerBatch, kontroll)
                                     }
                                 }
                             }
@@ -265,17 +270,23 @@ class TilstandsRyddeService(
         struping: RyddeStruping,
         kontroll: RyddeEnhetskontroll,
         etterCommit: (T) -> Unit = {},
-        handling: () -> T,
+        handling: (TransactionalSession) -> T,
     ): T {
         for (forsok in 1..konfigurasjon.maksForsok) {
             las.kontroller(kontroll.timeoutSekunder())
             kontroll.timeoutSekunder()
             val start = nanoTime()
             val resultat: T
+            var transaksjonskroppFullfort = false
             try {
-                resultat = handling()
+                resultat =
+                    db2DataSource.transaction(kontroll::timeoutSekunder) { session ->
+                        handling(session).also { transaksjonskroppFullfort = true }
+                    }
             } catch (feil: Exception) {
                 if (feil is RyddeStopp) throw feil
+                if (feil is RyddeUavklartUtfall) throw feil
+                if (transaksjonskroppFullfort || feil.suppressed.isNotEmpty()) throw RyddeUavklartUtfall(feil)
                 val kjede = feilkjede(feil)
                 val sqlfeil = kjede.filterIsInstance<SQLException>()
                 val godkjenteLasetilstander = setOf("40001", "57033")

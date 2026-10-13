@@ -2,12 +2,15 @@ package no.nav.sokos.spk.mottak.repository
 
 import java.sql.Connection
 import java.sql.Timestamp
-import java.sql.Types
 import java.time.Instant
 import java.time.LocalDateTime
 
 import com.zaxxer.hikari.HikariDataSource
+import kotliquery.Parameter
+import kotliquery.Session
+import kotliquery.queryOf
 
+import kotliquery.Connection as KotliqueryConnection
 import no.nav.sokos.spk.mottak.metrics.DATABASE_CALL
 import no.nav.sokos.spk.mottak.metrics.Metrics
 
@@ -45,42 +48,22 @@ interface Kjoringslas : AutoCloseable {
 
 class RyddeLasTapt : IllegalStateException("Kjøringslåsen er ikke lenger eid av sesjonen")
 
-interface TilstandsRyddeStatuslager {
-    fun provKjoringslas(kontroll: RyddeEnhetskontroll = RyddeEnhetskontroll { 5 }): Kjoringslas?
-
-    fun hent(
-        las: Kjoringslas,
-        kontroll: RyddeEnhetskontroll = RyddeEnhetskontroll { 5 },
-    ): TilstandsRyddeStatus?
-
-    fun lagre(
-        las: Kjoringslas,
-        status: TilstandsRyddeStatus,
-        kontroll: RyddeEnhetskontroll = RyddeEnhetskontroll { 5 },
-    )
-}
-
 class TilstandsRyddeStatusRepository(
     private val dataSource: HikariDataSource,
-) : TilstandsRyddeStatuslager {
+) {
     init {
         require(dataSource.maximumPoolSize >= 2) { "Kjøringslåsen trenger en egen forbindelse og ledig poolkapasitet" }
     }
 
-    override fun provKjoringslas(kontroll: RyddeEnhetskontroll): Kjoringslas? =
+    fun provKjoringslas(kontroll: RyddeEnhetskontroll = RyddeEnhetskontroll { 5 }): Kjoringslas? =
         malt("provKjoringslas") {
             kontroll.timeoutSekunder()
             val forbindelse = dataSource.connection
             try {
                 val tatt =
-                    forbindelse.prepareStatement("SELECT pg_try_advisory_lock(?)").use {
-                        it.queryTimeout = kontroll.timeoutSekunder()
-                        it.setLong(1, TILSTANDSRYDDING_LASENOKKEL)
-                        it.executeQuery().use { resultat ->
-                            resultat.next()
-                            resultat.getBoolean(1)
-                        }
-                    }
+                    sesjon(forbindelse, kontroll.timeoutSekunder()).single(
+                        queryOf("SELECT pg_try_advisory_lock(?)", TILSTANDSRYDDING_LASENOKKEL),
+                    ) { rad -> rad.boolean(1) }!!
                 kontroll.timeoutSekunder()
                 if (tatt) Sesjonslas(forbindelse, kontroll) else null.also { forbindelse.close() }
             } catch (feil: Exception) {
@@ -89,9 +72,9 @@ class TilstandsRyddeStatusRepository(
             }
         }
 
-    override fun hent(
+    fun hent(
         las: Kjoringslas,
-        kontroll: RyddeEnhetskontroll,
+        kontroll: RyddeEnhetskontroll = RyddeEnhetskontroll { 5 },
     ): TilstandsRyddeStatus? =
         malt("hent") {
             las.kontroller(kontroll.timeoutSekunder())
@@ -99,34 +82,29 @@ class TilstandsRyddeStatusRepository(
             val status =
                 dataSource.connection.use { forbindelse ->
                     kontroll.timeoutSekunder()
-                    forbindelse.prepareStatement("SELECT * FROM tilstandsrydding_status WHERE id = 1").use { setning ->
-                        setning.queryTimeout = kontroll.timeoutSekunder()
-                        setning.executeQuery().use { resultat ->
-                            if (!resultat.next()) {
-                                null
-                            } else {
-                                TilstandsRyddeStatus(
-                                    resultat.getString("regelversjon"),
-                                    resultat.getInt("oppbevaring_maaneder"),
-                                    resultat.getTimestamp("grensetidspunkt").toLocalDateTime(),
-                                    (resultat.getObject("forste_id") as Number?)?.toLong(),
-                                    (resultat.getObject("ovre_id") as Number?)?.toLong(),
-                                    (resultat.getObject("siste_ferdige_id") as Number?)?.toLong(),
-                                    resultat.getBoolean("fullfort"),
-                                    resultat.getTimestamp("siste_fullfort_tidspunkt")?.toInstant(),
-                                )
-                            }
-                        }
+                    sesjon(forbindelse, kontroll.timeoutSekunder()).single(
+                        queryOf("SELECT * FROM tilstandsrydding_status WHERE id = 1"),
+                    ) { rad ->
+                        TilstandsRyddeStatus(
+                            rad.string("regelversjon"),
+                            rad.int("oppbevaring_maaneder"),
+                            rad.localDateTime("grensetidspunkt"),
+                            rad.longOrNull("forste_id"),
+                            rad.longOrNull("ovre_id"),
+                            rad.longOrNull("siste_ferdige_id"),
+                            rad.boolean("fullfort"),
+                            rad.sqlTimestampOrNull("siste_fullfort_tidspunkt")?.toInstant(),
+                        )
                     }
                 }
             kontroll.timeoutSekunder()
             status
         }
 
-    override fun lagre(
+    fun lagre(
         las: Kjoringslas,
         status: TilstandsRyddeStatus,
-        kontroll: RyddeEnhetskontroll,
+        kontroll: RyddeEnhetskontroll = RyddeEnhetskontroll { 5 },
     ) {
         malt("lagre") {
             las.kontroller(kontroll.timeoutSekunder())
@@ -135,8 +113,8 @@ class TilstandsRyddeStatusRepository(
                 kontroll.timeoutSekunder()
                 forbindelse.autoCommit = false
                 try {
-                    forbindelse
-                        .prepareStatement(
+                    sesjon(forbindelse, kontroll.timeoutSekunder()).update(
+                        queryOf(
                             """
                             INSERT INTO tilstandsrydding_status
                                 (id, regelversjon, oppbevaring_maaneder, grensetidspunkt, forste_id, ovre_id,
@@ -154,22 +132,16 @@ class TilstandsRyddeStatusRepository(
                                 siste_fullfort_tidspunkt = COALESCE(EXCLUDED.siste_fullfort_tidspunkt,
                                     tilstandsrydding_status.siste_fullfort_tidspunkt)
                             """.trimIndent(),
-                        ).use { setning ->
-                            setning.queryTimeout = kontroll.timeoutSekunder()
-                            setning.setString(1, status.regelversjon)
-                            setning.setInt(2, status.oppbevaringMaaneder)
-                            setning.setTimestamp(3, Timestamp.valueOf(status.grensetidspunkt))
-                            listOf(status.forsteId, status.ovreId, status.sisteFerdigeId).forEachIndexed { indeks, id ->
-                                if (id == null) setning.setNull(indeks + 4, Types.BIGINT) else setning.setLong(indeks + 4, id)
-                            }
-                            setning.setBoolean(7, status.fullfort)
-                            if (status.sisteFullfortTidspunkt == null) {
-                                setning.setNull(8, Types.TIMESTAMP_WITH_TIMEZONE)
-                            } else {
-                                setning.setTimestamp(8, Timestamp.from(status.sisteFullfortTidspunkt))
-                            }
-                            setning.executeUpdate()
-                        }
+                            status.regelversjon,
+                            status.oppbevaringMaaneder,
+                            Timestamp.valueOf(status.grensetidspunkt),
+                            Parameter(status.forsteId, Long::class.javaPrimitiveType!!),
+                            Parameter(status.ovreId, Long::class.javaPrimitiveType!!),
+                            Parameter(status.sisteFerdigeId, Long::class.javaPrimitiveType!!),
+                            status.fullfort,
+                            Parameter(status.sisteFullfortTidspunkt?.let(Timestamp::from), Timestamp::class.java),
+                        ),
+                    )
                     las.kontroller(kontroll.timeoutSekunder())
                     kontroll.timeoutSekunder()
                     forbindelse.commit()
@@ -196,8 +168,9 @@ class TilstandsRyddeStatusRepository(
             val timeout = minOf(timeoutSekunder, kontroll.timeoutSekunder())
             val eid =
                 malt("kontrollerLas") {
-                    forbindelse
-                        .prepareStatement(
+                    require(timeoutSekunder > 0)
+                    sesjon(forbindelse, minOf(timeout, kontroll.timeoutSekunder())).single(
+                        queryOf(
                             """
                             SELECT EXISTS (
                                 SELECT 1 FROM pg_locks
@@ -205,16 +178,10 @@ class TilstandsRyddeStatusRepository(
                                   AND classid = ?::oid AND objid = ?::oid AND objsubid = 1
                             )
                             """.trimIndent(),
-                        ).use { setning ->
-                            require(timeoutSekunder > 0)
-                            setning.queryTimeout = minOf(timeout, kontroll.timeoutSekunder())
-                            setning.setLong(1, TILSTANDSRYDDING_LASENOKKEL ushr 32)
-                            setning.setLong(2, TILSTANDSRYDDING_LASENOKKEL and 0xffffffffL)
-                            setning.executeQuery().use { resultat ->
-                                resultat.next()
-                                resultat.getBoolean(1)
-                            }
-                        }
+                            TILSTANDSRYDDING_LASENOKKEL ushr 32,
+                            TILSTANDSRYDDING_LASENOKKEL and 0xffffffffL,
+                        ),
+                    ) { rad -> rad.boolean(1) }!!
                 }
             kontroll.timeoutSekunder()
             if (!eid) throw RyddeLasTapt()
@@ -232,16 +199,11 @@ class TilstandsRyddeStatusRepository(
                 }
             try {
                 malt("frigjorLas") {
-                    forbindelse.prepareStatement("SELECT pg_advisory_unlock(?)").use {
-                        it.queryTimeout = timeout
-                        it.setLong(1, TILSTANDSRYDDING_LASENOKKEL)
-                        val frigjort =
-                            it.executeQuery().use { resultat ->
-                                resultat.next()
-                                resultat.getBoolean(1)
-                            }
-                        if (!frigjort) throw RyddeLasTapt()
-                    }
+                    val frigjort =
+                        sesjon(forbindelse, timeout).single(
+                            queryOf("SELECT pg_advisory_unlock(?)", TILSTANDSRYDDING_LASENOKKEL),
+                        ) { rad -> rad.boolean(1) }!!
+                    if (!frigjort) throw RyddeLasTapt()
                 }
             } catch (feil: Exception) {
                 forkast(forbindelse)
@@ -259,6 +221,19 @@ class TilstandsRyddeStatusRepository(
             // Eviction lukker den fysiske sesjonen før proxyen kan returneres til poolen.
             forbindelse.close()
         }
+    }
+
+    private fun sesjon(
+        forbindelse: Connection,
+        timeoutSekunder: Int,
+    ): Session {
+        require(timeoutSekunder > 0)
+        // Sesjonens close lukker også forbindelsen, som eies av kalleren.
+        return Session(
+            KotliqueryConnection(forbindelse),
+            returnGeneratedKeys = false,
+            queryTimeout = timeoutSekunder,
+        )
     }
 
     private fun <T> malt(

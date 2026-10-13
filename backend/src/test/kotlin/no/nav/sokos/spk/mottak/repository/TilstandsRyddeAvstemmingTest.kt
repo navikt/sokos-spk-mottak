@@ -33,7 +33,7 @@ class TilstandsRyddeAvstemmingTest :
                 val repository = TransaksjonRepository(db.dataSource)
                 repository.findTransaksjonDetaljerByFilInfoId(listOf(10)).size shouldBe 2
                 val nyereDetaljer = repository.findTransaksjonDetaljerByFilInfoId(listOf(10)).last()
-                db.repository.nullstillOgSlett(listOf(1, 2), regel, regel.grensetidspunkt(start), 200, db.kontroll) shouldBe
+                db.nullstillOgSlett(listOf(1, 2), regel, regel.grensetidspunkt(start), 200) shouldBe
                     RyddeBatchresultat(1, 1)
                 repository.findTransaksjonDetaljerByFilInfoId(listOf(10)) shouldBe listOf(nyereDetaljer)
                 db.antall("T_TRANSAKSJON") shouldBe 2
