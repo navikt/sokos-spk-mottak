@@ -49,6 +49,7 @@ interface Kjoringslas : AutoCloseable {
 class RyddeLasTapt : IllegalStateException("Kjøringslåsen er ikke lenger eid av sesjonen")
 
 class TilstandsRyddeStatusRepository(
+    // Hikari kreves for å forkaste fysiske låsesesjoner og kontrollere at poolen har kapasitet utover låseforbindelsen.
     private val dataSource: HikariDataSource,
 ) {
     init {
@@ -215,6 +216,8 @@ class TilstandsRyddeStatusRepository(
     }
 
     private fun forkast(forbindelse: Connection) {
+        // Ved ukjent låseutfall eller manglende unlock kan sesjonen fortsatt holde en PostgreSQL advisory lock.
+        // close() alene returnerer forbindelsen til poolen; eviction avslutter den fysiske sesjonen og frigjør sesjonslåsen.
         try {
             dataSource.evictConnection(forbindelse)
         } finally {
