@@ -79,7 +79,7 @@ class TilstandsRyddeService(
         try {
             struping.kontroller()
             val kontroll = RyddeEnhetskontroll(struping::timeoutSekunder)
-            val opprinneligLas = postgresEnhet { statuslager.provKjoringslas(kontroll) }
+            val opprinneligLas = medSqlfeilmaaling { statuslager.provKjoringslas(kontroll) }
             if (opprinneligLas == null) {
                 struping.kontroller()
                 utfall = RyddeStoppgrunn.OPPTATT
@@ -89,11 +89,11 @@ class TilstandsRyddeService(
             val las =
                 object : Kjoringslas {
                     override fun kontroller(timeoutSekunder: Int) {
-                        postgresEnhet { opprinneligLas.kontroller(timeoutSekunder) }
+                        medSqlfeilmaaling { opprinneligLas.kontroller(timeoutSekunder) }
                     }
 
                     override fun close() {
-                        postgresEnhet { opprinneligLas.close() }
+                        medSqlfeilmaaling { opprinneligLas.close() }
                     }
                 }
             val resultat =
@@ -103,7 +103,7 @@ class TilstandsRyddeService(
                     Metrics.tilstandsryddingAktiv.set(1.0)
                     las.kontroller(kontroll.timeoutSekunder())
                     kontroll.timeoutSekunder()
-                    var status = postgresEnhet { statuslager.hent(opprinneligLas, kontroll) }
+                    var status = medSqlfeilmaaling { statuslager.hent(opprinneligLas, kontroll) }
                     struping.kontroller()
                     status?.let(::oppdaterStatusmaalinger)
                     if (status == null ||
@@ -111,7 +111,7 @@ class TilstandsRyddeService(
                         status.regelversjon != regel.versjon ||
                         status.oppbevaringMaaneder != regel.oppbevaringMaaneder
                     ) {
-                        val snapshot = db2Enhet(las, struping, kontroll) { session -> db2.hentSnapshot(session, kontroll) }
+                        val snapshot = medDb2Transaksjon(las, struping, kontroll) { session -> db2.hentSnapshot(session, kontroll) }
                         val tom = snapshot.minId == null
                         status =
                             TilstandsRyddeStatus(
@@ -138,14 +138,14 @@ class TilstandsRyddeService(
                         logger.info { "Rydder intervall fra=$fraId til=$tilId regel=${regel.versjon} grense=$grense" }
                         for (fase in listOf("urefererte", "resterende")) {
                             val ider =
-                                db2Enhet(las, struping, kontroll, { funnet: List<Int> ->
+                                medDb2Transaksjon(las, struping, kontroll, { funnet: List<Int> ->
                                     kandidater += funnet.size.toLong()
                                     Metrics.tilstandsryddingKandidater.labelValues(fase).inc(funnet.size.toLong())
                                 }) { session ->
                                     db2.finnKandidater(session, fraId, tilId, regel, grense, kontroll)
                                 }
                             ider.chunked(konfigurasjon.batchStorrelse).forEach { batch ->
-                                db2Enhet<RyddeBatchresultat>(las, struping, kontroll, { opptell(fase, it) }) { session ->
+                                medDb2Transaksjon<RyddeBatchresultat>(las, struping, kontroll, { opptell(fase, it) }) { session ->
                                     if (fase == "urefererte") {
                                         db2.slettUrefererte(session, batch, regel, grense, kontroll)
                                     } else {
@@ -206,7 +206,7 @@ class TilstandsRyddeService(
     ) {
         las.kontroller(kontroll.timeoutSekunder())
         kontroll.timeoutSekunder()
-        postgresEnhet { statuslager.lagre(opprinneligLas, status, kontroll) }
+        medSqlfeilmaaling { statuslager.lagre(opprinneligLas, status, kontroll) }
         if (status.fullfort) Metrics.tilstandsryddingRunderFullfort.inc()
         kontroll.timeoutSekunder()
         oppdaterStatusmaalinger(status)
@@ -218,7 +218,7 @@ class TilstandsRyddeService(
         Metrics.tilstandsryddingSisteFullfort.set(status.sisteFullfortTidspunkt?.let { it.epochSecond + it.nano / 1e9 } ?: 0.0)
     }
 
-    private fun <T> postgresEnhet(handling: () -> T): T {
+    private fun <T> medSqlfeilmaaling(handling: () -> T): T {
         try {
             return handling()
         } catch (feil: Exception) {
@@ -265,7 +265,7 @@ class TilstandsRyddeService(
         }
     }
 
-    private fun <T> db2Enhet(
+    private fun <T> medDb2Transaksjon(
         las: Kjoringslas,
         struping: RyddeStruping,
         kontroll: RyddeEnhetskontroll,
