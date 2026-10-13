@@ -8,12 +8,12 @@ import no.nav.sokos.spk.mottak.domain.RyddeStoppgrunn
 
 /**
  * Begrenser belastningen fra tilstandsrydding med adaptive pauser mellom arbeidsenheter.
- * Pausen dobles ved trege enheter, settes til maksimum ved lasefeil og halveres ved
- * raske enheter, innenfor konfigurerte grenser. Venting skal skje uten apne transaksjoner.
+ * Pausen dobles ved trege enheter, settes til maksimum ved låsefeil og halveres ved
+ * raske enheter, innenfor konfigurerte grenser. Venting skal skje uten åpne transaksjoner.
  *
- * Bruker monoton tid til a kontrollere kjorebudsjettet og begrenser SQL-timeout til
- * gjenstaende hele sekunder. Avbrudd, stoppsignal eller oppbrukt budsjett gir [RyddeStopp].
- * Budsjettet hindrer nytt arbeid, men avbryter ikke en pagaende databaseoperasjon.
+ * Bruker monoton tid til å kontrollere kjørebudsjettet og begrenser SQL-timeout til
+ * gjenstående hele sekunder. Avbrudd, stoppsignal eller oppbrukt budsjett gir [RyddeStopp].
+ * Budsjettet hindrer nytt arbeid, men avbryter ikke en pågående databaseoperasjon.
  */
 class RyddeStruping(
     private val konfigurasjon: TilstandsRyddeKonfigurasjon,
