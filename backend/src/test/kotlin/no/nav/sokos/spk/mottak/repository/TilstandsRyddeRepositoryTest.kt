@@ -90,7 +90,11 @@ class TilstandsRyddeRepositoryTest :
                 db.parent(10, 1)
                 db.forUtforelse = { sql, forbindelse ->
                     if (sql.startsWith("UPDATE T_TRANSAKSJON")) {
-                        forbindelse.createStatement().use { it.executeUpdate("INSERT INTO T_TRANSAKSJON VALUES (11,1,'SPK',TIMESTAMP '2020-01-01 00:00:00','urørt',17,123)") }
+                        forbindelse.createStatement().use {
+                            it.executeUpdate(
+                                "INSERT INTO T_TRANSAKSJON (TRANSAKSJON_ID,TRANS_TILSTAND_ID,K_ANVISER,DATO_ENDRET,ENDRET_AV,VERSJON,BELOP) VALUES (11,1,'SPK',TIMESTAMP '2020-01-01 00:00:00','urørt',17,123)",
+                            )
+                        }
                     }
                 }
                 shouldThrow<ReferansegrenseOverskredet> {
@@ -257,11 +261,29 @@ internal class RyddeDb : AutoCloseable {
     ): RyddeBatchresultat = transaksjon { repository.nullstillOgSlett(it, ider, regel, grense, maksReferanser, kontroll) }
 
     init {
-        sql("CREATE TABLE T_TRANSAKSJON (TRANSAKSJON_ID INT PRIMARY KEY, TRANS_TILSTAND_ID INT, K_ANVISER VARCHAR(20), DATO_ENDRET TIMESTAMP(6), ENDRET_AV VARCHAR(50), VERSJON INT, BELOP INT)")
-        sql("CREATE TABLE T_TRANS_TILSTAND (TRANS_TILSTAND_ID INT PRIMARY KEY, DATO_ENDRET TIMESTAMP(6) NOT NULL, TRANSAKSJON_ID INT REFERENCES T_TRANSAKSJON)")
+        sql(
+            """
+            CREATE TABLE T_TRANSAKSJON (
+                TRANSAKSJON_ID INT PRIMARY KEY, TRANS_TILSTAND_ID INT, K_ANVISER VARCHAR(20),
+                DATO_ENDRET TIMESTAMP(6), ENDRET_AV VARCHAR(50), VERSJON INT, BELOP INT,
+                FIL_INFO_ID INT, K_ART VARCHAR(20), K_BELOP_T VARCHAR(20), FNR_FK VARCHAR(11),
+                OS_STATUS VARCHAR(20), K_TRANS_TILST_T VARCHAR(20), DATO_OPPRETTET TIMESTAMP(6)
+            )
+            """.trimIndent(),
+        )
+        sql(
+            """
+            CREATE TABLE T_TRANS_TILSTAND (
+                TRANS_TILSTAND_ID INT PRIMARY KEY, DATO_ENDRET TIMESTAMP(6) NOT NULL,
+                TRANSAKSJON_ID INT REFERENCES T_TRANSAKSJON,
+                FEILKODE VARCHAR(20), FEILKODEMELDING VARCHAR(100)
+            )
+            """.trimIndent(),
+        )
         sql("ALTER TABLE T_TRANSAKSJON ADD FOREIGN KEY (TRANS_TILSTAND_ID) REFERENCES T_TRANS_TILSTAND")
         sql("CREATE INDEX XIF12T_TRANSAKSJON ON T_TRANSAKSJON(TRANS_TILSTAND_ID)")
         sql("CREATE TABLE T_RETUR_TIL_ANV (ID INT PRIMARY KEY, TRANSAKSJON_ID INT REFERENCES T_TRANSAKSJON)")
+        sql("CREATE TABLE T_K_GYLDIG_KOMBIN (K_ART VARCHAR(20), K_BELOP_T VARCHAR(20), K_ANVISER VARCHAR(20), K_FAGOMRADE VARCHAR(20), ER_GYLDIG CHAR(1))")
     }
 
     fun sql(sql: String) = dataSource.connection.use { it.createStatement().use { setning -> setning.execute(sql) } }
