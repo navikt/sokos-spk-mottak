@@ -16,7 +16,7 @@
 		"pnpm:resolve": "node scripts/resolve-pnpm-version.mjs"
 	},
 	"dependencies": {
-		"@nais/apm": "0.7.2",
+		"@nais/apm": "0.7.3",
 		"@navikt/aksel-icons": "8.17.2",
 		"@navikt/ds-css": "8.17.2",
 		"@navikt/ds-react": "8.17.2",
@@ -29,19 +29,19 @@
 		"zustand": "5.0.15"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.5.14",
+		"@biomejs/biome": "2.5.15",
 		"@navikt/aksel-stylelint": "8.17.2",
-		"@types/node": "26.6.3",
+		"@types/node": "26.6.4",
 		"@types/react": "19.3.0",
 		"@types/react-dom": "19.3.0",
-		"@vitejs/plugin-react": "6.1.1",
+		"@vitejs/plugin-react": "6.1.2",
 		"husky": "9.1.7",
 		"lint-staged": "17.6.0",
-		"msw": "3.0.0",
-		"stylelint": "17.15.0",
+		"msw": "3.0.2",
+		"stylelint": "17.16.0",
 		"stylelint-config-standard": "40.0.0",
 		"typescript": "7.0.2",
-		"vite": "8.3.1"
+		"vite": "8.3.3"
 	},
 	"msw": {
 		"workerDirectory": [
