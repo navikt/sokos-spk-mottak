@@ -46,9 +46,17 @@ class TransaksjonTilstandRepository(
                         DATO_ENDRET, 
                         ENDRET_AV, 
                         VERSJON
-                    ) VALUES (:transaksjonId, '$transaksjonTilstandType', '$feilkode', '$feilkodeMelding', CURRENT_TIMESTAMP, '$systemId', CURRENT_TIMESTAMP, '$systemId', 1)
+                    ) VALUES (:transaksjonId, :transaksjonTilstandType, :feilkode, :feilkodeMelding, CURRENT_TIMESTAMP, :systemId, CURRENT_TIMESTAMP, :systemId, 1)
                     """.trimIndent(),
-                    transaksjonIdList.map { mapOf("transaksjonId" to it) },
+                    transaksjonIdList.map {
+                        mapOf(
+                            "transaksjonId" to it,
+                            "transaksjonTilstandType" to transaksjonTilstandType,
+                            "feilkode" to feilkode,
+                            "feilkodeMelding" to feilkodeMelding,
+                            "systemId" to systemId,
+                        )
+                    },
                 )
 
                 session.list(
