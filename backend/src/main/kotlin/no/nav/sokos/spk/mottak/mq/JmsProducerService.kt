@@ -18,9 +18,19 @@ open class JmsProducerService(
     private val replyQueue: Queue? = null,
     private val metricCounter: Counter,
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
-) {
+) : AutoCloseable {
     private val jmsContext: JMSContext = connectionFactory.createContext()
-    private val producer: JMSProducer = jmsContext.createProducer().apply { jmsReplyTo = replyQueue }
+    private val producer: JMSProducer =
+        try {
+            jmsContext.createProducer().apply { jmsReplyTo = replyQueue }
+        } catch (exception: Exception) {
+            try {
+                jmsContext.close()
+            } catch (closeException: Exception) {
+                exception.addSuppressed(closeException)
+            }
+            throw exception
+        }
 
     open fun send(payload: List<String>) {
         jmsContext.createContext(SESSION_TRANSACTED).use { context ->
@@ -44,6 +54,10 @@ open class JmsProducerService(
                 throw MottakException(exception.message ?: "Feil ved sending av melding til MQ")
             }
         }
+    }
+
+    override fun close() {
+        jmsContext.close()
     }
 
     private fun truncate(msg: String): String = msg.replace(Regex(">\\s+<"), "><")

@@ -1,0 +1,67 @@
+name: Deploy Unleash API token
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/.nais/dev/unleash-q1.yaml'
+      - 'backend/.nais/prod/unleash-prod.yaml'
+      - '.github/workflows/unleash.yaml'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: deploy-unleash-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-dev:
+    name: Deploy Unleash API token to dev-fss
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # ratchet:step-security/harden-runner@v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Deploy to dev-fss
+        uses: nais/deploy/actions/deploy@1de80da70ad26556ecdc5964a8b7ec3bbed98120 # ratchet:nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: dev-fss
+          RESOURCE: backend/.nais/dev/unleash-q1.yaml
+
+  deploy-prod:
+    name: Deploy Unleash API token to prod-fss
+    needs: [deploy-dev]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # ratchet:step-security/harden-runner@v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Deploy to prod-fss
+        uses: nais/deploy/actions/deploy@1de80da70ad26556ecdc5964a8b7ec3bbed98120 # ratchet:nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-fss
+          RESOURCE: backend/.nais/prod/unleash-prod.yaml

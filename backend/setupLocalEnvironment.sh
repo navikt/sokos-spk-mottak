@@ -28,7 +28,7 @@ fi
 echo "Fetching environment variables from pod: $POD_NAME"
 
 # Get system variables
-envValue=$(kubectl exec "$POD_NAME" -c sokos-spk-mottak -- env | egrep "^AZURE|^DATABASE|^SFTP|SPK_SFTP_PASSWORD|SPK_SFTP_USERNAME|^MQ_SERVICE|^PDL|VAULT_MOUNTPATH" | sort)
+envValue=$(kubectl exec "$POD_NAME" -c sokos-spk-mottak -- env | egrep "^AZURE|^DATABASE|^SFTP|SPK_SFTP_PASSWORD|SPK_SFTP_USERNAME|^MQ_SERVICE|^PDL|VAULT_MOUNTPATH|^UNLEASH_SERVER" | sort)
 
 PRIVATE_KEY=$(kubectl exec -n okonomi "$POD_NAME" -- cat /var/run/secrets/sokos-spk-mottak-sftp-private-key/private-key)
 

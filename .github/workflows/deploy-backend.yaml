@@ -19,6 +19,7 @@ on:
       - '.github/workflows/digestabot-update.yaml'
       - '.github/workflows/codeql-scan-backend.yaml'
       - '.github/workflows/manual-deploy-backend.yaml'
+      - '.github/workflows/unleash.yaml'
       - '.github/dependabot.yaml'
 
 env:

@@ -24,6 +24,7 @@ import no.nav.sokos.spk.mottak.service.SendInnlesningsreturService
 import no.nav.sokos.spk.mottak.service.SendTrekkService
 import no.nav.sokos.spk.mottak.service.SendUtbetalingService
 import no.nav.sokos.spk.mottak.service.ValidateTransaksjonService
+import no.nav.sokos.spk.mottak.unleash.UnleashIntegration
 import no.nav.sokos.spk.mottak.util.TraceUtils.withTracerId
 
 private val logger = KotlinLogging.logger {}
@@ -55,12 +56,13 @@ object JobTaskConfig {
         sendInnlesningsreturService: SendInnlesningsreturService = SendInnlesningsreturService(),
         scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
+        schedulerEnabled: () -> Boolean = { UnleashIntegration.instance.isSchedulerEnabled() },
     ): RecurringTask<String> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
             .recurring(JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS, cron(schedulerProperties.readParseFileAndValidateTransactionsCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
-                withTracerId {
+                withSchedulerEnabled(JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS, schedulerEnabled) {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS)
@@ -78,12 +80,13 @@ object JobTaskConfig {
             ),
         scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
+        schedulerEnabled: () -> Boolean = { UnleashIntegration.instance.isSchedulerEnabled() },
     ): RecurringTask<String> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
             .recurring(JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ, cron(schedulerProperties.sendUtbetalingTransaksjonToOppdragZCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
-                withTracerId {
+                withSchedulerEnabled(JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ, schedulerEnabled) {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ)
@@ -99,12 +102,13 @@ object JobTaskConfig {
             ),
         scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
+        schedulerEnabled: () -> Boolean = { UnleashIntegration.instance.isSchedulerEnabled() },
     ): RecurringTask<String> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
             .recurring(JOB_TASK_SEND_TREKK_TRANSAKSJON_TO_OPPDRAGZ, cron(schedulerProperties.sendTrekkTransaksjonToOppdragZCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
-                withTracerId {
+                withSchedulerEnabled(JOB_TASK_SEND_TREKK_TRANSAKSJON_TO_OPPDRAGZ, schedulerEnabled) {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_SEND_TREKK_TRANSAKSJON_TO_OPPDRAGZ)
@@ -117,12 +121,13 @@ object JobTaskConfig {
         avstemmingService: AvstemmingService = AvstemmingService(),
         scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
+        schedulerEnabled: () -> Boolean = { UnleashIntegration.instance.isSchedulerEnabled() },
     ): RecurringTask<String> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
             .recurring(JOB_TASK_GRENSESNITT_AVSTEMMING, cron(schedulerProperties.grensesnittAvstemmingCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
-                withTracerId {
+                withSchedulerEnabled(JOB_TASK_GRENSESNITT_AVSTEMMING, schedulerEnabled) {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val taskData = instance.data?.let { Json.decodeFromString<Pair<String, AvstemmingRequest>>(it) }
                     scheduledTaskService.insertScheduledTaskHistory(taskData?.first ?: PropertiesConfig.Configuration().naisAppName, JOB_TASK_GRENSESNITT_AVSTEMMING)
@@ -135,18 +140,33 @@ object JobTaskConfig {
         sendAvregningsreturService: SendAvregningsreturService = SendAvregningsreturService(),
         scheduledTaskService: ScheduledTaskService = ScheduledTaskService(),
         schedulerProperties: PropertiesConfig.SchedulerProperties = PropertiesConfig.SchedulerProperties(),
+        schedulerEnabled: () -> Boolean = { UnleashIntegration.instance.isSchedulerEnabled() },
     ): RecurringTask<String> {
         var showLogLocalTime = LocalDateTime.now()
         return Tasks
             .recurring(JOB_TASK_WRITE_AVREGNINGSRETUR_FILE, cron(schedulerProperties.writeAvregningsreturFileCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
-                withTracerId {
+                withSchedulerEnabled(JOB_TASK_WRITE_AVREGNINGSRETUR_FILE, schedulerEnabled) {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_WRITE_AVREGNINGSRETUR_FILE)
                     sendAvregningsreturService.writeAvregningsreturFile()
                 }
             }
+    }
+
+    private fun withSchedulerEnabled(
+        jobName: String,
+        schedulerEnabled: () -> Boolean,
+        block: () -> Unit,
+    ) {
+        withTracerId {
+            if (schedulerEnabled()) {
+                block()
+            } else {
+                logger.info { "Hopper over jobben $jobName fordi bryteren sokos-spk-mottak.schedulerEnabled er av i Unleash" }
+            }
+        }
     }
 
     private fun <T> showLog(

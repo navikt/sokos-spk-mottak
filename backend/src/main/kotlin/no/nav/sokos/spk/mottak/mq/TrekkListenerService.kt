@@ -30,23 +30,23 @@ private val logger = KotlinLogging.logger {}
 class TrekkListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
     trekkReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-    private val producer: JmsProducerService =
-        JmsProducerService(
-            senderQueue =
-                MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName + "_BOQ").apply {
-                    targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
-                },
-            metricCounter = Metrics.mqTrekkBOQListenerMetricCounter,
-        ),
+    private val producer: JmsProducerService = boqProducer(),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) : JmsListener(connectionFactory) {
-    private val trekkMQListener = jmsContext.createConsumer(trekkReplyQueue)
+    companion object {
+        fun boqProducer() =
+            JmsProducerService(
+                senderQueue =
+                    MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName + "_BOQ").apply {
+                        targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
+                    },
+                metricCounter = Metrics.mqTrekkBOQListenerMetricCounter,
+            )
+    }
+
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
-
-    init {
-        trekkMQListener.setMessageListener { onTrekkMessage(it) }
-    }
+    private val trekkMQListener = createConsumer(trekkReplyQueue) { onTrekkMessage(it) }
 
     private fun onTrekkMessage(message: Message) {
         TraceUtils.withTracerId {

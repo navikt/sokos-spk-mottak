@@ -1,64 +1,31 @@
-package no.nav.sokos.utleggstrekk.unleash
+package no.nav.sokos.spk.mottak.unleash
 
-import io.getunleash.DefaultUnleash
-import io.getunleash.FakeUnleash
 import io.getunleash.Unleash
-import io.getunleash.util.UnleashConfig
-import mu.KotlinLogging
 
-import no.nav.sokos.utleggstrekk.config.PropertiesConfig
-import no.nav.sokos.utleggstrekk.config.PropertiesConfig.applicationProperties
-import no.nav.sokos.utleggstrekk.config.PropertiesConfig.unleashProperties
+import no.nav.sokos.spk.mottak.config.PropertiesConfig.UnleashProperties
 
-private val logger = KotlinLogging.logger { }
-
-open class UnleashIntegration {
+class UnleashIntegration(
+    private val unleashClient: Unleash,
+    private val enabledByDefault: Boolean = UnleashProperties().enabledByDefault,
+) {
     private enum class ToggleNames(
         val key: String,
     ) {
         SCHEDULER_ENABLED("sokos-spk-mottak.schedulerEnabled"),
+        LISTENER_ENABLED("sokos-spk-mottak.mqListenerEnabled"),
+        DB_HISTORY_CLEANUP_ENABLED("sokos-spk-mottak.dbHistoryCleanupEnabled"),
     }
-
-    private var unleashClient: Unleash
-    private val lastStates: MutableMap<String, Boolean> = mutableMapOf()
-
-    private fun lastStateOf(toggleName: String): Boolean = lastStates.getOrPut(toggleName) { unleashProperties.enabledByDefault }
 
     // Kill switcher:
     fun isSchedulerEnabled(): Boolean = isEnabled(ToggleNames.SCHEDULER_ENABLED.key)
 
-    fun isProsesserUtleggstrekkEnabled(): Boolean = isEnabled(ToggleNames.BEHANDLE_TREKK.key)
+    fun isListenerEnabled(): Boolean = isEnabled(ToggleNames.LISTENER_ENABLED.key)
 
-    fun isEnabled(toggleName: String): Boolean {
-        val state = unleashClient.isEnabled(toggleName, unleashProperties.enabledByDefault)
-        val lastState = lastStateOf(toggleName)
-        if (lastState != state) {
-            val message = "$toggleName has switched from $lastState to $state"
-            logger.info { message }
-            lastStates[toggleName] = state
-        }
-        return state
-    }
+    fun isHistoryCleanupEnabled(): Boolean = isEnabled(ToggleNames.DB_HISTORY_CLEANUP_ENABLED.key)
 
-    init {
-        if (PropertiesConfig.isLocal || PropertiesConfig.isTest) {
-            unleashClient = FakeUnleash()
-        } else {
-            val config: UnleashConfig =
-                UnleashConfig
-                    .builder()
-                    .appName(applicationProperties.appName)
-                    .instanceId(applicationProperties.naisPodName)
-                    .unleashAPI(unleashProperties.unleashApi + "/api/")
-                    .apiKey(unleashProperties.apiKey)
-                    .environment(unleashProperties.environment)
-                    .synchronousFetchOnInitialisation(true)
-                    .build()
-            unleashClient = DefaultUnleash(config)
-        }
-        // Fetch current states
-        ToggleNames.entries.map { it.key }.forEach { toggleName ->
-            lastStates[toggleName] = unleashClient.isEnabled(toggleName, unleashProperties.enabledByDefault)
-        }
+    fun isEnabled(toggleName: String): Boolean = unleashClient.isEnabled(toggleName, enabledByDefault)
+
+    companion object {
+        val instance: UnleashIntegration by lazy { UnleashIntegration(createUnleashClient()) }
     }
 }
