@@ -108,6 +108,28 @@ spec:
     - name: DATABASE_SCHEMA
       value: "MO611Q1"
 
+    # Tilstandsrydding: begrensede batcher og pauser for delt Db2-maskinvare
+    - name: TILSTANDS_RYDDING_OPPBEVARING_MAANEDER
+      value: "6"
+    - name: TILSTANDS_RYDDING_INTERVALL_BREDDE
+      value: "1000"
+    - name: TILSTANDS_RYDDING_BATCH_STORRELSE
+      value: "100"
+    - name: TILSTANDS_RYDDING_MAKS_REFERANSER_PER_BATCH
+      value: "200"
+    - name: TILSTANDS_RYDDING_PAUSE_MIN_SEKUNDER
+      value: "1"
+    - name: TILSTANDS_RYDDING_PAUSE_MAKS_SEKUNDER
+      value: "30"
+    - name: TILSTANDS_RYDDING_TERSKEL_ENHET_SEKUNDER
+      value: "1"
+    - name: TILSTANDS_RYDDING_MAKS_KJOERETID_SEKUNDER
+      value: "900"
+    - name: TILSTANDS_RYDDING_MAKS_FORSOEK
+      value: "3"
+    - name: TILSTANDS_RYDDING_SPORRING_TIMEOUT_SEKUNDER
+      value: "5"
+
     # Postgres
     - name: POSTGRES_HOST
       value: b27dbvl034.preprod.local

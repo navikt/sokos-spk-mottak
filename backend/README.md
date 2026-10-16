@@ -44,6 +44,28 @@ Bygget kjører også testene med Testcontainers, så Docker må kjøre.
 ./gradlew build installDist
 ```
 
+### Ktlint og pre-commit
+
+Installer pre-commit-hooken fra `backend/` (bygget installerer den også):
+
+```shell
+./gradlew copyPreCommitHook
+```
+
+Hooken installeres i Git-hook-mappen for hele repoet og kjører `ktlintCheck` for backend
+før hver commit. Den sjekker filene i arbeidsmappen, inkludert endringer som ikke er staged,
+og stopper commit ved feil. Den endrer ikke filer eller staging og hindrer at
+`backend/defaults.properties` blir lagt til eller endret i en commit.
+
+Kjør sjekken manuelt, eller rett formatering, fra `backend/`:
+
+```shell
+./gradlew ktlintCheck
+./gradlew ktlintFormat
+```
+
+Se gjennom endringene etter formatering, og stage dem selv før du prøver commit igjen.
+
 ### Kjøre lokalt
 
 1. Kjør [setupLocalEnvironment.sh](setupLocalEnvironment.sh):

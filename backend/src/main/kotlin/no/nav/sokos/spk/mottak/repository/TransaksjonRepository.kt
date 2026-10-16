@@ -176,20 +176,28 @@ class TransaksjonRepository(
             }
         }
 
-    fun updateTransTilstandId(session: Session) {
+    fun updateTransTilstandId(
+        transaksjonIdList: List<Int>,
+        session: Session,
+    ) {
+        if (transaksjonIdList.isEmpty()) return
         updateTransTilstandIdTimer.recordCallable {
-            session.update(
-                queryOf(
-                    """
-                    UPDATE T_TRANSAKSJON t
-                        SET TRANS_TILSTAND_ID = (SELECT tt.TRANS_TILSTAND_ID
-                                                 FROM T_TRANS_TILSTAND tt WHERE t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID),
-                            ENDRET_AV = '$VALIDATE_TRANSAKSJON_SERVICE',
-                            DATO_ENDRET = CURRENT_TIMESTAMP
-                        WHERE t.TRANS_TILSTAND_ID IS NULL AND t.K_ANVISER = '$SPK';
-                    """.trimIndent(),
-                ),
-            )
+            transaksjonIdList.distinct().chunked(100).forEach { batch ->
+                session.update(
+                    queryOf(
+                        """
+                        UPDATE T_TRANSAKSJON t
+                            SET TRANS_TILSTAND_ID = (SELECT tt.TRANS_TILSTAND_ID
+                                                     FROM T_TRANS_TILSTAND tt WHERE t.TRANSAKSJON_ID = tt.TRANSAKSJON_ID),
+                                ENDRET_AV = '$VALIDATE_TRANSAKSJON_SERVICE',
+                                DATO_ENDRET = CURRENT_TIMESTAMP
+                            WHERE t.TRANSAKSJON_ID IN (${batch.joinToString { "?" }})
+                              AND t.TRANS_TILSTAND_ID IS NULL AND t.K_ANVISER = '$SPK'
+                        """.trimIndent(),
+                        *batch.toTypedArray(),
+                    ),
+                )
+            }
         }
     }
 

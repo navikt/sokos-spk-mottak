@@ -10,7 +10,7 @@ plugins {
     kotlin("jvm") version "2.4.20"
     kotlin("plugin.serialization") version "2.4.20"
     id("com.expediagroup.graphql") version "10.2.2"
-    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
+    id("no.nav.ktlintgradle.ktlint") version "0.1.0-dev.1252+ec71da4"
     id("org.jetbrains.kotlinx.kover") version "0.9.9"
 
     application
@@ -252,7 +252,14 @@ tasks {
 
     register<Copy>("copyPreCommitHook") {
         from(".scripts/pre-commit")
-        into(".git/hooks")
+        into(
+            providers
+                .exec {
+                    commandLine("git", "rev-parse", "--path-format=absolute", "--git-path", "hooks")
+                    workingDir(rootDir)
+                }.standardOutput.asText
+                .map { it.trim() },
+        )
         filePermissions {
             user {
                 execute = true
@@ -264,7 +271,7 @@ tasks {
         doLast {
             println("Git hooks installed successfully.")
         }
-        description = "Copy pre-commit hook to .git/hooks"
+        description = "Install the backend pre-commit hook in the repository's Git hooks directory"
         group = "git hooks"
         outputs.upToDateWhen { false }
     }

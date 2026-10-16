@@ -118,7 +118,7 @@ class ValidateTransaksjonService(
                     systemId = VALIDATE_TRANSAKSJON_SERVICE,
                     session = session,
                 )
-                transaksjonRepository.updateTransTilstandId(session)
+                transaksjonRepository.updateTransTilstandId(transaksjonIdList, session)
 
                 logger.debug { "${transaksjonIdList.size} transaksjoner opprettet" }
             }

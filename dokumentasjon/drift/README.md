@@ -6,3 +6,5 @@ Her finner du rutiner for avviste transaksjoner, kjente feil, nye kodeverk og te
 - [Kjente feil](kjente-feil.md)
 - [Hvordan legge inn nye kodeverk](nye-kodeverk.md)
 - [Test før produksjonssetting](test-for-produksjonssetting.md)
+- [Rydding av gamle transaksjonstilstander](tilstandsrydding.md)
+- [Produksjonsprøve og stoppgrenser for tilstandsrydding](tilstandsrydding-produksjonsprove.md)
