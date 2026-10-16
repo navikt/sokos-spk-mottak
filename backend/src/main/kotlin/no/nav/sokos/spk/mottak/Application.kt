@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak
 
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopPreparing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
@@ -27,15 +28,19 @@ private fun Application.module() {
     commonConfig()
     applicationLifecycleConfig(applicationState)
     securityConfig(useAuthentication)
+    val scheduler = JobTaskConfig.scheduler()
+    monitor.subscribe(ApplicationStopPreparing) {
+        scheduler.stop()
+    }
     routing {
         internalNaisRoutes(applicationState)
-        mottakApi()
+        mottakApi(scheduler = scheduler)
     }
 
     DatabaseConfig.postgresMigrate()
     mqListenerSetup()
 
     if (PropertiesConfig.SchedulerProperties().enabled) {
-        JobTaskConfig.scheduler().start()
+        scheduler.start()
     }
 }

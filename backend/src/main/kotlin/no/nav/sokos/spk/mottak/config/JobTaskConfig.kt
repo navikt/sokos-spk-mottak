@@ -40,7 +40,6 @@ object JobTaskConfig {
         Scheduler
             .create(dataSource)
             .enableImmediateExecution()
-            .registerShutdownHook()
             .startTasks(
                 recurringReadParseFileAndValidateTransactionsTask(),
                 recurringSendUtbetalingTransaksjonToOppdragZTask(),
