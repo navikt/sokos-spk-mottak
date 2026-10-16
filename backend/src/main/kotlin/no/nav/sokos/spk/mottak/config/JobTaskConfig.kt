@@ -162,10 +162,9 @@ object JobTaskConfig {
         block: () -> Unit,
     ) {
         withTracerId {
-            check(!context.schedulerState.isShuttingDown) {
-                "Cannot start job $jobName: scheduler is shutting down"
-            }
-            if (schedulerEnabled()) {
+            if (context.schedulerState.isShuttingDown) {
+                logger.info { "Hopper over jobben $jobName fordi scheduleren stenger ned" }
+            } else if (schedulerEnabled()) {
                 block()
             } else {
                 logger.info { "Hopper over jobben $jobName fordi bryteren sokos-spk-mottak.schedulerEnabled er av i Unleash" }

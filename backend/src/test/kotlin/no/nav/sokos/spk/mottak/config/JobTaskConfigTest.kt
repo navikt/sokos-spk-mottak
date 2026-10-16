@@ -89,9 +89,7 @@ internal class JobTaskConfigTest :
                 val context = mockk<ExecutionContext>()
                 every { context.schedulerState.isShuttingDown } returns true
 
-                shouldThrow<IllegalStateException> {
-                    task.execute(instance, context)
-                }.message shouldBe "Cannot start job $taskName: scheduler is shutting down"
+                task.execute(instance, context)
                 toggleChecks shouldBe 0
                 verify(exactly = 0) { historyService.insertScheduledTaskHistory(any(), any()) }
                 verify {
