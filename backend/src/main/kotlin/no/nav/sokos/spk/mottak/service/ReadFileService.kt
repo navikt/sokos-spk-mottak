@@ -8,6 +8,7 @@ import kotliquery.TransactionalSession
 import mu.KotlinLogging
 
 import no.nav.sokos.spk.mottak.config.DatabaseConfig
+import no.nav.sokos.spk.mottak.config.TEAM_LOGS_MARKER
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_AVV
 import no.nav.sokos.spk.mottak.domain.FILTILSTANDTYPE_GOD
 import no.nav.sokos.spk.mottak.domain.FILTYPE_ANVISER
@@ -45,6 +46,7 @@ class ReadFileService(
         }
 
         val downloadFiles = ftpService.downloadFiles()
+        logger.info(marker = TEAM_LOGS_MARKER) { "Starter innlesning av filer" }
 
         when {
             downloadFiles.isEmpty() -> logger.info { "Ingen filer er lastet ned" }

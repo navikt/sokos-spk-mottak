@@ -1,5 +1,8 @@
 package no.nav.sokos.spk.mottak.mq
 
+import java.sql.SQLException
+
+import com.ibm.db2.jcc.am.BatchUpdateException
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
@@ -58,6 +61,15 @@ class TrekkListenerService(
                 message.acknowledge()
             }.onFailure { exception ->
                 logger.error(marker = TEAM_LOGS_MARKER, exception) { "Trekkmelding fra OppdragZ: $jmsMessage" }
+                if (exception is BatchUpdateException) {
+                    var nextException: SQLException? = exception.getNextException()
+                    while (nextException != null) {
+                        logger.error(t = nextException) {
+                            "Prosessering av trekkmeldingretur feilet ved batch-update. ${message.jmsMessageID}"
+                        }
+                        nextException = nextException.getNextException()
+                    }
+                }
                 logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
                 producer.send(listOf(jmsMessage))
                 message.acknowledge()
