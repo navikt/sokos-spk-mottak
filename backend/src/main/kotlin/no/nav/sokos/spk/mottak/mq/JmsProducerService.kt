@@ -24,11 +24,7 @@ open class JmsProducerService(
         try {
             jmsContext.createProducer().apply { jmsReplyTo = replyQueue }
         } catch (exception: Exception) {
-            try {
-                jmsContext.close()
-            } catch (closeException: Exception) {
-                exception.addSuppressed(closeException)
-            }
+            closeAfterConstructionFailure(exception)
             throw exception
         }
 

@@ -62,7 +62,7 @@ object JobTaskConfig {
         return Tasks
             .recurring(JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS, cron(schedulerProperties.readParseFileAndValidateTransactionsCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
-                withSchedulerEnabled(JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS, schedulerEnabled) {
+                withSchedulerEnabled(JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS, context, schedulerEnabled) {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_READ_PARSE_FILE_AND_VALIDATE_TRANSACTIONS)
@@ -86,7 +86,7 @@ object JobTaskConfig {
         return Tasks
             .recurring(JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ, cron(schedulerProperties.sendUtbetalingTransaksjonToOppdragZCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
-                withSchedulerEnabled(JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ, schedulerEnabled) {
+                withSchedulerEnabled(JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ, context, schedulerEnabled) {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_SEND_UTBETALING_TRANSAKSJON_TO_OPPDRAGZ)
@@ -108,7 +108,7 @@ object JobTaskConfig {
         return Tasks
             .recurring(JOB_TASK_SEND_TREKK_TRANSAKSJON_TO_OPPDRAGZ, cron(schedulerProperties.sendTrekkTransaksjonToOppdragZCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
-                withSchedulerEnabled(JOB_TASK_SEND_TREKK_TRANSAKSJON_TO_OPPDRAGZ, schedulerEnabled) {
+                withSchedulerEnabled(JOB_TASK_SEND_TREKK_TRANSAKSJON_TO_OPPDRAGZ, context, schedulerEnabled) {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_SEND_TREKK_TRANSAKSJON_TO_OPPDRAGZ)
@@ -127,7 +127,7 @@ object JobTaskConfig {
         return Tasks
             .recurring(JOB_TASK_GRENSESNITT_AVSTEMMING, cron(schedulerProperties.grensesnittAvstemmingCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
-                withSchedulerEnabled(JOB_TASK_GRENSESNITT_AVSTEMMING, schedulerEnabled) {
+                withSchedulerEnabled(JOB_TASK_GRENSESNITT_AVSTEMMING, context, schedulerEnabled) {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val taskData = instance.data?.let { Json.decodeFromString<Pair<String, AvstemmingRequest>>(it) }
                     scheduledTaskService.insertScheduledTaskHistory(taskData?.first ?: PropertiesConfig.Configuration().naisAppName, JOB_TASK_GRENSESNITT_AVSTEMMING)
@@ -146,7 +146,7 @@ object JobTaskConfig {
         return Tasks
             .recurring(JOB_TASK_WRITE_AVREGNINGSRETUR_FILE, cron(schedulerProperties.writeAvregningsreturFileCronPattern), String::class.java)
             .execute { instance: TaskInstance<String>, context: ExecutionContext ->
-                withSchedulerEnabled(JOB_TASK_WRITE_AVREGNINGSRETUR_FILE, schedulerEnabled) {
+                withSchedulerEnabled(JOB_TASK_WRITE_AVREGNINGSRETUR_FILE, context, schedulerEnabled) {
                     showLogLocalTime = showLog(showLogLocalTime, instance, context)
                     val ident = instance.data ?: PropertiesConfig.Configuration().naisAppName
                     scheduledTaskService.insertScheduledTaskHistory(ident, JOB_TASK_WRITE_AVREGNINGSRETUR_FILE)
@@ -157,10 +157,14 @@ object JobTaskConfig {
 
     private fun withSchedulerEnabled(
         jobName: String,
+        context: ExecutionContext,
         schedulerEnabled: () -> Boolean,
         block: () -> Unit,
     ) {
         withTracerId {
+            check(!context.schedulerState.isShuttingDown) {
+                "Cannot start job $jobName: scheduler is shutting down"
+            }
             if (schedulerEnabled()) {
                 block()
             } else {

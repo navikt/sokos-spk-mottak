@@ -48,12 +48,4 @@ abstract class JmsListener(
     override fun close() {
         jmsContext.close()
     }
-
-    private fun closeAfterConstructionFailure(exception: Exception) {
-        try {
-            close()
-        } catch (closeException: Exception) {
-            exception.addSuppressed(closeException)
-        }
-    }
 }

@@ -1,7 +1,7 @@
 package no.nav.sokos.spk.mottak.config
 
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.ApplicationStopPreparing
 
 import no.nav.sokos.spk.mottak.mq.AvregningListenerService
 import no.nav.sokos.spk.mottak.mq.ListenerRegistration
@@ -30,7 +30,7 @@ fun Application.mqListenerSetup() {
         )
     val pollingJob = MQListenerPollingJob(coordinator::reconcile, coordinator::close)
 
-    monitor.subscribe(ApplicationStopped) {
+    monitor.subscribe(ApplicationStopPreparing) {
         pollingJob.close()
         listOf(utbetalingBoqProducer, trekkBoqProducer, avregningBoqProducer)
             .filter { it.isInitialized() }

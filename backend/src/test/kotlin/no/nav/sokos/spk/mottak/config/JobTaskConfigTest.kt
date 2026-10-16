@@ -2,6 +2,7 @@ package no.nav.sokos.spk.mottak.config
 
 import kotlinx.serialization.json.Json
 
+import com.github.kagkarlsson.scheduler.task.ExecutionContext
 import com.github.kagkarlsson.scheduler.task.helper.RecurringTask
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -85,8 +86,28 @@ internal class JobTaskConfigTest :
                     }
                 val data = if (taskName == "grensesnittAvstemming") Json.encodeToString("test" to AvstemmingRequest(null, null)) else "test"
                 val instance = task.instance("test", data)
+                val context = mockk<ExecutionContext>()
+                every { context.schedulerState.isShuttingDown } returns true
 
-                task.execute(instance, mockk())
+                shouldThrow<IllegalStateException> {
+                    task.execute(instance, context)
+                }.message shouldBe "Cannot start job $taskName: scheduler is shutting down"
+                toggleChecks shouldBe 0
+                verify(exactly = 0) { historyService.insertScheduledTaskHistory(any(), any()) }
+                verify {
+                    listOf(
+                        readFileService,
+                        validateService,
+                        innlesningsreturService,
+                        utbetalingService,
+                        trekkService,
+                        avstemmingService,
+                        avregningsreturService,
+                    ) wasNot Called
+                }
+
+                every { context.schedulerState.isShuttingDown } returns false
+                task.execute(instance, context)
                 verify(exactly = 0) { historyService.insertScheduledTaskHistory(any(), any()) }
                 verify {
                     listOf(
@@ -101,9 +122,9 @@ internal class JobTaskConfigTest :
                 }
 
                 enabled = true
-                task.execute(instance, mockk())
+                task.execute(instance, context)
                 enabled = false
-                task.execute(instance, mockk())
+                task.execute(instance, context)
 
                 toggleChecks shouldBe 3
                 verify(exactly = 1) { historyService.insertScheduledTaskHistory("test", taskName) }
@@ -132,9 +153,11 @@ internal class JobTaskConfigTest :
                     historyService,
                     schedulerEnabled = { true },
                 )
+            val context = mockk<ExecutionContext>()
+            every { context.schedulerState.isShuttingDown } returns false
 
             shouldThrow<IllegalStateException> {
-                task.execute(task.instance("test", "test"), mockk())
+                task.execute(task.instance("test", "test"), context)
             } shouldBe failure
         }
     })
