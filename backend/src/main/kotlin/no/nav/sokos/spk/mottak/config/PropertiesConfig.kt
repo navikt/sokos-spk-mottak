@@ -32,6 +32,7 @@ object PropertiesConfig {
         ConfigurationMap(
             mapOf(
                 "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
+                "NAIS_POD_NAME" to "local",
                 "USE_AUTHENTICATION" to "true",
                 "POSTGRES_HOST" to "dev-pg.intern.nav.no",
                 "POSTGRES_PORT" to "5432",
@@ -67,8 +68,14 @@ object PropertiesConfig {
 
     fun getOrEmpty(key: String): String = config.getOrElse(Key(key, stringType), "")
 
+    fun getOrElse(
+        key: String,
+        default: String,
+    ): String = config.getOrElse(Key(key, stringType), default)
+
     data class Configuration(
         val naisAppName: String = get("NAIS_APP_NAME"),
+        val naisPodName: String = get("NAIS_POD_NAME"),
         val profile: Profile = Profile.valueOf(get("APPLICATION_PROFILE")),
         val useAuthentication: Boolean = getOrEmpty("USE_AUTHENTICATION").toBoolean(),
         val azureAdProperties: AzureAdProperties = AzureAdProperties(),
@@ -143,6 +150,13 @@ object PropertiesConfig {
     data class PdlProperties(
         val pdlUrl: String = getOrEmpty("PDL_URL"),
         val pdlScope: String = getOrEmpty("PDL_SCOPE"),
+    )
+
+    data class UnleashProperties(
+        val unleashApi: String = getOrEmpty("UNLEASH_SERVER_API_URL"),
+        val apiKey: String = getOrEmpty("UNLEASH_SERVER_API_TOKEN"),
+        val environment: String = getOrEmpty("UNLEASH_SERVER_API_ENV"),
+        val enabledByDefault: Boolean = getOrElse("UNLEASH_ENABLED_BY_DEFAULT", "true").toBooleanStrict(),
     )
 
     enum class Profile {

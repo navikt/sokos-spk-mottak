@@ -1,6 +1,7 @@
 package no.nav.sokos.spk.mottak
 
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopPreparing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
@@ -13,10 +14,8 @@ import no.nav.sokos.spk.mottak.config.PropertiesConfig
 import no.nav.sokos.spk.mottak.config.applicationLifecycleConfig
 import no.nav.sokos.spk.mottak.config.commonConfig
 import no.nav.sokos.spk.mottak.config.internalNaisRoutes
+import no.nav.sokos.spk.mottak.config.mqListenerSetup
 import no.nav.sokos.spk.mottak.config.securityConfig
-import no.nav.sokos.spk.mottak.mq.AvregningListenerService
-import no.nav.sokos.spk.mottak.mq.TrekkListenerService
-import no.nav.sokos.spk.mottak.mq.UtbetalingListenerService
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -29,22 +28,19 @@ private fun Application.module() {
     commonConfig()
     applicationLifecycleConfig(applicationState)
     securityConfig(useAuthentication)
+    val scheduler = JobTaskConfig.scheduler()
+    monitor.subscribe(ApplicationStopPreparing) {
+        scheduler.stop()
+    }
     routing {
         internalNaisRoutes(applicationState)
-        mottakApi()
+        mottakApi(scheduler = scheduler)
     }
 
     DatabaseConfig.postgresMigrate()
-    if (PropertiesConfig.MQProperties().mqListenerEnabled) {
-        UtbetalingListenerService().start()
-        TrekkListenerService().start()
-    }
-
-    if (PropertiesConfig.MQProperties().avregningListenerEnabled) {
-        AvregningListenerService().start()
-    }
+    mqListenerSetup()
 
     if (PropertiesConfig.SchedulerProperties().enabled) {
-        JobTaskConfig.scheduler().start()
+        scheduler.start()
     }
 }

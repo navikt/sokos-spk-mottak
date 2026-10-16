@@ -32,23 +32,23 @@ private val logger = KotlinLogging.logger {}
 class UtbetalingListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
     utbetalingReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
-    private val producer: JmsProducerService =
-        JmsProducerService(
-            senderQueue =
-                MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName + "_BOQ").apply {
-                    targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
-                },
-            metricCounter = Metrics.mqUtbetalingBOQListenerMetricCounter,
-        ),
+    private val producer: JmsProducerService = boqProducer(),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) : JmsListener(connectionFactory) {
-    private val utbetalingMQListener = jmsContext.createConsumer(utbetalingReplyQueue)
+    companion object {
+        fun boqProducer() =
+            JmsProducerService(
+                senderQueue =
+                    MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName + "_BOQ").apply {
+                        targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
+                    },
+                metricCounter = Metrics.mqUtbetalingBOQListenerMetricCounter,
+            )
+    }
+
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
-
-    init {
-        utbetalingMQListener.setMessageListener { onUtbetalingMessage(it) }
-    }
+    private val utbetalingMQListener = createConsumer(utbetalingReplyQueue) { onUtbetalingMessage(it) }
 
     private fun onUtbetalingMessage(message: Message) {
         TraceUtils.withTracerId {

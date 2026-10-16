@@ -33,24 +33,24 @@ const val UNKNOWN_TRANSACTION_DATE = "1900-01-01"
 class AvregningListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
     avregningsgrunnlagQueue: Queue = MQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName),
-    private val producer: JmsProducerService =
-        JmsProducerService(
-            senderQueue =
-                MQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName + "_BOQ").apply {
-                    targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
-                },
-            metricCounter = Metrics.mqAvregningBOQListenerMetricCounter,
-        ),
+    private val producer: JmsProducerService = boqProducer(),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) : JmsListener(connectionFactory) {
-    private val avregningsgrunnlagMQListener = jmsContext.createConsumer(avregningsgrunnlagQueue)
+    companion object {
+        fun boqProducer() =
+            JmsProducerService(
+                senderQueue =
+                    MQQueue(PropertiesConfig.MQProperties().avregningsgrunnlagQueueName + "_BOQ").apply {
+                        targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
+                    },
+                metricCounter = Metrics.mqAvregningBOQListenerMetricCounter,
+            )
+    }
+
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val avregningsreturRepository: AvregningsreturRepository = AvregningsreturRepository(dataSource)
     private val avregningsavvikRepository: AvregningsavvikRepository = AvregningsavvikRepository(dataSource)
-
-    init {
-        avregningsgrunnlagMQListener.setMessageListener { onAvregningsgrunnlagMessage(it) }
-    }
+    private val avregningsgrunnlagMQListener = createConsumer(avregningsgrunnlagQueue) { onAvregningsgrunnlagMessage(it) }
 
     private fun onAvregningsgrunnlagMessage(message: Message) {
         TraceUtils.withTracerId {
