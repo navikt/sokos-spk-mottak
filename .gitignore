@@ -12,3 +12,5 @@
 
 ### Node.js ###
 node_modules/
+/docs/superpowers/
+/backend/.gradle-home/

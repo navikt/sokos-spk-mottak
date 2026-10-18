@@ -1,5 +1,8 @@
 package no.nav.sokos.spk.mottak.mq
 
+import java.sql.SQLException
+
+import com.ibm.db2.jcc.am.BatchUpdateException
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
@@ -29,23 +32,23 @@ private val logger = KotlinLogging.logger {}
 class UtbetalingListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
     utbetalingReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
-    private val producer: JmsProducerService =
-        JmsProducerService(
-            senderQueue =
-                MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName + "_BOQ").apply {
-                    targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
-                },
-            metricCounter = Metrics.mqUtbetalingBOQListenerMetricCounter,
-        ),
+    private val producer: JmsProducerService = boqProducer(),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) : JmsListener(connectionFactory) {
-    private val utbetalingMQListener = jmsContext.createConsumer(utbetalingReplyQueue)
+    companion object {
+        fun boqProducer() =
+            JmsProducerService(
+                senderQueue =
+                    MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName + "_BOQ").apply {
+                        targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
+                    },
+                metricCounter = Metrics.mqUtbetalingBOQListenerMetricCounter,
+            )
+    }
+
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
-
-    init {
-        utbetalingMQListener.setMessageListener { onUtbetalingMessage(it) }
-    }
+    private val utbetalingMQListener = createConsumer(utbetalingReplyQueue) { onUtbetalingMessage(it) }
 
     private fun onUtbetalingMessage(message: Message) {
         TraceUtils.withTracerId {
@@ -97,6 +100,15 @@ class UtbetalingListenerService(
                 message.acknowledge()
             }.onFailure { exception ->
                 logger.error(marker = TEAM_LOGS_MARKER, exception) { "Utbetalingsmelding fra OppdragZ: $jmsMessage" }
+                if (exception is BatchUpdateException) {
+                    var nextException: SQLException? = exception.getNextException()
+                    while (nextException != null) {
+                        logger.error(t = nextException) {
+                            "Prosessering av utbetalingsmeldingretur feilet ved batch-update. ${message.jmsMessageID}"
+                        }
+                        nextException = nextException.getNextException()
+                    }
+                }
                 logger.error(exception) { "Prosessering av utbetalingsmeldingretur feilet. ${message.jmsMessageID}" }
                 producer.send(listOf(jmsMessage))
                 message.acknowledge()
