@@ -1,5 +1,8 @@
 package no.nav.sokos.spk.mottak.mq
 
+import java.sql.SQLException
+
+import com.ibm.db2.jcc.am.BatchUpdateException
 import com.ibm.mq.jakarta.jms.MQQueue
 import com.ibm.msg.client.jakarta.wmq.WMQConstants
 import com.zaxxer.hikari.HikariDataSource
@@ -30,23 +33,23 @@ private val logger = KotlinLogging.logger {}
 class TrekkListenerService(
     connectionFactory: ConnectionFactory = MQConfig.connectionFactory(),
     trekkReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
-    private val producer: JmsProducerService =
-        JmsProducerService(
-            senderQueue =
-                MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName + "_BOQ").apply {
-                    targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
-                },
-            metricCounter = Metrics.mqTrekkBOQListenerMetricCounter,
-        ),
+    private val producer: JmsProducerService = boqProducer(),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
 ) : JmsListener(connectionFactory) {
-    private val trekkMQListener = jmsContext.createConsumer(trekkReplyQueue)
+    companion object {
+        fun boqProducer() =
+            JmsProducerService(
+                senderQueue =
+                    MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName + "_BOQ").apply {
+                        targetClient = WMQConstants.WMQ_CLIENT_NONJMS_MQ
+                    },
+                metricCounter = Metrics.mqTrekkBOQListenerMetricCounter,
+            )
+    }
+
     private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
     private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
-
-    init {
-        trekkMQListener.setMessageListener { onTrekkMessage(it) }
-    }
+    private val trekkMQListener = createConsumer(trekkReplyQueue) { onTrekkMessage(it) }
 
     private fun onTrekkMessage(message: Message) {
         TraceUtils.withTracerId {
@@ -58,6 +61,15 @@ class TrekkListenerService(
                 message.acknowledge()
             }.onFailure { exception ->
                 logger.error(marker = TEAM_LOGS_MARKER, exception) { "Trekkmelding fra OppdragZ: $jmsMessage" }
+                if (exception is BatchUpdateException) {
+                    var nextException: SQLException? = exception.getNextException()
+                    while (nextException != null) {
+                        logger.error(t = nextException) {
+                            "Prosessering av trekkmeldingretur feilet ved batch-update. ${message.jmsMessageID}"
+                        }
+                        nextException = nextException.getNextException()
+                    }
+                }
                 logger.error(exception) { "Prosessering av trekkmeldingretur feilet. ${message.jmsMessageID}" }
                 producer.send(listOf(jmsMessage))
                 message.acknowledge()
