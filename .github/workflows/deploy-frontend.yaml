@@ -38,6 +38,7 @@ jobs:
       project-directory: frontend
       docker-context: frontend
       dockerfile: frontend/Dockerfile
+      server-prune-dev-deps: pnpm run prune:production
 
   deploy-q1:
     permissions:
