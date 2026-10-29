@@ -1,6 +1,8 @@
 name: Deploy application (backend)
 
 on:
+  schedule:
+    - cron: '0 5 * * 1'
   push:
     branches:
       - main
@@ -15,8 +17,6 @@ on:
       - 'CODEOWNERS'
       - '.github/workflows/*-frontend.yaml'
       - '.github/workflows/build-pr-backend.yaml'
-      - '.github/workflows/digestabot-automerge.yaml'
-      - '.github/workflows/digestabot-update.yaml'
       - '.github/workflows/codeql-scan-backend.yaml'
       - '.github/workflows/manual-deploy-backend.yaml'
       - '.github/workflows/unleash.yaml'

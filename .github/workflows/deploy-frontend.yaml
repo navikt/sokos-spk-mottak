@@ -1,6 +1,8 @@
 name: Deploy application (frontend)
 
 on:
+  schedule:
+    - cron: '0 5 * * 1'
   push:
     branches:
       - main
@@ -14,8 +16,6 @@ on:
       - '.github/workflows/build-pr-frontend.yaml'
       - '.github/workflows/codeql-scan-frontend.yaml'
       - 'dependabot-automerge.yaml'
-      - '.github/workflows/digestabot-automerge.yaml'
-      - '.github/workflows/digestabot-update.yaml'
       - '.github/workflows/manual-deploy-frontend.yaml'
       - '.github/dependabot.yaml'
 
