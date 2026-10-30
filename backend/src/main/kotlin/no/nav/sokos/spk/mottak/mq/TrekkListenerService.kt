@@ -25,7 +25,7 @@ import no.nav.sokos.spk.mottak.domain.oppdrag.Mmel
 import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
-import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
+import no.nav.sokos.spk.mottak.util.SQLUtils.transactionWithDeadlockRetry
 import no.nav.sokos.spk.mottak.util.TraceUtils
 
 private val logger = KotlinLogging.logger {}
@@ -35,6 +35,8 @@ class TrekkListenerService(
     trekkReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().trekkReplyQueueName),
     private val producer: JmsProducerService = boqProducer(),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
+    private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
+    private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
 ) : JmsListener(connectionFactory) {
     companion object {
         fun boqProducer() =
@@ -47,8 +49,6 @@ class TrekkListenerService(
             )
     }
 
-    private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
-    private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
     private val trekkMQListener = createConsumer(trekkReplyQueue) { onTrekkMessage(it) }
 
     private fun onTrekkMessage(message: Message) {
@@ -83,8 +83,9 @@ class TrekkListenerService(
     ) {
         val trekkStatus = trekkInfo.trekkTilstandStatus()
         val transaksjonId = trekk.transaksjonsId.toInt()
+
         if (!isDuplicate(transaksjonId, trekkInfo.alvorlighetsgrad)) {
-            dataSource.transaction { session ->
+            dataSource.transactionWithDeadlockRetry { session ->
                 val transTilstandIdList =
                     transaksjonTilstandRepository.insertBatch(
                         transaksjonIdList = listOf(transaksjonId),

@@ -48,6 +48,7 @@ class UtbetalingListenerServiceTest :
         }
 
         Given("det finnes utbetalingsmeldinger som skal sendes til oppdragZ") {
+            val initialListenerCount = Metrics.mqUtbetalingListenerMetricCounter.longValue
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(readFromResource("/database/utbetaling_transaksjon.sql")))
             }
@@ -62,7 +63,7 @@ class UtbetalingListenerServiceTest :
                     Metrics.mqUtbetalingProducerMetricCounter.longValue shouldBe 1
                     run {
                         delay(2000)
-                        Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe 2
+                        Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe initialListenerCount + 2
                         val transaksjonIdList = listOf(20025925, 20025926)
                         verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_RETUR_OK, "00")
                         verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_RETUR_OK)
@@ -72,6 +73,7 @@ class UtbetalingListenerServiceTest :
         }
 
         Given("det finnes flere utbetalingsmeldinger som skal sendes til oppdragZ") {
+            val initialListenerCount = Metrics.mqUtbetalingListenerMetricCounter.longValue
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(readFromResource("/database/utbetaling_transaksjon.sql")))
             }
@@ -86,7 +88,7 @@ class UtbetalingListenerServiceTest :
                     Metrics.mqUtbetalingProducerMetricCounter.longValue shouldBe 2
                     run {
                         delay(1000)
-                        Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe 3
+                        Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe initialListenerCount + 1
                         val transaksjonIdList = listOf(20025934)
                         verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_RETUR_FEIL, "08")
                         verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_OPPDRAG_RETUR_FEIL)
@@ -96,6 +98,7 @@ class UtbetalingListenerServiceTest :
         }
 
         Given("det finnes enda flere utbetalingsmeldinger som skal sendes til oppdragZ") {
+            val initialListenerCount = Metrics.mqUtbetalingListenerMetricCounter.longValue
             Db2Listener.dataSource.transaction { session ->
                 session.update(queryOf(readFromResource("/database/utbetaling_transaksjon.sql")))
                 session.update(queryOf("UPDATE T_TRANSAKSJON SET OS_STATUS = '00' WHERE TRANSAKSJON_ID = 20025934"))
@@ -111,7 +114,7 @@ class UtbetalingListenerServiceTest :
                     Metrics.mqUtbetalingProducerMetricCounter.longValue shouldBe 3
                     run {
                         delay(1000)
-                        Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe 3
+                        Metrics.mqUtbetalingListenerMetricCounter.longValue shouldBe initialListenerCount
                         val transaksjonIdList = listOf(20025934)
                         verifyTransaksjonState(transaksjonIdList, TRANS_TILSTAND_OPPRETTET, "00")
                         verifyTransaksjonTilstandState(transaksjonIdList, TRANS_TILSTAND_OPPRETTET)
