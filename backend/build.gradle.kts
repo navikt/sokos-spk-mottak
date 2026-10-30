@@ -66,7 +66,7 @@ val ibmmqVersion = "10.0.0.5"
 val activemqVersion = "2.57.0"
 val graphqlClientVersion = "10.2.2"
 val jaxbVersion = "4.0.9"
-val opentelemetryVersion = "1.66.0"
+val opentelemetryVersion = "1.67.0"
 val unleashedVersion = "12.3.0"
 
 dependencies {
