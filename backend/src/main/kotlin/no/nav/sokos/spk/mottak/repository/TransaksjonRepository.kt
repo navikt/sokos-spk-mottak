@@ -98,6 +98,7 @@ class TransaksjonRepository(
         osStatus: String? = null,
         session: Session,
     ) {
+        require(transaksjonIdList.size == transTilstandIdList.size) { "Hver transaksjon må ha en tilhørende transtilstand" }
         updateBatchTimer.recordCallable {
             session.batchPreparedNamedStatement(
                 """
@@ -110,7 +111,7 @@ class TransaksjonRepository(
                         TRANS_TILSTAND_ID = :transTilstandId                        
                     WHERE TRANSAKSJON_ID = :transaksjonId;
                 """.trimIndent(),
-                transaksjonIdList.zip(transTilstandIdList).map { it ->
+                transaksjonIdList.zip(transTilstandIdList).sortedBy { it.first }.map { it ->
                     mapOf(
                         "transaksjonId" to it.first,
                         "transTilstandId" to it.second,

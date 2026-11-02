@@ -24,7 +24,7 @@ import no.nav.sokos.spk.mottak.metrics.Metrics
 import no.nav.sokos.spk.mottak.repository.TransaksjonRepository
 import no.nav.sokos.spk.mottak.repository.TransaksjonTilstandRepository
 import no.nav.sokos.spk.mottak.util.JaxbUtils
-import no.nav.sokos.spk.mottak.util.SQLUtils.transaction
+import no.nav.sokos.spk.mottak.util.SQLUtils.transactionWithDeadlockRetry
 import no.nav.sokos.spk.mottak.util.TraceUtils
 
 private val logger = KotlinLogging.logger {}
@@ -34,6 +34,8 @@ class UtbetalingListenerService(
     utbetalingReplyQueue: Queue = MQQueue(PropertiesConfig.MQProperties().utbetalingReplyQueueName),
     private val producer: JmsProducerService = boqProducer(),
     private val dataSource: HikariDataSource = DatabaseConfig.db2DataSource,
+    private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource),
+    private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource),
 ) : JmsListener(connectionFactory) {
     companion object {
         fun boqProducer() =
@@ -46,8 +48,6 @@ class UtbetalingListenerService(
             )
     }
 
-    private val transaksjonRepository: TransaksjonRepository = TransaksjonRepository(dataSource)
-    private val transaksjonTilstandRepository: TransaksjonTilstandRepository = TransaksjonTilstandRepository(dataSource)
     private val utbetalingMQListener = createConsumer(utbetalingReplyQueue) { onUtbetalingMessage(it) }
 
     private fun onUtbetalingMessage(message: Message) {
@@ -76,7 +76,7 @@ class UtbetalingListenerService(
                     return@runCatching
                 }
 
-                dataSource.transaction { session ->
+                dataSource.transactionWithDeadlockRetry { session ->
                     val transTilstandIdList =
                         transaksjonTilstandRepository.insertBatch(
                             transaksjonIdList = transaksjonIdList,

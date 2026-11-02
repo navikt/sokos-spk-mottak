@@ -48,7 +48,7 @@ class TransaksjonTilstandRepository(
                         VERSJON
                     ) VALUES (:transaksjonId, :transaksjonTilstandType, :feilkode, :feilkodeMelding, CURRENT_TIMESTAMP, :systemId, CURRENT_TIMESTAMP, :systemId, 1)
                     """.trimIndent(),
-                    transaksjonIdList.map {
+                    transaksjonIdList.sorted().map {
                         mapOf(
                             "transaksjonId" to it,
                             "transaksjonTilstandType" to transaksjonTilstandType,
@@ -59,17 +59,21 @@ class TransaksjonTilstandRepository(
                     },
                 )
 
-                session.list(
-                    queryOf(
-                        """
-                        SELECT MAX(TRANS_TILSTAND_ID) AS TRANS_TILSTAND_ID
-                        FROM T_TRANS_TILSTAND
-                        WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()})
-                          AND K_TRANS_TILST_T = '$transaksjonTilstandType'
-                        GROUP BY TRANSAKSJON_ID
-                        """.trimIndent(),
-                    ),
-                ) { row -> row.int("TRANS_TILSTAND_ID") }
+                val transTilstandIdByTransaksjonId =
+                    session
+                        .list(
+                            queryOf(
+                                """
+                                SELECT TRANSAKSJON_ID, MAX(TRANS_TILSTAND_ID) AS TRANS_TILSTAND_ID
+                                FROM T_TRANS_TILSTAND
+                                WHERE TRANSAKSJON_ID IN (${transaksjonIdList.joinToString()})
+                                  AND K_TRANS_TILST_T = '$transaksjonTilstandType'
+                                GROUP BY TRANSAKSJON_ID
+                                """.trimIndent(),
+                            ),
+                        ) { row -> row.int("TRANSAKSJON_ID") to row.int("TRANS_TILSTAND_ID") }
+                        .toMap()
+                transaksjonIdList.map { transTilstandIdByTransaksjonId.getValue(it) }
             }.orEmpty()
 
     /** Bruker kun for testing */
