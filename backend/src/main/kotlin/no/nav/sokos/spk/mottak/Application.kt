@@ -30,7 +30,9 @@ private fun Application.module() {
     securityConfig(useAuthentication)
     val scheduler = JobTaskConfig.scheduler()
     monitor.subscribe(ApplicationStopPreparing) {
-        scheduler.stop()
+        if (!scheduler.schedulerState.isShuttingDown) {
+            scheduler.stop()
+        }
     }
     routing {
         internalNaisRoutes(applicationState)
