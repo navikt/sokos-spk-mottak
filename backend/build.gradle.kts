@@ -7,8 +7,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.4.20"
-    kotlin("plugin.serialization") version "2.4.20"
+    kotlin("jvm") version "2.4.21"
+    kotlin("plugin.serialization") version "2.4.21"
     id("com.expediagroup.graphql") version "10.2.2"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.9"
@@ -61,7 +61,7 @@ val flywayVersion = "13.7.0"
 val postgresVersion = "42.7.13"
 val dbSchedulerVersion = "16.12.0"
 val vaultVersion = "1.3.10"
-val tjenestespesifikasjonVersion = "1.0_20260824090107_516d013"
+val tjenestespesifikasjonVersion = "1.0_20260926225036_7c46943"
 val ibmmqVersion = "10.0.0.5"
 val activemqVersion = "2.57.0"
 val graphqlClientVersion = "10.2.2"
