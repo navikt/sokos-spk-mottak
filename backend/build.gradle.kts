@@ -11,7 +11,7 @@ plugins {
     kotlin("plugin.serialization") version "2.4.20"
     id("com.expediagroup.graphql") version "10.2.2"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-    id("org.jetbrains.kotlinx.kover") version "0.9.9"
+    id("org.jetbrains.kotlinx.kover") version "0.9.11"
 
     application
 }
@@ -40,34 +40,34 @@ repositories {
 }
 
 val ktorVersion = "3.6.0"
-val jschVersion = "2.28.7"
-val logbackVersion = "1.6.3"
+val jschVersion = "2.28.8"
+val logbackVersion = "1.6.6"
 val logstashVersion = "9.0"
-val micrometerVersion = "1.17.1"
+val micrometerVersion = "1.17.2"
 val kotlinLoggingVersion = "3.0.5"
 val natpryceVersion = "1.6.10.0"
-val kotestVersion = "6.2.5"
+val kotestVersion = "6.2.6"
 val wiremockVersion = "3.13.2"
-val kotlinxSerializationVersion = "1.11.0"
+val kotlinxSerializationVersion = "1.12.0"
 val kotlinxDatetimeVersion = "0.8.0-0.6.x-compat"
-val mockOAuth2ServerVersion = "6.0.2"
+val mockOAuth2ServerVersion = "6.1.3"
 val mockkVersion = "1.14.11"
 val hikariVersion = "7.1.0"
 val db2JccVersion = "12.1.5.0"
-val kotliqueryVersion = "2.1.1"
+val kotliqueryVersion = "2.1.2"
 val testcontainersVersion = "1.21.4"
-val h2Version = "2.5.250"
-val flywayVersion = "13.7.0"
-val postgresVersion = "42.7.13"
+val h2Version = "2.5.252"
+val flywayVersion = "13.11.1"
+val postgresVersion = "42.7.14"
 val dbSchedulerVersion = "16.12.0"
-val vaultVersion = "1.3.10"
+val vaultVersion = "1.4.1"
 val tjenestespesifikasjonVersion = "1.0_20260824090107_516d013"
-val ibmmqVersion = "10.0.0.5"
+val ibmmqVersion = "10.0.1.0"
 val activemqVersion = "2.57.0"
 val graphqlClientVersion = "10.2.2"
 val jaxbVersion = "4.0.9"
 val opentelemetryVersion = "1.67.0"
-val unleashedVersion = "12.3.0"
+val unleashedVersion = "12.3.1"
 
 dependencies {
 
@@ -160,14 +160,14 @@ dependencies {
             because("GHSA-xxph-c9ww-hj94 affects Guava versions before 33.7.2")
         }
         listOf("implementation", "graphqlClient", "graphqlGraalVM", "graphqlSDL").forEach { configuration ->
-            add(configuration, "tools.jackson.core:jackson-databind:3.2.3") {
+            add(configuration, "tools.jackson.core:jackson-databind:3.2.4") {
                 because("Multiple versions of jackson-databind has vulnerable dependencies. Affected version >= 3.2.0, <= 3.2.2")
             }
         }
-        implementation("com.fasterxml.jackson.core:jackson-databind:2.22.3") {
+        implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4") {
             because("Multiple versions of jackson-databind has vulnerable dependencies. Affected version >= 2.22.0, < 2.22.2")
         }
-        implementation("org.bouncycastle:bcprov-jdk18on:1.85") {
+        implementation("org.bouncycastle:bcprov-jdk18on:1.86") {
             because("Affected version < 1.85")
         }
     }
