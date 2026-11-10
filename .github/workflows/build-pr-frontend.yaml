@@ -24,7 +24,7 @@ jobs:
     permissions:
       contents: read
     name: Build & test application
-    uses: navikt/beregningsplattform-gha-workflows/.github/workflows/node-build-pr.yaml@02ef55dcef76850a0c319cdf705904401e77a002 # ratchet:navikt/beregningsplattform-gha-workflows/.github/workflows/node-build-pr.yaml@v1.1.3
+    uses: navikt/beregningsplattform-gha-workflows/.github/workflows/node-build-pr.yaml@f76a78f10742990ced901927ed5113f6a0803961 # ratchet:navikt/beregningsplattform-gha-workflows/.github/workflows/node-build-pr.yaml@v1.1.4
     secrets: inherit
     with:
       project-directory: frontend
