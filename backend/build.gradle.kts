@@ -50,14 +50,14 @@ val kotestVersion = "6.2.6"
 val wiremockVersion = "3.13.2"
 val kotlinxSerializationVersion = "1.12.0"
 val kotlinxDatetimeVersion = "0.8.0-0.6.x-compat"
-val mockOAuth2ServerVersion = "6.1.4"
-val mockkVersion = "1.14.11"
+val mockOAuth2ServerVersion = "6.1.5"
+val mockkVersion = "1.14.12"
 val hikariVersion = "7.1.0"
 val db2JccVersion = "12.1.5.0"
 val kotliqueryVersion = "2.1.2"
 val testcontainersVersion = "1.21.4"
 val h2Version = "2.5.252"
-val flywayVersion = "13.12.0"
+val flywayVersion = "13.12.1"
 val postgresVersion = "42.7.14"
 val dbSchedulerVersion = "16.12.0"
 val vaultVersion = "1.4.1"
@@ -66,7 +66,7 @@ val ibmmqVersion = "10.0.1.0"
 val activemqVersion = "2.57.0"
 val graphqlClientVersion = "11.0.0"
 val jaxbVersion = "4.0.9"
-val opentelemetryVersion = "1.67.0"
+val opentelemetryVersion = "1.68.0"
 val unleashedVersion = "12.3.2"
 
 dependencies {
@@ -160,11 +160,11 @@ dependencies {
             because("GHSA-xxph-c9ww-hj94 affects Guava versions before 33.7.2")
         }
         listOf("implementation", "graphqlClient", "graphqlGraalVM", "graphqlSDL").forEach { configuration ->
-            add(configuration, "tools.jackson.core:jackson-databind:3.2.4") {
+            add(configuration, "tools.jackson.core:jackson-databind:3.3.0") {
                 because("Multiple versions of jackson-databind has vulnerable dependencies. Affected version >= 3.2.0, <= 3.2.2")
             }
         }
-        implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4") {
+        implementation("com.fasterxml.jackson.core:jackson-databind:2.23.0") {
             because("Multiple versions of jackson-databind has vulnerable dependencies. Affected version >= 2.22.0, < 2.22.2")
         }
         implementation("org.bouncycastle:bcprov-jdk18on:1.86") {
