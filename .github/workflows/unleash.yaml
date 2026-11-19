@@ -19,49 +19,21 @@ concurrency:
 jobs:
   deploy-dev:
     name: Deploy Unleash API token to dev-fss
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
     permissions:
       contents: read
       id-token: write
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # ratchet:step-security/harden-runner@v2.22.4
-        with:
-          egress-policy: audit
-
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Deploy to dev-fss
-        uses: nais/deploy/actions/deploy@6a9dcd6df697ec2d38edc78cadb0b9acd1232f50 # ratchet:nais/deploy/actions/deploy@v3
-        env:
-          CLUSTER: dev-fss
-          RESOURCE: backend/.nais/dev/unleash-q1.yaml
+    uses: navikt/beregningsplattform-gha-workflows/.github/workflows/unleash-deploy.yaml@3242be8cc9cf04f8d65648d1280b7141c3ce781d # ratchet:navikt/beregningsplattform-gha-workflows/.github/workflows/unleash-deploy.yaml@main
+    with:
+      cluster: dev-fss
+      resource: backend/.nais/dev/unleash-q1.yaml
 
   deploy-prod:
     name: Deploy Unleash API token to prod-fss
     needs: [deploy-dev]
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
     permissions:
       contents: read
       id-token: write
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # ratchet:step-security/harden-runner@v2.22.4
-        with:
-          egress-policy: audit
-
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Deploy to prod-fss
-        uses: nais/deploy/actions/deploy@6a9dcd6df697ec2d38edc78cadb0b9acd1232f50 # ratchet:nais/deploy/actions/deploy@v3
-        env:
-          CLUSTER: prod-fss
-          RESOURCE: backend/.nais/prod/unleash-prod.yaml
+    uses: navikt/beregningsplattform-gha-workflows/.github/workflows/unleash-deploy.yaml@3242be8cc9cf04f8d65648d1280b7141c3ce781d # ratchet:navikt/beregningsplattform-gha-workflows/.github/workflows/unleash-deploy.yaml@main
+    with:
+      cluster: prod-fss
+      resource: backend/.nais/prod/unleash-prod.yaml

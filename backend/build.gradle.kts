@@ -167,9 +167,6 @@ dependencies {
         implementation("com.fasterxml.jackson.core:jackson-databind:2.23.0") {
             because("Multiple versions of jackson-databind has vulnerable dependencies. Affected version >= 2.22.0, < 2.22.2")
         }
-        implementation("org.bouncycastle:bcprov-jdk18on:1.86") {
-            because("Affected version < 1.85")
-        }
     }
 }
 
