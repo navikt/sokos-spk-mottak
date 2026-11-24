@@ -41,25 +41,25 @@ repositories {
 
 val ktorVersion = "3.6.1"
 val jschVersion = "2.28.8"
-val logbackVersion = "1.6.6"
+val logbackVersion = "1.6.7"
 val logstashVersion = "9.0"
 val micrometerVersion = "1.17.2"
 val kotlinLoggingVersion = "3.0.5"
 val natpryceVersion = "1.6.10.0"
-val kotestVersion = "6.2.6"
+val kotestVersion = "6.2.7"
 val wiremockVersion = "3.13.2"
-val kotlinxSerializationVersion = "1.12.0"
+val kotlinxSerializationVersion = "1.13.0"
 val kotlinxDatetimeVersion = "0.8.0-0.6.x-compat"
 val mockOAuth2ServerVersion = "6.1.5"
 val mockkVersion = "1.14.12"
 val hikariVersion = "7.1.0"
 val db2JccVersion = "12.1.5.0"
-val kotliqueryVersion = "2.1.2"
+val kotliqueryVersion = "2.1.3"
 val testcontainersVersion = "1.21.4"
 val h2Version = "2.5.252"
-val flywayVersion = "13.12.1"
+val flywayVersion = "13.12.2"
 val postgresVersion = "42.7.14"
-val dbSchedulerVersion = "17.0.0"
+val dbSchedulerVersion = "17.1.0"
 val vaultVersion = "1.4.1"
 val tjenestespesifikasjonVersion = "1.0_20260926225036_7c46943"
 val ibmmqVersion = "10.0.1.0"
@@ -151,7 +151,7 @@ dependencies {
     testImplementation("org.wiremock:wiremock:$wiremockVersion")
 
     // Sårbarheter
-    implementation(platform("io.netty:netty-bom:4.2.20.Final")) {
+    implementation(platform("io.netty:netty-bom:4.2.21.Final")) {
         because("Align Netty modules on the latest stable patch release")
     }
 
